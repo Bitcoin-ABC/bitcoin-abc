@@ -2,8 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/types.h>
+#include <consensus/amount.h>
 #include <key_io.h>
 #include <node/types.h>
+#include <primitives/transaction.h>
+#include <psbt.h>
+#include <script/script.h>
 #include <util/bip32.h>
 #include <util/strencodings.h>
 #include <wallet/test/wallet_test_fixture.h>
@@ -12,6 +17,8 @@
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
+
+using common::PSBTError;
 
 BOOST_FIXTURE_TEST_SUITE(psbt_wallet_tests, WalletTestingSetup)
 
@@ -118,6 +125,31 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
         "877110d90c6a4f000000800000008004000080002202027f6399757d2eff55a136ad02"
         "c684b1838b6556e5f1b6b34282a94b6b5005109610d90c6a4f00000080000000800500"
         "008000");
+}
+
+BOOST_AUTO_TEST_CASE(fillpsbt_out_of_range_prevout) {
+    LOCK(m_wallet.cs_wallet);
+
+    // Wallet-known previous transaction with a single output.
+    CMutableTransaction prev_mtx;
+    prev_mtx.vin.emplace_back();
+    prev_mtx.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+    CTransactionRef prev_tx = MakeTransactionRef(prev_mtx);
+    m_wallet.mapWallet.emplace(std::piecewise_construct,
+                               std::forward_as_tuple(prev_tx->GetId()),
+                               std::forward_as_tuple(prev_tx));
+
+    // PSBT that references the wallet tx with an out-of-range vout index.
+    CMutableTransaction mtx;
+    mtx.vin.emplace_back(COutPoint(prev_tx->GetId(), 1));
+    mtx.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
+    PartiallySignedTransaction psbtx(mtx);
+
+    bool complete = false;
+    const auto err =
+        m_wallet.FillPSBT(psbtx, complete, SigHashType(), false, false);
+    BOOST_CHECK(err.has_value());
+    BOOST_CHECK_EQUAL(*err, PSBTError::MISSING_INPUTS);
 }
 
 BOOST_AUTO_TEST_CASE(parse_hd_keypath) {

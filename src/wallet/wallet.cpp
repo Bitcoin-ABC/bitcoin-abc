@@ -2146,9 +2146,11 @@ std::optional<PSBTError> CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
             const auto it = mapWallet.find(txid);
             if (it != mapWallet.end()) {
                 const CWalletTx &wtx = it->second;
-                CTxOut utxo = wtx.tx->vout[txin.prevout.GetN()];
+                if (txin.prevout.GetN() >= wtx.tx->vout.size()) {
+                    return PSBTError::MISSING_INPUTS;
+                }
                 // Update UTXOs from the wallet.
-                input.utxo = utxo;
+                input.utxo = wtx.tx->vout[txin.prevout.GetN()];
             }
         }
     }
