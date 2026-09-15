@@ -274,10 +274,11 @@ pub struct Chronik {
     node: Arc<Node>,
     indexer: Arc<RwLock<ChronikIndexer>>,
     pause: Pause,
-    /// Tokio runtime driving HTTP and Electrum. Wrapped so [`Chronik::stop`]
-    /// can shut it down before closing RocksDB, ensuring no async task touches
-    /// the DB during teardown. The Option is needed to allow for the runtime
-    /// to be consumed before the Chronik struct is dropped.
+    /// Tokio runtime driving HTTP and Electrum. Wrapped so
+    /// [`Chronik::interrupt`] can shut it down before the node is torn down
+    /// and before RocksDB is closed, ensuring no async task touches either
+    /// during teardown. The Option is needed to allow for the runtime to
+    /// be consumed before the Chronik struct is dropped.
     runtime: Mutex<Option<Runtime>>,
 }
 
@@ -377,17 +378,25 @@ impl Chronik {
         );
     }
 
-    /// Stop Chronik to prepare for shutdown.
-    ///
-    /// Shuts down the tokio runtime first so HTTP and Electrum tasks (including
-    /// detached `tokio::spawn` work) cannot access RocksDB, then flushes the
-    /// DB. RocksDB background work cancellation happens when the DB is
-    /// dropped.
-    pub fn stop(&self) -> Result<()> {
+    /// Shut down the tokio runtime driving HTTP and Electrum, so no request
+    /// handler (including detached `tokio::spawn` work) can access the node or
+    /// RocksDB anymore. Chronik keeps indexing validation interface events
+    /// after this returns; only [`Chronik::stop`] tears the indexer down.
+    pub fn interrupt(&self) {
         let mut runtime_guard = self.runtime.lock().unwrap();
         if let Some(runtime) = runtime_guard.take() {
             runtime.shutdown_timeout(Duration::from_secs(60));
         }
+    }
+
+    /// Stop Chronik to prepare for shutdown.
+    ///
+    /// Shuts down the tokio runtime first (if [`Chronik::interrupt`] didn't
+    /// already do so) so HTTP and Electrum tasks cannot access RocksDB, then
+    /// flushes the DB. RocksDB background work cancellation happens when the DB
+    /// is dropped.
+    pub fn stop(&self) -> Result<()> {
+        self.interrupt();
         let indexer = self.indexer.blocking_write();
         indexer.stop()?;
         Ok(())

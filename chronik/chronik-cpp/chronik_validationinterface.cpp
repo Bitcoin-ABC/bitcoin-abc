@@ -31,6 +31,8 @@ public:
         m_node.validation_signals->UnregisterValidationInterface(this);
     }
 
+    void InterruptChronik() { m_chronik->interrupt(); }
+
     bool StopChronik() {
         try {
             m_chronik->stop();
@@ -123,6 +125,12 @@ void StartChronikValidationInterface(
         std::make_unique<ChronikValidationInterface>(node,
                                                      std::move(chronik_box));
     g_chronik_validation_interface->Register();
+}
+
+void InterruptChronikRequestHandlers() {
+    if (g_chronik_validation_interface) {
+        g_chronik_validation_interface->InterruptChronik();
+    }
 }
 
 void StopChronikValidationInterface() {

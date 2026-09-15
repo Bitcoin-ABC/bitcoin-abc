@@ -38,7 +38,12 @@ static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{10min};
 bool Start(const ArgsManager &args, const Config &config,
            const node::NodeContext &node, bool fWipe);
 
-// Unregisters Chronik indexer as ValidationInterface, stops the HTTP server
+// Stops the HTTP and Electrum servers, keeping the indexer running. Must run
+// before the node subsystems the request handlers use are shut down.
+void Interrupt();
+
+// Unregisters Chronik indexer as ValidationInterface, tears the indexer down.
+// Must run once the validation interface queue is idle.
 void Stop();
 
 } // namespace chronik

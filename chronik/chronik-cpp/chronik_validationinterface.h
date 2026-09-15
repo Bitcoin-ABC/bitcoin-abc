@@ -21,6 +21,17 @@ void StartChronikValidationInterface(
     const node::NodeContext &node,
     rust::Box<chronik_bridge::Chronik> chronik_box);
 
+/**
+ * Stop serving Chronik requests, while keeping the indexer running. Must be
+ * called before the node context Chronik's request handlers rely on is torn
+ * down.
+ */
+void InterruptChronikRequestHandlers();
+
+/**
+ * Unregister the validation interface and release the Chronik instance. Must
+ * only be called when no validation interface callback can be running.
+ */
 void StopChronikValidationInterface();
 } // namespace chronik
 

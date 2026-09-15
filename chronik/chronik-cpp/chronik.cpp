@@ -161,6 +161,10 @@ bool Start(const ArgsManager &args, const Config &config,
     return chronik_bridge::setup_chronik(*params, node);
 }
 
+void Interrupt() {
+    InterruptChronikRequestHandlers();
+}
+
 void Stop() {
     LogPrintf("Stopping Chronik...\n");
     StopChronikValidationInterface();

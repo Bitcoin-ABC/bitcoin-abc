@@ -253,6 +253,18 @@ void Shutdown(NodeContext &node) {
     StopREST();
     StopRPC();
     StopHTTPServer();
+
+#if ENABLE_CHRONIK
+    // Chronik serves its own HTTP and Electrum interfaces, whose handlers reach
+    // into peerman (to broadcast txs), the mempool and the chainstate. Stop
+    // serving requests together with the other interfaces, while all of these
+    // are still alive. The Chronik indexer keeps running until chronik::Stop()
+    // below, so it doesn't miss any validation interface event.
+    if (node.args->GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
+        chronik::Interrupt();
+    }
+#endif
+
     for (const auto &client : node.chain_clients) {
         client->flush();
     }
@@ -321,13 +333,15 @@ void Shutdown(NodeContext &node) {
         node.validation_signals->FlushBackgroundCallbacks();
     }
 
+    // Stop and delete all indexes only after flushing background callbacks. The
+    // scheduler is stopped and the queue is flushed at this point, so no
+    // validation interface callback can be running anymore and the indexes can
+    // safely be released.
 #if ENABLE_CHRONIK
     if (node.args->GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
         chronik::Stop();
     }
 #endif
-
-    // Stop and delete all indexes only after flushing background callbacks.
     if (g_txindex) {
         g_txindex->Stop();
         g_txindex.reset();
