@@ -140,7 +140,9 @@ to arbitrary size.
 
 ## Wallet integration target
 
-- Shared TS client (no Node-only APIs in the public surface).
+- Shared TS client (`FusionClient`): wallets inject Chronik, keys, output
+  construction, and `runRound`. Node TCP is `createNodeFusionClient` in
+  `src/node.ts`.
 - Cashtab: explicit user control (enable, token allowlist, fee / round caps).
 - Desktop/daemon clients remain first-class for pool liquidity.
 

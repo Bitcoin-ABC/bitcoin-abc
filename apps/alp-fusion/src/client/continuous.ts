@@ -5,9 +5,9 @@
 /**
  * Continuous (daemon-style) client wrapper around {@link runFuseLoop}.
  *
- * Callers inject one round attempt via `runOnce` (network + wallet + signing
- * land in follow-up diffs). This class owns stop / abort semantics so a CLI or
- * wallet can SIGINT without tearing down mid-sleep forever.
+ * Callers inject one round attempt via `runOnce`. This class owns stop /
+ * abort semantics so a wallet can stop the loop without tearing down
+ * mid-sleep forever.
  */
 import {
     runFuseLoop,

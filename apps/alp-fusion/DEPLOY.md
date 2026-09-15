@@ -8,17 +8,18 @@ This document is the ops target for that model.
 
 ## What is in-tree today
 
-| Piece                                                          | Status                                                   |
-| -------------------------------------------------------------- | -------------------------------------------------------- |
-| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430)) |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449)) |
-| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457)) |
-| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466)) |
-| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506)) |
-| Coordinator + client round RPCs over the wire                  | Landed ([D20575](https://reviews.bitcoinabc.org/D20575)) |
-| Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591)) |
-| Chronik sync + covert sign + broadcast                         | This slice — MockChronikClient in tests; no blame        |
-| Blame / restart / DoS limits                                   | Not yet                                                  |
+| Piece                                                          | Status                                                                     |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))                   |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))                   |
+| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))                   |
+| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466))                   |
+| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506))                   |
+| Coordinator + client round RPCs over the wire                  | Landed ([D20575](https://reviews.bitcoinabc.org/D20575))                   |
+| Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591))                   |
+| Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609))                   |
+| Shared `FusionClient` (inject Chronik / keys / `runRound`)     | This slice — no CLI; Node TCP is `createNodeFusionClient` in `src/node.ts` |
+| Blame / restart / DoS limits                                   | Not yet                                                                    |
 
 Unit verification:
 
@@ -62,9 +63,10 @@ Default delays (Electrum-ABC-shaped):
 | `failed` | 15s   |
 | `idle`   | 30s   |
 
-## Operator checklist (future CLI)
+## Operator checklist
 
-When server/client CLIs land, expect roughly:
+Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
+`run` / `stop`). A thin CLI can wrap that later. Expect roughly:
 
 1. **One coordinator** bound on `0.0.0.0:8788` (optional TLS for public hosts).
 2. **N participant hosts**, each with a **unique** mnemonic, same target
@@ -73,10 +75,6 @@ When server/client CLIs land, expect roughly:
    refill after each fusion.
 4. Outbound HTTPS to Chronik from every participant (and from the coordinator
    for broadcast).
-
-Until that wiring exists, treat this file as the contract for follow-up diffs:
-network + wallet `runOnce` implementations must preserve the continuous-loop
-delays and stop/abort behavior already covered by unit tests.
 
 ## Privacy / ops reminders
 
