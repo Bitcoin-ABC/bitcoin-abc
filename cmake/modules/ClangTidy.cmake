@@ -1,6 +1,6 @@
 if(NOT CLANG_TIDY_EXE)
 	include(DoOrFail)
-	find_program_or_fail(CLANG_TIDY_EXE clang-tidy clang-tidy-19 clang-tidy-18 clang-tidy-17 clang-tidy-16)
+	find_program_or_fail(CLANG_TIDY_EXE clang-tidy-24 clang-tidy-23 clang-tidy-22 clang-tidy-21 clang-tidy-20 clang-tidy-19 clang-tidy)
 
 	execute_process(
 		COMMAND "${CLANG_TIDY_EXE}" -version
@@ -9,8 +9,8 @@ if(NOT CLANG_TIDY_EXE)
 	)
 
 	string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" CLANG_TIDY_VERSION "${CLANG_TIDY_VERSION_OUTPUT}")
-	if("${CLANG_TIDY_VERSION}" VERSION_LESS "16.0.0")
-		message(FATAL_ERROR "clang-tidy version >= 16 is required")
+	if("${CLANG_TIDY_VERSION}" VERSION_LESS "19.0.0")
+		message(FATAL_ERROR "clang-tidy version >= 19 is required")
 	endif()
 
 	message(STATUS "Using clang-tidy: ${CLANG_TIDY_EXE} (version ${CLANG_TIDY_VERSION})")
