@@ -1198,15 +1198,12 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         )
         .await?;
 
-        let indexer = self.indexer.read().await;
-        let mut subs: tokio::sync::RwLockWriteGuard<
-            '_,
-            chronik_indexer::subs::Subs,
-        > = indexer.subs().write().await;
-        let script_subs = subs.subs_script_mut();
-
-        let mut recv =
-            script_subs.subscribe_to_hash_member(&script_hash.to_be_bytes());
+        let mut recv = {
+            let indexer = self.indexer.read().await;
+            let mut subs = indexer.subs().write().await;
+            subs.subs_script_mut()
+                .subscribe_to_hash_member(&script_hash.to_be_bytes())
+        };
 
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
@@ -1302,15 +1299,11 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         method: String,
         _params: Value,
     ) -> Result<Value, RPCError> {
-        let indexer = self.indexer.read().await;
-        let blocks: chronik_indexer::query::QueryBlocks<'_> =
-            indexer.blocks(&self.node);
-
-        let subs: tokio::sync::RwLockWriteGuard<
-            '_,
-            chronik_indexer::subs::Subs,
-        > = indexer.subs().write().await;
-        let mut block_subs = subs.sub_to_block_msgs();
+        let mut block_subs = {
+            let indexer = self.indexer.read().await;
+            let subs = indexer.subs().read().await;
+            subs.sub_to_block_msgs()
+        };
 
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
@@ -1377,6 +1370,10 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 log_chronik!("Unsubscription from electrum headers\n");
             });
         }
+
+        let indexer = self.indexer.read().await;
+        let blocks: chronik_indexer::query::QueryBlocks<'_> =
+            indexer.blocks(&self.node);
 
         let tip_height = blocks
             .blockchain_info()
@@ -1462,16 +1459,11 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let txid = TxId::try_from(&txid_hex)
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
-        let indexer = self.indexer.read().await;
-
-        // Subscribe
-        let mut subs: tokio::sync::RwLockWriteGuard<
-            '_,
-            chronik_indexer::subs::Subs,
-        > = indexer.subs().write().await;
-        let txid_subs = subs.subs_txid_mut();
-
-        let mut recv = txid_subs.subscribe_to_member(&txid);
+        let mut recv = {
+            let indexer = self.indexer.read().await;
+            let mut subs = indexer.subs().write().await;
+            subs.subs_txid_mut().subscribe_to_member(&txid)
+        };
 
         let indexer_clone = self.indexer.clone();
         let node_clone = self.node.clone();
@@ -1515,6 +1507,8 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 log_chronik!("Unsubscription from electrum txid {txid_hex}\n");
             });
         }
+
+        let indexer = self.indexer.read().await;
 
         let txs = indexer.txs(&self.node);
         let height = txs.tx_by_id(txid).ok().map(|tx| {
