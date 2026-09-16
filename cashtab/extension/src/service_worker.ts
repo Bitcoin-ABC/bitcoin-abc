@@ -1,4 +1,4 @@
-// Copyright (c) 2024-2025 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -48,7 +48,28 @@ const NOTIFICATION_WIDTH = 450;
 const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
 const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
 
-chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
+/**
+ * True when `sender` is a Cashtab extension page (popup), not a content
+ * script on a web page. Keep in sync with src/extension/messageGuards.ts.
+ */
+const isExtensionPageSender = (
+    sender: chrome.runtime.MessageSender,
+    extensionId: string,
+): boolean => {
+    if (!extensionId || sender.id !== extensionId) {
+        return false;
+    }
+    const extensionOrigin = `chrome-extension://${extensionId}`;
+    if (sender.origin === extensionOrigin) {
+        return true;
+    }
+    return Boolean(sender.url?.startsWith(`${extensionOrigin}/`));
+};
+
+chrome.runtime.onMessage.addListener(function (
+    request: ChromeMessage,
+    sender: chrome.runtime.MessageSender,
+) {
     // Handle a transaction creation request
     if (request.text == `Cashtab` && request.txInfo) {
         console.log(
@@ -78,6 +99,14 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
         request.text === `Cashtab` &&
         Object.keys(request).includes('addressRequestApproved')
     ) {
+        // Pages can forge this payload via the content script. Only the
+        // extension popup may resolve a pending address request.
+        if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+            console.warn(
+                'Ignoring addressRequestApproved from non-extension sender',
+            );
+            return;
+        }
         // If approved, then share the address
         if (request.addressRequestApproved) {
             chrome.tabs.sendMessage(Number(request.tabId), {
@@ -92,6 +121,10 @@ chrome.runtime.onMessage.addListener(function (request: ChromeMessage) {
 
     // Handle transaction response from Cashtab
     if (request.text === `Cashtab` && request.txResponse) {
+        if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+            console.warn('Ignoring txResponse from non-extension sender');
+            return;
+        }
         handleTransactionResponse(request.tabId, request.txResponse);
     }
 });

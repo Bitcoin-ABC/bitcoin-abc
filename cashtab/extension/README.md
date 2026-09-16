@@ -148,9 +148,10 @@ window.addEventListener('message', function (event) {
 
 ## Security Considerations
 
-1. **Origin Validation**: The extension only accepts messages from the same window (`event.source != window` check)
-2. **User Consent**: All address requests require explicit user approval through a popup
-3. **Transaction Review**: Transaction creation opens Cashtab for user review before sending
+1. **Origin Validation**: The content script only accepts same-window messages from the page origin
+2. **Allowlisted page requests**: Pages may request an address or open a transaction. Approval and tx-response messages from a page are ignored
+3. **User Consent**: Address and transaction results are sent only after the Cashtab popup confirms the action
+4. **Transaction Review**: Transaction creation opens Cashtab for user review before sending
 
 ## Browser Compatibility
 
