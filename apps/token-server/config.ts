@@ -9,6 +9,7 @@ interface TokenServerConfig {
     maxUploadSize: number;
     whitelist: string[];
     iconSizes: number[];
+    chronikUrls: string[];
 }
 
 const config: TokenServerConfig = {
@@ -32,6 +33,11 @@ const config: TokenServerConfig = {
         'capacitor://localhost', // Capacitor iOS default (iosScheme: capacitor)
     ],
     iconSizes: [32, 64, 128, 256, 512],
+    chronikUrls: [
+        'https://chronik-native2.fabien.cash',
+        'https://chronik-native3.fabien.cash',
+        'https://chronik-native1.fabien.cash',
+    ],
 };
 
 export default config;

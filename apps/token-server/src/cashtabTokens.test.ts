@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import {
     countBlacklistedTokensByMinterAddress,
     countTokensByMinterAddress,
+    insertCashtabTokenIfAbsent,
     upsertCashtabToken,
 } from './cashtabTokens';
 import { insertBlacklistEntry } from './db';
@@ -86,5 +87,34 @@ describe('cashtabTokens.ts', function () {
             ),
             1,
         );
+    });
+
+    it('insertCashtabTokenIfAbsent does not overwrite an existing row', async function () {
+        const tokenId =
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        await insertCashtabTokenIfAbsent(testPool, {
+            tokenId,
+            minterAddress: TEST_MINTER_ADDRESS,
+            tokenType: 'ALP_TOKEN_TYPE_STANDARD',
+            supplyType: 'FIXED',
+        });
+        await insertCashtabTokenIfAbsent(testPool, {
+            tokenId,
+            minterAddress: OTHER_MINTER_ADDRESS,
+            tokenType: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            supplyType: 'VARIABLE',
+        });
+
+        const result = await testPool.query(
+            `SELECT minter_address, token_type, supply_type
+             FROM cashtab_tokens WHERE token_id = $1`,
+            [tokenId],
+        );
+        assert.equal(result.rows.length, 1);
+        assert.deepEqual(result.rows[0], {
+            minter_address: TEST_MINTER_ADDRESS,
+            token_type: 'ALP_TOKEN_TYPE_STANDARD',
+            supply_type: 'FIXED',
+        });
     });
 });

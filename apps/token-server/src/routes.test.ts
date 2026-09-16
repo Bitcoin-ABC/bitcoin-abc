@@ -14,7 +14,11 @@ import { Pool } from 'pg';
 import { seedBlacklist, initialBlacklist, resetBlacklist } from '../src/db';
 import { createTestPool } from '../test/testDb';
 import { hashTokenIcon } from '../src/iconAuth';
+import { insertCashtabToken } from '../src/cashtabTokens';
 import { signMsg, Ecc, Address, shaRmd160, toHex, fromHex } from 'ecash-lib';
+import { ChronikClient, TokenInfo, TokenType, Tx } from 'chronik-client';
+import { getOutputScriptFromAddress } from 'ecashaddrjs';
+import { MockChronikClient } from '../../../modules/mock-chronik-client';
 
 const TEST_SECRET_KEY = fromHex(
     '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
@@ -30,6 +34,43 @@ const TEST_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
 const TEST_TOKEN_TYPE = 'ALP_TOKEN_TYPE_STANDARD';
 const TEST_SUPPLY_TYPE = 'FIXED';
+const OTHER_MINTER_ADDRESS = 'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
+
+const ALP_STANDARD: TokenType = {
+    protocol: 'ALP',
+    type: 'ALP_TOKEN_TYPE_STANDARD',
+    number: 0,
+};
+
+const mockGenesisForToken = (
+    mockChronik: MockChronikClient,
+    tokenId: string,
+    minterAddress: string = TEST_MINTER_ADDRESS,
+): void => {
+    mockChronik.setToken(tokenId, {
+        tokenId,
+        tokenType: ALP_STANDARD,
+        genesisInfo: {
+            tokenTicker: 'TST',
+            tokenName: 'Test Token',
+            url: 'https://cashtab.com/',
+            decimals: 3,
+        },
+        timeFirstSeen: 0,
+    } as TokenInfo);
+    mockChronik.setTx(tokenId, {
+        outputs: [
+            {
+                outputScript: getOutputScriptFromAddress(minterAddress),
+                token: {
+                    tokenId,
+                    isMintBaton: false,
+                    atoms: 10000n,
+                },
+            },
+        ],
+    } as Tx);
+};
 
 // Mirrors Cashtab submitTokenIcon: signMsg(hashFile(icon), wallet.sk)
 const getTestIconUploadSignature = (iconBuffer: Buffer) => {
@@ -70,8 +111,10 @@ describe('routes.js', function () {
     let testPool: Pool;
     let app: http.Server;
     let badDbApp: http.Server;
+    let mockChronik: MockChronikClient;
 
     const mockedTgBot = { api: { sendPhoto: () => Promise.resolve({}) } };
+    const testChronikLookup = { attempts: 1, delayMs: 0 };
 
     let fs: IFs;
     const badDbPool = {
@@ -87,6 +130,8 @@ describe('routes.js', function () {
         }
         vol.fromJSON(fileStructureJson, config.imageDir);
         fs = createFsFromVolume(vol);
+        mockChronik = new MockChronikClient();
+        const chronik = mockChronik as unknown as ChronikClient;
         const TEST_PORT = 5000;
         app = startExpressServer(
             TEST_PORT,
@@ -94,6 +139,8 @@ describe('routes.js', function () {
             mockedTgBot as unknown as Bot,
             fs,
             'test-channel-id',
+            chronik,
+            testChronikLookup,
         );
         const TEST_PORT_BAD_DB = 5001;
         badDbApp = startExpressServer(
@@ -102,6 +149,8 @@ describe('routes.js', function () {
             mockedTgBot as unknown as Bot,
             fs,
             'test-channel-id',
+            chronik,
+            testChronikLookup,
         );
     });
     afterEach(async () => {
@@ -172,6 +221,7 @@ describe('routes.js', function () {
             .expect(/MulterError: File too large/);
     });
     it('We can accept a png upload and resize it on the server', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
         // Create a mock 512x512 png that sharp can process
         const semiTransparentRedPng = await sharp({
             create: {
@@ -199,6 +249,7 @@ describe('routes.js', function () {
             });
     });
     it('We can accept a png upload from Cashtab extension and resize it on the server', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
         // Create a mock 512x512 png that sharp can process
         const semiTransparentRedPng = await sharp({
             create: {
@@ -304,6 +355,7 @@ describe('routes.js', function () {
             });
     });
     it('If the token icon already exists on the server, the /new request is rejected', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
         // Create a mock 512x512 png that sharp can process
         const semiTransparentRedPng = await sharp({
             create: {
@@ -394,6 +446,7 @@ describe('routes.js', function () {
             });
     });
     it('Error in sharp resize is handled', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
         const invalidPng = Buffer.concat([
             Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
             Buffer.alloc(100, 1),
@@ -541,6 +594,7 @@ describe('routes.js', function () {
     it('We save cashtab_tokens metadata on successful icon upload', async function () {
         const tokenId =
             '2222222222222222222222222222222222222222222222222222222222222222';
+        mockGenesisForToken(mockChronik, tokenId);
         const semiTransparentRedPng = await sharp({
             create: {
                 width: 512,
@@ -570,6 +624,181 @@ describe('routes.js', function () {
             minter_address: TEST_MINTER_ADDRESS,
             token_type: TEST_TOKEN_TYPE,
             supply_type: TEST_SUPPLY_TYPE,
+        });
+    });
+    it('We reject a /new request if minterAddress did not mint tokenId', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID, OTHER_MINTER_ADDRESS);
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'minterAddress does not match the genesis minter for this tokenId',
+            });
+    });
+    it('We reject a /new request if the token is not found on chronik', async function () {
+        mockChronik.setToken(
+            TEST_TOKEN_ID,
+            new Error(
+                `Failed getting /token/${TEST_TOKEN_ID}: 404: Token ${TEST_TOKEN_ID} not found in the index`,
+            ),
+        );
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(404)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Token ${TEST_TOKEN_ID} not found on chronik`,
+            });
+    });
+    it('We reject a /new request if chronik is unavailable', async function () {
+        mockChronik.setToken(
+            TEST_TOKEN_ID,
+            new Error('Error connecting to known Chronik instances'),
+        );
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(502)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Failed to look up token ${TEST_TOKEN_ID} on chronik`,
+            });
+    });
+    it('We reject a /new request if genesis metadata is invalid', async function () {
+        mockChronik.setToken(TEST_TOKEN_ID, {
+            tokenId: TEST_TOKEN_ID,
+            tokenType: ALP_STANDARD,
+            genesisInfo: {
+                tokenTicker: 'TST',
+                tokenName: 'Test Token',
+                url: 'https://cashtab.com/',
+                decimals: 3,
+            },
+            timeFirstSeen: 0,
+        } as TokenInfo);
+        mockChronik.setTx(TEST_TOKEN_ID, {
+            outputs: [],
+        } as unknown as Tx);
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(400)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Invalid genesis metadata for ${TEST_TOKEN_ID}`,
+            });
+    });
+    it('We do not overwrite an existing cashtab_tokens row on icon upload', async function () {
+        const tokenId =
+            '3333333333333333333333333333333333333333333333333333333333333333';
+        mockGenesisForToken(mockChronik, tokenId);
+        await insertCashtabToken(testPool, {
+            tokenId,
+            minterAddress: OTHER_MINTER_ADDRESS,
+            tokenType: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            supplyType: 'VARIABLE',
+        });
+
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 0, g: 0, b: 255, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        await appendCashtabNewTokenFields(request(app).post(`/new`), tokenId, {
+            iconBuffer: semiTransparentRedPng,
+        })
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(200);
+
+        const result = await testPool.query(
+            `SELECT token_id, minter_address, token_type, supply_type
+             FROM cashtab_tokens WHERE token_id = $1`,
+            [tokenId],
+        );
+
+        assert.equal(result.rows.length, 1);
+        assert.deepEqual(result.rows[0], {
+            token_id: tokenId,
+            minter_address: OTHER_MINTER_ADDRESS,
+            token_type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            supply_type: 'VARIABLE',
         });
     });
     it('/blacklist returns tokenIds of the blacklist', function () {

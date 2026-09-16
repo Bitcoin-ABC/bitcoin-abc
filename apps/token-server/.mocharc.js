@@ -4,9 +4,10 @@
 
 'use strict';
 module.exports = {
-    require: ['mocha-suppress-logs', 'ts-node/register', './test/setupEnv.ts'],
-    extensions: ['ts'],
-    spec: ['src/**/*.test.ts'],
-    timeout: 30000,
-    exit: true, // Force exit after tests complete (prevents hanging on open handles)
+    'require': ['mocha-suppress-logs', './test/setupEnv.ts'],
+    'node-option': ['import=tsx'],
+    'extensions': ['ts'],
+    'spec': ['src/**/*.test.ts'],
+    'timeout': 30000,
+    'exit': true, // Force exit after tests complete (prevents hanging on open handles)
 };

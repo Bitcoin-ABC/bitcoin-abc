@@ -4,6 +4,7 @@
 
 import 'dotenv/config';
 
+import { ChronikClient } from 'chronik-client';
 import config from './config';
 import { startExpressServer } from './src/routes';
 import {
@@ -38,12 +39,14 @@ async function main(): Promise<void> {
         await prepareTelegramBotForPolling(telegramBot);
         startTelegramBotPolling(telegramBot);
 
+        const chronik = new ChronikClient(config.chronikUrls);
         const server = startExpressServer(
             config.port,
             pool,
             telegramBot,
             fs,
             env.telegramChannelId,
+            chronik,
         );
         console.log(`Express server started on port ${config.port}`);
 

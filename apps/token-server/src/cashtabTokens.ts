@@ -73,6 +73,26 @@ export const insertCashtabToken = async (
 };
 
 /**
+ * Insert a cashtab_tokens row if token_id is new. Existing rows are left unchanged.
+ */
+export const insertCashtabTokenIfAbsent = async (
+    pool: Queryable,
+    metadata: CashtabTokenMetadata,
+): Promise<void> => {
+    await pool.query(
+        `INSERT INTO cashtab_tokens (token_id, minter_address, token_type, supply_type)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (token_id) DO NOTHING`,
+        [
+            metadata.tokenId,
+            metadata.minterAddress,
+            metadata.tokenType,
+            metadata.supplyType,
+        ],
+    );
+};
+
+/**
  * Count cashtab_tokens rows for a minter address.
  */
 export const countTokensByMinterAddress = async (

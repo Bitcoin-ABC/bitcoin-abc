@@ -21,8 +21,18 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { Bot } from 'grammy';
 import { alertNewTokenIcon } from './telegram';
 import { getBlacklistedTokenIds, getOneBlacklistEntry } from './db';
-import { upsertCashtabToken } from './cashtabTokens';
+import {
+    CashtabTokenMetadata,
+    insertCashtabTokenIfAbsent,
+} from './cashtabTokens';
 import { verifyTokenIconUploadSignature } from './iconAuth';
+import {
+    classifyTokenLookupError,
+    getCashtabTokenMetadataWithRetry,
+    isSameMinterAddress,
+    TokenMetadataLookupOptions,
+} from './tokenMetadata';
+import { ChronikClient } from 'chronik-client';
 import { Pool } from 'pg';
 import { writeFileSync, existsSync } from 'fs';
 import { IFs } from 'memfs';
@@ -74,6 +84,8 @@ export const startExpressServer = (
     telegramBot: Bot,
     fs: FsLikeRoutes | IFs,
     telegramChannelId: string,
+    chronik: ChronikClient,
+    chronikLookupOptions: TokenMetadataLookupOptions = {},
 ): http.Server => {
     // Initialize express
     const app: Express = express();
@@ -159,7 +171,7 @@ export const startExpressServer = (
     );
 
     // Post endpoint for token ID on token creation
-    // Accept a png (only from cashtab.com or browser extension domain; validation on front end)
+    // Accept a png if the requester proves control of the genesis minter
     // TODO let anyone change a tokenIcon if they sign a msg with the mint address
     app.post(
         '/new',
@@ -252,6 +264,43 @@ export const startExpressServer = (
                 });
             }
 
+            let chainMetadata: CashtabTokenMetadata;
+            try {
+                chainMetadata = await getCashtabTokenMetadataWithRetry(
+                    chronik,
+                    tokenId,
+                    chronikLookupOptions,
+                );
+            } catch (err) {
+                console.error(`Failed to look up genesis for ${tokenId}`, err);
+                const kind = classifyTokenLookupError(err);
+                if (kind === 'not_found') {
+                    return res.status(404).json({
+                        status: 'error',
+                        msg: `Token ${tokenId} not found on chronik`,
+                    });
+                }
+                if (kind === 'invalid_genesis') {
+                    return res.status(400).json({
+                        status: 'error',
+                        msg: `Invalid genesis metadata for ${tokenId}`,
+                    });
+                }
+                return res.status(502).json({
+                    status: 'error',
+                    msg: `Failed to look up token ${tokenId} on chronik`,
+                });
+            }
+
+            if (
+                !isSameMinterAddress(minterAddress, chainMetadata.minterAddress)
+            ) {
+                return res.status(403).json({
+                    status: 'error',
+                    msg: 'minterAddress does not match the genesis minter for this tokenId',
+                });
+            }
+
             if (
                 fs.existsSync(
                     `${config.imageDir}/${config.iconSizes[0]}/${tokenId}.png`,
@@ -290,12 +339,7 @@ export const startExpressServer = (
             }
 
             try {
-                await upsertCashtabToken(pool, {
-                    tokenId,
-                    minterAddress,
-                    tokenType,
-                    supplyType,
-                });
+                await insertCashtabTokenIfAbsent(pool, chainMetadata);
             } catch (err) {
                 console.log(`Error saving cashtab_tokens row`, err);
                 return res.status(500).json({
@@ -312,9 +356,9 @@ export const startExpressServer = (
                 decimals: req.body.decimals,
                 url: req.body.url,
                 genesisQty: req.body.genesisQty,
-                minterAddress,
-                tokenType,
-                supplyType,
+                minterAddress: chainMetadata.minterAddress,
+                tokenType: chainMetadata.tokenType,
+                supplyType: chainMetadata.supplyType,
             }).catch(err => {
                 console.error(
                     `Failed to send Telegram alert for new token icon ${tokenId}:`,
