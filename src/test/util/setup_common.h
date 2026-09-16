@@ -374,7 +374,7 @@ private:
 
 inline uint160 uint160S(std::string_view str) {
     uint160 rv;
-    rv.SetHex(str);
+    rv.SetHexDeprecated(str);
     return rv;
 }
 

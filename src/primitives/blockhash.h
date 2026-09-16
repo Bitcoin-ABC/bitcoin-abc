@@ -16,7 +16,7 @@ struct BlockHash : public uint256 {
 
     static BlockHash fromHex(const std::string &str) {
         BlockHash r;
-        r.SetHex(str);
+        r.SetHexDeprecated(str);
         return r;
     }
 };

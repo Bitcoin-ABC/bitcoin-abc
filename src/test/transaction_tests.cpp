@@ -51,7 +51,7 @@ BOOST_FIXTURE_TEST_SUITE(transaction_tests, BasicTestingSetup)
 
 static COutPoint buildOutPoint(const UniValue &vinput) {
     TxId txid;
-    txid.SetHex(vinput[0].get_str());
+    txid.SetHexDeprecated(vinput[0].get_str());
     return COutPoint(txid, vinput[1].getInt<int>());
 }
 

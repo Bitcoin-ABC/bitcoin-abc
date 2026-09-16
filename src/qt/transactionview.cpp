@@ -445,10 +445,10 @@ void TransactionView::contextualMenu(const QPoint &point) {
     // check if transaction can be abandoned, disable context menu action in
     // case it doesn't
     TxId txid;
-    txid.SetHex(selection.at(0)
-                    .data(TransactionTableModel::TxHashRole)
-                    .toString()
-                    .toStdString());
+    txid.SetHexDeprecated(selection.at(0)
+                              .data(TransactionTableModel::TxHashRole)
+                              .toString()
+                              .toStdString());
     abandonAction->setEnabled(model->wallet().transactionCanBeAbandoned(txid));
     copyAddressAction->setEnabled(GUIUtil::hasEntryData(
         transactionView, 0, TransactionTableModel::AddressRole));
@@ -474,7 +474,7 @@ void TransactionView::abandonTx() {
         selection.at(0).data(TransactionTableModel::TxHashRole).toString();
 
     TxId txid;
-    txid.SetHex(hashQStr.toStdString());
+    txid.SetHexDeprecated(hashQStr.toStdString());
 
     // Abandon the wallet transaction over the walletModel
     model->wallet().abandonTransaction(txid);

@@ -176,8 +176,8 @@ BOOST_AUTO_TEST_CASE(comparison) {
                  "001"));
 }
 
-// GetHex SetHex begin() end() size() GetLow64 GetSerializeSize, Serialize,
-// Unserialize
+// GetHex SetHexDeprecated begin() end() size() GetLow64 GetSerializeSize,
+// Serialize, Unserialize
 BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK_EQUAL(R1L.GetHex(), R1L.ToString());
     BOOST_CHECK_EQUAL(R2L.GetHex(), R2L.ToString());
@@ -186,16 +186,16 @@ BOOST_AUTO_TEST_CASE(methods) {
     uint256 TmpL(R1L);
     BOOST_CHECK_EQUAL(TmpL, R1L);
     // Verify previous values don't persist when setting to truncated string.
-    TmpL.SetHex("21");
+    TmpL.SetHexDeprecated("21");
     BOOST_CHECK_EQUAL(
         TmpL.ToString(),
         "0000000000000000000000000000000000000000000000000000000000000021");
-    TmpL.SetHex(R2L.ToString());
+    TmpL.SetHexDeprecated(R2L.ToString());
     BOOST_CHECK_EQUAL(TmpL, R2L);
-    TmpL.SetHex(ZeroL.ToString());
+    TmpL.SetHexDeprecated(ZeroL.ToString());
     BOOST_CHECK_EQUAL(TmpL, uint256());
 
-    TmpL.SetHex(R1L.ToString());
+    TmpL.SetHexDeprecated(R1L.ToString());
     BOOST_CHECK_EQUAL(memcmp(R1L.begin(), R1Array, 32), 0);
     BOOST_CHECK_EQUAL(memcmp(TmpL.begin(), R1Array, 32), 0);
     BOOST_CHECK_EQUAL(memcmp(R2L.begin(), R2Array, 32), 0);
@@ -238,12 +238,12 @@ BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK_EQUAL(MaxS.GetHex(), MaxS.ToString());
     uint160 TmpS(R1S);
     BOOST_CHECK_EQUAL(TmpS, R1S);
-    TmpS.SetHex(R2S.ToString());
+    TmpS.SetHexDeprecated(R2S.ToString());
     BOOST_CHECK_EQUAL(TmpS, R2S);
-    TmpS.SetHex(ZeroS.ToString());
+    TmpS.SetHexDeprecated(ZeroS.ToString());
     BOOST_CHECK_EQUAL(TmpS, uint160());
 
-    TmpS.SetHex(R1S.ToString());
+    TmpS.SetHexDeprecated(R1S.ToString());
     BOOST_CHECK_EQUAL(memcmp(R1S.begin(), R1Array, 20), 0);
     BOOST_CHECK_EQUAL(memcmp(TmpS.begin(), R1Array, 20), 0);
     BOOST_CHECK_EQUAL(memcmp(R2S.begin(), R2Array, 20), 0);
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(methods) {
     ss.clear();
 
     // Check that '0x' and leading spaces are correctly skipped in
-    // SetHex
+    // SetHexDeprecated
     const auto baseHexstring{uint256S(
         "0x7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
     const auto hexstringWithCharactersToSkip{uint256S(

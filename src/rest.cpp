@@ -570,7 +570,7 @@ static bool rest_getutxos(Config &config, const std::any &context,
             }
 
             TxId txid;
-            txid.SetHex(strTxid);
+            txid.SetHexDeprecated(strTxid);
             vOutPoints.push_back(COutPoint(txid, uint32_t(nOutput)));
         }
 

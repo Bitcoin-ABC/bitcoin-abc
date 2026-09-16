@@ -16,7 +16,7 @@ template <unsigned int BITS> std::string base_blob<BITS>::GetHex() const {
 }
 
 template <unsigned int BITS>
-void base_blob<BITS>::SetHex(const std::string_view str) {
+void base_blob<BITS>::SetHexDeprecated(const std::string_view str) {
     std::fill(m_data.begin(), m_data.end(), 0);
 
     const auto trimmed =
@@ -48,12 +48,12 @@ void base_blob<BITS>::SetHex(const std::string_view str) {
 // Explicit instantiations for base_blob<160>
 template std::string base_blob<160>::GetHex() const;
 template std::string base_blob<160>::ToString() const;
-template void base_blob<160>::SetHex(std::string_view);
+template void base_blob<160>::SetHexDeprecated(std::string_view);
 
 // Explicit instantiations for base_blob<256>
 template std::string base_blob<256>::GetHex() const;
 template std::string base_blob<256>::ToString() const;
-template void base_blob<256>::SetHex(std::string_view);
+template void base_blob<256>::SetHexDeprecated(std::string_view);
 
 const uint256 uint256::ZERO(0);
 const uint256 uint256::ONE(1);

@@ -106,7 +106,7 @@ public:
      *   byte being zero.
      *   "0x123" => {0x23, 0x1, 0x0, ..., 0x0}
      */
-    void SetHex(std::string_view str);
+    void SetHexDeprecated(std::string_view str);
     std::string ToString() const { return GetHex(); }
 
     constexpr const uint8_t *data() const { return m_data.data(); }
@@ -166,7 +166,7 @@ public:
  */
 inline uint256 uint256S(std::string_view str) {
     uint256 rv;
-    rv.SetHex(str);
+    rv.SetHexDeprecated(str);
     return rv;
 }
 

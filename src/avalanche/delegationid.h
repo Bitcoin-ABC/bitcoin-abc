@@ -17,7 +17,7 @@ struct DelegationId : public uint256 {
 
     static DelegationId fromHex(const std::string &str) {
         DelegationId r;
-        r.SetHex(str);
+        r.SetHexDeprecated(str);
         return r;
     }
 };

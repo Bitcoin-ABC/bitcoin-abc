@@ -20,7 +20,7 @@ struct ProofId : public uint256 {
 
     static ProofId fromHex(const std::string &str) {
         ProofId r;
-        r.SetHex(str);
+        r.SetHexDeprecated(str);
         return r;
     }
 };
@@ -31,7 +31,7 @@ struct LimitedProofId : public uint256 {
 
     static LimitedProofId fromHex(const std::string &str) {
         LimitedProofId r;
-        r.SetHex(str);
+        r.SetHexDeprecated(str);
         return r;
     }
 

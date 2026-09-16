@@ -648,7 +648,8 @@ void CoinControlDialog::updateLabels(CCoinControl &m_coin_control,
 
 COutPoint CoinControlDialog::buildOutPoint(const QTreeWidgetItem *item) {
     TxId txid;
-    txid.SetHex(item->data(COLUMN_ADDRESS, TxIdRole).toString().toStdString());
+    txid.SetHexDeprecated(
+        item->data(COLUMN_ADDRESS, TxIdRole).toString().toStdString());
     return COutPoint(txid, item->data(COLUMN_ADDRESS, VOutRole).toUInt());
 }
 
