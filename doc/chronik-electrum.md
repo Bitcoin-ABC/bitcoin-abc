@@ -146,6 +146,13 @@ An Electrum server will return a donation address via the `server.donation_addre
 
 The Electrum protocol includes a peer discovery mechanism in order to share other servers addresses. Chronik will run a periodic sanity check of all the registered peers to avoid sharing disconnected or misconfigured peers. This sanity check interval defaults to 10 minutes and can be overridden via the `chronikelectrumpeersvalidationinterval` option in your `bitcoin.conf` configuration file. Set the value to the desired interval in seconds, or to `0` to disable the feature entirely.
 
+Chronik Electrum drops clients that send no data for 10 minutes by default.
+This can be overridden via the `-chronikelectrumidletimeout` option (value in
+seconds; set to `0` to disable). Server-to-client notifications do not reset
+this timer: clients must send an RPC (typically `server.ping`) to stay
+connected. Electrum ABC pings every 5 minutes by default, so normal clients are
+unaffected. Closing an idle session also releases any outstanding subscriptions.
+
 ## Limitations
 
  - Only eCash addresses (with or without a prefix) are supported by the `blockchain.address.*` endpoints.

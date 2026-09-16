@@ -110,6 +110,19 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                        .c_str())}};
     }
 
+    const int64_t electrum_idle_timeout =
+        args.GetIntArg("-chronikelectrumidletimeout",
+                       std::chrono::duration_cast<std::chrono::seconds>(
+                           chronik::DEFAULT_ELECTRUM_IDLE_TIMEOUT)
+                           .count());
+    if (electrum_idle_timeout < 0 ||
+        electrum_idle_timeout > std::numeric_limits<uint32_t>::max()) {
+        return {{_(strprintf("The -chronikelectrumidletimeout value should be "
+                             "within the range [0, %d]",
+                             std::numeric_limits<uint32_t>::max())
+                       .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -148,6 +161,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
             args.GetArg("-chronikelectrumdonationaddress", ""),
         .electrum_peers_validation_interval =
             static_cast<uint32_t>(electrum_peers_validation_interval),
+        .electrum_idle_timeout = static_cast<uint32_t>(electrum_idle_timeout),
     }};
 }
 

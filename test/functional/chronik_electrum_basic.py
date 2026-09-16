@@ -428,6 +428,26 @@ class ChronikElectrumBasic(BitcoinTestFramework):
             "within the range [1, 4294967295]",
         )
 
+        # The idle timeout must be within range
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                "-chronikelectrumidletimeout=-1",
+            ],
+            "Error: The -chronikelectrumidletimeout value should be "
+            "within the range [0, 4294967295]",
+        )
+        self.node.assert_start_raises_init_error(
+            [
+                "-chronik",
+                f"-chronikelectrumbind=127.0.0.1:{chronikelectrum_port(0)}:t",
+                "-chronikelectrumidletimeout=4294967296",
+            ],
+            "Error: The -chronikelectrumidletimeout value should be "
+            "within the range [0, 4294967295]",
+        )
+
         self.start_node(0, self.extra_args[0])
 
 

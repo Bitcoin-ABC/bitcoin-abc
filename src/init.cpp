@@ -828,6 +828,18 @@ void SetupServerArgs(NodeContext &node) {
                 .count()),
         ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
         OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chronikelectrumidletimeout",
+        strprintf(
+            "Drop Chronik Electrum clients that send no data for this many "
+            "seconds (default: %u). Set to 0 to disable. Healthy Electrum ABC "
+            "clients send server.ping every 5 minutes, so the default keeps "
+            "them connected while reclaiming silent or abandoned sessions.",
+            std::chrono::duration_cast<std::chrono::seconds>(
+                chronik::DEFAULT_ELECTRUM_IDLE_TIMEOUT)
+                .count()),
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::CHRONIK);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

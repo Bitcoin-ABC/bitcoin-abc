@@ -92,6 +92,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
         self.test_mempool_get_fee_histogram()
         self.test_block_header()
         self.test_subscription_cleanup_on_disconnect()
+        self.test_idle_timeout()
 
     def test_invalid_params(self):
         # Invalid params type
@@ -2359,6 +2360,31 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             self.client.blockchain.scripthash.unsubscribe(scripthash).result, True
         )
         assert_equal(client.blockchain.scripthash.unsubscribe(scripthash).result, True)
+
+    def test_idle_timeout(self):
+        self.log.info("Test idle Electrum clients are disconnected")
+
+        # Short timeout so the test does not wait for the 10 minute default
+        idle_timeout = 1
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [f"-chronikelectrumidletimeout={idle_timeout}"],
+        )
+        self.wallet.rescan_utxos()
+        scripthash = hex_be_sha256(self.wallet.get_scriptPubKey())
+
+        # Doing nothing past the idle timeout drops the connection and releases
+        # the subscription
+        with self.node.assert_debug_log(
+            ["Unsubscription from electrum scripthash"],
+            timeout=idle_timeout * 10,
+        ):
+            self.client = self.node.get_chronik_electrum_client(name="client")
+            self.client.blockchain.scripthash.subscribe(scripthash)
+
+        # Restore the default idle timeout for any follow-up work
+        self.restart_node(0)
 
 
 if __name__ == "__main__":

@@ -61,6 +61,9 @@ mod ffi_inner {
         pub electrum_donation_address: String,
         /// Time interval between Electrum peers validation
         pub electrum_peers_validation_interval: u32,
+        /// Drop Electrum clients idle (no inbound data) this long, in seconds.
+        /// 0 disables the timeout.
+        pub electrum_idle_timeout: u32,
     }
 
     /// Settings for tuning the TxNumCache.

@@ -34,6 +34,12 @@ static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
 
 static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{10min};
 
+/**
+ * Drop Electrum clients that send no data for this long; 0 disables the
+ * timeout.
+ */
+static constexpr auto DEFAULT_ELECTRUM_IDLE_TIMEOUT{10min};
+
 // Registers Chronik indexer as ValidationInterface, listens to HTTP queries
 bool Start(const ArgsManager &args, const Config &config,
            const node::NodeContext &node, bool fWipe);

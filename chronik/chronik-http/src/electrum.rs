@@ -125,6 +125,8 @@ pub struct ChronikElectrumServerParams {
     pub donation_address: String,
     /// Peers validation interval in seconds
     pub peers_validation_interval: u32,
+    /// Drop clients idle (no inbound data) this many seconds; 0 disables
+    pub idle_timeout: u32,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -140,6 +142,7 @@ pub struct ChronikElectrumServer {
     max_history: u32,
     donation_address: String,
     peers_validation_interval: u32,
+    idle_timeout: u32,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -211,6 +214,7 @@ impl ChronikElectrumServer {
             max_history: params.max_history,
             donation_address: params.donation_address,
             peers_validation_interval: params.peers_validation_interval,
+            idle_timeout: params.idle_timeout,
         })
     }
 
@@ -271,6 +275,7 @@ impl ChronikElectrumServer {
 
         let tls_cert_path = self.tls_cert_path.clone();
         let tls_privkey_path = self.tls_privkey_path.clone();
+        let idle_timeout = self.idle_timeout;
 
         let servers = izip!(
             self.hosts,
@@ -386,6 +391,11 @@ impl ChronikElectrumServer {
                     builder = builder.with_notification_encoder(
                         electrum_notification_encoder,
                     );
+                    if idle_timeout > 0 {
+                        builder = builder.read_timeout(Duration::from_secs(
+                            idle_timeout.into(),
+                        ));
+                    }
 
                     let server = builder
                         .service(server_endpoint)

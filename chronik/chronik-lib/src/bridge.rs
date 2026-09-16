@@ -189,6 +189,7 @@ fn try_setup_chronik(
                 donation_address: params.electrum_donation_address,
                 peers_validation_interval: params
                     .electrum_peers_validation_interval,
+                idle_timeout: params.electrum_idle_timeout,
             })?;
         runtime.spawn({
             let node = Arc::clone(&node);
