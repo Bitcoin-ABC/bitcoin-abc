@@ -64,7 +64,7 @@ public:
     //! This value will be non-zero if this block and all previous blocks back
     //! to the genesis block or an assumeutxo snapshot block have reached the
     //! VALID_TRANSACTIONS level.
-    uint64_t nChainTx{0};
+    uint64_t m_chain_tx_count{0};
 
     //! Verification status of this block. See enum BlockStatus
     BlockStatus nStatus GUARDED_BY(::cs_main){};
@@ -134,7 +134,7 @@ public:
     /**
      * Get the number of transaction in the chain so far.
      */
-    uint64_t GetChainTxCount() const { return nChainTx; }
+    uint64_t GetChainTxCount() const { return m_chain_tx_count; }
 
     /**
      * Check whether this block and all previous blocks back to the genesis
@@ -147,8 +147,8 @@ public:
      * (IsBlockPruned might return true)
      *
      * Note that this will be true for the snapshot base block, if one is
-     * loaded, since its nChainTx value will have been set manually based on
-     * the related AssumeutxoData entry.
+     * loaded, since its m_chain_tx_count value will have been set manually
+     * based on the related AssumeutxoData entry.
      */
     bool HaveNumChainTxs() const { return GetChainTxCount() != 0; }
 

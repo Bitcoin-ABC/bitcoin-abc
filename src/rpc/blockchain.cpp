@@ -1985,8 +1985,8 @@ static RPCHelpMan getchaintxstats() {
 
             UniValue ret(UniValue::VOBJ);
             ret.pushKV("time", pindex->GetBlockTime());
-            if (pindex->nChainTx) {
-                ret.pushKV("txcount", pindex->nChainTx);
+            if (pindex->m_chain_tx_count) {
+                ret.pushKV("txcount", pindex->m_chain_tx_count);
             }
             ret.pushKV("window_final_block_hash",
                        pindex->GetBlockHash().GetHex());
@@ -1994,9 +1994,10 @@ static RPCHelpMan getchaintxstats() {
             ret.pushKV("window_block_count", blockcount);
             if (blockcount > 0) {
                 ret.pushKV("window_interval", nTimeDiff);
-                if (pindex->nChainTx != 0 && past_block.nChainTx != 0) {
+                if (pindex->m_chain_tx_count != 0 &&
+                    past_block.m_chain_tx_count != 0) {
                     uint64_t window_tx_count =
-                        pindex->nChainTx - past_block.nChainTx;
+                        pindex->m_chain_tx_count - past_block.m_chain_tx_count;
                     ret.pushKV("window_tx_count", window_tx_count);
                     if (nTimeDiff > 0) {
                         ret.pushKV("txrate",
@@ -3071,7 +3072,7 @@ UniValue WriteUTXOSnapshot(Chainstate &chainstate, CCoinsViewCursor *pcursor,
     result.pushKV("base_height", tip->nHeight);
     result.pushKV("path", path.u8string());
     result.pushKV("txoutset_hash", maybe_stats->hashSerialized.ToString());
-    result.pushKV("nchaintx", tip->nChainTx);
+    result.pushKV("nchaintx", tip->m_chain_tx_count);
     return result;
 }
 

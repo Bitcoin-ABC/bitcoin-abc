@@ -32,7 +32,7 @@ enum class BlockValidity : uint32_t {
      * If a block's validity is at least VALID_TRANSACTIONS, CBlockIndex::nTx
      * will be set. If a block and all previous blocks back to the genesis
      * block or an assumeutxo snapshot block are at least VALID_TRANSACTIONS,
-     * CBlockIndex::nChainTx will be set.
+     * CBlockIndex::m_chain_tx_count will be set.
      */
     TRANSACTIONS = 3,
 

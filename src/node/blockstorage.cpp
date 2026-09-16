@@ -271,12 +271,12 @@ bool BlockManager::LoadBlockIndex(
         m_snapshot_height = au_data.height;
         CBlockIndex *base{LookupBlockIndex(*snapshot_blockhash)};
 
-        // Since nChainTx (responsible for estimated progress) isn't persisted
-        // to disk, we must bootstrap the value for assumedvalid chainstates
-        // from the hardcoded assumeutxo chainparams.
-        base->nChainTx = au_data.nChainTx;
-        LogPrintf("[snapshot] set nChainTx=%lu for %s\n", au_data.nChainTx,
-                  snapshot_blockhash->ToString());
+        // Since m_chain_tx_count (responsible for estimated progress) isn't
+        // persisted to disk, we must bootstrap the value for assumedvalid
+        // chainstates from the hardcoded assumeutxo chainparams.
+        base->m_chain_tx_count = au_data.m_chain_tx_count;
+        LogPrintf("[snapshot] set m_chain_tx_count=%lu for %s\n",
+                  au_data.m_chain_tx_count, snapshot_blockhash->ToString());
     } else {
         // If this isn't called with a snapshot blockhash, make sure the cached
         // snapshot height is null. This is relevant during snapshot
@@ -317,16 +317,16 @@ bool BlockManager::LoadBlockIndex(
         // Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
             const uint64_t prevNChainTx =
-                pindex->pprev ? pindex->pprev->nChainTx : 0;
+                pindex->pprev ? pindex->pprev->m_chain_tx_count : 0;
             if (m_snapshot_height && pindex->nHeight == *m_snapshot_height &&
                 pindex->GetBlockHash() == *snapshot_blockhash) {
                 // Should have been set above; don't disturb it with code below.
-                Assert(pindex->nChainTx > 0);
+                Assert(pindex->m_chain_tx_count > 0);
             } else if (prevNChainTx == 0 && pindex->pprev) {
-                pindex->nChainTx = 0;
+                pindex->m_chain_tx_count = 0;
                 m_blocks_unlinked.insert(std::make_pair(pindex->pprev, pindex));
             } else {
-                pindex->nChainTx = prevNChainTx + pindex->nTx;
+                pindex->m_chain_tx_count = prevNChainTx + pindex->nTx;
             }
         }
 

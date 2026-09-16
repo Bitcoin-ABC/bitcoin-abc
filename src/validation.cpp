@@ -4262,18 +4262,20 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
     // is a pruned block which is being downloaded again, or if this is an
     // assumeutxo snapshot block which has a hardcoded m_chain_tx_count value
     // from the snapshot metadata. If the pindex is not the snapshot block and
-    // the nChainTx value is not zero, assert that value is actually correct.
+    // the m_chain_tx_count value is not zero, assert that value is actually
+    // correct.
     auto prev_tx_sum = [](CBlockIndex &block) {
-        return block.nTx + (block.pprev ? block.pprev->nChainTx : 0);
+        return block.nTx + (block.pprev ? block.pprev->m_chain_tx_count : 0);
     };
-    if (!Assume(pindexNew->nChainTx == 0 ||
-                pindexNew->nChainTx == prev_tx_sum(*pindexNew) ||
+    if (!Assume(pindexNew->m_chain_tx_count == 0 ||
+                pindexNew->m_chain_tx_count == prev_tx_sum(*pindexNew) ||
                 pindexNew == GetSnapshotBaseBlock())) {
-        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %lu "
-                  "that should be %lu. Please report this issue here: %s\n",
-                  pindexNew->nHeight, pindexNew->nChainTx,
+        LogPrintf("Internal bug detected: block %d has unexpected "
+                  "m_chain_tx_count %lu that should be %lu. Please report "
+                  "this issue here: %s\n",
+                  pindexNew->nHeight, pindexNew->m_chain_tx_count,
                   prev_tx_sum(*pindexNew), PACKAGE_BUGREPORT);
-        pindexNew->nChainTx = 0;
+        pindexNew->m_chain_tx_count = 0;
     }
     pindexNew->nSize = ::GetSerializeSize(block);
     pindexNew->nFile = pos.nFile;
@@ -4294,20 +4296,19 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
         while (!queue.empty()) {
             CBlockIndex *pindex = queue.front();
             queue.pop_front();
-            // Before setting nChainTx, assert that it is 0 or already set to
-            // the correct value. This assert will fail after receiving the
-            // assumeutxo snapshot block if assumeutxo snapshot metadata has an
-            // incorrect hardcoded AssumeutxoData::nChainTx value.
-            if (!Assume(pindex->nChainTx == 0 ||
-                        pindex->nChainTx == prev_tx_sum(*pindex))) {
-                LogPrintf(
-                    "Internal bug detected: block %d has unexpected nChainTx "
-                    "%lu that should be %lu. Please report this issue here: "
-                    "%s\n",
-                    pindex->nHeight, pindex->nChainTx, prev_tx_sum(*pindex),
-                    PACKAGE_BUGREPORT);
+            // Before setting m_chain_tx_count, assert that it is 0 or already
+            // set to the correct value. This assert will fail after receiving
+            // the assumeutxo snapshot block if assumeutxo snapshot metadata has
+            // an incorrect hardcoded AssumeutxoData::m_chain_tx_count value.
+            if (!Assume(pindex->m_chain_tx_count == 0 ||
+                        pindex->m_chain_tx_count == prev_tx_sum(*pindex))) {
+                LogPrintf("Internal bug detected: block %d has unexpected "
+                          "m_chain_tx_count %lu that should be %lu. Please "
+                          "report this issue here: %s\n",
+                          pindex->nHeight, pindex->m_chain_tx_count,
+                          prev_tx_sum(*pindex), PACKAGE_BUGREPORT);
             }
-            pindex->nChainTx = prev_tx_sum(*pindex);
+            pindex->m_chain_tx_count = prev_tx_sum(*pindex);
             if (pindex->nSequenceId == 0) {
                 // We assign a sequence is when transaction are received to
                 // prevent a miner from being able to broadcast a block but not
@@ -6265,18 +6266,19 @@ void ChainstateManager::CheckBlockIndex() {
             // (i.e., hasParkedParent only if an ancestor is properly parked).
             assert(!pindex->nStatus.isOnParkedChain());
         }
-        // Make sure nChainTx sum is correctly computed.
+        // Make sure m_chain_tx_count sum is correctly computed.
         if (!pindex->pprev) {
-            // If no previous block, nTx and nChainTx must be the same.
-            assert(pindex->nChainTx == pindex->nTx);
-        } else if (pindex->pprev->nChainTx > 0 && pindex->nTx > 0) {
-            // If previous nChainTx is set and number of transactions in block
-            // is known, sum must be set.
-            assert(pindex->nChainTx == pindex->nTx + pindex->pprev->nChainTx);
+            // If no previous block, nTx and m_chain_tx_count must be the same.
+            assert(pindex->m_chain_tx_count == pindex->nTx);
+        } else if (pindex->pprev->m_chain_tx_count > 0 && pindex->nTx > 0) {
+            // If previous m_chain_tx_count is set and number of transactions in
+            // block is known, sum must be set.
+            assert(pindex->m_chain_tx_count ==
+                   pindex->nTx + pindex->pprev->m_chain_tx_count);
         } else {
-            // Otherwise nChainTx should only be set if this is a snapshot
-            // block, and must be set if it is.
-            assert((pindex->nChainTx != 0) == (pindex == snap_base));
+            // Otherwise m_chain_tx_count should only be set if this is a
+            // snapshot block, and must be set if it is.
+            assert((pindex->m_chain_tx_count != 0) == (pindex == snap_base));
         }
 
         // Chainstate-specific checks on setBlockIndexCandidates
@@ -6554,7 +6556,7 @@ double GuessVerificationProgress(const ChainTxData &data,
     if (pindex == nullptr) {
         return 0.0;
     }
-    if (pindex->nChainTx == 0) {
+    if (pindex->m_chain_tx_count == 0) {
         LogPrintLevel(BCLog::VALIDATION, BCLog::Level::Debug,
                       "Block %d has unset m_chain_tx_count. Unable to "
                       "estimate verification progress.\n",
@@ -6565,8 +6567,8 @@ double GuessVerificationProgress(const ChainTxData &data,
     int64_t nNow = time(nullptr);
 
     double fTxTotal;
-    if (pindex->GetChainTxCount() <= data.nTxCount) {
-        fTxTotal = data.nTxCount + (nNow - data.nTime) * data.dTxRate;
+    if (pindex->GetChainTxCount() <= data.tx_count) {
+        fTxTotal = data.tx_count + (nNow - data.nTime) * data.dTxRate;
     } else {
         fTxTotal = pindex->GetChainTxCount() +
                    (nNow - pindex->GetBlockTime()) * data.dTxRate;
@@ -7086,7 +7088,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
 
     assert(index);
     assert(index == snapshot_start_block);
-    index->nChainTx = au_data.nChainTx;
+    index->m_chain_tx_count = au_data.m_chain_tx_count;
     snapshot_chainstate.setBlockIndexCandidates.insert(snapshot_start_block);
 
     LogPrintf("[snapshot] validated snapshot (%.2f MB)\n",

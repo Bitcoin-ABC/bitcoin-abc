@@ -51,13 +51,13 @@ struct AssumeutxoData {
     //! The expected hash of the deserialized UTXO set.
     AssumeutxoHash hash_serialized;
 
-    //! Used to populate the nChainTx value, which is used during
+    //! Used to populate the m_chain_tx_count value, which is used during
     //! BlockManager::LoadBlockIndex().
     //!
     //! We need to hardcode the value here because this is computed cumulatively
     //! using block data, which we do not necessarily have at the time of
     //! snapshot load.
-    uint64_t nChainTx;
+    uint64_t m_chain_tx_count;
 
     //! The hash of the base block for this snapshot. Used to refer to
     //! assumeutxo data prior to having a loaded blockindex.
@@ -72,7 +72,7 @@ struct AssumeutxoData {
  */
 struct ChainTxData {
     int64_t nTime;
-    uint64_t nTxCount;
+    uint64_t tx_count;
     double dTxRate;
 };
 
