@@ -134,7 +134,13 @@ fn try_setup_chronik(
         return Ok(());
     }
     let indexer = Arc::new(RwLock::new(indexer));
-    let subscription_limiter = SubscriptionLimiter::new_ref();
+    let subscription_limiter =
+        SubscriptionLimiter::new_ref(params.max_subs, params.max_subs_per_ip);
+    log!(
+        "Chronik subscription limits: max_subs={}, max_subs_per_ip={}\n",
+        params.max_subs,
+        params.max_subs_per_ip,
+    );
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;

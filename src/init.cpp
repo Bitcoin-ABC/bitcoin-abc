@@ -840,6 +840,22 @@ void SetupServerArgs(NodeContext &node) {
                 .count()),
         ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
         OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chronikmaxsubs",
+        strprintf(
+            "Maximum number of simultaneous Chronik subscriptions (WebSocket "
+            "and Electrum) across all clients (default: %u).",
+            chronik::DEFAULT_MAX_SUBS),
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chronikmaxsubsperip",
+        strprintf(
+            "Maximum number of simultaneous Chronik subscriptions (WebSocket "
+            "and Electrum) per client IP address (default: %u).",
+            chronik::DEFAULT_MAX_SUBS_PER_IP),
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::CHRONIK);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

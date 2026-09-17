@@ -64,6 +64,10 @@ mod ffi_inner {
         /// Drop Electrum clients idle (no inbound data) this long, in seconds.
         /// 0 disables the timeout.
         pub electrum_idle_timeout: u32,
+        /// Maximum number of simultaneous subscriptions across all clients
+        pub max_subs: usize,
+        /// Maximum number of simultaneous subscriptions per client IP
+        pub max_subs_per_ip: usize,
     }
 
     /// Settings for tuning the TxNumCache.

@@ -20,6 +20,7 @@ from test_framework.messages import (
 from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
+from test_framework.test_node import ErrorMatch
 from test_framework.txtools import pad_tx
 from test_framework.util import (
     assert_equal,
@@ -670,6 +671,105 @@ class ChronikWsTest(BitcoinTestFramework):
 
         ws.close()
         ws_all.close()
+
+        self.test_subscription_limits(node)
+
+    def test_subscription_limits(self, node):
+        self.log.info("Test Chronik subscription limit options")
+        from test_framework.chronik.client import pb
+
+        # Subscription limit options must be within range
+        node.stop_node()
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chronikmaxsubs=0"],
+            r"Error: The -chronikmaxsubs value should be within the range \[1,",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chronikmaxsubs=-1"],
+            r"Error: The -chronikmaxsubs value should be within the range \[1,",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chronikmaxsubsperip=0"],
+            r"Error: The -chronikmaxsubsperip value should be within the range \[1,",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chronikmaxsubsperip=-1"],
+            r"Error: The -chronikmaxsubsperip value should be within the range \[1,",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+
+        # Per-IP limit
+        self.start_node(
+            0,
+            extra_args=self.extra_args[0]
+            + ["-chronikmaxsubsperip=2", "-chronikmaxsubs=100"],
+        )
+        chronik = node.get_chronik_client()
+        ws = chronik.ws()
+
+        txid1 = "00" * 32
+        txid2 = "11" * 32
+        txid3 = "22" * 32
+
+        chronik_sub_txid(ws, node, txid1)
+        chronik_sub_txid(ws, node, txid2)
+
+        # Third subscription from the same IP is rejected
+        ws.sub_txid(txid3)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="503: Subscription limit of 2 exceeded for this client"
+                ),
+            ),
+        )
+
+        # A second WS from the same IP shares the per-IP budget
+        ws2 = chronik.ws()
+        ws2.sub_txid(txid3)
+        assert_equal(
+            ws2.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="503: Subscription limit of 2 exceeded for this client"
+                ),
+            ),
+        )
+
+        # Unsubscribing frees a slot immediately for Chronik WS
+        chronik_sub_txid(ws, node, txid1, is_unsub=True)
+        chronik_sub_txid(ws2, node, txid3)
+
+        ws.close()
+        ws2.close()
+
+        # Global limit across connections
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + ["-chronikmaxsubs=2", "-chronikmaxsubsperip=100"],
+        )
+        chronik = node.get_chronik_client()
+        ws1 = chronik.ws()
+        ws2 = chronik.ws()
+
+        chronik_sub_txid(ws1, node, txid1)
+        chronik_sub_txid(ws2, node, txid2)
+
+        ws1.sub_txid(txid3)
+        assert_equal(
+            ws1.recv(),
+            pb.WsMsg(
+                error=pb.Error(msg="503: Global subscription limit of 2 exceeded"),
+            ),
+        )
+
+        ws1.close()
+        ws2.close()
 
 
 if __name__ == "__main__":

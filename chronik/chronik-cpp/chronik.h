@@ -30,6 +30,10 @@ static const size_t DEFAULT_TX_NUM_CACHE_BUCKET_SIZE = 100'000;
 
 static const uint32_t DEFAULT_ELECTRUM_MAX_HISTORY{200'000};
 
+// Defaults for Chronik subscription caps.
+static constexpr uint64_t DEFAULT_MAX_SUBS{10'000'000};
+static constexpr uint64_t DEFAULT_MAX_SUBS_PER_IP{75'000};
+
 static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
 
 static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{10min};

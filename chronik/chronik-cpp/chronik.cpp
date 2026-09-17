@@ -4,7 +4,6 @@
 
 #include <chainparams.h>
 #include <chainparamsbase.h>
-#include <chrono>
 #include <common/args.h>
 #include <config.h>
 #include <logging.h>
@@ -20,6 +19,8 @@
 #include <chronik_lib/src/ffi.rs.h>
 
 #include <tinyformat.h>
+
+#include <limits>
 
 namespace chronik {
 
@@ -123,6 +124,29 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                        .c_str())}};
     }
 
+    const int64_t max_subs =
+        args.GetIntArg("-chronikmaxsubs", chronik::DEFAULT_MAX_SUBS);
+    if (max_subs < 1 ||
+        static_cast<uint64_t>(max_subs) > std::numeric_limits<size_t>::max()) {
+        return {{_(strprintf("The -chronikmaxsubs value should be within the "
+                             "range [1, %llu].",
+                             static_cast<unsigned long long>(
+                                 std::numeric_limits<size_t>::max()))
+                       .c_str())}};
+    }
+
+    const int64_t max_subs_per_ip = args.GetIntArg(
+        "-chronikmaxsubsperip", chronik::DEFAULT_MAX_SUBS_PER_IP);
+    if (max_subs_per_ip < 1 || static_cast<uint64_t>(max_subs_per_ip) >
+                                   std::numeric_limits<size_t>::max()) {
+        return {
+            {_(strprintf("The -chronikmaxsubsperip value should be within the "
+                         "range [1, %llu].",
+                         static_cast<unsigned long long>(
+                             std::numeric_limits<size_t>::max()))
+                   .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -162,6 +186,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_peers_validation_interval =
             static_cast<uint32_t>(electrum_peers_validation_interval),
         .electrum_idle_timeout = static_cast<uint32_t>(electrum_idle_timeout),
+        .max_subs = static_cast<size_t>(max_subs),
+        .max_subs_per_ip = static_cast<size_t>(max_subs_per_ip),
     }};
 }
 

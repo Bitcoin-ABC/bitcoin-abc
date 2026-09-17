@@ -11,10 +11,10 @@ use std::sync::{Arc, Mutex};
 
 use thiserror::Error;
 
-/// Default global subscription limit across all clients.
+/// Default global subscription limit across all clients (`-chronikmaxsubs`).
 pub const MAX_SUBS: usize = 10_000_000;
 
-/// Default per-IP / per-client subscription limit.
+/// Default per-IP / per-client subscription limit (`-chronikmaxsubsperip`).
 pub const MAX_SUBS_PER_IP: usize = 75_000;
 
 /// Shared subscription limiter.
@@ -76,9 +76,12 @@ impl SubscriptionLimiter {
         }
     }
 
-    /// Shared limiter with the default limits.
-    pub fn new_ref() -> SubscriptionLimiterRef {
-        Arc::new(Self::new())
+    /// Shared limiter with the given limits.
+    pub fn new_ref(
+        max_subs: usize,
+        max_subs_per_ip: usize,
+    ) -> SubscriptionLimiterRef {
+        Arc::new(Self::with_limits(max_subs, max_subs_per_ip))
     }
 
     /// Try to reserve one subscription slot for `key`.

@@ -57,6 +57,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.test_server_features()
         self.test_server_banner()
         self.test_ws()
+        self.test_subscription_limits()
         # Run this last as it invalidates self.client
         self.test_init_errors()
 
@@ -449,6 +450,50 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         )
 
         self.start_node(0, self.extra_args[0])
+
+    def test_subscription_limits(self):
+        self.log.info("Test Chronik Electrum subscription limit options")
+
+        # Per-connection (Electrum) / per-IP limit
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + ["-chronikmaxsubsperip=2", "-chronikmaxsubs=100"],
+        )
+        client = self.node.get_chronik_electrum_client(name="limit_client")
+
+        sh1 = "00" * 32
+        sh2 = "11" * 32
+        sh3 = "22" * 32
+
+        assert_equal(client.blockchain.scripthash.subscribe(sh1).error, None)
+        assert_equal(client.blockchain.scripthash.subscribe(sh2).error, None)
+        assert_equal(
+            client.blockchain.scripthash.subscribe(sh3).error,
+            {
+                "code": 1,
+                "message": "Subscription limit of 2 exceeded for this client",
+            },
+        )
+
+        # Global limit across connections
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + ["-chronikmaxsubs=2", "-chronikmaxsubsperip=100"],
+        )
+        client1 = self.node.get_chronik_electrum_client(name="limit_client1")
+        client2 = self.node.get_chronik_electrum_client(name="limit_client2")
+
+        assert_equal(client1.blockchain.scripthash.subscribe(sh1).error, None)
+        assert_equal(client2.blockchain.scripthash.subscribe(sh2).error, None)
+        assert_equal(
+            client1.blockchain.scripthash.subscribe(sh3).error,
+            {
+                "code": 1,
+                "message": "Global subscription limit of 2 exceeded",
+            },
+        )
 
 
 if __name__ == "__main__":
