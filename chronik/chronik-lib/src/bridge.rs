@@ -26,6 +26,7 @@ use chronik_http::electrum::{
 use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
 };
+use chronik_http::subscription_limits::SubscriptionLimiter;
 use chronik_indexer::{
     indexer::{ChronikIndexer, ChronikIndexerParams, Node},
     pause::Pause,
@@ -133,12 +134,14 @@ fn try_setup_chronik(
         return Ok(());
     }
     let indexer = Arc::new(RwLock::new(indexer));
+    let subscription_limiter = SubscriptionLimiter::new_ref();
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
     let server = runtime.block_on({
         let indexer = Arc::clone(&indexer);
         let node = Arc::clone(&node);
+        let subscription_limiter = Arc::clone(&subscription_limiter);
         async move {
             // try_bind requires a Runtime
             ChronikServer::setup(ChronikServerParams {
@@ -152,6 +155,7 @@ fn try_setup_chronik(
                     ),
                     enable_cors: params.enable_cors,
                 },
+                subscription_limiter,
             })
         }
     })?;
@@ -190,6 +194,7 @@ fn try_setup_chronik(
                 peers_validation_interval: params
                     .electrum_peers_validation_interval,
                 idle_timeout: params.electrum_idle_timeout,
+                subscription_limiter,
             })?;
         runtime.spawn({
             let node = Arc::clone(&node);

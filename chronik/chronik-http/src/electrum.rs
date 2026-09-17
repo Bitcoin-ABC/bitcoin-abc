@@ -6,9 +6,12 @@
 
 use std::{
     cmp,
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     net::{IpAddr, SocketAddr, ToSocketAddrs},
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
     time::Duration,
 };
 
@@ -59,30 +62,11 @@ use versions::Versioning;
 
 use crate::{
     server::{ChronikIndexerRef, NodeRef},
+    subscription_limits::{
+        SubscriptionClientKey, SubscriptionGuard, SubscriptionLimiterRef,
+    },
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
-
-/// How often the per-connection disconnect watcher polls whether the
-/// client's [`Channel`] is still alive. One watcher runs per connection,
-/// not per subscription, so idle scripthash subscriptions can sleep on
-/// `recv` indefinitely while the client stays connected.
-const DISCONNECT_WATCH_INTERVAL: Duration = Duration::from_secs(1);
-
-/// Key identifying an Electrum client connection (pointer of its
-/// [`Channel`] allocation).
-type ConnectionKey = usize;
-
-/// Cancel senders for subscription tasks belonging to one connection.
-struct ElectrumConnSubs {
-    /// Distinguishes successive connections that reuse the same
-    /// [`ConnectionKey`] after the previous [`Channel`] was freed.
-    generation: u64,
-    /// Per-subscription cancel senders, keyed so unsubscribe can stop an
-    /// idle task without waiting for a member event.
-    cancels: HashMap<message::SubscriptionID, oneshot::Sender<()>>,
-    /// Keep a weak ref so a new connection can detect a stale map entry.
-    channel: std::sync::Weak<Channel>,
-}
 
 /// Minimum protocol version implemented by this server
 pub const ELECTRUM_PROTOCOL_MIN_VERSION: &str = "1.4";
@@ -127,6 +111,8 @@ pub struct ChronikElectrumServerParams {
     pub peers_validation_interval: u32,
     /// Drop clients idle (no inbound data) this many seconds; 0 disables
     pub idle_timeout: u32,
+    /// Shared subscription limiter (Electrum + Chronik WS)
+    pub subscription_limiter: SubscriptionLimiterRef,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -143,6 +129,7 @@ pub struct ChronikElectrumServer {
     donation_address: String,
     peers_validation_interval: u32,
     idle_timeout: u32,
+    subscription_limiter: SubscriptionLimiterRef,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -215,6 +202,7 @@ impl ChronikElectrumServer {
             donation_address: params.donation_address,
             peers_validation_interval: params.peers_validation_interval,
             idle_timeout: params.idle_timeout,
+            subscription_limiter: params.subscription_limiter,
         })
     }
 
@@ -264,8 +252,10 @@ impl ChronikElectrumServer {
                 indexer: self.indexer.clone(),
                 node: self.node.clone(),
                 max_history: self.max_history,
-                conn_subs: Arc::new(Mutex::new(HashMap::new())),
-                conn_generation: std::sync::atomic::AtomicU64::new(1),
+                subscription_limiter: self.subscription_limiter.clone(),
+                notify_tasks: Arc::new(Mutex::new(HashMap::new())),
+                watched_conns: Arc::new(Mutex::new(HashSet::new())),
+                next_notify_token: AtomicU64::new(1),
             });
 
         let mempool_endpoint = Arc::new(ChronikElectrumRPCMempoolEndpoint {
@@ -539,12 +529,28 @@ struct ChronikElectrumRPCBlockchainEndpoint {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     max_history: u32,
-    /// Per-connection cancel senders used to stop subscription tasks when
-    /// the client disconnects or unsubscribes, even if the subscribed member
-    /// never produces an event.
-    conn_subs: Arc<Mutex<HashMap<ConnectionKey, ElectrumConnSubs>>>,
-    /// Monotonic counter used to tag [`ElectrumConnSubs`] generations.
-    conn_generation: std::sync::atomic::AtomicU64,
+    subscription_limiter: SubscriptionLimiterRef,
+    /// Active notification tasks and their limiter guards, keyed by
+    /// `(channel pointer, subscription id)`.
+    notify_tasks: Arc<Mutex<HashMap<(usize, u32), ActiveElectrumSub>>>,
+    /// Channel pointers that already have a disconnect watcher.
+    watched_conns: Arc<Mutex<HashSet<usize>>>,
+    /// Monotonic token minted for each tracked notification task.
+    next_notify_token: AtomicU64,
+}
+
+/// An Electrum notification task plus the optional limiter slot it holds.
+struct ActiveElectrumSub {
+    /// Identifies this task instance so stale cleanup cannot remove a newer
+    /// registration for the same `(channel, sub_id)`.
+    token: u64,
+    /// Cooperative cancel so the task can release indexer subscriptions and
+    /// log unsubscription before exiting.
+    cancel: oneshot::Sender<()>,
+    /// Dropped synchronously on unsubscribe / disconnect so the slot is
+    /// freed without waiting for the next indexer event. `None` for
+    /// subscriptions that are not subject to the limiter (e.g. headers).
+    _guard: Option<SubscriptionGuard>,
 }
 
 struct ChronikElectrumRPCMempoolEndpoint {
@@ -556,6 +562,152 @@ fn get_version() -> String {
     let client_name = ffi::client_name();
     let version_number = ffi::format_full_version();
     format!("{client_name} {version_number}")
+}
+
+fn channel_ptr(chan: &Arc<Channel>) -> usize {
+    Arc::as_ptr(chan) as usize
+}
+
+impl ChronikElectrumRPCBlockchainEndpoint {
+    /// Register a notification task so unsubscribe / disconnect can cancel it
+    /// and drop its limiter guard immediately.
+    async fn track_notify_task(
+        &self,
+        chan: &Arc<Channel>,
+        sub_id: u32,
+        token: u64,
+        cancel: oneshot::Sender<()>,
+        guard: Option<SubscriptionGuard>,
+    ) {
+        let ptr = channel_ptr(chan);
+        let prev = self.notify_tasks.lock().await.insert(
+            (ptr, sub_id),
+            ActiveElectrumSub {
+                token,
+                cancel,
+                _guard: guard,
+            },
+        );
+        if let Some(prev) = prev {
+            // Cancel the task we just replaced, otherwise it keeps notifying
+            // while untracked. Dropping `_guard` frees its limiter slot.
+            let _ = prev.cancel.send(());
+        }
+        self.ensure_disconnect_watcher(chan).await;
+    }
+
+    /// Remove a map entry only when it still belongs to `token`.
+    async fn remove_notify_task_if_token(
+        notify_tasks: &Mutex<HashMap<(usize, u32), ActiveElectrumSub>>,
+        chan_ptr: usize,
+        sub_id: u32,
+        token: u64,
+    ) {
+        let mut tasks = notify_tasks.lock().await;
+        let key = (chan_ptr, sub_id);
+        if tasks.get(&key).is_some_and(|active| active.token == token) {
+            tasks.remove(&key);
+        }
+    }
+
+    /// Spawn a notification task that does not start until it is registered.
+    ///
+    /// `make_fut` receives a cancel receiver that completes on unsubscribe or
+    /// disconnect. The task waits on a oneshot start signal sent after
+    /// [`Self::track_notify_task`]. If this future is cancelled before the
+    /// signal is sent, dropping the sender makes the task exit (and drop any
+    /// guard that was already inserted for this task's token).
+    async fn spawn_tracked_notify_task<F, Fut>(
+        &self,
+        chan: &Arc<Channel>,
+        sub_id: u32,
+        guard: Option<SubscriptionGuard>,
+        make_fut: F,
+    ) where
+        F: FnOnce(oneshot::Receiver<()>) -> Fut,
+        Fut: std::future::Future<Output = ()> + Send + 'static,
+    {
+        let token = self.next_notify_token.fetch_add(1, Ordering::Relaxed);
+        let (start_tx, start_rx) = oneshot::channel();
+        let (cancel_tx, cancel_rx) = oneshot::channel();
+        let notify_tasks = Arc::clone(&self.notify_tasks);
+        let chan_ptr = channel_ptr(chan);
+        let fut = make_fut(cancel_rx);
+        tokio::spawn(async move {
+            if start_rx.await.is_err() {
+                // Registration was cancelled; drop any late-inserted guard
+                // for this token only.
+                Self::remove_notify_task_if_token(
+                    &notify_tasks,
+                    chan_ptr,
+                    sub_id,
+                    token,
+                )
+                .await;
+                return;
+            }
+            fut.await;
+            // Natural exit: free the limiter slot if unsubscribe did not, but
+            // only if we still own the map entry.
+            Self::remove_notify_task_if_token(
+                &notify_tasks,
+                chan_ptr,
+                sub_id,
+                token,
+            )
+            .await;
+        });
+        self.track_notify_task(chan, sub_id, token, cancel_tx, guard)
+            .await;
+        let _ = start_tx.send(());
+    }
+
+    /// Cancel the notification task and drop its limiter guard.
+    async fn cancel_notify_task(&self, chan: &Arc<Channel>, sub_id: u32) {
+        if let Some(active) = self
+            .notify_tasks
+            .lock()
+            .await
+            .remove(&(channel_ptr(chan), sub_id))
+        {
+            let _ = active.cancel.send(());
+            // `_guard` drops here and frees the limiter slot.
+        }
+    }
+
+    /// When the karyon [`Channel`] is dropped (client disconnect), cancel any
+    /// remaining notification tasks for that connection.
+    async fn ensure_disconnect_watcher(&self, chan: &Arc<Channel>) {
+        let ptr = channel_ptr(chan);
+        {
+            let mut watched = self.watched_conns.lock().await;
+            if !watched.insert(ptr) {
+                return;
+            }
+        }
+
+        let weak = Arc::downgrade(chan);
+        let notify_tasks = Arc::clone(&self.notify_tasks);
+        let watched_conns = Arc::clone(&self.watched_conns);
+        tokio::spawn(async move {
+            while weak.strong_count() > 0 {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+            let mut tasks = notify_tasks.lock().await;
+            let keys: Vec<_> = tasks
+                .keys()
+                .filter(|(chan_ptr, _)| *chan_ptr == ptr)
+                .copied()
+                .collect();
+            for key in keys {
+                if let Some(active) = tasks.remove(&key) {
+                    let _ = active.cancel.send(());
+                    // `_guard` drops with `active`.
+                }
+            }
+            watched_conns.lock().await.remove(&ptr);
+        });
+    }
 }
 
 impl ChronikElectrumRPCServerEndpoint {
@@ -1224,92 +1376,6 @@ fn address_to_scripthash(address: &String) -> Result<Sha256, RPCError> {
 }
 
 impl ChronikElectrumRPCBlockchainEndpoint {
-    /// Register a cancel receiver that completes when this client
-    /// disconnects or unsubscribes. Starts a single watcher task for the
-    /// connection on the first subscription.
-    async fn register_disconnect_cancel(
-        &self,
-        chan: &Arc<Channel>,
-        sub_id: message::SubscriptionID,
-    ) -> oneshot::Receiver<()> {
-        let key = Arc::as_ptr(chan) as ConnectionKey;
-        let (cancel_tx, cancel_rx) = oneshot::channel();
-
-        let mut start_watcher = false;
-        let generation;
-        {
-            let mut conn_subs = self.conn_subs.lock().await;
-            let stale = conn_subs
-                .get(&key)
-                .is_some_and(|entry| entry.channel.upgrade().is_none());
-            if stale {
-                // Previous connection at this address is gone; its watcher
-                // will ignore this map entry via the generation check.
-                conn_subs.remove(&key);
-            }
-            let entry = conn_subs.entry(key).or_insert_with(|| {
-                let generation = self
-                    .conn_generation
-                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                start_watcher = true;
-                ElectrumConnSubs {
-                    generation,
-                    cancels: HashMap::new(),
-                    channel: Arc::downgrade(chan),
-                }
-            });
-            generation = entry.generation;
-            // Drop senders whose subscription tasks already finished
-            // (notify failure / recv error), so a long-lived client that
-            // churns subscriptions cannot grow this map unboundedly.
-            entry.cancels.retain(|_, tx| !tx.is_closed());
-            // Replacing an existing sub_id drops the prior sender, which
-            // cancels any leftover task for that subscription.
-            entry.cancels.insert(sub_id, cancel_tx);
-        }
-
-        if start_watcher {
-            let weak_chan = Arc::downgrade(chan);
-            let conn_subs = Arc::clone(&self.conn_subs);
-            tokio::spawn(async move {
-                loop {
-                    tokio::time::sleep(DISCONNECT_WATCH_INTERVAL).await;
-                    if weak_chan.upgrade().is_none() {
-                        break;
-                    }
-                }
-                let mut conn_subs = conn_subs.lock().await;
-                if let Some(state) = conn_subs.get(&key) {
-                    if state.generation != generation {
-                        return;
-                    }
-                }
-                if let Some(state) = conn_subs.remove(&key) {
-                    for (_, cancel) in state.cancels {
-                        let _ = cancel.send(());
-                    }
-                }
-            });
-        }
-
-        cancel_rx
-    }
-
-    /// Stop the subscription task for `sub_id` on this connection, if any.
-    async fn cancel_subscription(
-        &self,
-        chan: &Arc<Channel>,
-        sub_id: message::SubscriptionID,
-    ) {
-        let key = Arc::as_ptr(chan) as ConnectionKey;
-        let mut conn_subs = self.conn_subs.lock().await;
-        if let Some(entry) = conn_subs.get_mut(&key) {
-            if let Some(cancel) = entry.cancels.remove(&sub_id) {
-                let _ = cancel.send(());
-            }
-        }
-    }
-
     async fn scripthash_or_address_suscribe(
         &self,
         chan: Arc<Channel>,
@@ -1317,6 +1383,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         script_hash: Sha256,
         formatted_subscription: String,
     ) -> Result<Value, RPCError> {
+        // Reserve the limiter slot before any indexer work so a rejection
+        // cannot leave SubsGroup entries behind.
+        let sub_guard = self
+            .subscription_limiter
+            .try_acquire(SubscriptionClientKey::Connection(channel_ptr(&chan)))
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
         let max_history = self.max_history;
         let status = get_scripthash_status(
             script_hash,
@@ -1337,72 +1410,98 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let node_clone = self.node.clone();
 
         let sub_id = hash_to_sub_id(&script_hash.into());
-        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
-            let mut cancel_rx =
-                self.register_disconnect_cancel(&chan, sub_id).await;
-            tokio::spawn(async move {
-                log_chronik!("Subscription to electrum scripthash\n");
+        match chan.new_subscription(&method, Some(sub_id)).await {
+            Ok(sub) => {
+                self.spawn_tracked_notify_task(
+                    &chan,
+                    sub_id,
+                    Some(sub_guard),
+                    |mut cancel_rx| async move {
+                        log_chronik!("Subscription to electrum scripthash\n");
 
-                let mut last_status = None;
+                        let mut last_status = None;
 
-                loop {
-                    let tx_msg = tokio::select! {
-                        tx_msg = recv.recv() => {
-                            let Ok(tx_msg) = tx_msg else {
-                                // Error, disconnect
-                                break;
+                        loop {
+                            let tx_msg = tokio::select! {
+                                tx_msg = recv.recv() => {
+                                    let Ok(tx_msg) = tx_msg else {
+                                        // Error, disconnect
+                                        break;
+                                    };
+                                    tx_msg
+                                }
+                                _ = &mut cancel_rx => break,
                             };
-                            tx_msg
-                        }
-                        _ = &mut cancel_rx => break,
-                    };
 
-                    // We want all the events except finalization (this might
-                    // change in the future):
-                    // - added to mempool
-                    // - removed from mempool
-                    // - confirmed
-                    if let TxMsgType::Finalized(_) = tx_msg.msg_type {
-                        continue;
-                    }
+                            // We want all the events except finalization (this
+                            // might change in the future):
+                            // - added to mempool
+                            // - removed from mempool
+                            // - confirmed
+                            if let TxMsgType::Finalized(_) = tx_msg.msg_type {
+                                continue;
+                            }
 
-                    if let Ok(status) = get_scripthash_status(
-                        script_hash,
-                        indexer_clone.clone(),
-                        node_clone.clone(),
-                        max_history,
-                    )
-                    .await
-                    {
-                        if last_status == status {
-                            continue;
-                        }
-                        last_status = status.clone();
-
-                        if sub
-                            .notify(json!([formatted_subscription, status,]))
+                            if let Ok(status) = get_scripthash_status(
+                                script_hash,
+                                indexer_clone.clone(),
+                                node_clone.clone(),
+                                max_history,
+                            )
                             .await
-                            .is_err()
-                        {
-                            // Don't log, it's likely a client
-                            // unsubscription or
-                            // disconnection
-                            break;
-                        }
-                    }
-                }
+                            {
+                                if last_status == status {
+                                    continue;
+                                }
+                                last_status = status.clone();
 
+                                if sub
+                                    .notify(json!([
+                                        formatted_subscription,
+                                        status,
+                                    ]))
+                                    .await
+                                    .is_err()
+                                {
+                                    // Don't log, it's likely a client
+                                    // unsubscription or disconnection
+                                    break;
+                                }
+                            }
+                        }
+
+                        std::mem::drop(recv);
+                        let indexer = indexer_clone.read().await;
+                        indexer
+                            .subs()
+                            .write()
+                            .await
+                            .subs_script_mut()
+                            .unsubscribe_from_hash_member(
+                                &script_hash.to_be_bytes(),
+                            );
+
+                        log_chronik!(
+                            "Unsubscription from electrum scripthash\n"
+                        );
+                    },
+                )
+                .await;
+            }
+            Err(_) => {
+                // Karyon rejected the subscription (e.g. duplicate sub_id);
+                // release the indexer member we just created. Dropping
+                // sub_guard frees the limiter slot.
                 std::mem::drop(recv);
-                let indexer = indexer_clone.read().await;
+                let indexer = self.indexer.read().await;
                 indexer
                     .subs()
                     .write()
                     .await
                     .subs_script_mut()
                     .unsubscribe_from_hash_member(&script_hash.to_be_bytes());
-
-                log_chronik!("Unsubscription from electrum scripthash\n");
-            });
+                drop(sub_guard);
+            }
         }
 
         Ok(serde_json::json!(status))
@@ -1454,39 +1553,44 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let node_clone = self.node.clone();
 
         if let Ok(sub) = chan.new_subscription(&method, Some(0)).await {
-            let mut cancel_rx = self.register_disconnect_cancel(&chan, 0).await;
-            tokio::spawn(async move {
-                log_chronik!("Subscription to electrum headers\n");
+            self.spawn_tracked_notify_task(
+                &chan,
+                0,
+                None,
+                |mut cancel_rx| async move {
+                    log_chronik!("Subscription to electrum headers\n");
 
-                loop {
-                    let block_msg = tokio::select! {
-                        block_msg = block_subs.recv() => {
-                            let Ok(block_msg) = block_msg else {
-                                // Error, disconnect
-                                break;
-                            };
-                            block_msg
+                    loop {
+                        let block_msg = tokio::select! {
+                            block_msg = block_subs.recv() => {
+                                let Ok(block_msg) = block_msg else {
+                                    // Error, disconnect
+                                    break;
+                                };
+                                block_msg
+                            }
+                            _ = &mut cancel_rx => break,
+                        };
+
+                        if !matches!(
+                            block_msg.msg_type,
+                            BlockMsgType::Connected
+                                | BlockMsgType::Disconnected
+                        ) {
+                            // We're only sending headers upon block
+                            // dis/connection. At some point we might want to
+                            // wait for block finalization instead, but this
+                            // behavior would differ from Fulcrum.
+                            continue;
                         }
-                        _ = &mut cancel_rx => break,
-                    };
 
-                    if !matches!(
-                        block_msg.msg_type,
-                        BlockMsgType::Connected | BlockMsgType::Disconnected
-                    ) {
-                        // We're only sending headers upon block dis/connection.
-                        // At some point we might want to wait for block
-                        // finalization instead, but this behavior would differ
-                        // from Fulcrum.
-                        continue;
-                    }
+                        let indexer = indexer_clone.read().await;
+                        let blocks: chronik_indexer::query::QueryBlocks<'_> =
+                            indexer.blocks(&node_clone);
 
-                    let indexer = indexer_clone.read().await;
-                    let blocks: chronik_indexer::query::QueryBlocks<'_> =
-                        indexer.blocks(&node_clone);
-
-                    let height =
-                        if block_msg.msg_type == BlockMsgType::Disconnected {
+                        let height = if block_msg.msg_type
+                            == BlockMsgType::Disconnected
+                        {
                             // Send the tip, so upon disconnection it's the
                             // previous block
                             block_msg.height - 1
@@ -1494,33 +1598,36 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                             block_msg.height
                         };
 
-                    match header_hex_from_height(&blocks, height).await {
-                        Err(err) => {
-                            log_chronik!("{err}\n");
-                            // Under deep reorg conditions, the header might be
-                            // missing. In this case we simply skip sending it
-                            // so only the actual tip will be sent.
-                            continue;
-                        }
-                        Ok(header_hex) => {
-                            if sub
-                                .notify(json!([{
-                                            "height": height,
-                                            "hex": header_hex,
-                                }]))
-                                .await
-                                .is_err()
-                            {
-                                // Don't log, it's likely a client
-                                // unsubscription or disconnection
-                                break;
+                        match header_hex_from_height(&blocks, height).await {
+                            Err(err) => {
+                                log_chronik!("{err}\n");
+                                // Under deep reorg conditions, the header
+                                // might be missing. In this case we simply
+                                // skip sending it so only the actual tip will
+                                // be sent.
+                                continue;
                             }
-                        }
-                    };
-                }
+                            Ok(header_hex) => {
+                                if sub
+                                    .notify(json!([{
+                                                "height": height,
+                                                "hex": header_hex,
+                                    }]))
+                                    .await
+                                    .is_err()
+                                {
+                                    // Don't log, it's likely a client
+                                    // unsubscription or disconnection
+                                    break;
+                                }
+                            }
+                        };
+                    }
 
-                log_chronik!("Unsubscription from electrum headers\n");
-            });
+                    log_chronik!("Unsubscription from electrum headers\n");
+                },
+            )
+            .await;
         }
 
         let indexer = self.indexer.read().await;
@@ -1550,7 +1657,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let sub_id: message::SubscriptionID = 0;
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         if success {
-            self.cancel_subscription(&chan, sub_id).await;
+            self.cancel_notify_task(&chan, sub_id).await;
         }
         Ok(json!(success))
     }
@@ -1614,6 +1721,13 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let txid = TxId::try_from(&txid_hex)
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
+        // Reserve the limiter slot before any indexer work so a rejection
+        // cannot leave SubsGroup entries behind.
+        let sub_guard = self
+            .subscription_limiter
+            .try_acquire(SubscriptionClientKey::Connection(channel_ptr(&chan)))
+            .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
+
         let mut recv = {
             let indexer = self.indexer.read().await;
             let mut subs = indexer.subs().write().await;
@@ -1624,63 +1738,92 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let node_clone = self.node.clone();
 
         let sub_id = hash_to_sub_id(txid.as_bytes());
-        if let Ok(sub) = chan.new_subscription(&method, Some(sub_id)).await {
-            let mut cancel_rx =
-                self.register_disconnect_cancel(&chan, sub_id).await;
-            tokio::spawn(async move {
-                log_chronik!("Subscription to electrum txid {txid_hex}\n");
+        match chan.new_subscription(&method, Some(sub_id)).await {
+            Ok(sub) => {
+                self.spawn_tracked_notify_task(
+                    &chan,
+                    sub_id,
+                    Some(sub_guard),
+                    |mut cancel_rx| async move {
+                        log_chronik!(
+                            "Subscription to electrum txid {txid_hex}\n"
+                        );
 
-                loop {
-                    let tx_msg = tokio::select! {
-                        tx_msg = recv.recv() => {
-                            let Ok(tx_msg) = tx_msg else {
-                                // Error, disconnect
-                                break;
+                        loop {
+                            let tx_msg = tokio::select! {
+                                tx_msg = recv.recv() => {
+                                    let Ok(tx_msg) = tx_msg else {
+                                        // Error, disconnect
+                                        break;
+                                    };
+                                    tx_msg
+                                }
+                                _ = &mut cancel_rx => break,
                             };
-                            tx_msg
+
+                            // We want all the events except finalization (this
+                            // might change in the future):
+                            // - added to mempool
+                            // - removed from mempool
+                            // - confirmed
+                            if let TxMsgType::Finalized(_) = tx_msg.msg_type {
+                                continue;
+                            }
+
+                            let indexer = indexer_clone.read().await;
+                            let txs = indexer.txs(&node_clone);
+                            let height = txs.tx_by_id(txid).ok().map(|tx| {
+                                if let Some(block) = tx.block {
+                                    return block.height;
+                                }
+                                0
+                            });
+
+                            if sub
+                                .notify(json!([txid_hex, height,]))
+                                .await
+                                .is_err()
+                            {
+                                // Don't log, it's likely a client
+                                // unsubscription or disconnection
+                                break;
+                            }
                         }
-                        _ = &mut cancel_rx => break,
-                    };
 
-                    // We want all the events except finalization (this might
-                    // change in the future):
-                    // - added to mempool
-                    // - removed from mempool
-                    // - confirmed
-                    if let TxMsgType::Finalized(_) = tx_msg.msg_type {
-                        continue;
-                    }
+                        std::mem::drop(recv);
+                        let indexer = indexer_clone.read().await;
+                        indexer
+                            .subs()
+                            .write()
+                            .await
+                            .subs_txid_mut()
+                            .unsubscribe_from_member(&txid);
 
-                    let indexer = indexer_clone.read().await;
-                    let txs = indexer.txs(&node_clone);
-                    let height = txs.tx_by_id(txid).ok().map(|tx| {
-                        if let Some(block) = tx.block {
-                            return block.height;
-                        }
-                        0
-                    });
-
-                    if sub.notify(json!([txid_hex, height,])).await.is_err() {
-                        // Don't log, it's likely a client unsubscription or
-                        // disconnection
-                        break;
-                    }
-                }
-
+                        log_chronik!(
+                            "Unsubscription from electrum txid {txid_hex}\n"
+                        );
+                    },
+                )
+                .await;
+            }
+            Err(_) => {
+                // Karyon rejected the subscription (e.g. duplicate sub_id);
+                // release the indexer member we just created. Dropping
+                // sub_guard frees the limiter slot.
                 std::mem::drop(recv);
-                let indexer = indexer_clone.read().await;
+                let indexer = self.indexer.read().await;
                 indexer
                     .subs()
                     .write()
                     .await
                     .subs_txid_mut()
                     .unsubscribe_from_member(&txid);
-
-                log_chronik!("Unsubscription from electrum txid {txid_hex}\n");
-            });
+                drop(sub_guard);
+            }
         }
 
         let indexer = self.indexer.read().await;
+
         let txs = indexer.txs(&self.node);
         let height = txs.tx_by_id(txid).ok().map(|tx| {
             if let Some(block) = tx.block {
@@ -1714,7 +1857,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let sub_id = hash_to_sub_id(&script_hash.into());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         if success {
-            self.cancel_subscription(&chan, sub_id).await;
+            self.cancel_notify_task(&chan, sub_id).await;
         }
         Ok(serde_json::json!(success))
     }
@@ -1738,7 +1881,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let sub_id = hash_to_sub_id(&script_hash.into());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         if success {
-            self.cancel_subscription(&chan, sub_id).await;
+            self.cancel_notify_task(&chan, sub_id).await;
         }
         Ok(serde_json::json!(success))
     }
@@ -1759,7 +1902,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let sub_id = hash_to_sub_id(txid.as_bytes());
         let success = chan.remove_subscription(&sub_id).await.is_ok();
         if success {
-            self.cancel_subscription(&chan, sub_id).await;
+            self.cancel_notify_task(&chan, sub_id).await;
         }
         Ok(serde_json::json!(success))
     }

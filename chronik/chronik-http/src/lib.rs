@@ -12,6 +12,7 @@ abc_rust_lint::lint! {
     pub mod parse;
     pub mod protobuf;
     pub mod server;
+    pub mod subscription_limits;
     pub(crate) mod validation;
     pub mod ws;
 }

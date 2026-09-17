@@ -10,7 +10,10 @@ use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
 use axum::{
-    extract::{DefaultBodyLimit, Path, Query, WebSocketUpgrade},
+    extract::{
+        connect_info::ConnectInfo, DefaultBodyLimit, Path, Query,
+        WebSocketUpgrade,
+    },
     response::IntoResponse,
     routing::{self, MethodFilter},
     Extension, Router,
@@ -31,6 +34,7 @@ use crate::{
     error::ReportError,
     handlers,
     protobuf::{Protobuf, MAX_REQUEST_BODY_SIZE},
+    subscription_limits::SubscriptionLimiterRef,
     ws::{handle_subscribe_socket, MAX_WS_MESSAGE_SIZE},
 };
 
@@ -63,6 +67,8 @@ pub struct ChronikServerParams {
     pub pause_notify: PauseNotifyRef,
     /// Settings to tune Chronik
     pub settings: ChronikSettings,
+    /// Shared subscription limiter (Chronik WS + Electrum)
+    pub subscription_limiter: SubscriptionLimiterRef,
 }
 
 /// Chronik HTTP server, holding all the data/handles required to serve an
@@ -74,6 +80,7 @@ pub struct ChronikServer {
     node: NodeRef,
     pause_notify: PauseNotifyRef,
     settings: ChronikSettings,
+    subscription_limiter: SubscriptionLimiterRef,
 }
 
 /// Errors for [`ChronikServer`].
@@ -123,6 +130,7 @@ impl ChronikServer {
             node: params.node,
             pause_notify: params.pause_notify,
             settings: params.settings,
+            subscription_limiter: params.subscription_limiter,
         })
     }
 
@@ -133,6 +141,7 @@ impl ChronikServer {
             self.node,
             self.pause_notify,
             self.settings,
+            self.subscription_limiter,
         );
         let servers = self
             .tcp_listeners
@@ -140,9 +149,12 @@ impl ChronikServer {
             .zip(std::iter::repeat(app))
             .map(|(tcp_listener, app)| {
                 Box::pin(async move {
-                    axum::serve(tcp_listener, app.into_make_service())
-                        .await
-                        .map_err(|err| ServingFailed(err.to_string()))
+                    axum::serve(
+                        tcp_listener,
+                        app.into_make_service_with_connect_info::<SocketAddr>(),
+                    )
+                    .await
+                    .map_err(|err| ServingFailed(err.to_string()))
                 })
             });
         let (result, _, _) = futures::future::select_all(servers).await;
@@ -155,6 +167,7 @@ impl ChronikServer {
         node: NodeRef,
         pause_notify: PauseNotifyRef,
         settings: ChronikSettings,
+        subscription_limiter: SubscriptionLimiterRef,
     ) -> Router {
         let enable_cors = settings.enable_cors;
         let mut router = Router::new()
@@ -272,6 +285,7 @@ impl ChronikServer {
             .layer(Extension(node))
             .layer(Extension(pause_notify))
             .layer(Extension(settings))
+            .layer(Extension(subscription_limiter))
             .layer(DefaultBodyLimit::max(MAX_REQUEST_BODY_SIZE));
         if enable_cors {
             router = router.layer(
@@ -819,12 +833,22 @@ async fn handle_resume(
 
 async fn handle_ws(
     ws: WebSocketUpgrade,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
     Extension(indexer): Extension<ChronikIndexerRef>,
     Extension(settings): Extension<ChronikSettings>,
+    Extension(subscription_limiter): Extension<SubscriptionLimiterRef>,
 ) -> impl IntoResponse {
     ws.max_message_size(MAX_WS_MESSAGE_SIZE)
         .max_frame_size(MAX_WS_MESSAGE_SIZE)
-        .on_upgrade(|ws| handle_subscribe_socket(ws, indexer, settings))
+        .on_upgrade(move |ws| {
+            handle_subscribe_socket(
+                ws,
+                indexer,
+                settings,
+                subscription_limiter,
+                addr.ip(),
+            )
+        })
 }
 
 async fn handle_post_options(

@@ -4,7 +4,7 @@
 
 //! Module for [`handle_subscribe_socket`].
 
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, net::IpAddr, time::Duration};
 
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
@@ -27,6 +27,9 @@ use crate::{
     error::report_status_error,
     parse::{parse_lokad_id, parse_script_variant},
     server::{ChronikIndexerRef, ChronikSettings},
+    subscription_limits::{
+        SubscriptionClientKey, SubscriptionGuard, SubscriptionLimiterRef,
+    },
 };
 
 /// Consensus maximum script size in bytes.
@@ -52,6 +55,10 @@ pub enum ChronikWsError {
     /// Plugin with the given name not loaded.
     #[error("404: Plugin {0:?} not loaded")]
     PluginNotLoaded(String),
+
+    /// Client exceeded the subscription limit.
+    #[error("503: {0}")]
+    SubscriptionLimit(String),
 }
 
 use self::ChronikWsError::*;
@@ -95,6 +102,10 @@ struct SubRecv {
     lokad_ids: SubRecvLokadId,
     plugin_groups: SubRecvPluginGroups,
     ws_ping_interval: Duration,
+    /// Guards for active subscriptions attributed to this connection's IP.
+    sub_guards: Vec<SubscriptionGuard>,
+    client_key: SubscriptionClientKey,
+    subscription_limiter: SubscriptionLimiterRef,
 }
 
 impl SubRecv {
@@ -218,11 +229,14 @@ impl SubRecv {
             WsSubType::Blocks => {
                 if sub.is_unsub {
                     log_chronik!("WS unsubscribe from blocks\n");
-                    self.blocks = None;
+                    if self.blocks.take().is_some() {
+                        self.release_one_sub();
+                    }
                 } else {
                     log_chronik!("WS subscribe to blocks\n");
                     // Silently ignore multiple subs to blocks
                     if self.blocks.is_none() {
+                        self.acquire_sub()?;
                         self.blocks = Some(subs.sub_to_block_msgs());
                     }
                 }
@@ -230,11 +244,14 @@ impl SubRecv {
             WsSubType::Txs => {
                 if sub.is_unsub {
                     log_chronik!("WS unsubscribe from all txs\n");
-                    self.txs = None;
+                    if self.txs.take().is_some() {
+                        self.release_one_sub();
+                    }
                 } else {
                     log_chronik!("WS subscribe to all txs\n");
                     // Silently ignore multiple subs to all txs
                     if self.txs.is_none() {
+                        self.acquire_sub()?;
                         self.txs = Some(subs.sub_to_tx_msgs());
                     }
                 }
@@ -242,10 +259,13 @@ impl SubRecv {
             WsSubType::TxId(txid) => {
                 if sub.is_unsub {
                     log_chronik!("WS unsubscribe from txid {txid}\n");
-                    std::mem::drop(self.txids.remove(&txid));
+                    if self.txids.remove(&txid).is_some() {
+                        self.release_one_sub();
+                    }
                     subs.subs_txid_mut().unsubscribe_from_member(&txid)
-                } else {
+                } else if !self.txids.contains_key(&txid) {
                     log_chronik!("WS subscribe to txid {txid}\n");
+                    self.acquire_sub()?;
                     let recv = subs.subs_txid_mut().subscribe_to_member(&txid);
                     self.txids.insert(txid, recv);
                 }
@@ -254,10 +274,13 @@ impl SubRecv {
                 let script = script_variant.to_script();
                 if sub.is_unsub {
                     log_chronik!("WS unsubscribe from {}\n", script_variant);
-                    std::mem::drop(self.scripts.remove(&script_variant));
+                    if self.scripts.remove(&script_variant).is_some() {
+                        self.release_one_sub();
+                    }
                     subs.subs_script_mut().unsubscribe_from_member(&&script)
-                } else {
+                } else if !self.scripts.contains_key(&script_variant) {
                     log_chronik!("WS subscribe to {}\n", script_variant);
+                    self.acquire_sub()?;
                     let recv =
                         subs.subs_script_mut().subscribe_to_member(&&script);
                     self.scripts.insert(script_variant, recv);
@@ -266,10 +289,13 @@ impl SubRecv {
             WsSubType::TokenId(token_id) => {
                 if sub.is_unsub {
                     log_chronik!("WS unsubscribe from token ID {token_id}\n");
-                    std::mem::drop(self.token_ids.remove(&token_id));
+                    if self.token_ids.remove(&token_id).is_some() {
+                        self.release_one_sub();
+                    }
                     subs.subs_token_id_mut().unsubscribe_from_member(&token_id)
-                } else {
+                } else if !self.token_ids.contains_key(&token_id) {
                     log_chronik!("WS subscribe to token ID {token_id}\n");
+                    self.acquire_sub()?;
                     let recv =
                         subs.subs_token_id_mut().subscribe_to_member(&token_id);
                     self.token_ids.insert(token_id, recv);
@@ -281,13 +307,16 @@ impl SubRecv {
                         "WS unsubscribe from LOKAD ID {}\n",
                         hex::encode(lokad_id)
                     );
-                    std::mem::drop(self.lokad_ids.remove(&lokad_id));
+                    if self.lokad_ids.remove(&lokad_id).is_some() {
+                        self.release_one_sub();
+                    }
                     subs.subs_lokad_id_mut().unsubscribe_from_member(&lokad_id)
-                } else {
+                } else if !self.lokad_ids.contains_key(&lokad_id) {
                     log_chronik!(
                         "WS subscribe to LOKAD ID {}\n",
                         hex::encode(lokad_id)
                     );
+                    self.acquire_sub()?;
                     let recv =
                         subs.subs_lokad_id_mut().subscribe_to_member(&lokad_id);
                     self.lokad_ids.insert(lokad_id, recv);
@@ -309,14 +338,17 @@ impl SubRecv {
                         "WS unsubscribe from plugin {plugin_name}, group {}\n",
                         hex::encode(&plugin_group.group),
                     );
-                    std::mem::drop(self.plugin_groups.remove(&plugin_group));
+                    if self.plugin_groups.remove(&plugin_group).is_some() {
+                        self.release_one_sub();
+                    }
                     subs.subs_plugin_mut()
                         .unsubscribe_from_member(&member.ser())
-                } else {
+                } else if !self.plugin_groups.contains_key(&plugin_group) {
                     log_chronik!(
                         "WS subscribe to plugin {plugin_name}, group {}\n",
                         hex::encode(&plugin_group.group),
                     );
+                    self.acquire_sub()?;
                     let recv = subs
                         .subs_plugin_mut()
                         .subscribe_to_member(&member.ser());
@@ -327,7 +359,23 @@ impl SubRecv {
         Ok(WsAction::Nothing)
     }
 
-    async fn cleanup(self, indexer: &ChronikIndexerRef) {
+    fn acquire_sub(&mut self) -> Result<()> {
+        match self.subscription_limiter.try_acquire(self.client_key) {
+            Ok(guard) => {
+                self.sub_guards.push(guard);
+                Ok(())
+            }
+            Err(err) => Err(SubscriptionLimit(err.to_string()).into()),
+        }
+    }
+
+    fn release_one_sub(&mut self) {
+        self.sub_guards.pop();
+    }
+
+    async fn cleanup(mut self, indexer: &ChronikIndexerRef) {
+        // Dropping guards releases subscription limit slots.
+        self.sub_guards.clear();
         let has_member_subs = !self.txids.is_empty()
             || !self.scripts.is_empty()
             || !self.token_ids.is_empty()
@@ -496,6 +544,8 @@ pub async fn handle_subscribe_socket(
     mut socket: WebSocket,
     indexer: ChronikIndexerRef,
     settings: ChronikSettings,
+    subscription_limiter: SubscriptionLimiterRef,
+    peer_ip: IpAddr,
 ) {
     let mut recv = SubRecv {
         blocks: Default::default(),
@@ -506,6 +556,9 @@ pub async fn handle_subscribe_socket(
         lokad_ids: Default::default(),
         plugin_groups: Default::default(),
         ws_ping_interval: settings.ws_ping_interval,
+        sub_guards: Vec::new(),
+        client_key: SubscriptionClientKey::Ip(peer_ip),
+        subscription_limiter,
     };
     let mut last_msg = None;
 
