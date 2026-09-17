@@ -39,10 +39,7 @@ import {
 } from 'components/Etokens/fixtures/mocks';
 import { FIRMA, FIRMA_REDEEM_ADDRESS } from 'constants/tokens';
 import { previewAddress, getHighlightedAddressParts } from 'helpers';
-import {
-    BLITZ_CHIPS_GAME_ADDRESS,
-    EVERY_DAY_JACKPOT_GAME_ADDRESS,
-} from 'constants/recipients';
+import { BLITZ_CHIPS_GAME_ADDRESS } from 'constants/recipients';
 import {
     getFirmaHandleLookupUrl,
     FIRMA_USERNAME_NOT_FOUND,
@@ -787,13 +784,6 @@ describe('<SendXec />', () => {
         const addressInputEl = await getRecipientInput();
         await user.type(addressInputEl, BLITZ_CHIPS_GAME_ADDRESS);
         await expectResolvedRecipient('BlitzChips');
-
-        await user.click(
-            screen.getByRole('button', { name: 'Clear recipient' }),
-        );
-        const clearedInput = await getRecipientInput();
-        await user.type(clearedInput, EVERY_DAY_JACKPOT_GAME_ADDRESS);
-        await expectResolvedRecipient('EveryDayJackpot');
     });
     it('Pass an invalid address to Send To field and get a validation error', async () => {
         // Mock the app with context at the Send screen

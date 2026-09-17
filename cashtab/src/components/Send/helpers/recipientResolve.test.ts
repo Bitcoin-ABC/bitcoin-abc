@@ -21,10 +21,7 @@ import {
     FIRMA_EUR_TOKEN_ID,
     isFirmaUsernameTokenId,
 } from 'constants/tokens';
-import {
-    BLITZ_CHIPS_GAME_ADDRESS,
-    EVERY_DAY_JACKPOT_GAME_ADDRESS,
-} from 'constants/recipients';
+import { BLITZ_CHIPS_GAME_ADDRESS } from 'constants/recipients';
 import { previewAddress } from 'helpers';
 
 describe('recipientResolve helpers', () => {
@@ -75,9 +72,6 @@ describe('recipientResolve helpers', () => {
         expect(getRecipientDisplayLabel(BLITZ_CHIPS_GAME_ADDRESS, [], [])).toBe(
             'BlitzChips',
         );
-        expect(
-            getRecipientDisplayLabel(EVERY_DAY_JACKPOT_GAME_ADDRESS, [], []),
-        ).toBe('EveryDayJackpot');
     });
 
     it('getRecipientDisplayLabel uses own wallet name', () => {

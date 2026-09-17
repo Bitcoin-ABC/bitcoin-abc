@@ -17,7 +17,7 @@ import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
 import TokenIcon from 'components/Etokens/TokenIcon';
-import { EDJ_TOKEN_ID, BLITZ_CHIPS_TOKEN_ID } from 'constants/tokens';
+import { BLITZ_CHIPS_TOKEN_ID } from 'constants/tokens';
 import {
     isRecaptchaV3Configured,
     TOKEN_REWARD_RECAPTCHA_ACTION,
@@ -299,14 +299,6 @@ const Rewards = () => {
             <ContentDiv>
                 <h3>What can I do with Cachet?</h3>
                 <GameCardsContainer>
-                    <GameCard
-                        href="https://everydayjackpot.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <TokenIcon tokenId={EDJ_TOKEN_ID} size={64} />
-                        <span>Play for free at everydayjackpot.com</span>
-                    </GameCard>
                     <GameCard
                         href="https://blitzchips.com"
                         target="_blank"

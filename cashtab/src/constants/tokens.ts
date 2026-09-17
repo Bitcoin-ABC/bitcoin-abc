@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { Tx, TokenInfo } from 'chronik-client';
-import { EVERY_DAY_JACKPOT_GAME_ADDRESS } from 'constants/recipients';
 
 interface TokenConst {
     tokenId: string;
@@ -43,10 +42,6 @@ export const FIRMA_BID_API_URL = 'https://stakedxec.com/api/bid';
  */
 export const XECX_APY_API_URL = 'https://stakedxec.com/api/apy';
 
-/** EDJ token - everydayjackpot.com bets (100 EDJ = 1 FIRMA) */
-export const EDJ_TOKEN_ID =
-    '411f07171b98e8e1e0c368dc88673bb7228e56fb96079f838ca57c2022777d84';
-
 /** CACHET token - free plays (10 CACHET = 1 free bet) */
 export const CACHET_TOKEN_ID =
     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
@@ -62,9 +57,6 @@ export const FIRMA_CHF_TOKEN_ID =
 /** Firma EUR (fEUR) — same id as apps/firma FIRMA_EUR_TOKEN_ID. */
 export const FIRMA_EUR_TOKEN_ID =
     'cd751e3dfc23da5344bf66cb8433c31464ab4adbdbc9082f22c71bb53eafa7e8';
-
-/** EDJ.com game addresses - CACHET/EDJ/FIRMA sent here = bet */
-export const EDJ_COM_GAME_ADDRESSES = [EVERY_DAY_JACKPOT_GAME_ADDRESS];
 
 // 8-char lokad + 64-char for 32-byte sol pk
 export const FIRMA_REDEEM_EMPP_RAW_LENGTH = 72;

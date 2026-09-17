@@ -61,7 +61,6 @@ import { ReactComponent as NFToa } from 'assets/nftoa.svg';
 import { ReactComponent as Dice } from 'assets/dice.svg';
 import { ReactComponent as PayoutWin } from 'assets/payout-win.svg';
 import { ReactComponent as BlitsPayout } from 'assets/blits-payout.svg';
-import { ReactComponent as Edj } from 'assets/edj.svg';
 /** `<img>` not SVGR: `TokenAction` paints `IconAndLabel` SVGs white; USDC needs true colors. `?url` is Vite asset URL; Jest `*.svg` mock default is still a string. */
 import usdcSrc from 'assets/usdc.svg?url';
 
@@ -275,7 +274,6 @@ export const PayoutWinIcon: React.FC = () => <PayoutWin title="Blitz play" />;
 export const BlitsPayoutIcon: React.FC = () => (
     <BlitsPayout title="Blitz play" />
 );
-export const EdjIcon: React.FC = () => <Edj title="everydayjackpot.com" />;
 export const PowIcon: React.FC = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
         <path

@@ -26,7 +26,7 @@ export const opReturn = {
         solAddr: '534f4c30', // SOL0
         dice: '44494345', // DICE
         roll: '524f4c4c', // ROLL
-        trophy: 'f09f8f86', // 🏆 everydayjackpot.com game payout
+        trophy: 'f09f8f86', // 🏆 trophy EMPP lokad
         pow: '504f5752', // ASCII "POWR" — Proof of Writing
         xecv: '58454356', // ASCII "XECV" — XecVibe
     },
