@@ -6,6 +6,9 @@ $(package)_sha256_hash=ef6f74fd45e95ee4ef7f9e19ebe5b075ca6b7fbe0140612b2a161abaf
 
 define $(package)_set_vars
 $(package)_config_opts=--disable-libdl --disable-shared --enable-cxx --enable-option-checking
+# Override jemalloc's forced -g3 (see configure.ac JE_*FLAGS_ADD([-g3]))
+$(package)_cflags+=-g0
+$(package)_cxxflags+=-g0
 endef
 
 # We build from a github generated archive (tar.gz) so we need to manually specify the version.
