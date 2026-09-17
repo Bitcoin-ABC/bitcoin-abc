@@ -163,7 +163,7 @@ if(BUILD_CHRONIK_PLUGINS)
         set(Python_ROOT_DIR "${CMAKE_SOURCE_DIR}/depends/${TOOLCHAIN_PREFIX}")
     endif()
 
-    find_package(Python 3.9 COMPONENTS Development.Embed REQUIRED)
+    find_package(Python 3.10 COMPONENTS Development.Embed REQUIRED)
     target_link_libraries(chronik Python::Python)
 
     if (CMAKE_CROSSCOMPILING)

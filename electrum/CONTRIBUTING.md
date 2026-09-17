@@ -26,7 +26,7 @@ All commands in this document assume that your current working directory is the
 
 ### Python
 
-Python 3.9 or above is required to run Electrum ABC.
+Python 3.10 or above is required to run Electrum ABC.
 
 If your system lacks a recent enough Python version, you can use `pyenv` to install
 newer versions, or install an [alternative python distribution](https://www.python.org/download/alternatives/)

@@ -20,7 +20,7 @@ Build-Depends: cmake (>= 3.16),
  lld,
  ninja-build,
  protobuf-compiler,
- python3.9 | python3 (>= 3.9),
+ python3.10 | python3 (>= 3.10),
  qttools5-dev,
  qttools5-dev-tools,
  xvfb

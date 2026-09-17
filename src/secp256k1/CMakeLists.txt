@@ -348,7 +348,7 @@ native_add_cmake_flags(
 gen_precomputed_tables(precompute_ecmult_gen precomputed_ecmult_gen)
 
 # Add a target for maintainers to regenerate the wycheproof test vectors
-find_package(Python 3.9 COMPONENTS Interpreter)
+find_package(Python 3.10 COMPONENTS Interpreter)
 if(Python_FOUND)
 	set(PRECOMPUTED_WYCHEPROOF_TESTVECTORS "src/wycheproof/ecdsa_secp256k1_sha256_bitcoin_test.h")
 	add_custom_target(clean-secp256k1-testvectors

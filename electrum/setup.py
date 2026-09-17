@@ -170,7 +170,7 @@ setup(
         "gui": requirements_binaries,
         "all": requirements_hw + requirements_binaries,
     },
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     packages=[
         "electrumabc",
         "electrumabc.avalanche",

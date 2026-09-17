@@ -50,7 +50,7 @@ endif()
 # as we need the libraries as well.
 set(CMAKE_PREFIX_PATH_SAVED "${CMAKE_PREFIX_PATH}")
 unset(CMAKE_PREFIX_PATH)
-find_package(Python 3.9 COMPONENTS Interpreter REQUIRED)
+find_package(Python 3.10 COMPONENTS Interpreter REQUIRED)
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH_SAVED}")
 
 # Add the magic targets `check-*`
