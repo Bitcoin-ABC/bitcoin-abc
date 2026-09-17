@@ -169,6 +169,12 @@ export const maintainInventory = async (opts: {
     maxFundBatchesPerToken?: number;
     /** Re-apply fills Chronik has not spent yet after this pass's sync. */
     localBook?: LocalBook;
+    /**
+     * After Chronik+localBook refresh, before slush↔seller reshape.
+     * Publish the live book here — fund/cleanup do not change
+     * seller+slush inventory and must not emit.
+     */
+    onAfterSync?: () => void;
 }): Promise<MaintainInventoryResult> => {
     const { seller, slush, feeAddress, tradedTokens, localBook } = opts;
     const maxFundBatchesPerToken =
@@ -213,6 +219,7 @@ export const maintainInventory = async (opts: {
         // re-funds every pass. Local fills are re-applied after sync so
         // Chronik lag does not rewind seller+slush atom sums.
         await syncLpWallets(seller, slush, localBook);
+        opts.onAfterSync?.();
 
         // 1. Wrong-sized traded tokens on seller → slush
         //    (visible to step 2 on the next maintain pass after sync)

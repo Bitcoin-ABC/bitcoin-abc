@@ -112,9 +112,11 @@ const main = async (): Promise<void> => {
                     feeAddress: tradedConfig.feeAddress,
                     tradedTokens,
                     localBook,
+                    // Slush↔seller reshape does not change book sums.
+                    // Publish after Chronik sync only — never after fund.
+                    onAfterSync: () => bookHub.publish(),
                 });
                 logMaintainResult(label, inventory);
-                bookHub.publish();
                 if (telegramOps === undefined) {
                     return;
                 }

@@ -240,8 +240,9 @@ Optional Telegram ops messages fire after the log (grammy FIFO send with
 `GET /api/v1/status` advertises `bookWs` (`/api/v1/book`). Clients upgrade
 that path. The first text frame is the current book; later frames are sent
 only when seller+slush pair reserves or spots change (fills, Chronik sync
-that moves sums, slush deposits). Inventory reshape that keeps atom sums
-does not emit.
+that moves sums, slush deposits). Inventory reshape (slush↔seller) does
+not emit — those moves do not change seller+slush sums. The hub publishes
+after Chronik sync and after fills, never after fund or cleanup.
 
 Each frame is JSON:
 

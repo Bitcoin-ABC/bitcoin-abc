@@ -46,6 +46,7 @@ import {
 } from '../src/inventory/plan';
 import type { TradedToken, TradedTokens } from '../src/tokens/tradedTokens';
 import { createLpWallets } from '../src/wallet/accounts';
+import { sumFungibleAtoms } from '../src/pricing/reserves';
 
 const TOKEN_A = 'aa'.repeat(32);
 const TOKEN_B = 'bb'.repeat(32);
@@ -739,16 +740,32 @@ describe('inventory maintain (MockChronik)', () => {
             },
         ]);
 
+        const slushAtoms = 100n * BigInt(units);
+        let afterSyncAtoms = -1n;
         const result = await maintainInventory({
             seller,
             slush,
             feeAddress: FEE,
             tradedTokens: tokens(traded(TOKEN_A, 100n)),
+            onAfterSync: () => {
+                afterSyncAtoms = sumFungibleAtoms(
+                    [...seller.utxos, ...slush.utxos],
+                    TOKEN_A,
+                );
+            },
         });
 
         assert.strictEqual(result.fundedInventory[TOKEN_A], units);
         assert.ok(result.txids.length >= 2);
         assert.strictEqual(result.fundedPostage, 0);
+        // Book is correct after Chronik sync (publish here). Slush→seller
+        // updates the spender only, so in-memory seller+slush dips until
+        // the next sync — do not emit after fund.
+        assert.strictEqual(afterSyncAtoms, slushAtoms);
+        assert.ok(
+            sumFungibleAtoms([...seller.utxos, ...slush.utxos], TOKEN_A) <
+                slushAtoms,
+        );
     });
 
     it('defers leftover slush units after the per-token fund-batch cap', async () => {
