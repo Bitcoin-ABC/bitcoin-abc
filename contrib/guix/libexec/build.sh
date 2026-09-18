@@ -388,8 +388,7 @@ EOF
 
     case "$HOST" in
         *mingw*)
-            ninja install-debug
-            ninja install-proof-manager-cli
+            cmake --install . --strip ${V:+--verbose}
             # Generate NSIS installer
             ninja package
             mv ${DISTNAME}*setup-unsigned.exe ${OUTDIR}/
@@ -397,12 +396,9 @@ EOF
             pushd installed
             mkdir -p ${DISTNAME}/lib
             mv ${DISTNAME}/bin/*.dll* ${DISTNAME}/lib/
-            find "${DISTNAME}" -not -name "*.dbg" -print0 \
+            find "${DISTNAME}" -print0 \
                 | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
-            find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-win64.zip
-            find "${DISTNAME}" -name "*.dbg" -print0 \
-                | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
-            find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-win64-debug.zip
+            find ${DISTNAME} -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-win64.zip
             popd
             ;;
         *linux*)
