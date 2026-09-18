@@ -69,6 +69,18 @@ install(
     TYPE BIN
     COMPONENT "${PROOF_MANAGER_COMPONENT}"
 )
+# Since it's an imported target and installed as a program, we can't benefit
+# from the cmake strip functionality automatically. We can however run it via an
+# extra install(CODE) command.
+install(CODE "
+    if(CMAKE_INSTALL_DO_STRIP)
+        set(_file \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/$<TARGET_FILE_NAME:proof-manager-cli>\")
+        message(STATUS \"Stripping: \${_file}\")
+        execute_process(COMMAND \"${CMAKE_STRIP}\" \"\${_file}\")
+    endif()
+"
+    COMPONENT "${PROOF_MANAGER_COMPONENT}"
+)
 
 add_custom_target("install-${PROOF_MANAGER_COMPONENT}"
     COMMENT "Installing component ${PROOF_MANAGER_COMPONENT}"
