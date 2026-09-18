@@ -14,6 +14,10 @@
 struct TxId : public uint256 {
     explicit TxId() : uint256() {}
     explicit TxId(const uint256 &b) : uint256(b) {}
+
+    static std::optional<TxId> FromHex(std::string_view str) {
+        return detail::FromHex<TxId>(str);
+    }
 };
 
 /**

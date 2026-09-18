@@ -560,18 +560,19 @@ static bool rest_getutxos(Config &config, const std::any &context,
         }
 
         for (size_t i = (fCheckMemPool) ? 1 : 0; i < uriParts.size(); i++) {
-            int32_t nOutput;
-            std::string strTxid = uriParts[i].substr(0, uriParts[i].find('-'));
-            std::string strOutput =
-                uriParts[i].substr(uriParts[i].find('-') + 1);
+            const auto txid_out{
+                util::Split<std::string_view>(uriParts[i], '-')};
+            if (txid_out.size() != 2) {
+                return RESTERR(req, HTTP_BAD_REQUEST, "Parse error");
+            }
+            auto txid{TxId::FromHex(txid_out.at(0))};
+            auto output{ToIntegral<uint32_t>(txid_out.at(1))};
 
-            if (!ParseInt32(strOutput, &nOutput) || !IsHex(strTxid)) {
+            if (!txid || !output) {
                 return RESTERR(req, HTTP_BAD_REQUEST, "Parse error");
             }
 
-            TxId txid;
-            txid.SetHexDeprecated(strTxid);
-            vOutPoints.push_back(COutPoint(txid, uint32_t(nOutput)));
+            vOutPoints.push_back(COutPoint(*txid, *output));
         }
 
         if (vOutPoints.size() > 0) {

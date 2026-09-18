@@ -237,6 +237,13 @@ class RESTTest(BitcoinTestFramework):
             status=400,
             ret_type=RetType.OBJ,
         )
+        self.test_rest_request(f"/getutxos/{txid}_+1", ret_type=RetType.OBJ, status=400)
+        self.test_rest_request(f"/getutxos/{txid}-+1", ret_type=RetType.OBJ, status=400)
+        self.test_rest_request(f"/getutxos/{txid}--1", ret_type=RetType.OBJ, status=400)
+        self.test_rest_request(
+            f"/getutxos/{txid}aa-1234", ret_type=RetType.OBJ, status=400
+        )
+        self.test_rest_request("/getutxos/aa-1234", ret_type=RetType.OBJ, status=400)
 
         # Test limits
         long_uri = "/".join([f"{txid}-{n_}" for n_ in range(20)])
