@@ -58,5 +58,10 @@ lokadMap.set('504f5752', {
     emoji: '✍️',
     url: 'https://proofofwriting.com/',
 });
+lokadMap.set('58454356', {
+    name: 'XecVibe tx',
+    emoji: '✨',
+    url: 'https://xecvibe.com/',
+});
 
 export default lokadMap;

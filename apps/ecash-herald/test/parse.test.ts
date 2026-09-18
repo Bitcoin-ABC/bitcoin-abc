@@ -263,6 +263,29 @@ describe('parse.js functions', function () {
             });
         }
     });
+    it('parseOpReturn handles XecVibe txs', function () {
+        assert.deepEqual(parseOpReturn('04584543560568656c6c6f'), {
+            app: opReturn.knownApps.xecv.app,
+            msg: 'payment',
+            stackArray: ['58454356', '68656c6c6f'],
+            tokenId: false,
+        });
+        // A direct one-byte push containing 00 is valid.
+        assert.strictEqual(parseOpReturn('04584543560100').msg, 'payment');
+        for (const opReturnHex of [
+            '0458454356',
+            '045845435600', // Bare OP_0
+            '045845435651', // Bare OP_1
+            '045845435602c328', // Invalid UTF-8
+            `04584543564c4c${'00'.repeat(76)}`, // PUSHDATA1 push
+            '045845435601680169', // Extra push
+        ]) {
+            assert.strictEqual(
+                parseOpReturn(opReturnHex).msg,
+                'Invalid XecVibe',
+            );
+        }
+    });
     it('parseOpReturn handles airdrop txs with and without a cashtab msg', function () {
         for (let i = 0; i < airdrops.length; i += 1) {
             const { hex, stackArray, tokenId } = airdrops[i];
@@ -1021,5 +1044,72 @@ describe('parse.js functions', function () {
         assert.notStrictEqual(fusionIdx, -1);
         assert.ok(payButtonIdx < blitzIdx);
         assert.ok(blitzIdx < fusionIdx);
+    });
+    it('summarizeTxHistory counts XecVibe txs (not Unknown)', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        const senderScript = '76a914' + '11'.repeat(20) + '88ac';
+        const recipientScript = '76a914' + '22'.repeat(20) + '88ac';
+        // OP_RETURN XECV + memo "hello" (05 68656c6c6f)
+        const xecvOpReturn = '6a04584543560568656c6c6f';
+        const makeXecvTx = (txidSuffix: string, height: number): Tx => ({
+            txid: txidSuffix.padStart(64, '0'),
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '00'.repeat(32),
+                        outIdx: 0,
+                    },
+                    inputScript: '00',
+                    sats: 10000n,
+                    sequenceNo: 4294967295,
+                    outputScript: senderScript,
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript: xecvOpReturn,
+                },
+                {
+                    sats: 546n,
+                    outputScript: recipientScript,
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 200,
+            isCoinbase: false,
+            isFinal: true,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            block: {
+                height,
+                hash: '00'.repeat(32),
+                timestamp: 1728950400,
+            },
+        });
+        const txs: Tx[] = [
+            dailyTxs[0],
+            makeXecvTx('xv1', 867294),
+            makeXecvTx('xv2', 867295),
+            makeXecvTx('xv3', 867296),
+        ];
+        const msgs = summarizeTxHistory(
+            mockUtcNewDayTimestampSeconds,
+            txs,
+            new Map(),
+            10,
+            10,
+            null,
+        );
+        const text = msgs.join('\n');
+        assert.match(
+            text,
+            /✨ <b>3<\/b> <a href="https:\/\/xecvibe\.com\/">XecVibe txs<\/a>/,
+        );
+        assert.doesNotMatch(text, /Unknown app/);
+        assert.doesNotMatch(text, /hello/);
     });
 });

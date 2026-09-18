@@ -73,6 +73,7 @@ export interface HeraldConfig {
         paywall: string;
         authentication: string;
         pow: string;
+        xecv: string;
         unknown: string;
         memo: string;
         bigWhale: string;
@@ -166,6 +167,7 @@ const config: HeraldConfig = {
         paywall: '💸',
         authentication: '🔓',
         pow: '✍️',
+        xecv: '✨',
         unknown: '❓',
         memo: '🗞',
         bigWhale: '🐋',

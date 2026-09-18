@@ -46,6 +46,7 @@ const opReturnConstants: OpReturnConstants = {
         payButton: { prefix: '50415900', app: 'PayButton' },
         paywall: { prefix: '70617977', app: 'Paywall' },
         pow: { prefix: '504f5752', app: 'Proof of Writing' },
+        xecv: { prefix: '58454356', app: 'XecVibe' },
     },
     memo: {
         'prefix': '6d',

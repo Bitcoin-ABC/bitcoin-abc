@@ -832,6 +832,32 @@ export const parsePowMsg = (stackArray: string[]): string => {
     }
 };
 
+const isValidXecvPayment = (opReturnHex: string): boolean => {
+    const xecvLokadPush = `04${opReturn.knownApps.xecv.prefix}`;
+    if (!opReturnHex.startsWith(xecvLokadPush)) {
+        return false;
+    }
+    const memoPushOp = parseInt(
+        opReturnHex.slice(xecvLokadPush.length, xecvLokadPush.length + 2),
+        16,
+    );
+    if (memoPushOp < 1 || memoPushOp > 75) {
+        return false;
+    }
+    const memoHex = opReturnHex.slice(xecvLokadPush.length + 2);
+    if (memoHex.length !== memoPushOp * 2) {
+        return false;
+    }
+    try {
+        new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(
+            Buffer.from(memoHex, 'hex'),
+        );
+    } catch {
+        return false;
+    }
+    return true;
+};
+
 /**
  *
  * @param {string} opReturnHex an OP_RETURN outputScript with '6a' removed
@@ -1031,6 +1057,14 @@ export const parseOpReturn = (opReturnHex: string): HeraldOpReturnInfo => {
             // <POWR> <OP_0 version> <OP_N action> [payload pushes]
             app = opReturn.knownApps.pow.app;
             msg = parsePowMsg(stackArray);
+            break;
+        }
+        case opReturn.knownApps.xecv.prefix: {
+            // Spec: doc/standards/xecvibe.md
+            app = opReturn.knownApps.xecv.app;
+            msg = isValidXecvPayment(opReturnHex)
+                ? 'payment'
+                : `Invalid ${app}`;
             break;
         }
         default: {
@@ -1858,6 +1892,11 @@ export const getBlockTgMessage = (
                 case opReturn.knownApps.pow.app: {
                     appEmoji = emojis.pow;
                     groupUrl = 'https://proofofwriting.com/';
+                    break;
+                }
+                case opReturn.knownApps.xecv.app: {
+                    appEmoji = emojis.xecv;
+                    groupUrl = 'https://xecvibe.com/';
                     break;
                 }
                 case opReturn.knownApps.cashtabMsg.app: {
