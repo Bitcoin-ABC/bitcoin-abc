@@ -47,7 +47,7 @@ struct TxPackageTest : TestChain100Setup {
 
 // Create a TxId from a hex string
 inline TxId TxIdFromString(std::string_view str) {
-    return TxId(uint256S(str.data()));
+    return TxId(uint256S(str));
 }
 
 BOOST_FIXTURE_TEST_SUITE(txpackage_tests, TxPackageTest)

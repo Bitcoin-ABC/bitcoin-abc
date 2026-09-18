@@ -372,4 +372,10 @@ private:
     std::unique_ptr<const CChainParams> chainParams;
 };
 
+inline uint160 uint160S(std::string_view str) {
+    uint160 rv;
+    rv.SetHex(str);
+    return rv;
+}
+
 #endif // BITCOIN_TEST_UTIL_SETUP_COMMON_H

@@ -78,9 +78,35 @@ public:
         return a.Compare(b) >= 0;
     }
 
+    /**
+     * @name Hex representation
+     *
+     * The reverse-byte hex representation is a convenient way to view the blob
+     * as a number, because it is consistent with the way the base_uint class
+     * converts blobs to numbers.
+     *
+     * @note base_uint treats the blob as an array of bytes with the numerically
+     * least significant byte first and the most significant byte last. Because
+     * numbers are typically written with the most significant digit first and
+     * the least significant digit last, the reverse hex display of the blob
+     * corresponds to the same numeric value that base_uint interprets from the
+     * blob.
+     * @{*/
     std::string GetHex() const;
-    void SetHex(const char *psz);
-    void SetHex(const std::string &str);
+
+    /**
+     * - Hex numbers that don't specify enough bytes to fill the internal array
+     *   will be treated as setting the beginning of it, which corresponds to
+     *   the least significant bytes when converted to base_uint.
+     *
+     * - Hex numbers specifying too many bytes will have the numerically most
+     *   significant bytes (the beginning of the string) narrowed away.
+     *
+     * - An odd count of hex digits will result in the high bits of the leftmost
+     *   byte being zero.
+     *   "0x123" => {0x23, 0x1, 0x0, ..., 0x0}
+     */
+    void SetHex(std::string_view str);
     std::string ToString() const { return GetHex(); }
 
     constexpr const uint8_t *data() const { return m_data.data(); }
@@ -134,35 +160,12 @@ public:
 };
 
 /**
- * uint256 from const char *.
- * This is a separate function because the constructor uint256(const char*) can
- * result in dangerously catching uint256(0).
+ * uint256 from std::string_view,  containing byte-reversed hex encoding.
+ * This is not a uint256 constructor because of historical fears of uint256(0)
+ * resolving to a NULL string and crashing.
  */
-inline uint256 uint256S(const char *str) {
+inline uint256 uint256S(std::string_view str) {
     uint256 rv;
-    rv.SetHex(str);
-    return rv;
-}
-
-/**
- * uint256 from std::string.
- * This is a separate function because the constructor uint256(const std::string
- * &str) can result in dangerously catching uint256(0) via std::string(const
- * char*).
- */
-inline uint256 uint256S(const std::string &str) {
-    uint256 rv;
-    rv.SetHex(str);
-    return rv;
-}
-
-inline uint160 uint160S(const char *str) {
-    uint160 rv;
-    rv.SetHex(str);
-    return rv;
-}
-inline uint160 uint160S(const std::string &str) {
-    uint160 rv;
     rv.SetHex(str);
     return rv;
 }

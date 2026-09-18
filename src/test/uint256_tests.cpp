@@ -167,6 +167,13 @@ BOOST_AUTO_TEST_CASE(comparison) {
     CheckComparison(OneS, MaxS);
     CheckComparison(R1S, MaxS);
     CheckComparison(R2S, MaxS);
+
+    // Verify hex strings are big-endian (the opposite of Bitcoin Core)
+    CheckComparison(
+        uint256S("1000000000000000000000000000000000000000000000000000000000000"
+                 "002"),
+        uint256S("2000000000000000000000000000000000000000000000000000000000000"
+                 "001"));
 }
 
 // GetHex SetHex begin() end() size() GetLow64 GetSerializeSize, Serialize,
@@ -272,14 +279,14 @@ BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK_EQUAL(MaxS, TmpS);
     ss.clear();
 
-    // Check that '0x' or '0X', and leading spaces are correctly skipped in
+    // Check that '0x' and leading spaces are correctly skipped in
     // SetHex
     const auto baseHexstring{uint256S(
         "0x7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
     const auto hexstringWithCharactersToSkip{uint256S(
-        " 0X7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
+        " 0x7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c")};
     const auto wrongHexstringWithCharactersToSkip{uint256S(
-        " 0X7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529d")};
+        " 0x7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529d")};
 
     BOOST_CHECK_EQUAL(baseHexstring, hexstringWithCharactersToSkip);
     BOOST_CHECK_NE(baseHexstring, wrongHexstringWithCharactersToSkip);
