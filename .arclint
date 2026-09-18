@@ -42,6 +42,7 @@
                 "(^contrib/apple-sdk-tools/)",
                 "(^electrum/electrumabc_gui/qt/icons.py)",
                 "(\\_pb2.py$)",
+                "(^src/crc32c/)",
                 "(^src/secp256k1/)"
             ]
         },

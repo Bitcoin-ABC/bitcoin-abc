@@ -1,0 +1,52 @@
+include = [
+    "*.py",
+    "electrum/electrum-abc"
+]
+force-exclude = true
+# Any change in the excluded files here need to also be modified in the "ruff-check" and "ruff-format"
+# linters in the .arclint file.
+exclude = [
+    "contrib/apple-sdk-tools",
+    "electrum/electrumabc_gui/qt/icons.py",
+    "*_pb2.py",
+    "src/crc32c",
+    "src/secp256k1",
+]
+
+[lint]
+select = [
+    "E",
+    "F",
+    "A",
+    "C",
+    "I",
+    "ASYNC",
+    "FLY",
+    "PLE",
+    "B006",
+    "B008",
+    "B912",
+    "RUF064",
+    "UP031",
+    "UP032",
+]
+
+ignore = [
+    "A003",
+    "E203",
+    "E303",
+    "E305",
+    "E501",
+    "C901",
+]
+
+[lint.per-file-ignores]
+# don't enforce f-strings in the Electrum codebase for now
+"electrum/*" = ["UP031", "UP032"]
+
+[lint.isort]
+known-first-party = [
+    "electrumabc",
+    "electrumabc_gui",
+    "electrumabc_plugins"
+]
