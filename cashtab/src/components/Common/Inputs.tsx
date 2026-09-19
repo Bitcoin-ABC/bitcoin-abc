@@ -915,7 +915,14 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
                     autoCorrect={autoCorrect}
                     autoCapitalize={autoCapitalize}
                 />
-                <OnMaxBtnToken onClick={handleOnMax}>max</OnMaxBtnToken>
+                <OnMaxBtnToken
+                    onClick={handleOnMax}
+                    // Disable max when the amount is fixed (e.g. prefilled by a
+                    // deep link), matching the XEC amount input's max button
+                    disabled={inputDisabled}
+                >
+                    max
+                </OnMaxBtnToken>
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
             {useKeypad && (

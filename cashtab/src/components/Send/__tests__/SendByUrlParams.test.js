@@ -884,6 +884,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This input field should be disabled for URL-based transactions, because it is controlled by the bip21 string in the URL
         expect(amountInputEl).toBeDisabled();
 
+        // The max button is likewise disabled, so the bip21-fixed amount cannot
+        // be overridden (matching the XEC amount input's max button)
+        expect(screen.getByRole('button', { name: 'max' })).toBeDisabled();
+
         // We do not see a token ID query error
         expect(
             screen.queryByText(`Error querying token info for ${token_id}`),
