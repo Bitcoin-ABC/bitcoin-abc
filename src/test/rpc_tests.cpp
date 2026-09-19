@@ -19,6 +19,11 @@
 #include <univalue.h>
 
 #include <any>
+#include <cstdint>
+#include <limits>
+#include <string>
+#include <tuple>
+#include <vector>
 
 using util::SplitString;
 
@@ -874,6 +879,35 @@ BOOST_AUTO_TEST_CASE(rpc_arg_helper) {
     CheckRpc(params,
              UniValue{JSON(R"([5, "hello", 4, "test", true, 1.23, "world"])")},
              check_named);
+}
+
+BOOST_AUTO_TEST_CASE(rpc_parse_descriptor_range) {
+    const auto range{[](int64_t low, int64_t high) {
+        UniValue value{UniValue::VARR};
+        value.push_back(low);
+        value.push_back(high);
+        return value;
+    }};
+
+    BOOST_CHECK(ParseDescriptorRange(range(0, 999'999)) ==
+                std::make_pair(int64_t{0}, int64_t{999'999}));
+    BOOST_CHECK(ParseDescriptorRange(UniValue{int64_t{10}}) ==
+                std::make_pair(int64_t{0}, int64_t{10}));
+
+    constexpr int64_t max_int64{std::numeric_limits<int64_t>::max()};
+    const std::vector<std::tuple<int64_t, int64_t, std::string>> invalid_ranges{
+        {2, 1, "Range specified as [begin,end] must not have begin after end"},
+        {max_int64, 0,
+         "Range specified as [begin,end] must not have begin after end"},
+        {-1, 10, "Range should be greater or equal than 0"},
+        {0, 1'000'000, "Range is too large"},
+        {0, max_int64, "End of range is too high"},
+    };
+    for (const auto &[low, high, error] : invalid_ranges) {
+        BOOST_CHECK_EXCEPTION(
+            ParseDescriptorRange(range(low, high)), UniValue,
+            HasJSON(R"({"code":-8,"message":")" + error + R"("})"));
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
