@@ -30,16 +30,16 @@ Cashtab is the **demand** side. Empty pools make the toggle useless.
 
 ## Current state (prerequisites already in motion)
 
-| Piece                                                                          | Status                                                  |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| `ecash-wallet` HD (`fromMnemonic(..., { hd: true })`, change/receive, signing) | Done in lib                                             |
-| `ecash-wallet` gap-limit discovery (`syncAndDiscoverAddresses`)                | Done / landing                                          |
-| Cashtab wallet model                                                           | Still **single address** (`m/44'/1899'/0'/0/0` only)    |
-| Cashtab ↔ `ecash-wallet`                                                       | Partial (`useWallet` holds a non-HD `Wallet`)           |
-| CashFusion (XEC) in Electrum-ABC                                               | Mature reference (autofuse, Tor covert, tiers)          |
-| ALP fusion                                                                     | Goal — needs protocol spec and server coordinator       |
-| Cashtab Android (Capacitor)                                                    | Shipping; no fusion background work yet                 |
-| Biometric lock / secure storage                                                | Present; must be designed around for background signing |
+| Piece                                                                          | Status                                                                                                                            |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `ecash-wallet` HD (`fromMnemonic(..., { hd: true })`, change/receive, signing) | Done in lib                                                                                                                       |
+| `ecash-wallet` gap-limit discovery (`syncAndDiscoverAddresses`)                | Done / landing                                                                                                                    |
+| Cashtab wallet model                                                           | Still **single address** (`m/44'/1899'/0'/0/0` only)                                                                              |
+| Cashtab ↔ `ecash-wallet`                                                       | Partial (`useWallet` holds a non-HD `Wallet`)                                                                                     |
+| CashFusion (XEC) in Electrum-ABC                                               | Mature reference (autofuse, Tor covert, tiers)                                                                                    |
+| ALP fusion                                                                     | Protocol + `FusionClient` through [D20638](https://reviews.bitcoinabc.org/D20638); remaining diffs in `apps/alp-fusion/README.md` |
+| Cashtab Android (Capacitor)                                                    | Shipping; no fusion background work yet                                                                                           |
+| Biometric lock / secure storage                                                | Present; must be designed around for background signing                                                                           |
 
 ---
 
@@ -137,8 +137,8 @@ Cashtab only ships fusion if pools exist and the wire path is safe enough.
       (accept weaker IP unlinkability). Phase B: Tor or privacy proxy where
       feasible on Android; never block shipping on perfect covert.
 - [ ] Fee caps and tier selection policy documented for holders
-- [ ] ALP fusion: write protocol spec and stand up server coordinator (goal;
-      not a prerequisite for XEC CashFusion in Cashtab if XEC ships first)
+- [ ] ALP fusion: staging + public coordinator (punchlist 15 / 23 in
+      `apps/alp-fusion/README.md`). Spec + `FusionClient` already landed.
 
 **Exit criteria:** Staging + at least one public coordinator; Cashtab can show
 live pool fill; traffic is TLS.

@@ -8,18 +8,20 @@ This document is the ops target for that model.
 
 ## What is in-tree today
 
-| Piece                                                          | Status                                                                     |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430))                   |
-| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449))                   |
-| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457))                   |
-| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466))                   |
-| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506))                   |
-| Coordinator + client round RPCs over the wire                  | Landed ([D20575](https://reviews.bitcoinabc.org/D20575))                   |
-| Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591))                   |
-| Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609))                   |
-| Shared `FusionClient` (inject Chronik / keys / `runRound`)     | This slice — no CLI; Node TCP is `createNodeFusionClient` in `src/node.ts` |
-| Blame / restart / DoS limits                                   | Not yet                                                                    |
+| Piece                                                          | Status                                                   |
+| -------------------------------------------------------------- | -------------------------------------------------------- |
+| Pool match + one-shot assemble (`PoolMatcher`, `OneShotRound`) | Landed ([D20430](https://reviews.bitcoinabc.org/D20430)) |
+| Continuous loop driver (`runFuseLoop`, `ContinuousClient`)     | Landed ([D20449](https://reviews.bitcoinabc.org/D20449)) |
+| Framed TCP/TLS control channel (`FusionConnection`)            | Landed ([D20457](https://reviews.bitcoinabc.org/D20457)) |
+| Control-channel protobuf (`ClientMessage` / `ServerMessage`)   | Landed ([D20466](https://reviews.bitcoinabc.org/D20466)) |
+| Covert sockets + SOCKS5 (`CovertSubmitter`)                    | Landed ([D20506](https://reviews.bitcoinabc.org/D20506)) |
+| Coordinator + client round RPCs over the wire                  | Landed ([D20575](https://reviews.bitcoinabc.org/D20575)) |
+| Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591)) |
+| Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609)) |
+| Shared `FusionClient` (inject Chronik / keys / `runRound`)     | Landed ([D20638](https://reviews.bitcoinabc.org/D20638)) |
+| Coordinator / participant CLI                                  | Not yet — punchlist 13–14 in [README.md](./README.md)    |
+| Public or staging coordinator                                  | **None deployed**                                        |
+| Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
 Unit verification:
 
@@ -63,12 +65,30 @@ Default delays (Electrum-ABC-shaped):
 | `failed` | 15s   |
 | `idle`   | 30s   |
 
-## Operator checklist
+## Deployed servers
+
+**None.** No public or staging hostname is published. The only live
+coordinator in-tree is mocha binding `FusionCoordinator` on `127.0.0.1`.
+
+After punchlist 13–14 land, staging deploy (15) is:
+
+1. One host: coordinator CLI on `0.0.0.0:8788` (control) and `:8789`
+   (covert). Lab: `minPlayers=2`. Chronik URL for broadcast.
+2. N Node participant CLIs, each with a **unique** mnemonic, same
+   `tokenId`, overlapping atom tiers, and enough XEC for fees/dust.
+3. Participants in **loop / continuous** mode so pools refill.
+4. Confirm: two lab wallets complete a round; txid visible on Chronik.
+5. Publish the control/covert (later WSS) URLs. Until then Cashtab has
+   nothing to dial.
+
+Public launch (23) additionally requires TLS (21), WSS (16),
+`minPlayers >= 8`, and warm-pool daemons (22) for each advertised
+`(tokenId, atomTier)`.
 
 Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
-`run` / `stop`). A thin CLI can wrap that later. Expect roughly:
+`run` / `stop`) once the CLIs exist. Expect roughly:
 
-1. **One coordinator** bound on `0.0.0.0:8788` (optional TLS for public hosts).
+1. **One coordinator** bound on `0.0.0.0:8788` (TLS before public).
 2. **N participant hosts**, each with a **unique** mnemonic, same target
    `tokenId`, overlapping atom tiers, and enough XEC for fees/dust.
 3. Participants run in **loop / continuous** mode (not one-shot exit) so pools

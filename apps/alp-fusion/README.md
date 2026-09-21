@@ -47,7 +47,7 @@ Must provide:
 |                    | Electrum ABC CashFusion (XEC)                                                | alp-fusion (ALP)                                                                           |
 | ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Asset              | Native XEC only                                                              | One ALP `tokenId` per pool / round                                                         |
-| Status             | Production in Electrum ABC (and some third-party wallets)                    | Docs + primitives + tx + wire rounds + `FusionClient`. Blame / Cashtab UX still follow.    |
+| Status             | Production in Electrum ABC (and some third-party wallets)                    | Library + localhost wire tests through `FusionClient`. No process, no public coordinator.  |
 | Token UTXOs        | **Excluded** — ALP/SLP coins are frozen out of fusion so they are not burned | **Target** — fuse ALP deliberately with correct `alpSend` coloring                         |
 | Coordinator        | Public fusion servers; long-lived desktop/daemon clients keep pools warm     | Same role expected; public coordinators + continuous clients required                      |
 | Covert / Tor       | Separate covert channel over Tor                                             | Covert sockets + SOCKS5 hook in-tree; live Tor still required for CashFusion-class privacy |
@@ -112,9 +112,50 @@ fuses ALP without burning tokens.
 11. **Chronik sync + covert sign + broadcast [D20609](https://reviews.bitcoinabc.org/D20609)** —
     load P2PKH UTXOs from Chronik, sign fused inputs over covert
     (`CovertTransactionSignature`), broadcast via injected Chronik.
-12. **Shared client library** — `FusionClient` so wallets inject Chronik /
-    keys / outputs / `runRound`. Node TCP is `createNodeFusionClient` in
-    `src/node.ts`.
-13. **Cashtab UX** — toggle, token allowlist, fee caps, foreground rounds;
-    opportunistic background where the OS allows.
-14. **Hardening** — blame/restart, DoS limits, public coordinator runbooks.
+12. **Shared client library [D20638](https://reviews.bitcoinabc.org/D20638)** —
+    `FusionClient` so wallets inject Chronik / keys / outputs / `runRound`.
+    Node TCP is `createNodeFusionClient` in `src/node.ts`.
+
+### Remaining (Cashtab launch punchlist)
+
+Each item is one Differential. **13–19** are the lab bar: one opted-in
+Cashtab Android user completes a round against a staging coordinator.
+**20–25** are public launch. Cashtab HD work is a parallel track
+([cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P0) and blocks 19.
+
+**No coordinator is deployed.** Mocha starts `FusionCoordinator` on
+`127.0.0.1` only. There is no hostname to ping.
+
+13. **Coordinator CLI** — process that binds control + covert and takes
+    Chronik URL, host, ports, `minPlayers`. `FusionCoordinator.start()`
+    exists; there is no `bin` / `pnpm start`.
+14. **Node participant CLI** — mnemonic + Chronik + coordinator host →
+    `createNodeFusionClient` loop. Needed to smoke a live round and later
+    to warm pools.
+15. **Staging deploy** — run 13+14 on a host; publish control/covert
+    (later WSS) URLs; confirm a 2-player lab round. Ops after 13 and 14
+    land — see [DEPLOY.md](./DEPLOY.md).
+16. **Coordinator WSS gateway** — framed protobuf over TLS WebSocket so
+    the Cashtab Android WebView can join. Raw Node TCP stays daemon-only.
+17. **FusionClient WebSocket `runRound`** — inject WSS transport without
+    importing `src/node.ts`.
+18. **Cashtab HD wallets** — fresh receive/change per round. Hard blocker;
+    several Cashtab diffs ([cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P0).
+19. **Cashtab wallet adapter** — `buildContribution` + keys + UTXO lock
+    from HD Cashtab state; one-shot `fuseOnce` against staging (15).
+20. **Cashtab Fusion UX** — opt-in toggle, token allowlist, fee caps,
+    status, fuse-now. Do not ship the toggle before 19.
+21. **TLS on coordinator TCP** — framing already has `listen({ ssl: true })`;
+    `FusionCoordinator.start()` does not enable it.
+22. **Warm-pool daemons** — deploy ≥ `minPlayers` continuous Node clients
+    for target `(tokenId, atomTier)`. Cashtab one-shots cannot fill pools.
+23. **Public coordinator** — TLS + WSS, `minPlayers >= 8`, Chronik
+    broadcast, URL in Cashtab config. Replaces staging defaults.
+24. **Covert unlinkability** — salt `sha256(salt || component)` so the
+    coordinator cannot map reveal → committer.
+25. **Blame / restart + DoS limits** — recover a bad player; bound
+    unmatched covert blobs and sessions.
+
+Tor / onion inbound and Android background sessions (count/duration)
+follow public launch. They are not required for the first opted-in
+round. See [cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P4.
