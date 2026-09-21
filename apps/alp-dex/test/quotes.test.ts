@@ -9,6 +9,8 @@ import { MockChronikClient } from 'mock-chronik-client';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import type { ParsedTradedConfig } from '../src/config/tradedConfig';
+import { BookHub } from '../src/ops/bookHub';
+import { bookSnapshot } from '../src/ops/bookSnapshot';
 import { splitExactInTotalAtoms } from '../src/pricing/templates';
 import type { TradedTokens } from '../src/tokens/tradedTokens';
 import { createLpWallets } from '../src/wallet/accounts';
@@ -160,7 +162,7 @@ describe('alp-dex quote API', () => {
         );
         mock.setUtxosByAddress(seller.address, [...aUtxos, ...bUtxos]);
         mock.setUtxosByAddress(slush.address, []);
-        // Quote routes read in-memory utxos only (no per-request sync).
+        // No BookHub: quotes fall back to in-memory utxos (no per-request sync).
         await Promise.all([seller.sync(), slush.sync()]);
 
         app = createApp({
@@ -347,5 +349,56 @@ describe('alp-dex quote API', () => {
             .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}/price/1000`)
             .expect(400);
         assert.match(res.body.error, /less than/);
+    });
+
+    it('GET quote uses last published book after a live-wallet dip', async () => {
+        mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush, addresses } = createLpWallets(
+            MNEMONIC,
+            chronik,
+            FEE,
+        );
+        const aUtxos = Array.from({ length: 100 }, (_, i) =>
+            tokenUtxo(TOKEN_A, UTXO_ATOMS, i, '11'),
+        );
+        const bUtxos = Array.from({ length: 50 }, (_, i) =>
+            tokenUtxo(TOKEN_B, UTXO_ATOMS, i, '22'),
+        );
+        mock.setUtxosByAddress(seller.address, [...aUtxos, ...bUtxos]);
+        mock.setUtxosByAddress(slush.address, []);
+        await Promise.all([seller.sync(), slush.sync()]);
+
+        const bookHub = new BookHub(() =>
+            bookSnapshot(seller, slush, tradedConfig(), tradedTokens()),
+        );
+        bookHub.publish();
+        // Slush→seller fund updates the spender only: live sums dip,
+        // last book must still price the next GET.
+        seller.utxos = [];
+
+        const dipped = createApp({
+            seller,
+            slush,
+            feeAddress: addresses.feeAddress,
+            tradedConfig: tradedConfig(),
+            tradedTokens: tradedTokens(),
+            bookHub,
+        });
+        const res = await request(dipped)
+            .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}/quote/1.02`)
+            .expect(200);
+        assert.strictEqual(res.body.outputs[2].atoms, '4997');
+        const price = await request(dipped)
+            .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}/price`)
+            .expect(200);
+        assert.strictEqual(
+            price.body.reserves[TOKEN_A],
+            (2000n * 10_000n).toString(),
+        );
     });
 });

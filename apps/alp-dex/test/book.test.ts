@@ -135,8 +135,10 @@ describe('BookHub', () => {
             bookSnapshot(seller, slush, tradedConfig(), tradedTokens(), now),
         );
         const received: string[] = [];
+        assert.strictEqual(hub.current(), null);
         const unsub = hub.subscribe(json => received.push(json));
         assert.strictEqual(received.length, 1);
+        assert.notStrictEqual(hub.current(), null);
         assert.strictEqual(JSON.parse(received[0]!).timestamp, 't0');
 
         now = 't1';

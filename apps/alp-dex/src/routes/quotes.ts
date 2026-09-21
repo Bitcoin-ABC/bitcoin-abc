@@ -13,8 +13,14 @@ import { pairKey } from '../config/tradedPairs';
 import { atomsToDecimalizedQty, decimalizedQtyToAtoms } from '../methods/atoms';
 import { HttpError, ValidationError } from '../methods/errors';
 import { assertDistinctTokenPair } from '../methods/tokenId';
+import type { BookHub } from '../ops/bookHub';
+import type { BookSnapshot } from '../ops/bookSnapshot';
 import { quoteExactIn, spotToPerWholeFrom } from '../pricing/quotes';
-import { pairPricingReserves, sumFungibleAtoms } from '../pricing/reserves';
+import {
+    pairPricingReserves,
+    sumFungibleAtoms,
+    type PairReserves,
+} from '../pricing/reserves';
 import {
     effectiveRateToPerWholeFrom,
     exactInTemplate,
@@ -29,6 +35,12 @@ export type QuoteRouteDeps = {
     feeAddress: string;
     tradedConfig: ParsedTradedConfig;
     tradedTokens: TradedTokens;
+    /**
+     * When set, price/quote/template/amm use the last published book
+     * (same snapshot as WS). Live seller+slush can dip during
+     * slush→seller fund; settle syncs back to these sums.
+     */
+    bookHub?: BookHub;
 };
 
 type SwapTokenParams = {
@@ -149,13 +161,76 @@ export const assertConfiguredPair = (
 };
 
 /**
+ * Directed reserves from the last published book when that pair is present.
+ * Falls back to live seller+slush (tests / first request before publish).
+ *
+ * @param book Last published book, or null
+ * @param seller Seller wallet (fallback only)
+ * @param slush Slush wallet (fallback only)
+ * @param fromTokenId Taker from-token
+ * @param toTokenId Taker to-token
+ */
+export const pairReservesForQuote = (
+    book: BookSnapshot | null,
+    seller: Wallet,
+    slush: Wallet,
+    fromTokenId: string,
+    toTokenId: string,
+): PairReserves => {
+    if (book !== null) {
+        const key = pairKey(fromTokenId, toTokenId);
+        const pair = book.pairs.find(
+            p => pairKey(p.aTokenId, p.bTokenId) === key,
+        );
+        if (pair !== undefined) {
+            const fromLc = fromTokenId.toLowerCase();
+            const toLc = toTokenId.toLowerCase();
+            const reserveInRaw =
+                pair.aTokenId.toLowerCase() === fromLc
+                    ? pair.reserves[pair.aTokenId]
+                    : pair.reserves[pair.bTokenId];
+            const reserveOutRaw =
+                pair.aTokenId.toLowerCase() === toLc
+                    ? pair.reserves[pair.aTokenId]
+                    : pair.reserves[pair.bTokenId];
+            if (reserveInRaw !== undefined && reserveOutRaw !== undefined) {
+                return {
+                    fromTokenId: fromLc,
+                    toTokenId: toLc,
+                    reserveIn: BigInt(reserveInRaw),
+                    reserveOut: BigInt(reserveOutRaw),
+                };
+            }
+        }
+    }
+    return pairPricingReserves(
+        seller.utxos,
+        slush.utxos,
+        fromTokenId,
+        toTokenId,
+    );
+};
+
+/**
  * Read-only quote / discovery routes. No broadcast.
- * Prices from in-memory seller+slush atom sums (updated on each fill).
- * Reads in-memory wallet UTXOs only.
+ * Prices from the last published book when present; otherwise live
+ * seller+slush atom sums.
  */
 export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
-    const { seller, slush, feeAddress, tradedConfig, tradedTokens } = deps;
+    const { seller, slush, feeAddress, tradedConfig, tradedTokens, bookHub } =
+        deps;
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
+    const reservesForPair = (
+        fromTokenId: string,
+        toTokenId: string,
+    ): PairReserves =>
+        pairReservesForQuote(
+            bookHub?.current() ?? null,
+            seller,
+            slush,
+            fromTokenId,
+            toTokenId,
+        );
     const router = Router();
 
     /**
@@ -227,9 +302,7 @@ export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
                 }
                 const from = tradedTokens.get(pair.fromTokenId)!;
                 const to = tradedTokens.get(pair.toTokenId)!;
-                const reserves = pairPricingReserves(
-                    seller.utxos,
-                    slush.utxos,
+                const reserves = reservesForPair(
                     pair.fromTokenId,
                     pair.toTokenId,
                 );
@@ -272,9 +345,7 @@ export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
                 }
                 const from = tradedTokens.get(pair.fromTokenId)!;
                 const to = tradedTokens.get(pair.toTokenId)!;
-                const reserves = pairPricingReserves(
-                    seller.utxos,
-                    slush.utxos,
+                const reserves = reservesForPair(
                     pair.fromTokenId,
                     pair.toTokenId,
                 );
@@ -311,9 +382,7 @@ export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
                 );
                 const from = tradedTokens.get(pair.fromTokenId)!;
                 const to = tradedTokens.get(pair.toTokenId)!;
-                const reserves = pairPricingReserves(
-                    seller.utxos,
-                    slush.utxos,
+                const reserves = reservesForPair(
                     pair.fromTokenId,
                     pair.toTokenId,
                 );
@@ -372,9 +441,7 @@ export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
                 if (amountInAtoms <= 0n) {
                     throw new ValidationError('qty must be a positive number');
                 }
-                const reserves = pairPricingReserves(
-                    seller.utxos,
-                    slush.utxos,
+                const reserves = reservesForPair(
                     pair.fromTokenId,
                     pair.toTokenId,
                 );
@@ -473,9 +540,7 @@ export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
                 }
                 const fromTok = tradedTokens.get(pair.fromTokenId)!;
                 const toTok = tradedTokens.get(pair.toTokenId)!;
-                const reserves = pairPricingReserves(
-                    seller.utxos,
-                    slush.utxos,
+                const reserves = reservesForPair(
                     pair.fromTokenId,
                     pair.toTokenId,
                 );

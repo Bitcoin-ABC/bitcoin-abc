@@ -83,6 +83,8 @@ const main = async (): Promise<void> => {
     const bookHub = new BookHub(() =>
         bookSnapshot(seller, slush, tradedConfig, tradedTokens),
     );
+    // Seed so GET quote/template match the book before the first WS client.
+    bookHub.publish();
 
     const telegram = tradedConfig.telegram;
     const telegramBot =

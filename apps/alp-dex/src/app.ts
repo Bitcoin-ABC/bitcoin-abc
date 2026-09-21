@@ -146,6 +146,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             feeAddress,
             tradedConfig,
             tradedTokens,
+            bookHub,
         }),
     );
 

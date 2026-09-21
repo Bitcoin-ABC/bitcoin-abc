@@ -258,7 +258,9 @@ Each frame is JSON:
 Empty sides use `spotAtoB` / `spotBtoA` of `n/a`. The server pings every
 30s and terminates clients that miss a pong. Inbound frames are capped at
 1 KiB. This is the same in-memory book settle uses — not a Chronik lag
-view.
+view. GET price/quote/template/amm use that last published snapshot when
+present, so they stay aligned with the websocket after slush→seller
+reshape (which does not emit and temporarily dips live wallet sums).
 
 ## Output schema (parsed, excl. OP_RETURN)
 

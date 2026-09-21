@@ -33,6 +33,13 @@ export class BookHub {
     }
 
     /**
+     * Last published (or first-subscribed) snapshot. Null until then.
+     */
+    current(): BookSnapshot | null {
+        return this.lastSnapshot;
+    }
+
+    /**
      * Snapshot the wallets and notify listeners only if the book moved.
      */
     publish(): void {
