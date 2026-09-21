@@ -262,6 +262,9 @@ importers:
       chronik-client:
         specifier: workspace:^
         version: link:../../modules/chronik-client
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
       ecash-lib:
         specifier: workspace:^
         version: link:../../modules/ecash-lib

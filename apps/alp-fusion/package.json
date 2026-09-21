@@ -5,6 +5,8 @@
     "type": "module",
     "scripts": {
         "build": "tsc",
+        "start:coordinator": "node dist/cli/main.js",
+        "dev:coordinator": "tsx src/cli/main.ts",
         "test": "NODE_ENV=test mocha --import=tsx './test/**/*.test.ts'",
         "coverage": "NODE_ENV=test c8 mocha --import=tsx './test/**/*.test.ts'",
         "junit": "NODE_ENV=test mocha --import=tsx './test/**/*.test.ts' --reporter mocha-junit-reporter"
@@ -16,6 +18,7 @@
     "license": "MIT",
     "dependencies": {
         "chronik-client": "workspace:^",
+        "dotenv": "^16.6.1",
         "ecash-lib": "workspace:^",
         "protobufjs": "^8.7.2"
     },

@@ -19,7 +19,8 @@ This document is the ops target for that model.
 | Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591)) |
 | Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609)) |
 | Shared `FusionClient` (inject Chronik / keys / `runRound`)     | Landed ([D20638](https://reviews.bitcoinabc.org/D20638)) |
-| Coordinator / participant CLI                                  | Not yet — punchlist 13–14 in [README.md](./README.md)    |
+| Coordinator process (`pnpm start:coordinator`)                 | This slice — config from `.env` / `env.sample`           |
+| Node participant CLI                                           | Not yet — punchlist 14 in [README.md](./README.md)       |
 | Public or staging coordinator                                  | **None deployed**                                        |
 | Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
@@ -67,13 +68,29 @@ Default delays (Electrum-ABC-shaped):
 
 ## Deployed servers
 
-**None.** No public or staging hostname is published. The only live
-coordinator in-tree is mocha binding `FusionCoordinator` on `127.0.0.1`.
+**None.** No public or staging hostname is published. Local bind
+(build, then run compiled `dist`; config from `.env`):
 
-After punchlist 13–14 land, staging deploy (15) is:
+```bash
+cd apps/alp-fusion
+cp env.sample .env   # edit CHRONIK_URLS (and lab HOST / COVERT_DOMAIN / MIN_PLAYERS)
+pnpm build
+pnpm start:coordinator
+```
 
-1. One host: coordinator CLI on `0.0.0.0:8788` (control) and `:8789`
-   (covert). Lab: `minPlayers=2`. Chronik URL for broadcast.
+`pnpm dev:coordinator` uses `tsx` for source without a rebuild (still reads
+`.env`). Defaults: bind `127.0.0.1:8788` (control) / `:8789` (covert),
+advertise the bind host, `minPlayers=8`. Lab (all interfaces): set
+`HOST=0.0.0.0`, `COVERT_DOMAIN=<reachable-host>`, `MIN_PLAYERS=2`.
+`COVERT_DOMAIN` is required for wildcard bind so FusionBegin does not tell
+peers to dial `0.0.0.0`. Mocha still starts `FusionCoordinator` on
+`127.0.0.1` in unit tests.
+
+After the participant CLI (14) lands, staging deploy (15) is:
+
+1. One host: coordinator with `HOST=0.0.0.0`, control `:8788` / covert
+   `:8789`, and `COVERT_DOMAIN` set to a hostname/IP clients can reach.
+   Lab: `MIN_PLAYERS=2`. Chronik URL(s) in `CHRONIK_URLS`.
 2. N Node participant CLIs, each with a **unique** mnemonic, same
    `tokenId`, overlapping atom tiers, and enough XEC for fees/dust.
 3. Participants in **loop / continuous** mode so pools refill.

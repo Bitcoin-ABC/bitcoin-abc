@@ -102,8 +102,13 @@ export const MAX_RECV_BUFFER_BYTES = 12 + 2 * MAX_FRAME_PAYLOAD_BYTES;
 export const HANDSHAKE_TIMEOUT_MS = 30_000;
 
 /**
+ * Default control-channel listen port (Electrum CashFusion `8788`).
+ */
+export const DEFAULT_CONTROL_PORT = 8788;
+
+/**
  * Default covert listener port (Electrum CashFusion uses a second socket;
- * control stays on 8788).
+ * control stays on {@link DEFAULT_CONTROL_PORT}).
  */
 export const DEFAULT_COVERT_PORT = 8789;
 

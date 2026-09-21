@@ -47,7 +47,7 @@ Must provide:
 |                    | Electrum ABC CashFusion (XEC)                                                | alp-fusion (ALP)                                                                           |
 | ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Asset              | Native XEC only                                                              | One ALP `tokenId` per pool / round                                                         |
-| Status             | Production in Electrum ABC (and some third-party wallets)                    | Library + localhost wire tests through `FusionClient`. No process, no public coordinator.  |
+| Status             | Production in Electrum ABC (and some third-party wallets)                    | Library + coordinator (`env.sample` / `pnpm start:coordinator`). No public coordinator.    |
 | Token UTXOs        | **Excluded** — ALP/SLP coins are frozen out of fusion so they are not burned | **Target** — fuse ALP deliberately with correct `alpSend` coloring                         |
 | Coordinator        | Public fusion servers; long-lived desktop/daemon clients keep pools warm     | Same role expected; public coordinators + continuous clients required                      |
 | Covert / Tor       | Separate covert channel over Tor                                             | Covert sockets + SOCKS5 hook in-tree; live Tor still required for CashFusion-class privacy |
@@ -123,12 +123,14 @@ Cashtab Android user completes a round against a staging coordinator.
 **20–25** are public launch. Cashtab HD work is a parallel track
 ([cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P0) and blocks 19.
 
-**No coordinator is deployed.** Mocha starts `FusionCoordinator` on
-`127.0.0.1` only. There is no hostname to ping.
+**No coordinator is deployed.** `cp env.sample .env && pnpm build && pnpm
+start:coordinator` binds locally; mocha also starts `FusionCoordinator` on
+`127.0.0.1`. There is no hostname to ping.
 
-13. **Coordinator CLI** — process that binds control + covert and takes
-    Chronik URL, host, ports, `minPlayers`. `FusionCoordinator.start()`
-    exists; there is no `bin` / `pnpm start`.
+13. **Coordinator process** — `pnpm start:coordinator` (compiled `dist`;
+    `pnpm dev:coordinator` for source) binds control + covert from `.env`
+    (`CHRONIK_URLS`, `HOST`, `COVERT_DOMAIN`, ports, `MIN_PLAYERS`). See
+    `env.sample`.
 14. **Node participant CLI** — mnemonic + Chronik + coordinator host →
     `createNodeFusionClient` loop. Needed to smoke a live round and later
     to warm pools.
