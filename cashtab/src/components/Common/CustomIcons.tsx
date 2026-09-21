@@ -61,6 +61,7 @@ import { ReactComponent as NFToa } from 'assets/nftoa.svg';
 import { ReactComponent as Dice } from 'assets/dice.svg';
 import { ReactComponent as PayoutWin } from 'assets/payout-win.svg';
 import { ReactComponent as BlitsPayout } from 'assets/blits-payout.svg';
+import { ReactComponent as XecVibe } from 'assets/xecvibe-icon.svg';
 /** `<img>` not SVGR: `TokenAction` paints `IconAndLabel` SVGs white; USDC needs true colors. `?url` is Vite asset URL; Jest `*.svg` mock default is still a string. */
 import usdcSrc from 'assets/usdc.svg?url';
 
@@ -163,6 +164,7 @@ export const PayButtonIcon: React.FC = () => (
     <PayButtonImg src={PayButton} alt="tx-paybutton" />
 );
 export const XecxIcon: React.FC = () => <img src={XecxSrc} alt="XECX reward" />;
+export const XecVibeIcon: React.FC = () => <XecVibe title="XecVibe payment" />;
 export const FirmaIcon: React.FC = () => (
     <img src={FirmaSrc} alt="Firma reward" />
 );

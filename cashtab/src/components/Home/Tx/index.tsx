@@ -60,6 +60,7 @@ import {
     SelfSendIcon,
     PaywallPaymentIcon,
     XecxIcon,
+    XecVibeIcon,
     FirmaIcon,
     SolIcon,
     UsdcIcon,
@@ -680,6 +681,20 @@ const Tx: React.FC<TxProps> = ({
                         );
                     }
                 }
+                break;
+            }
+            case opReturn.appPrefixesHex.xecv: {
+                // Spec: doc/standards/xecvibe.md
+                renderedAppActions.push(
+                    <IconAndLabel>
+                        <XecVibeIcon />
+                        <AppDescLabel>
+                            {isValid
+                                ? 'XecVibe payment'
+                                : 'Invalid XecVibe payment'}
+                        </AppDescLabel>
+                    </IconAndLabel>,
+                );
                 break;
             }
             case opReturn.appPrefixesHex.xecx: {

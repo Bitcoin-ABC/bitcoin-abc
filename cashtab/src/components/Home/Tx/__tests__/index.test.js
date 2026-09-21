@@ -2083,6 +2083,48 @@ describe('<Tx />', () => {
         // We see a rendered reply icon for a received Cashtab msg
         expect(screen.getByTitle('reply')).toBeInTheDocument();
     });
+    it('Received XecVibe payment', async () => {
+        const xecvParsed = {
+            satoshisSent: 1000,
+            stackArray: ['58454356', '68656c6c6f'],
+            xecTxType: 'Received',
+            recipients: [],
+            appActions: [
+                {
+                    lokadId: '58454356',
+                    app: 'XecVibe',
+                    isValid: true,
+                    action: { memo: 'hello' },
+                },
+            ],
+            parsedTokenEntries: [],
+        };
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...CashtabMsg.tx,
+                            timeFirstSeen: 1712616513,
+                            parsed: xecvParsed,
+                        }}
+                        hashes={[CashtabMsg.tx.outputs[1].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+        expect(screen.getByText('XecVibe payment')).toBeInTheDocument();
+        expect(screen.queryByText('hello')).not.toBeInTheDocument();
+        expect(screen.queryByText('Unknown App')).not.toBeInTheDocument();
+    });
     it('off-spec Cashtab msg', async () => {
         render(
             <MemoryRouter>
