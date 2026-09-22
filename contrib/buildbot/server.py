@@ -189,6 +189,63 @@ def create_server(
         author = phab.getRevisionAuthor(revision_id)
         return is_user_abc_member(author.get("phid"))
 
+    def queue_diff_builds(revision_id, staging_ref, target_phid=None):
+        revision_id = str(revision_id)
+        changed_files = phab.get_revision_changed_files(revision_id=revision_id)
+        build_configs = get_master_build_configurations()
+
+        # Get a list of the builds that should run on diffs
+        builds = []
+        for build_name, build_config in build_configs.items():
+            diff_regexes = build_config.get("runOnDiffRegex", None)
+            if build_config.get("runOnDiff", False) or diff_regexes is not None:
+                if diff_regexes:
+                    # If the regex matches at least one changed file, add this
+                    # build to the list.
+                    if any(
+                        re.match(regex, filename)
+                        for regex in diff_regexes
+                        for filename in changed_files
+                    ):
+                        builds.append(build_name)
+                else:
+                    builds.append(build_name)
+
+        build_target = None
+        if target_phid is not None:
+            if target_phid in create_server.db["diff_targets"]:
+                build_target = create_server.db["diff_targets"][target_phid]
+            else:
+                build_target = BuildTarget(target_phid)
+
+        for build_name in builds:
+            properties = [
+                {
+                    "name": "env.ABC_BUILD_NAME",
+                    "value": build_name,
+                },
+                {
+                    "name": "env.ABC_REVISION",
+                    "value": revision_id,
+                },
+            ]
+            build = tc.trigger_build(
+                "BitcoinABC_BitcoinAbcStaging",
+                staging_ref,
+                target_phid,
+                properties,
+            )
+            if build_target is not None:
+                build_target.queue_build(build["id"], build_name)
+
+        if build_target is None:
+            return
+
+        if len(build_target.builds) > 0:
+            create_server.db["diff_targets"][target_phid] = build_target
+        else:
+            phab.update_build_target_status(build_target)
+
     @app.route("/getCurrentUser", methods=["GET"])
     def getCurrentUser():
         return request.authorization.username if request.authorization else None
@@ -288,57 +345,7 @@ def create_server(
             phab.update_build_target_status(BuildTarget(target_phid))
             return SUCCESS, 200
 
-        # Get the list of changed files
-        changedFiles = phab.get_revision_changed_files(revision_id=revision_id)
-
-        build_configs = get_master_build_configurations()
-
-        # Get a list of the builds that should run on diffs
-        builds = []
-        for build_name, build_config in build_configs.items():
-            diffRegexes = build_config.get("runOnDiffRegex", None)
-            if build_config.get("runOnDiff", False) or diffRegexes is not None:
-                if diffRegexes:
-                    # If the regex matches at least one changed file, add this
-                    # build to the list.
-                    def regexesMatchAnyFile(regexes, files):
-                        for regex in regexes:
-                            for filename in files:
-                                if re.match(regex, filename):
-                                    return True
-                        return False
-
-                    if regexesMatchAnyFile(diffRegexes, changedFiles):
-                        builds.append(build_name)
-                else:
-                    builds.append(build_name)
-
-        if target_phid in create_server.db["diff_targets"]:
-            build_target = create_server.db["diff_targets"][target_phid]
-        else:
-            build_target = BuildTarget(target_phid)
-
-        for build_name in builds:
-            properties = [
-                {
-                    "name": "env.ABC_BUILD_NAME",
-                    "value": build_name,
-                },
-                {
-                    "name": "env.ABC_REVISION",
-                    "value": revision_id,
-                },
-            ]
-            build_id = tc.trigger_build(
-                "BitcoinABC_BitcoinAbcStaging", staging_ref, target_phid, properties
-            )["id"]
-            build_target.queue_build(build_id, build_name)
-
-        if len(build_target.builds) > 0:
-            create_server.db["diff_targets"][target_phid] = build_target
-        else:
-            phab.update_build_target_status(build_target)
-
+        queue_diff_builds(revision_id, staging_ref, target_phid)
         return SUCCESS, 200
 
     @app.route("/land", methods=["POST"])
@@ -439,6 +446,9 @@ def create_server(
         # Check if there is a specially crafted comment that should trigger a
         # CI build. Format:
         # @bot <build_name> [build_name ...]
+        # @bot diff  (special-cased: run the standard diff CI build set)
+        DIFF_BUILD_TOKEN = "diff"
+
         def get_builds_from_comment(comment):
             tokens = comment.split()
             if not tokens or tokens.pop(0) != "@bot":
@@ -524,6 +534,7 @@ def create_server(
         build_configs = get_master_build_configurations()
 
         builds = []
+        run_diff_builds = False
         for comment in comments:
             comment_builds = get_builds_from_comment(comment["content"]["raw"])
 
@@ -535,19 +546,22 @@ def create_server(
             user = comment.get("authorPHID")
 
             # ABC members can always trigger builds
-            if is_user_abc_member(user):
-                builds += comment_builds
-                continue
-
-            if is_user_allowed_to_trigger_builds(
+            if not is_user_abc_member(user) and not is_user_allowed_to_trigger_builds(
                 user, current_token, comment_builds, build_configs
             ):
-                builds += comment_builds
+                continue
+
+            # "@bot diff" takes precedence over any named build list.
+            if DIFF_BUILD_TOKEN in comment_builds:
+                run_diff_builds = True
+                break
+
+            builds += comment_builds
 
         # If there is no build provided, this request is not what we are after,
         # just return.
         # TODO return an help command to explain how to use the bot.
-        if not builds:
+        if not run_diff_builds and not builds:
             return SUCCESS, 200
 
         # Give (only positive) feedback to user. If several comments are part of
@@ -556,19 +570,23 @@ def create_server(
         phab.set_object_token(revision_PHID, next_token(current_token))
 
         staging_ref = phab.get_latest_diff_staging_ref(revision_PHID)
-        # Trigger the requested builds
-        for build in builds:
-            # FIXME the hardcoded infos here should be gathered from somewhere
-            tc.trigger_build(
-                "BitcoinABC_BitcoinAbcStaging",
-                staging_ref,
-                properties=[
-                    {
-                        "name": "env.ABC_BUILD_NAME",
-                        "value": build,
-                    }
-                ],
-            )
+        if run_diff_builds:
+            revision_id, _ = phab.get_revision_info(revision_PHID)
+            queue_diff_builds(revision_id, staging_ref)
+        else:
+            # Trigger the requested builds
+            for build in builds:
+                # FIXME the hardcoded infos here should be gathered from somewhere
+                tc.trigger_build(
+                    "BitcoinABC_BitcoinAbcStaging",
+                    staging_ref,
+                    properties=[
+                        {
+                            "name": "env.ABC_BUILD_NAME",
+                            "value": build,
+                        }
+                    ],
+                )
 
         # If we reach this point, trigger_build did not raise an exception.
         return SUCCESS, 200

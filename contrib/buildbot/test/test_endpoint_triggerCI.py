@@ -69,10 +69,33 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 "build-32": {},
                 "build-33": {},
                 "build-docker": {"docker": {}},
+                "diff-build-always": {"runOnDiff": True},
+                "diff-build-regex": {"runOnDiffRegex": ["src/.*"]},
+                "diff-build-skip": {"runOnDiffRegex": ["docs/.*"]},
             },
         }
         self.phab.get_file_content_from_master = mock.Mock()
         self.phab.get_file_content_from_master.return_value = json.dumps(config)
+
+        self.revision_id = 5678
+        self.phab.differential.revision.search.return_value = (
+            test.mocks.phabricator.Result(
+                [
+                    {
+                        "id": self.revision_id,
+                        "phid": self.revision_PHID,
+                        "fields": {
+                            "authorPHID": "PHID-USER-outsider",
+                        },
+                    }
+                ]
+            )
+        )
+        self.phab.differential.getcommitpaths = mock.Mock()
+        self.phab.differential.getcommitpaths.return_value = [
+            "src/file.cpp",
+            "README.md",
+        ]
 
     # Transaction webhook on diff update
     def call_endpoint(self):
@@ -557,6 +580,51 @@ class EndpointTriggerCITestCase(ABCBotFixture):
                 tokenPHID=tokens[i + 1],
             )
             self.phab.token.give.reset_mock()
+
+    def test_triggerCI_diff_build(self):
+        staging_ref = f"refs/tags/phabricator/diff/{self.diff_id}"
+        expected_diff_builds = ["diff-build-always", "diff-build-regex"]
+
+        def assert_diff_builds_queued(comments):
+            self.teamcity.trigger_build.reset_mock()
+            self.set_transaction_return_value(comments)
+            response = self.call_endpoint()
+            self.assertEqual(response.status_code, 200)
+            expected_calls = [
+                mock.call(
+                    "BitcoinABC_BitcoinAbcStaging",
+                    staging_ref,
+                    None,
+                    [
+                        {
+                            "name": "env.ABC_BUILD_NAME",
+                            "value": build_name,
+                        },
+                        {
+                            "name": "env.ABC_REVISION",
+                            "value": str(self.revision_id),
+                        },
+                    ],
+                )
+                for build_name in expected_diff_builds
+            ]
+            self.teamcity.trigger_build.assert_has_calls(expected_calls, any_order=True)
+            self.assertEqual(
+                self.teamcity.trigger_build.call_count, len(expected_diff_builds)
+            )
+
+        # ABC member, @bot diff alone
+        assert_diff_builds_queued(["@bot diff"])
+
+        # ABC member, diff takes precedence over named builds
+        assert_diff_builds_queued(["@bot build-1 diff build-2"])
+
+        # Non-ABC member cannot trigger @bot diff
+        self.teamcity.trigger_build.reset_mock()
+        self.set_transaction_return_value(["@bot diff"], "PHID-USER-nonabc")
+        response = self.call_endpoint()
+        self.assertEqual(response.status_code, 200)
+        self.teamcity.trigger_build.assert_not_called()
 
 
 if __name__ == "__main__":
