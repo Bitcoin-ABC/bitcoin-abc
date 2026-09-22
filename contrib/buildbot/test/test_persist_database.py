@@ -14,7 +14,7 @@ import server
 import test.mocks.teamcity
 from build import BuildStatus
 from teamcity_wrapper import BuildInfo
-from test.abcbot_fixture import ABCBotFixture
+from test.abcbot_fixture import TEST_ABC_MEMBER_PHID, ABCBotFixture
 from test.mocks.teamcity import DEFAULT_BUILD_ID
 from test.test_endpoint_build import buildRequestQuery
 from test.test_endpoint_status import statusRequestData
@@ -43,6 +43,9 @@ class PersistDataTestCase(ABCBotFixture):
         )
 
     def test_persist_diff_targets(self):
+        self.set_abc_members([TEST_ABC_MEMBER_PHID])
+        self.set_revision_author("1234", TEST_ABC_MEMBER_PHID)
+
         queryData = buildRequestQuery()
         queryData.abcBuildName = BUILD_NAME
         queryData.buildTypeId = BUILD_TYPE_ID

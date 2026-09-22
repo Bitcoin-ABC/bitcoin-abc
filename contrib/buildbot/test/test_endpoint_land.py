@@ -11,7 +11,7 @@ import requests
 
 import test.mocks.fixture
 import test.mocks.teamcity
-from test.abcbot_fixture import ABCBotFixture
+from test.abcbot_fixture import TEST_ABC_MEMBER_PHID, ABCBotFixture
 from testutil import AnyWith
 
 
@@ -24,6 +24,11 @@ class landRequestData(test.mocks.fixture.MockData):
 
 
 class EndpointLandTestCase(ABCBotFixture):
+    def setUp(self):
+        super().setUp()
+        self.set_abc_members([TEST_ABC_MEMBER_PHID])
+        self.set_revision_author("D1234", TEST_ABC_MEMBER_PHID)
+
     def test_land_happyPath(self):
         data = landRequestData()
         triggerBuildResponse = test.mocks.teamcity.buildInfo(
@@ -93,6 +98,13 @@ class EndpointLandTestCase(ABCBotFixture):
             setattr(data, arg, "")
             response = self.app.post("/land", headers=self.headers, json=data)
             self.assertEqual(response.status_code, 400)
+
+    def test_land_non_abc_member(self):
+        self.set_revision_author("D1234", "PHID-USER-outsider")
+        data = landRequestData()
+        response = self.app.post("/land", headers=self.headers, json=data)
+        self.assertEqual(response.status_code, 403)
+        self.teamcity.session.send.assert_not_called()
 
 
 if __name__ == "__main__":

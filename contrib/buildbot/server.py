@@ -180,6 +180,15 @@ def create_server(
 
         return build_configs
 
+    def is_user_abc_member(user_PHID):
+        return user_PHID is not None and user_PHID in phab.get_project_members(
+            BITCOIN_ABC_PROJECT_PHID
+        )
+
+    def is_revision_from_abc_member(revision_id):
+        author = phab.getRevisionAuthor(revision_id)
+        return is_user_abc_member(author.get("phid"))
+
     @app.route("/getCurrentUser", methods=["GET"])
     def getCurrentUser():
         return request.authorization.username if request.authorization else None
@@ -297,6 +306,15 @@ def create_server(
         target_phid = get_mandatory_argument("targetPHID")
         revision_id = get_mandatory_argument("revisionId")
 
+        # Only run diff builds for revisions authored by Bitcoin ABC members.
+        if not is_revision_from_abc_member(revision_id):
+            app.logger.info(
+                "Ignoring /buildDiff request for revision "
+                f"{revision_id}: author is not a Bitcoin ABC member"
+            )
+            phab.update_build_target_status(BuildTarget(target_phid))
+            return SUCCESS, 200
+
         # Get the list of changed files
         changedFiles = phab.get_revision_changed_files(revision_id=revision_id)
 
@@ -371,6 +389,14 @@ def create_server(
         committerEmail = data["committerEmail"]
         if not committerEmail:
             return FAILURE, 400
+
+        # Only allow landing revisions authored by Bitcoin ABC members.
+        if not is_revision_from_abc_member(revision):
+            app.logger.info(
+                f"Ignoring /land request for revision {revision}: "
+                "author is not a Bitcoin ABC member"
+            )
+            return FAILURE, 403
 
         properties = [
             {
@@ -466,6 +492,9 @@ def create_server(
         def is_user_allowed_to_trigger_builds(
             user_PHID, current_token, comment_builds, build_configs
         ):
+            # FIXME: anti-DoS path temporarily disabled after the phorge update.
+            return False
+
             if current_token not in [
                 "",
                 "PHID-TOKN-coin-1",
@@ -517,7 +546,6 @@ def create_server(
         # If the "Mountain of Wealth" token is reached, the next request will be
         # refused by the bot. At this stage only ABC members will be able to
         # trigger new builds.
-        abc_members = phab.get_project_members(BITCOIN_ABC_PROJECT_PHID)
         current_token = phab.get_object_token(revision_PHID)
 
         build_configs = get_master_build_configurations()
@@ -531,10 +559,10 @@ def create_server(
             if not comment_builds:
                 continue
 
-            user = comment["authorPHID"]
+            user = comment.get("authorPHID")
 
             # ABC members can always trigger builds
-            if user in abc_members:
+            if is_user_abc_member(user):
                 builds += comment_builds
                 continue
 

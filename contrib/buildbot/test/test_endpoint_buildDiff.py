@@ -13,7 +13,7 @@ import requests
 
 import test.mocks.teamcity
 from build import Build, BuildStatus
-from test.abcbot_fixture import ABCBotFixture
+from test.abcbot_fixture import TEST_ABC_MEMBER_PHID, ABCBotFixture
 from testutil import AnyWith
 
 
@@ -30,6 +30,11 @@ class buildDiffRequestQuery:
 
 
 class EndpointBuildDiffTestCase(ABCBotFixture):
+    def setUp(self):
+        super().setUp()
+        self.set_abc_members([TEST_ABC_MEMBER_PHID])
+        self.set_revision_author("1234", TEST_ABC_MEMBER_PHID)
+
     def test_buildDiff(self):
         data = buildDiffRequestQuery()
 
@@ -181,6 +186,28 @@ class EndpointBuildDiffTestCase(ABCBotFixture):
         self.phab.get_file_content_from_master = mock.Mock()
         self.phab.get_file_content_from_master.return_value = json.dumps(config)
         call_buildDiff(builds)
+
+    def test_buildDiff_non_abc_member(self):
+        self.set_revision_author("1234", "PHID-USER-outsider")
+        data = buildDiffRequestQuery()
+
+        config = {
+            "builds": {
+                "build-1": {
+                    "runOnDiff": True,
+                },
+            },
+        }
+        self.phab.get_file_content_from_master = mock.Mock()
+        self.phab.get_file_content_from_master.return_value = json.dumps(config)
+
+        response = self.app.post(f"/buildDiff{data}", headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.teamcity.session.send.assert_not_called()
+        self.phab.get_file_content_from_master.assert_not_called()
+        self.phab.harbormaster.sendmessage.assert_called_with(
+            receiver=data.targetPHID, type="pass"
+        )
 
 
 if __name__ == "__main__":

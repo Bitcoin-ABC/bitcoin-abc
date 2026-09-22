@@ -10,8 +10,6 @@ import unittest
 from unittest import mock
 
 import test.mocks.phabricator
-import test.mocks.teamcity
-from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 from test.abcbot_fixture import ABCBotFixture
 
 
@@ -28,22 +26,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
         self.phab.phid = self.user_PHID
 
         # The current user is an ABC member
-        self.phab.project.search.return_value = test.mocks.phabricator.Result(
-            [
-                {
-                    "id": 1,
-                    "type": "PROJ",
-                    "phid": BITCOIN_ABC_PROJECT_PHID,
-                    "attachments": {
-                        "members": {
-                            "members": [
-                                {"phid": self.user_PHID},
-                            ]
-                        }
-                    },
-                }
-            ]
-        )
+        self.set_abc_members([self.user_PHID])
 
         self.phab.user.search.return_value = test.mocks.phabricator.Result(
             [
@@ -286,7 +269,7 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             "PHID-USER-nonabc",
         )
         response = self.call_endpoint()
-        self.teamcity.session.send.assert_not_called()
+        self.teamcity.trigger_build.assert_not_called()
         self.assertEqual(response.status_code, 200)
 
         # Unauthorized user, 3 comments targeting the bot with 3 builds
@@ -299,39 +282,41 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             "PHID-USER-nonabc",
         )
         response = self.call_endpoint()
-        self.teamcity.session.send.assert_not_called()
+        self.teamcity.trigger_build.assert_not_called()
         self.assertEqual(response.status_code, 200)
 
-        # Authorized but non-ABC user, running at least one non-existent build
-        self.set_transaction_return_value(
-            [
-                # Build 4 doesn't exist
-                "@bot build-4",
-                "@bot build-4 build-11 build-12 build-13 build-2 build-3",
-                "@bot build-11 build-12 build-13 build-2 build-3 build-4",
-            ],
-            "PHID-AUTHORIZED-USER",
-        )
-        response = self.call_endpoint()
-        self.teamcity.session.send.assert_not_called()
-        self.assertEqual(response.status_code, 200)
+        # FIXME: anti-DoS path temporarily disabled after the phorge update.
+        # # Authorized but non-ABC user, running at least one non-existent build
+        # self.set_transaction_return_value(
+        #     [
+        #         # Build 4 doesn't exist
+        #         "@bot build-4",
+        #         "@bot build-4 build-11 build-12 build-13 build-2 build-3",
+        #         "@bot build-11 build-12 build-13 build-2 build-3 build-4",
+        #     ],
+        #     "PHID-AUTHORIZED-USER",
+        # )
+        # response = self.call_endpoint()
+        # self.teamcity.trigger_build.assert_not_called()
+        # self.assertEqual(response.status_code, 200)
 
-        # Authorized but non-ABC user, running at least one docker build
-        self.set_transaction_return_value(
-            [
-                "@bot build-docker",
-                "@bot build-docker build-11 build-12 build-13 build-2 build-3",
-                "@bot build-11 build-12 build-13 build-2 build-3 build-docker",
-            ],
-            "PHID-AUTHORIZED-USER",
-        )
-        response = self.call_endpoint()
-        self.teamcity.session.send.assert_not_called()
-        self.assertEqual(response.status_code, 200)
+        # # Authorized but non-ABC user, running at least one docker build
+        # self.set_transaction_return_value(
+        #     [
+        #         "@bot build-docker",
+        #         "@bot build-docker build-11 build-12 build-13 build-2 build-3",
+        #         "@bot build-11 build-12 build-13 build-2 build-3 build-docker",
+        #     ],
+        #     "PHID-AUTHORIZED-USER",
+        # )
+        # response = self.call_endpoint()
+        # self.teamcity.trigger_build.assert_not_called()
+        # self.assertEqual(response.status_code, 200)
 
     def test_triggerCI_some_build_queued(self):
         def assert_teamcity_queued_builds(comments, queued_builds):
             # Default user is an ABC member in set_transaction_return_value
+            self.teamcity.trigger_build.reset_mock()
             self.set_transaction_return_value(comments)
             response = self.call_endpoint()
             expected_calls = [
@@ -461,11 +446,12 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             self.teamcity.trigger_build.reset_mock()
             self.set_transaction_return_value(["@bot build-1"], user_PHID)
             response = self.call_endpoint()
-            self.phab.user.search.assert_called_with(
-                constraints={
-                    "phids": [user_PHID],
-                }
-            )
+            # FIXME: anti-DoS path temporarily disabled after the phorge update.
+            # self.phab.user.search.assert_called_with(
+            #     constraints={
+            #         "phids": [user_PHID],
+            #     }
+            # )
             if not expect_trigger:
                 self.teamcity.trigger_build.assert_not_called()
             else:
@@ -515,9 +501,11 @@ class EndpointTriggerCITestCase(ABCBotFixture):
             set_user_roles(list(role_combination))
             check_build_triggered(False)
 
-        # With all roles the build should be called...
         set_user_roles(roles)
-        check_build_triggered(True)
+        # FIXME: anti-DoS path temporarily disabled after the phorge update.
+        # With all roles a non-ABC user used to be allowed to trigger builds.
+        # That path is disabled, so builds must still be denied.
+        check_build_triggered(False)  # Revert to True with the anti-DoS path
 
         permissive_tokens = [
             "",
@@ -534,7 +522,8 @@ class EndpointTriggerCITestCase(ABCBotFixture):
         # ...until some token is awarded...
         for token_PHID in permissive_tokens:
             self.phab.token.given.return_value = [{"tokenPHID": token_PHID}]
-            check_build_triggered(True)
+            # FIXME: anti-DoS path temporarily disabled after the phorge update.
+            check_build_triggered(False)  # Revert to True with the anti-DoS path
 
         # ...then the build is denied
         for token_PHID in restrictive_tokens:

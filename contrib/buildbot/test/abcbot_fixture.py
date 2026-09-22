@@ -18,10 +18,12 @@ import test.mocks.githubactions
 import test.mocks.phabricator
 import test.mocks.slackbot
 import test.mocks.teamcity
+from phabricator_wrapper import BITCOIN_ABC_PROJECT_PHID
 
 # Setup global parameters
 TEST_USER = "TESTUSER"
 TEST_PASSWORD = "TESTPASSWORD"
+TEST_ABC_MEMBER_PHID = "PHID-USER-abcmember"
 
 
 class ABCBotFixture(unittest.TestCase):
@@ -77,3 +79,49 @@ class ABCBotFixture(unittest.TestCase):
         headers["X-Phabricator-Webhook-Signature"] = self.compute_hmac(data)
         response = self.app.post(path, headers=headers, json=obj)
         return response
+
+    def set_abc_members(self, member_PHIDs=None):
+        if member_PHIDs is None:
+            member_PHIDs = [TEST_ABC_MEMBER_PHID]
+        self.phab.project.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": 1,
+                    "type": "PROJ",
+                    "phid": BITCOIN_ABC_PROJECT_PHID,
+                    "attachments": {
+                        "members": {
+                            "members": [{"phid": phid} for phid in member_PHIDs]
+                        }
+                    },
+                }
+            ]
+        )
+
+    def set_revision_author(self, revision_id="1234", author_PHID=TEST_ABC_MEMBER_PHID):
+        revision_id_int = int(str(revision_id).strip("D"))
+        self.phab.differential.revision.search.return_value = (
+            test.mocks.phabricator.Result(
+                [
+                    {
+                        "id": revision_id_int,
+                        "phid": f"PHID-DREV-{revision_id_int}",
+                        "fields": {
+                            "authorPHID": author_PHID,
+                        },
+                    }
+                ]
+            )
+        )
+        self.phab.user.search.return_value = test.mocks.phabricator.Result(
+            [
+                {
+                    "id": 1,
+                    "type": "USER",
+                    "phid": author_PHID,
+                    "fields": {
+                        "username": "abc-member",
+                    },
+                }
+            ]
+        )
