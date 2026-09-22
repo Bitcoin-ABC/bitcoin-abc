@@ -96,7 +96,7 @@ static void SetMaxOpenFiles(leveldb::Options *options) {
         options->max_open_files = 64;
     }
 #endif
-    LogPrint(BCLog::LEVELDB, "LevelDB using max_open_files=%d (default=%d)\n",
+    LogDebug(BCLog::LEVELDB, "LevelDB using max_open_files=%d (default=%d)\n",
              options->max_open_files, default_open_files);
 }
 
@@ -207,7 +207,7 @@ void CDBWrapper::WriteBatch(CDBBatch &batch, bool fSync) {
     dbwrapper_private::HandleError(status);
     if (log_memory) {
         double mem_after = DynamicMemoryUsage() / 1024.0 / 1024;
-        LogPrint(
+        LogDebug(
             BCLog::LEVELDB,
             "WriteBatch memory usage: db=%s, before=%.1fMiB, after=%.1fMiB\n",
             m_name, mem_before, mem_after);
@@ -217,7 +217,7 @@ void CDBWrapper::WriteBatch(CDBBatch &batch, bool fSync) {
 size_t CDBWrapper::DynamicMemoryUsage() const {
     std::string memory;
     if (!pdb->GetProperty("leveldb.approximate-memory-usage", &memory)) {
-        LogPrint(BCLog::LEVELDB,
+        LogDebug(BCLog::LEVELDB,
                  "Failed to get approximate-memory-usage property\n");
         return 0;
     }

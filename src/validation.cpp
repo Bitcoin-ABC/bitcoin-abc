@@ -2218,7 +2218,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     const auto time_1{SteadyClock::now()};
     m_chainman.time_check += time_1 - time_start;
-    LogPrint(BCLog::BENCH, "    - Sanity checks: %.2fms [%.2fs (%.2fms/blk)]\n",
+    LogDebug(BCLog::BENCH, "    - Sanity checks: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_1 - time_start),
              Ticks<SecondsDouble>(m_chainman.time_check),
              Ticks<MillisecondsDouble>(m_chainman.time_check) /
@@ -2339,7 +2339,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     const auto time_2{SteadyClock::now()};
     m_chainman.time_forks += time_2 - time_1;
-    LogPrint(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n",
+    LogDebug(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_2 - time_1),
              Ticks<SecondsDouble>(m_chainman.time_forks),
              Ticks<MillisecondsDouble>(m_chainman.time_forks) /
@@ -2478,7 +2478,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     }
     const auto time_3{SteadyClock::now()};
     m_chainman.time_connect += time_3 - time_2;
-    LogPrint(BCLog::BENCH,
+    LogDebug(BCLog::BENCH,
              "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) "
              "[%.2fs (%.2fms/blk)]\n",
              (unsigned)block.vtx.size(),
@@ -2517,7 +2517,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     }
     const auto time_4{SteadyClock::now()};
     m_chainman.time_verify += time_4 - time_2;
-    LogPrint(
+    LogDebug(
         BCLog::BENCH,
         "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs (%.2fms/blk)]\n",
         nInputs - 1, Ticks<MillisecondsDouble>(time_4 - time_2),
@@ -2546,7 +2546,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     const auto time_5{SteadyClock::now()};
     m_chainman.time_index += time_5 - time_4;
-    LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n",
+    LogDebug(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_5 - time_4),
              Ticks<SecondsDouble>(m_chainman.time_index),
              Ticks<MillisecondsDouble>(m_chainman.time_index) /
@@ -2636,7 +2636,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                 }
 
                 if (limiting_lock) {
-                    LogPrint(BCLog::PRUNE, "%s limited pruning to height %d\n",
+                    LogDebug(BCLog::PRUNE, "%s limited pruning to height %d\n",
                              limiting_lock.value(), last_prune);
                 }
 
@@ -2889,7 +2889,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
         // local CCoinsViewCache goes out of scope
         view.Flush(/*reallocate_cache=*/false);
     }
-    LogPrint(BCLog::BENCH, "- Disconnect block: %.2fms\n",
+    LogDebug(BCLog::BENCH, "- Disconnect block: %.2fms\n",
              Ticks<MillisecondsDouble>(SteadyClock::now() - time_start));
 
     {
@@ -2902,7 +2902,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
             }
 
             prune_lock.second.height_first = max_height_first;
-            LogPrint(BCLog::PRUNE, "%s prune lock moved back to %d\n",
+            LogDebug(BCLog::PRUNE, "%s prune lock moved back to %d\n",
                      prune_lock.first, max_height_first);
         }
     }
@@ -2919,7 +2919,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
         if (pindexDelete->pprev != nullptr &&
             GetNextBlockScriptFlags(pindexDelete, m_chainman) !=
                 GetNextBlockScriptFlags(pindexDelete->pprev, m_chainman)) {
-            LogPrint(BCLog::MEMPOOL,
+            LogDebug(BCLog::MEMPOOL,
                      "Disconnecting mempool due to rewind of upgrade block\n");
             if (disconnectpool) {
                 disconnectpool->importMempool(*m_mempool);
@@ -2983,7 +2983,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
     SteadyClock::time_point time_3;
     // When adding aggregate statistics in the future, keep in mind that
     // num_blocks_total may be zero until the ConnectBlock() call below.
-    LogPrint(BCLog::BENCH, "  - Load block from disk: %.2fms\n",
+    LogDebug(BCLog::BENCH, "  - Load block from disk: %.2fms\n",
              Ticks<MillisecondsDouble>(time_2 - time_1));
     {
         Amount blockFees{Amount::zero()};
@@ -3083,7 +3083,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         time_3 = SteadyClock::now();
         m_chainman.time_connect_total += time_3 - time_2;
         assert(m_chainman.num_blocks_total > 0);
-        LogPrint(BCLog::BENCH,
+        LogDebug(BCLog::BENCH,
                  "  - Connect total: %.2fms [%.2fs (%.2fms/blk)]\n",
                  Ticks<MillisecondsDouble>(time_3 - time_2),
                  Ticks<SecondsDouble>(m_chainman.time_connect_total),
@@ -3095,7 +3095,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
 
     const auto time_4{SteadyClock::now()};
     m_chainman.time_flush += time_4 - time_3;
-    LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n",
+    LogDebug(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_4 - time_3),
              Ticks<SecondsDouble>(m_chainman.time_flush),
              Ticks<MillisecondsDouble>(m_chainman.time_flush) /
@@ -3106,7 +3106,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
     }
     const auto time_5{SteadyClock::now()};
     m_chainman.time_chainstate += time_5 - time_4;
-    LogPrint(BCLog::BENCH,
+    LogDebug(BCLog::BENCH,
              "  - Writing chainstate: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_5 - time_4),
              Ticks<SecondsDouble>(m_chainman.time_chainstate),
@@ -3122,7 +3122,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         if (pindexNew->pprev != nullptr &&
             GetNextBlockScriptFlags(pindexNew, m_chainman) !=
                 GetNextBlockScriptFlags(pindexNew->pprev, m_chainman)) {
-            LogPrint(
+            LogDebug(
                 BCLog::MEMPOOL,
                 "Disconnecting mempool due to acceptance of upgrade block\n");
             disconnectpool.importMempool(*m_mempool);
@@ -3136,13 +3136,13 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
     const auto time_6{SteadyClock::now()};
     m_chainman.time_post_connect += time_6 - time_5;
     m_chainman.time_total += time_6 - time_1;
-    LogPrint(BCLog::BENCH,
+    LogDebug(BCLog::BENCH,
              "  - Connect postprocess: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_6 - time_5),
              Ticks<SecondsDouble>(m_chainman.time_post_connect),
              Ticks<MillisecondsDouble>(m_chainman.time_post_connect) /
                  m_chainman.num_blocks_total);
-    LogPrint(BCLog::BENCH, "- Connect block: %.2fms [%.2fs (%.2fms/blk)]\n",
+    LogDebug(BCLog::BENCH, "- Connect block: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_6 - time_1),
              Ticks<SecondsDouble>(m_chainman.time_total),
              Ticks<MillisecondsDouble>(m_chainman.time_total) /
@@ -3478,7 +3478,7 @@ bool Chainstate::ActivateBestChainStep(
             // even if disconnectpool is empty. The disconnectpool may also be
             // non-empty if the mempool was imported due to new validation rules
             // being in effect.
-            LogPrint(BCLog::MEMPOOL,
+            LogDebug(BCLog::MEMPOOL,
                      "Updating mempool due to reorganization or "
                      "rules upgrade/downgrade\n");
             disconnectpool.updateMempoolForReorg(*this, true, *m_mempool);
@@ -4215,7 +4215,7 @@ bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex,
     }
 
     if (!m_chain.Contains(pindex)) {
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "The block to mark finalized by avalanche is not on the "
                  "active chain: %s\n",
                  pindex->GetBlockHash().ToString());
@@ -4548,7 +4548,7 @@ static bool ContextualCheckBlockHeader(
         // Check that the block chain matches the known block chain up to a
         // checkpoint.
         if (!Checkpoints::CheckBlock(checkpoints, nHeight, block.GetHash())) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "ERROR: %s: rejected by checkpoint lock-in at %d\n",
                      __func__, nHeight);
             return state.Invalid(BlockValidationResult::BLOCK_CHECKPOINT,
@@ -4562,7 +4562,7 @@ static bool ContextualCheckBlockHeader(
         const CBlockIndex *pcheckpoint =
             blockman.GetLastCheckpoint(checkpoints);
         if (pcheckpoint && nHeight < pcheckpoint->nHeight) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "ERROR: %s: forked chain older than last checkpoint "
                      "(height %d)\n",
                      __func__, nHeight);
@@ -4713,7 +4713,7 @@ bool ChainstateManager::AcceptBlockHeader(
             }
 
             if (pindex->nStatus.isInvalid()) {
-                LogPrint(BCLog::VALIDATION, "%s: block %s is marked invalid\n",
+                LogDebug(BCLog::VALIDATION, "%s: block %s is marked invalid\n",
                          __func__, hash.ToString());
                 return state.Invalid(
                     BlockValidationResult::BLOCK_CACHED_INVALID, "duplicate");
@@ -4724,7 +4724,7 @@ bool ChainstateManager::AcceptBlockHeader(
 
         if (!CheckBlockHeader(block, state, chainparams.GetConsensus(),
                               BlockValidationOptions(config))) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "%s: Consensus::CheckBlockHeader: %s, %s\n", __func__,
                      hash.ToString(), state.ToString());
             return false;
@@ -4734,7 +4734,7 @@ bool ChainstateManager::AcceptBlockHeader(
         BlockMap::iterator mi{
             m_blockman.m_block_index.find(block.hashPrevBlock)};
         if (mi == m_blockman.m_block_index.end()) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "header %s has prev block not found: %s\n",
                      hash.ToString(), block.hashPrevBlock.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_MISSING_PREV,
@@ -4744,7 +4744,7 @@ bool ChainstateManager::AcceptBlockHeader(
         CBlockIndex *pindexPrev = &((*mi).second);
         assert(pindexPrev);
         if (pindexPrev->nStatus.isInvalid()) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "header %s has prev block invalid: %s\n", hash.ToString(),
                      block.hashPrevBlock.ToString());
             return state.Invalid(BlockValidationResult::BLOCK_INVALID_PREV,
@@ -4754,7 +4754,7 @@ bool ChainstateManager::AcceptBlockHeader(
         if (!ContextualCheckBlockHeader(
                 block, state, m_blockman, *this, pindexPrev,
                 m_options.adjusted_time_callback(), test_checkpoints)) {
-            LogPrint(BCLog::VALIDATION,
+            LogDebug(BCLog::VALIDATION,
                      "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
                      __func__, hash.ToString(), state.ToString());
             return false;
@@ -4795,7 +4795,7 @@ bool ChainstateManager::AcceptBlockHeader(
                         m_blockman.m_dirty_blockindex.insert(invalid_walk);
                         invalid_walk = invalid_walk->pprev;
                     }
-                    LogPrint(BCLog::VALIDATION,
+                    LogDebug(BCLog::VALIDATION,
                              "header %s has prev block invalid: %s\n",
                              hash.ToString(), block.hashPrevBlock.ToString());
                     return state.Invalid(
@@ -4806,7 +4806,7 @@ bool ChainstateManager::AcceptBlockHeader(
         }
     }
     if (!min_pow_checked) {
-        LogPrint(BCLog::VALIDATION,
+        LogDebug(BCLog::VALIDATION,
                  "%s: not adding new block header %s, missing anti-dos "
                  "proof-of-work validation\n",
                  __func__, hash.ToString());
@@ -5897,7 +5897,7 @@ void ChainstateManager::LoadExternalBlockFile(
                     // detect out of order blocks, and store them for later
                     if (hash != params.GetConsensus().hashGenesisBlock &&
                         !m_blockman.LookupBlockIndex(header.hashPrevBlock)) {
-                        LogPrint(
+                        LogDebug(
                             BCLog::REINDEX,
                             "%s: Out of order block %s, parent %s not known\n",
                             __func__, hash.ToString(),
@@ -5930,7 +5930,7 @@ void ChainstateManager::LoadExternalBlockFile(
                         }
                     } else if (hash != params.GetConsensus().hashGenesisBlock &&
                                pindex->nHeight % 1000 == 0) {
-                        LogPrint(
+                        LogDebug(
                             BCLog::REINDEX,
                             "Block Import: already had block %s at height %d\n",
                             hash.ToString(), pindex->nHeight);
@@ -5967,7 +5967,7 @@ void ChainstateManager::LoadExternalBlockFile(
                     for (auto c : GetAll()) {
                         BlockValidationState state;
                         if (!c->ActivateBestChain(state, pblock, avalanche)) {
-                            LogPrint(BCLog::REINDEX,
+                            LogDebug(BCLog::REINDEX,
                                      "failed to activate chain (%s)\n",
                                      state.ToString());
                             activation_failure = true;
@@ -6000,7 +6000,7 @@ void ChainstateManager::LoadExternalBlockFile(
                             std::make_shared<CBlock>();
                         if (m_blockman.ReadBlock(*pblockrecursive,
                                                  it->second)) {
-                            LogPrint(
+                            LogDebug(
                                 BCLog::REINDEX,
                                 "%s: Processing out of order child %s of %s\n",
                                 __func__, pblockrecursive->GetHash().ToString(),
@@ -6038,7 +6038,7 @@ void ChainstateManager::LoadExternalBlockFile(
                 // knowledge of the fact that the block files are not entirely
                 // pristine in order to prepare a set of pristine, and perhaps
                 // ordered, block files for later reindexing.
-                LogPrint(BCLog::REINDEX,
+                LogDebug(BCLog::REINDEX,
                          "%s: unexpected data at file offset 0x%x - %s. "
                          "continuing\n",
                          __func__, (nRewind - 1), e.what());

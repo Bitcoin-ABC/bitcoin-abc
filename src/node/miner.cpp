@@ -232,7 +232,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
     const auto time_2{SteadyClock::now()};
 
-    LogPrint(
+    LogDebug(
         BCLog::BENCH,
         "CreateNewBlock() addTxs: %.2fms, validity: %.2fms (total %.2fms)\n",
         Ticks<MillisecondsDouble>(time_1 - time_start),

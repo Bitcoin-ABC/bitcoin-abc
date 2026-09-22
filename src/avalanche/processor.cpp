@@ -176,7 +176,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
             WITH_LOCK(cs_peerManager,
                       peerManager->cleanupDanglingProofs(registeredProofs));
             for (const auto &proof : registeredProofs) {
-                LogPrint(BCLog::AVALANCHE,
+                LogDebug(BCLog::AVALANCHE,
                          "Promoting previously dangling proof %s\n",
                          proof->getId().ToString());
                 reconcileOrFinalize(proof);
@@ -203,7 +203,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
         addToReconcile(proof);
     }
 
-    LogPrint(BCLog::AVALANCHE, "Loaded %d peers from the %s file\n",
+    LogDebug(BCLog::AVALANCHE, "Loaded %d peers from the %s file\n",
              registeredProofs.size(), PathToString(dumpPath));
 }
 

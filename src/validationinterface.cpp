@@ -173,7 +173,7 @@ void ValidationSignals::SyncWithValidationInterfaceQueue() {
         });                                                                    \
     } while (0)
 
-#define LOG_EVENT(fmt, ...) LogPrint(BCLog::VALIDATION, fmt "\n", __VA_ARGS__)
+#define LOG_EVENT(fmt, ...) LogDebug(BCLog::VALIDATION, fmt "\n", __VA_ARGS__)
 
 void ValidationSignals::UpdatedBlockTip(const CBlockIndex *pindexNew,
                                         const CBlockIndex *pindexFork,

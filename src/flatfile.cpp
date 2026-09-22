@@ -65,7 +65,7 @@ size_t FlatFileSeq::Allocate(const FlatFilePos &pos, size_t add_size,
         if (CheckDiskSpace(m_dir, inc_size)) {
             FILE *file = Open(pos);
             if (file) {
-                LogPrint(BCLog::VALIDATION,
+                LogDebug(BCLog::VALIDATION,
                          "Pre-allocating up to position 0x%x in %s%05u.dat\n",
                          new_size, m_prefix, pos.nFile);
                 AllocateFileRange(file, pos.nPos, inc_size);

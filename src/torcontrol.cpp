@@ -181,7 +181,7 @@ void TorControlConnection::readcb(struct bufferevent *bev, void *ctx) {
                     self->reply_handlers.front()(*self, self->message);
                     self->reply_handlers.pop_front();
                 } else {
-                    LogPrint(BCLog::TOR,
+                    LogDebug(BCLog::TOR,
                              "tor: Received unexpected sync reply %i\n",
                              self->message.code);
                 }
@@ -203,14 +203,14 @@ void TorControlConnection::eventcb(struct bufferevent *bev, short what,
                                    void *ctx) {
     TorControlConnection *self = static_cast<TorControlConnection *>(ctx);
     if (what & BEV_EVENT_CONNECTED) {
-        LogPrint(BCLog::TOR, "tor: Successfully connected!\n");
+        LogDebug(BCLog::TOR, "tor: Successfully connected!\n");
         self->connected(*self);
     } else if (what & (BEV_EVENT_EOF | BEV_EVENT_ERROR)) {
         if (what & BEV_EVENT_ERROR) {
-            LogPrint(BCLog::TOR,
+            LogDebug(BCLog::TOR,
                      "tor: Error connecting to Tor control socket\n");
         } else {
-            LogPrint(BCLog::TOR, "tor: End of stream\n");
+            LogDebug(BCLog::TOR, "tor: End of stream\n");
         }
         self->Disconnect();
         self->disconnected(*self);
@@ -486,7 +486,7 @@ TorController::TorController(struct event_base *_base,
     // Read service private key if cached
     std::pair<bool, std::string> pkf = ReadBinaryFile(GetPrivateKeyFile());
     if (pkf.first) {
-        LogPrint(BCLog::TOR, "tor: Reading cached private key from %s\n",
+        LogDebug(BCLog::TOR, "tor: Reading cached private key from %s\n",
                  fs::PathToString(GetPrivateKeyFile()));
         private_key = pkf.second;
     }
@@ -505,7 +505,7 @@ TorController::~TorController() {
 void TorController::add_onion_cb(TorControlConnection &_conn,
                                  const TorControlReply &reply) {
     if (reply.code == 250) {
-        LogPrint(BCLog::TOR, "tor: ADD_ONION successful\n");
+        LogDebug(BCLog::TOR, "tor: ADD_ONION successful\n");
         for (const std::string &s : reply.lines) {
             std::map<std::string, std::string> m = ParseTorReplyMapping(s);
             std::map<std::string, std::string>::iterator i;
@@ -528,7 +528,7 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
         LogInfo("Got tor service ID %s, advertising service %s\n", service_id,
                 service.ToStringAddrPort());
         if (WriteBinaryFile(GetPrivateKeyFile(), private_key)) {
-            LogPrint(BCLog::TOR, "tor: Cached service private key to %s\n",
+            LogDebug(BCLog::TOR, "tor: Cached service private key to %s\n",
                      fs::PathToString(GetPrivateKeyFile()));
         } else {
             LogPrintf("tor: Error writing service private key to %s\n",
@@ -547,7 +547,7 @@ void TorController::add_onion_cb(TorControlConnection &_conn,
 void TorController::auth_cb(TorControlConnection &_conn,
                             const TorControlReply &reply) {
     if (reply.code == 250) {
-        LogPrint(BCLog::TOR, "tor: Authentication successful\n");
+        LogDebug(BCLog::TOR, "tor: Authentication successful\n");
 
         // Now that we know Tor is running setup the proxy for onion addresses
         // if -onion isn't set to something else.
@@ -627,7 +627,7 @@ ComputeResponse(const std::string &key, const std::vector<uint8_t> &cookie,
 void TorController::authchallenge_cb(TorControlConnection &_conn,
                                      const TorControlReply &reply) {
     if (reply.code == 250) {
-        LogPrint(BCLog::TOR,
+        LogDebug(BCLog::TOR,
                  "tor: SAFECOOKIE authentication challenge successful\n");
         std::pair<std::string, std::string> l =
             SplitTorReplyLine(reply.lines[0]);
@@ -641,7 +641,7 @@ void TorController::authchallenge_cb(TorControlConnection &_conn,
             }
             std::vector<uint8_t> serverHash = ParseHex(m["SERVERHASH"]);
             std::vector<uint8_t> serverNonce = ParseHex(m["SERVERNONCE"]);
-            LogPrint(BCLog::TOR,
+            LogDebug(BCLog::TOR,
                      "tor: AUTHCHALLENGE ServerHash %s ServerNonce %s\n",
                      HexStr(serverHash), HexStr(serverNonce));
             if (serverNonce.size() != 32) {
@@ -703,13 +703,13 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                     ParseTorReplyMapping(l.second);
                 std::map<std::string, std::string>::iterator i;
                 if ((i = m.find("Tor")) != m.end()) {
-                    LogPrint(BCLog::TOR, "tor: Connected to Tor version %s\n",
+                    LogDebug(BCLog::TOR, "tor: Connected to Tor version %s\n",
                              i->second);
                 }
             }
         }
         for (const std::string &s : methods) {
-            LogPrint(BCLog::TOR, "tor: Supported authentication method: %s\n",
+            LogDebug(BCLog::TOR, "tor: Supported authentication method: %s\n",
                      s);
         }
         // Prefer NULL, otherwise SAFECOOKIE. If a password is provided, use
@@ -721,7 +721,7 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
         std::string torpassword = gArgs.GetArg("-torpassword", "");
         if (!torpassword.empty()) {
             if (methods.count("HASHEDPASSWORD")) {
-                LogPrint(BCLog::TOR,
+                LogDebug(BCLog::TOR,
                          "tor: Using HASHEDPASSWORD authentication\n");
                 ReplaceAll(torpassword, "\"", "\\\"");
                 _conn.Command("AUTHENTICATE \"" + torpassword + "\"",
@@ -733,13 +733,13 @@ void TorController::protocolinfo_cb(TorControlConnection &_conn,
                           "HASHEDPASSWORD authentication is not available\n");
             }
         } else if (methods.count("NULL")) {
-            LogPrint(BCLog::TOR, "tor: Using NULL authentication\n");
+            LogDebug(BCLog::TOR, "tor: Using NULL authentication\n");
             _conn.Command("AUTHENTICATE", std::bind(&TorController::auth_cb,
                                                     this, std::placeholders::_1,
                                                     std::placeholders::_2));
         } else if (methods.count("SAFECOOKIE")) {
             // Cookie: hexdump -e '32/1 "%02x""\n"'  ~/.tor/control_auth_cookie
-            LogPrint(BCLog::TOR,
+            LogDebug(BCLog::TOR,
                      "tor: Using SAFECOOKIE authentication, "
                      "reading cookie authentication from %s\n",
                      cookiefile);
@@ -803,7 +803,7 @@ void TorController::disconnected_cb(TorControlConnection &_conn) {
         return;
     }
 
-    LogPrint(BCLog::TOR,
+    LogDebug(BCLog::TOR,
              "tor: Not connected to Tor control port %s, trying to reconnect\n",
              m_tor_control_center);
 

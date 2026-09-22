@@ -412,7 +412,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
     for (const ProofRef &conflicting : danglingProofPool.getConflicts(proof)) {
         const ProofId &conflictingProofId = conflicting->getId();
         danglingProofPool.removeProof(conflictingProofId);
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "Evicted dangling proof %s due to conflict with peer proof "
                  "%s\n",
                  conflictingProofId.GetHex(), proofid.GetHex());
@@ -569,7 +569,7 @@ void PeerManager::cleanupDanglingProofs(
             // If the proof is added, it means there is no better conflicting
             // dangling proof and this is not a duplicated, so it's worth
             // printing a message to the log.
-            LogPrint(BCLog::AVALANCHE,
+            LogDebug(BCLog::AVALANCHE,
                      "Proof dangling for too long (no connected node): %s\n",
                      proof->getId().GetHex());
         }
@@ -621,7 +621,7 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
                 }
                 invalidProofIds.push_back(p.getProofId());
 
-                LogPrint(BCLog::AVALANCHE,
+                LogDebug(BCLog::AVALANCHE,
                          "Invalidating proof %s: verification failed (%s)\n",
                          p.proof->getId().GetHex(), state.ToString());
             }
@@ -636,7 +636,7 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
                 if (!proof->verify(stakeUtxoDustThreshold, chainman, state)) {
                     invalidProofIds.push_back(proof->getId());
 
-                    LogPrint(
+                    LogDebug(
                         BCLog::AVALANCHE,
                         "Invalidating dangling proof %s: verification failed "
                         "(%s)\n",
@@ -1390,12 +1390,12 @@ bool PeerManager::dumpPeersToFile(const fs::path &dumpPath) const {
                                                PathToString(dumpPath)));
         }
     } catch (const std::exception &e) {
-        LogPrint(BCLog::AVALANCHE, "Failed to dump the avalanche peers: %s.\n",
+        LogDebug(BCLog::AVALANCHE, "Failed to dump the avalanche peers: %s.\n",
                  e.what());
         return false;
     }
 
-    LogPrint(BCLog::AVALANCHE, "Successfully dumped %d peers to %s.\n",
+    LogDebug(BCLog::AVALANCHE, "Successfully dumped %d peers to %s.\n",
              peers.size(), PathToString(dumpPath));
 
     return true;
@@ -1409,7 +1409,7 @@ bool PeerManager::loadPeersFromFile(
     FILE *filestr = fsbridge::fopen(dumpPath, "rb");
     AutoFile file{filestr};
     if (file.IsNull()) {
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "Failed to open avalanche peers file from disk.\n");
         return false;
     }
@@ -1419,7 +1419,7 @@ bool PeerManager::loadPeersFromFile(
         file >> version;
 
         if (version != PEERS_DUMP_VERSION) {
-            LogPrint(BCLog::AVALANCHE,
+            LogDebug(BCLog::AVALANCHE,
                      "Unsupported avalanche peers file version.\n");
             return false;
         }
@@ -1463,7 +1463,7 @@ bool PeerManager::loadPeersFromFile(
             }
         }
     } catch (const std::exception &e) {
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "Failed to read the avalanche peers file data on disk: %s.\n",
                  e.what());
         return false;

@@ -208,7 +208,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
                 /*heightOverride=*/ptxInfo ? ptxInfo->height : 0);
             if (result.m_result_type !=
                 MempoolAcceptResult::ResultType::VALID) {
-                LogPrint(
+                LogDebug(
                     BCLog::MEMPOOLREJ,
                     "AcceptToMemoryPool: tx %s rejected after reorg (%s)\n",
                     tx->GetId().ToString(), result.m_state.ToString());
@@ -218,7 +218,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
                     pool.mapDeltas.erase(tx->GetId());
                 }
             } else {
-                LogPrint(BCLog::MEMPOOL,
+                LogDebug(BCLog::MEMPOOL,
                          "AcceptToMemoryPool: tx %s accepted after reorg\n",
                          tx->GetId().ToString());
             }

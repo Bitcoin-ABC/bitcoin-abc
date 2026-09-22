@@ -349,7 +349,7 @@ bool CRPCTable::removeCommand(const std::string &name,
 }
 
 void StartRPC() {
-    LogPrint(BCLog::RPC, "Starting RPC\n");
+    LogDebug(BCLog::RPC, "Starting RPC\n");
     g_rpc_running = true;
     g_rpcSignals.Started();
 }
@@ -359,7 +359,7 @@ void InterruptRPC() {
     // This function could be called twice if the GUI has been started with
     // -server=1.
     std::call_once(g_rpc_interrupt_flag, []() {
-        LogPrint(BCLog::RPC, "Interrupting RPC\n");
+        LogDebug(BCLog::RPC, "Interrupting RPC\n");
         // Interrupt e.g. running longpolls
         g_rpc_running = false;
     });
@@ -371,7 +371,7 @@ void StopRPC() {
     // -server=1.
     assert(!g_rpc_running);
     std::call_once(g_rpc_stop_flag, []() {
-        LogPrint(BCLog::RPC, "Stopping RPC\n");
+        LogDebug(BCLog::RPC, "Stopping RPC\n");
         WITH_LOCK(g_deadline_timers_mutex, deadlineTimers.clear());
         DeleteAuthCookie();
         g_rpcSignals.Stopped();
@@ -673,7 +673,7 @@ void RPCRunLater(const std::string &name, std::function<void()> func,
     }
     LOCK(g_deadline_timers_mutex);
     deadlineTimers.erase(name);
-    LogPrint(BCLog::RPC, "queue run of timer %s in %i seconds (using %s)\n",
+    LogDebug(BCLog::RPC, "queue run of timer %s in %i seconds (using %s)\n",
              name, nSeconds, timerInterface->Name());
     deadlineTimers.emplace(
         name, std::unique_ptr<RPCTimerBase>(

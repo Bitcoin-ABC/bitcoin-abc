@@ -36,7 +36,7 @@ FALSE_POSITIVES = [
     ("src/test/translation_tests.cpp", "strprintf(format, arg)"),
     (
         "src/validationinterface.cpp",
-        'LogPrint(BCLog::VALIDATION, fmt "\\n", __VA_ARGS__)',
+        'LogDebug(BCLog::VALIDATION, fmt "\\n", __VA_ARGS__)',
     ),
     ("src/tinyformat.h", "printf(const char *fmt, const Args &...args)"),
     ("src/tinyformat.h", "printf(const char *fmt, TINYFORMAT_VARARGS(n))"),
@@ -67,7 +67,6 @@ FUNCTION_NAMES_AND_NUMBER_OF_LEADING_ARGUMENTS = [
     ("LogInfo", 0),
     ("LogDebug", 1),
     ("LogTrace", 1),
-    ("LogPrint", 1),
     ("LogPrintf", 0),
     ("printf", 0),
     ("snprintf", 2),

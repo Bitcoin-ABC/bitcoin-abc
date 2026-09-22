@@ -1,8 +1,7 @@
 <?php
 
 /**
- * Ensure the calls to (Wallet)LogPrint() and (Wallet)LogPrintf() end with a
- * newline.
+ * Ensure the calls to logging functions end with a newline.
  */
 final class LogLinter extends ArcanistLinter {
 

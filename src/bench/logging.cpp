@@ -28,14 +28,14 @@ static void Logging(benchmark::Bench &bench,
     bench.run([&] { log(); });
 }
 
-static void LogPrintWithCategory(benchmark::Bench &bench) {
+static void LogWithDebug(benchmark::Bench &bench) {
     Logging(bench, {"-logthreadnames=0", "-debug=net"},
-            [] { LogPrint(BCLog::NET, "%s\n", "test"); });
+            [] { LogDebug(BCLog::NET, "%s\n", "test"); });
 }
 
-static void LogPrintWithoutCategory(benchmark::Bench &bench) {
+static void LogWithoutDebug(benchmark::Bench &bench) {
     Logging(bench, {"-logthreadnames=0", "-debug=0"},
-            [] { LogPrint(BCLog::NET, "%s\n", "test"); });
+            [] { LogDebug(BCLog::NET, "%s\n", "test"); });
 }
 
 static void LogWithThreadNames(benchmark::Bench &bench) {
@@ -52,12 +52,12 @@ static void LogWithoutWriteToFile(benchmark::Bench &bench) {
     Logging(bench, {"-nodebuglogfile", "-debug=1"}, [] {
         LogPrintf("%s\n", "test");
         LogInfo("%s\n", "test");
-        LogPrint(BCLog::NET, "%s\n", "test");
+        LogDebug(BCLog::NET, "%s\n", "test");
     });
 }
 
-BENCHMARK(LogPrintWithCategory);
-BENCHMARK(LogPrintWithoutCategory);
+BENCHMARK(LogWithDebug);
+BENCHMARK(LogWithoutDebug);
 BENCHMARK(LogWithThreadNames);
 BENCHMARK(LogWithoutThreadNames);
 BENCHMARK(LogWithoutWriteToFile);

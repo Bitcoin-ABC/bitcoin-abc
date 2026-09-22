@@ -53,7 +53,7 @@ HeadersSyncState::HeadersSyncState(NodeId id,
          MAX_FUTURE_BLOCK_TIME) /
         HEADER_COMMITMENT_PERIOD;
 
-    LogPrint(BCLog::NET,
+    LogDebug(BCLog::NET,
              "Initial headers sync started with peer=%d: height=%i, "
              "max_commitments=%i, min_work=%s\n",
              m_id, m_current_height, m_max_commitments,
@@ -114,7 +114,7 @@ HeadersSyncState::ProcessingResult HeadersSyncState::ProcessNextHeaders(
                 // If we're in PRESYNC and we get a non-full headers
                 // message, then the peer's chain has ended and definitely
                 // doesn't have enough work, so we can stop our sync.
-                LogPrint(
+                LogDebug(
                     BCLog::NET,
                     "Initial headers sync aborted with peer=%d: incomplete "
                     "headers message at height=%i (presync phase)\n",
@@ -145,7 +145,7 @@ HeadersSyncState::ProcessingResult HeadersSyncState::ProcessNextHeaders(
             // be returned and we can clear any leftover internal state.
             if (m_redownloaded_headers.empty() &&
                 m_process_all_remaining_headers) {
-                LogPrint(BCLog::NET,
+                LogDebug(BCLog::NET,
                          "Initial headers sync complete with peer=%d: "
                          "releasing all at height=%i (redownload phase)\n",
                          m_id, m_redownload_buffer_last_height);
@@ -157,7 +157,7 @@ HeadersSyncState::ProcessingResult HeadersSyncState::ProcessNextHeaders(
                 // now declining to serve us that full chain again. Give up.
                 // Note that there's no more processing to be done with these
                 // headers, so we can still return success.
-                LogPrint(
+                LogDebug(
                     BCLog::NET,
                     "Initial headers sync aborted with peer=%d: incomplete "
                     "headers message at height=%i (redownload phase)\n",
@@ -190,7 +190,7 @@ bool HeadersSyncState::ValidateAndStoreHeadersCommitments(
         // This might be benign -- perhaps our peer reorged away from the chain
         // they were on. Give up on this sync for now (likely we will start a
         // new sync with a new starting point).
-        LogPrint(BCLog::NET,
+        LogDebug(BCLog::NET,
                  "Initial headers sync aborted with peer=%d: non-continuous "
                  "headers at height=%i (presync phase)\n",
                  m_id, m_current_height);
@@ -212,7 +212,7 @@ bool HeadersSyncState::ValidateAndStoreHeadersCommitments(
         m_redownload_buffer_last_hash = m_chain_start->GetBlockHash();
         m_redownload_chain_work = m_chain_start->nChainWork;
         m_download_state = State::REDOWNLOAD;
-        LogPrint(BCLog::NET,
+        LogDebug(BCLog::NET,
                  "Initial headers sync transition with peer=%d: reached "
                  "sufficient work at height=%i, redownloading from height=%i\n",
                  m_id, m_current_height, m_redownload_buffer_last_height);
@@ -277,7 +277,7 @@ bool HeadersSyncState::ValidateAndStoreRedownloadedHeader(
     // Ensure that we're working on a header that connects to the chain we're
     // downloading.
     if (header.hashPrevBlock != m_redownload_buffer_last_hash) {
-        LogPrint(BCLog::NET,
+        LogDebug(BCLog::NET,
                  "Initial headers sync aborted with peer=%d: non-continuous "
                  "headers at height=%i (redownload phase)\n",
                  m_id, next_height);
@@ -294,7 +294,7 @@ bool HeadersSyncState::ValidateAndStoreRedownloadedHeader(
 
     if (!PermittedDifficultyTransition(m_consensus_params, next_height,
                                        previous_nBits, header.nBits)) {
-        LogPrint(BCLog::NET,
+        LogDebug(BCLog::NET,
                  "Initial headers sync aborted with peer=%d: invalid "
                  "difficulty transition at height=%i (redownload phase)\n",
                  m_id, next_height);
@@ -317,7 +317,7 @@ bool HeadersSyncState::ValidateAndStoreRedownloadedHeader(
     if (!m_process_all_remaining_headers &&
         next_height % HEADER_COMMITMENT_PERIOD == m_commit_offset) {
         if (m_header_commitments.size() == 0) {
-            LogPrint(BCLog::NET,
+            LogDebug(BCLog::NET,
                      "Initial headers sync aborted with peer=%d: commitment "
                      "overrun at height=%i (redownload phase)\n",
                      m_id, next_height);
@@ -329,7 +329,7 @@ bool HeadersSyncState::ValidateAndStoreRedownloadedHeader(
         bool expected_commitment = m_header_commitments.front();
         m_header_commitments.pop_front();
         if (commitment != expected_commitment) {
-            LogPrint(BCLog::NET,
+            LogDebug(BCLog::NET,
                      "Initial headers sync aborted with peer=%d: commitment "
                      "mismatch at height=%i (redownload phase)\n",
                      m_id, next_height);

@@ -396,7 +396,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
 
     AssertLockHeld(::cs_main);
     LOCK(cs);
-    LogPrint(BCLog::MEMPOOL,
+    LogDebug(BCLog::MEMPOOL,
              "Checking mempool with %u transactions and %u inputs\n",
              (unsigned int)mapTx.size(), (unsigned int)mapNextTx.size());
 
@@ -580,7 +580,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
         TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(active_chain_tip, params,
                                                        entry->GetTx(), state)) {
-            LogPrint(BCLog::AVALANCHE,
+            LogDebug(BCLog::AVALANCHE,
                      "Delay storing finalized tx %s that would cause the block "
                      "to be invalid%s (%s)\n",
                      tx->GetTx().GetId().ToString(),
@@ -594,7 +594,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
         if (m_finalizedTxsFitter.isBelowBlockMinFeeRate(
                 entry->GetModifiedFeeRate())) {
-            LogPrint(BCLog::AVALANCHE,
+            LogDebug(BCLog::AVALANCHE,
                      "Delay storing finalized tx %s due to fee rate below the "
                      "block mininmum%s (see -blockmintxfee)\n",
                      tx->GetTx().GetId().ToString(),
@@ -618,7 +618,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     }
 
     if (!m_finalizedTxsFitter.testTxFits(sumOfTxSize, sumOfTxSigChecks)) {
-        LogPrint(
+        LogDebug(
             BCLog::AVALANCHE,
             "Delay storing finalized tx %s as it won't fit in the next block\n",
             tx->GetTx().GetId().ToString());
@@ -826,7 +826,7 @@ void CTxMemPool::RemoveUnbroadcastTx(const TxId &txid, const bool unchecked) {
     LOCK(cs);
 
     if (m_unbroadcast_txids.erase(txid)) {
-        LogPrint(
+        LogDebug(
             BCLog::MEMPOOL, "Removed %i from set of unbroadcast txns%s\n",
             txid.GetHex(),
             (unchecked ? " before confirmation that txn was sent out" : ""));
@@ -863,7 +863,7 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
     }
 
     if (skippedFinalizedTxs > 0) {
-        LogPrint(BCLog::MEMPOOL, "Not expiring %u finalized transaction\n",
+        LogDebug(BCLog::MEMPOOL, "Not expiring %u finalized transaction\n",
                  skippedFinalizedTxs);
     }
 
@@ -881,7 +881,7 @@ void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache) {
     AssertLockHeld(cs);
     int expired = Expire(GetTime<std::chrono::seconds>() - m_opts.expiry);
     if (expired != 0) {
-        LogPrint(BCLog::MEMPOOL,
+        LogDebug(BCLog::MEMPOOL,
                  "Expired %i transactions from the memory pool\n", expired);
     }
 
@@ -1006,13 +1006,13 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
     }
 
     if (maxFeeRateRemoved > CFeeRate(Amount::zero())) {
-        LogPrint(BCLog::MEMPOOL,
+        LogDebug(BCLog::MEMPOOL,
                  "Removed %u txn, rolling minimum fee bumped to %s\n",
                  nTxnRemoved, maxFeeRateRemoved.ToString());
     }
 
     if (finalizedTxsSkipped > 0) {
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "Not evicting %u finalized txn for low fee\n",
                  finalizedTxsSkipped);
     }

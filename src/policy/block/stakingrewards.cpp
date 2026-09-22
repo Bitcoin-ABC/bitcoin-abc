@@ -34,7 +34,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
     if (!IsStakingRewardsActivated(m_consensusParams, m_blockIndex.pprev) ||
         !m_avalanche.getStakingRewardWinners(m_blockIndex.pprev->GetBlockHash(),
                                              winners)) {
-        LogPrint(BCLog::AVALANCHE,
+        LogDebug(BCLog::AVALANCHE,
                  "Staking rewards for block %s: not ready yet\n",
                  blockhash.ToString());
         return true;
@@ -50,7 +50,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
         auto it = std::find(winners.begin(), winners.end(), o.scriptPubKey);
         if (it != winners.end()) {
             if (it != winners.begin()) {
-                LogPrint(BCLog::AVALANCHE,
+                LogDebug(BCLog::AVALANCHE,
                          "Staking rewards for block %s: selected winner is "
                          "flaky, accepting an alternative one\n",
                          blockhash.ToString());
@@ -60,7 +60,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
         }
     }
 
-    LogPrint(BCLog::AVALANCHE,
+    LogDebug(BCLog::AVALANCHE,
              "Staking rewards for block %s: payout script mismatch!\n",
              blockhash.ToString());
 

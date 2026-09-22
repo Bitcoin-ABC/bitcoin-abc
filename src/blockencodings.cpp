@@ -130,7 +130,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
         }
     }
 
-    LogPrint(BCLog::CMPCTBLOCK,
+    LogDebug(BCLog::CMPCTBLOCK,
              "Initialized PartiallyDownloadedBlock for block %s using a "
              "cmpctblock of size %lu\n",
              cmpctblock.header.GetHash().ToString(),
@@ -194,7 +194,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
         return READ_STATUS_CHECKBLOCK_FAILED;
     }
 
-    LogPrint(BCLog::CMPCTBLOCK,
+    LogDebug(BCLog::CMPCTBLOCK,
              "Successfully reconstructed block %s with %lu txn prefilled, %lu "
              "txn from mempool (incl at least %lu from extra pool) and %lu txn "
              "requested\n",
@@ -202,7 +202,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
              vtx_missing.size());
     if (vtx_missing.size() < 5) {
         for (const auto &tx : vtx_missing) {
-            LogPrint(BCLog::CMPCTBLOCK,
+            LogDebug(BCLog::CMPCTBLOCK,
                      "Reconstructed block %s required tx %s\n", hash.ToString(),
                      tx->GetId().ToString());
         }

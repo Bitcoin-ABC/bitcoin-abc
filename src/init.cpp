@@ -449,7 +449,7 @@ static void OnRPCStopped() {
     rpc_notify_block_change_connection.disconnect();
     RPCNotifyBlockChange(nullptr);
     g_best_block_cv.notify_all();
-    LogPrint(BCLog::RPC, "RPC stopped.\n");
+    LogDebug(BCLog::RPC, "RPC stopped.\n");
 }
 
 void SetupServerArgs(NodeContext &node) {

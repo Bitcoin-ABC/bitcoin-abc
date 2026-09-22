@@ -448,16 +448,13 @@ static inline void LogPrintf_(std::source_location &&source_loc,
 #define LogTrace(category, ...)                                                \
     LogPrintLevel(category, BCLog::Level::Trace, __VA_ARGS__)
 
-// Deprecated conditional logging
-#define LogPrint(category, ...) LogDebug(category, __VA_ARGS__)
-
 /**
  * These are aliases used to explicitly state that the message should not end
  * with a newline character. It allows for detecting the missing newlines that
  * could make the logs hard to read.
  */
 #define LogPrintfToBeContinued LogPrintf
-#define LogPrintToBeContinued LogPrint
+#define LogPrintToBeContinued LogDebug
 #define LogPrintLevelToBeContinued LogPrintLevel
 
 #endif // BITCOIN_LOGGING_H

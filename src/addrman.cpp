@@ -373,7 +373,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
                                      supplied_asmap_checksum};
 
     if (!restore_bucketing) {
-        LogPrint(BCLog::ADDRMAN,
+        LogDebug(BCLog::ADDRMAN,
                  "Bucketing method was updated, re-bucketing addrman "
                  "entries from disk\n");
     }
@@ -421,7 +421,7 @@ template <typename Stream> void AddrManImpl::Unserialize(Stream &s_) {
         }
     }
     if (nLost + nLostUnk > 0) {
-        LogPrint(BCLog::ADDRMAN,
+        LogDebug(BCLog::ADDRMAN,
                  "addrman lost %i new and %i tried addresses due to "
                  "collisions\n",
                  nLostUnk, nLost);
@@ -516,7 +516,7 @@ void AddrManImpl::ClearNew(int nUBucket, int nUBucketPos) {
         assert(infoDelete.nRefCount > 0);
         infoDelete.nRefCount--;
         vvNew[nUBucket][nUBucketPos] = -1;
-        LogPrint(BCLog::ADDRMAN, "Removed %s from new[%i][%i]\n",
+        LogDebug(BCLog::ADDRMAN, "Removed %s from new[%i][%i]\n",
                  infoDelete.ToStringAddrPort(), nUBucket, nUBucketPos);
         if (infoDelete.nRefCount == 0) {
             Delete(nIdDelete);
@@ -571,7 +571,7 @@ void AddrManImpl::MakeTried(AddrInfo &info, nid_type nId) {
         infoOld.nRefCount = 1;
         vvNew[nUBucket][nUBucketPos] = nIdEvict;
         nNew++;
-        LogPrint(BCLog::ADDRMAN,
+        LogDebug(BCLog::ADDRMAN,
                  "Moved %s from tried[%i][%i] to new[%i][%i] to make space\n",
                  infoOld.ToStringAddrPort(), nKBucket, nKBucketPos, nUBucket,
                  nUBucketPos);
@@ -657,7 +657,7 @@ bool AddrManImpl::AddSingle(const CAddress &addr, const CNetAddr &source,
             ClearNew(nUBucket, nUBucketPos);
             pinfo->nRefCount++;
             vvNew[nUBucket][nUBucketPos] = nId;
-            LogPrint(BCLog::ADDRMAN, "Added %s mapped to AS%i to new[%i][%i]\n",
+            LogDebug(BCLog::ADDRMAN, "Added %s mapped to AS%i to new[%i][%i]\n",
                      addr.ToStringAddrPort(), addr.GetMappedAS(m_asmap),
                      nUBucket, nUBucketPos);
         } else if (pinfo->nRefCount == 0) {
@@ -713,7 +713,7 @@ void AddrManImpl::Good_(const CService &addr, bool test_before_evict,
         // Output the entry we'd be colliding with, for debugging purposes
         auto colliding_entry =
             mapInfo.find(vvTried[tried_bucket][tried_bucket_pos]);
-        LogPrint(BCLog::ADDRMAN,
+        LogDebug(BCLog::ADDRMAN,
                  "Collision with %s while attempting to move %s to tried "
                  "table. Collisions=%d\n",
                  colliding_entry != mapInfo.end()
@@ -723,7 +723,7 @@ void AddrManImpl::Good_(const CService &addr, bool test_before_evict,
     } else {
         // move nId to the tried tables
         MakeTried(info, nId);
-        LogPrint(BCLog::ADDRMAN, "Moved %s mapped to AS%i to tried[%i][%i]\n",
+        LogDebug(BCLog::ADDRMAN, "Moved %s mapped to AS%i to tried[%i][%i]\n",
                  addr.ToStringAddrPort(), addr.GetMappedAS(m_asmap),
                  tried_bucket, tried_bucket_pos);
     }
@@ -738,7 +738,7 @@ bool AddrManImpl::Add_(const std::vector<CAddress> &vAddr,
         added += AddSingle(*it, source, time_penalty) ? 1 : 0;
     }
     if (added > 0) {
-        LogPrint(BCLog::ADDRMAN,
+        LogDebug(BCLog::ADDRMAN,
                  "Added %i addresses (of %i) from %s: %i tried, %i new\n",
                  added, vAddr.size(), source.ToStringAddr(), nTried, nNew);
     }
@@ -809,7 +809,7 @@ std::pair<CAddress, NodeSeconds> AddrManImpl::Select_(bool newOnly) const {
             // With probability GetChance() * fChanceFactor, return the entry.
             if (insecure_rand.randbits<30>() <
                 fChanceFactor * info.GetChance() * (1 << 30)) {
-                LogPrint(BCLog::ADDRMAN, "Selected %s from tried\n",
+                LogDebug(BCLog::ADDRMAN, "Selected %s from tried\n",
                          info.ToStringAddrPort());
                 return {info, info.m_last_try};
             }
@@ -847,7 +847,7 @@ std::pair<CAddress, NodeSeconds> AddrManImpl::Select_(bool newOnly) const {
             // With probability GetChance() * fChanceFactor, return the entry.
             if (insecure_rand.randbits(30) <
                 fChanceFactor * info.GetChance() * (1 << 30)) {
-                LogPrint(BCLog::ADDRMAN, "Selected %s from new\n",
+                LogDebug(BCLog::ADDRMAN, "Selected %s from new\n",
                          info.ToStringAddrPort());
                 return {info, info.m_last_try};
             }
@@ -898,7 +898,7 @@ AddrManImpl::GetAddr_(size_t max_addresses, size_t max_pct,
 
         addresses.push_back(ai);
     }
-    LogPrint(BCLog::ADDRMAN, "GetAddr returned %d random addresses\n",
+    LogDebug(BCLog::ADDRMAN, "GetAddr returned %d random addresses\n",
              addresses.size());
     return addresses;
 }
@@ -982,7 +982,7 @@ void AddrManImpl::ResolveCollisions_() {
                     // Give address at least 60 seconds to successfully
                     // connect
                     if (current_time - info_old.m_last_try > 60s) {
-                        LogPrint(BCLog::ADDRMAN,
+                        LogDebug(BCLog::ADDRMAN,
                                  "Replacing %s with %s in tried table\n",
                                  info_old.ToStringAddrPort(),
                                  info_new.ToStringAddrPort());
@@ -998,7 +998,7 @@ void AddrManImpl::ResolveCollisions_() {
                     // reasonable amount of time, just evict the old
                     // entry -- we must not be able to connect to it for
                     // some reason.
-                    LogPrint(BCLog::ADDRMAN,
+                    LogDebug(BCLog::ADDRMAN,
                              "Unable to test; replacing %s with %s in tried "
                              "table anyway\n",
                              info_old.ToStringAddrPort(),

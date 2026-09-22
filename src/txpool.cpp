@@ -25,7 +25,7 @@ bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
     // later.
     unsigned int sz = tx->GetTotalSize();
     if (sz > MAX_STANDARD_TX_SIZE) {
-        LogPrint(BCLog::TXPACKAGES,
+        LogDebug(BCLog::TXPACKAGES,
                  "ignoring large %s tx (size: %u, hash: %s)\n", txKind, sz,
                  txid.ToString());
         return false;
@@ -40,7 +40,7 @@ bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
         m_outpoint_to_tx_it[txin.prevout].insert(ret.first);
     }
 
-    LogPrint(BCLog::TXPACKAGES,
+    LogDebug(BCLog::TXPACKAGES,
              "stored %s tx %s, size: %u (mapsz %u outsz %u)\n", txKind,
              txid.ToString(), sz, m_pool_txs.size(),
              m_outpoint_to_tx_it.size());
@@ -81,7 +81,7 @@ int TxPool::EraseTxNoLock(const TxId &txid) {
 
     // Time spent in pool = difference between current and entry time.
     // Entry time is equal to expireTime earlier than entry's expiry.
-    LogPrint(BCLog::TXPACKAGES, "   removed %s tx %s after %ds\n", txKind,
+    LogDebug(BCLog::TXPACKAGES, "   removed %s tx %s after %ds\n", txKind,
              txid.ToString(),
              Ticks<std::chrono::seconds>(NodeClock::now() + expireTime -
                                          it->second.nTimeExpire));
@@ -106,7 +106,7 @@ void TxPool::EraseForPeer(NodeId peer) {
         }
     }
     if (nErased > 0) {
-        LogPrint(BCLog::TXPACKAGES,
+        LogDebug(BCLog::TXPACKAGES,
                  "Erased %d %s transaction(s) from peer=%d\n", nErased, txKind,
                  peer);
     }
@@ -135,7 +135,7 @@ unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
         // batch the linear scan.
         m_next_sweep = nMinExpTime + expireInterval;
         if (nErased > 0) {
-            LogPrint(BCLog::TXPACKAGES, "Erased %d %s tx due to expiration\n",
+            LogDebug(BCLog::TXPACKAGES, "Erased %d %s tx due to expiration\n",
                      nErased, txKind);
         }
     }
@@ -163,7 +163,7 @@ void TxPool::AddChildrenToWorkSet(const CTransaction &tx) {
                         .first->second;
                 // Add this tx to the work set
                 work_set.insert(elem->first);
-                LogPrint(BCLog::TXPACKAGES,
+                LogDebug(BCLog::TXPACKAGES,
                          "added %s tx %s to peer %d workset\n", txKind,
                          tx.GetId().ToString(), elem->second.fromPeer);
             }
@@ -270,7 +270,7 @@ void TxPool::EraseForBlock(const CBlock &block) {
         for (const auto &txid : vTxErase) {
             nErased += EraseTxNoLock(txid);
         }
-        LogPrint(
+        LogDebug(
             BCLog::TXPACKAGES,
             "Erased %d %s transaction(s) included or conflicted by block\n",
             nErased, txKind);

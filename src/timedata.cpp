@@ -54,7 +54,7 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
 
     // Add data
     g_time_offsets.input(nOffsetSample);
-    LogPrint(BCLog::NET,
+    LogDebug(BCLog::NET,
              "added time data, samples %d, offset %+d (%+d minutes)\n",
              g_time_offsets.size(), nOffsetSample, nOffsetSample / 60);
 
@@ -118,7 +118,7 @@ void AddTimeData(const CNetAddr &ip, int64_t nOffsetSample) {
             }
 
             LogPrintToBeContinued(BCLog::NET, "|  ");
-            LogPrint(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n",
+            LogDebug(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n",
                      nTimeOffset, nTimeOffset / 60);
         }
     }

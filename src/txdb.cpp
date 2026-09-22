@@ -174,7 +174,7 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
         count++;
         it = cursor.NextAndMaybeErase(*it);
         if (batch.SizeEstimate() > m_options.batch_write_bytes) {
-            LogPrint(BCLog::COINDB, "Writing partial batch of %.2f MiB\n",
+            LogDebug(BCLog::COINDB, "Writing partial batch of %.2f MiB\n",
                      batch.SizeEstimate() * (1.0 / 1048576.0));
             m_db->WriteBatch(batch);
             batch.Clear();
@@ -192,10 +192,10 @@ void CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
     batch.Erase(DB_HEAD_BLOCKS);
     batch.Write(DB_BEST_BLOCK, hashBlock);
 
-    LogPrint(BCLog::COINDB, "Writing final batch of %.2f MiB\n",
+    LogDebug(BCLog::COINDB, "Writing final batch of %.2f MiB\n",
              batch.SizeEstimate() * (1.0 / 1048576.0));
     m_db->WriteBatch(batch);
-    LogPrint(BCLog::COINDB,
+    LogDebug(BCLog::COINDB,
              "Committed %u changed transaction outputs (out of "
              "%u) to coin database...\n",
              (unsigned int)dirty_count, (unsigned int)count);

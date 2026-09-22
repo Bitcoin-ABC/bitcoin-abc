@@ -224,7 +224,7 @@ void BlockManager::FindFilesToPrune(std::set<int> &setFilesToPrune,
         }
     }
 
-    LogPrint(BCLog::PRUNE,
+    LogDebug(BCLog::PRUNE,
              "[%s] target=%dMiB actual=%dMiB diff=%dMiB min_height=%d "
              "max_prune_height=%d removed %d blk/rev pairs\n",
              chain.GetRole(), target / 1024 / 1024, nCurrentUsage / 1024 / 1024,
@@ -680,7 +680,7 @@ void BlockManager::UnlinkPrunedFiles(
         const bool removed_undofile{
             fs::remove(UndoFileSeq().FileName(pos), error_code)};
         if (removed_blockfile || removed_undofile) {
-            LogPrint(BCLog::BLOCKSTORE, "Prune: %s deleted blk/rev (%05u)\n",
+            LogDebug(BCLog::BLOCKSTORE, "Prune: %s deleted blk/rev (%05u)\n",
                      __func__, i);
         }
     }
@@ -724,7 +724,7 @@ FlatFilePos BlockManager::FindNextBlockPos(unsigned int nAddSize,
         assert(chain_type == BlockfileType::ASSUMED);
         const auto new_cursor = BlockfileCursor{this->MaxBlockfileNum() + 1};
         m_blockfile_cursors[chain_type] = new_cursor;
-        LogPrint(BCLog::BLOCKSTORE,
+        LogDebug(BCLog::BLOCKSTORE,
                  "[%s] initializing blockfile cursor to %s\n", chain_type,
                  new_cursor);
     }
@@ -775,7 +775,7 @@ FlatFilePos BlockManager::FindNextBlockPos(unsigned int nAddSize,
     pos.nPos = m_blockfile_info[nFile].nSize;
 
     if (nFile != last_blockfile) {
-        LogPrint(BCLog::BLOCKSTORE,
+        LogDebug(BCLog::BLOCKSTORE,
                  "Leaving block file %i: %s (onto %i) (height %i)\n",
                  last_blockfile, m_blockfile_info[last_blockfile].ToString(),
                  nFile, nHeight);

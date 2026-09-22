@@ -432,7 +432,7 @@ static std::string Socks5ErrorString(uint8_t err) {
 bool Socks5(const std::string &strDest, uint16_t port,
             const ProxyCredentials *auth, const Sock &sock) {
     IntrRecvError recvr;
-    LogPrint(BCLog::NET, "SOCKS5 connecting %s\n", strDest);
+    LogDebug(BCLog::NET, "SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255) {
         LogError("Hostname too long\n");
         return false;
@@ -487,7 +487,7 @@ bool Socks5(const std::string &strDest, uint16_t port,
             LogError("Error sending authentication to proxy\n");
             return false;
         }
-        LogPrint(BCLog::PROXY, "SOCKS5 sending proxy authentication %s:%s\n",
+        LogDebug(BCLog::PROXY, "SOCKS5 sending proxy authentication %s:%s\n",
                  auth->username, auth->password);
         uint8_t pchRetA[2];
         if (InterruptibleRecv(pchRetA, 2, g_socks5_recv_timeout, sock) !=
@@ -587,7 +587,7 @@ bool Socks5(const std::string &strDest, uint16_t port,
         LogError("Error reading from proxy\n");
         return false;
     }
-    LogPrint(BCLog::NET, "SOCKS5 connected %s\n", strDest);
+    LogDebug(BCLog::NET, "SOCKS5 connected %s\n", strDest);
     return true;
 }
 
@@ -649,7 +649,7 @@ std::unique_ptr<Sock> CreateSockOS(int domain, int type, int protocol) {
         const int on{1};
         if (sock->SetSockOpt(IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) ==
             SOCKET_ERROR) {
-            LogPrint(BCLog::NET, "Unable to set TCP_NODELAY on a newly created "
+            LogDebug(BCLog::NET, "Unable to set TCP_NODELAY on a newly created "
                                  "socket, continuing anyway\n");
         }
     }
@@ -666,7 +666,7 @@ static void LogConnectFailure(bool manual_connection, const char *fmt,
     if (manual_connection) {
         LogPrintf("%s\n", error_message);
     } else {
-        LogPrint(BCLog::NET, "%s\n", error_message);
+        LogDebug(BCLog::NET, "%s\n", error_message);
     }
 }
 
@@ -690,7 +690,7 @@ static bool ConnectToSocket(const Sock &sock, struct sockaddr *sockaddr,
                           NetworkErrorString(WSAGetLastError()));
                 return false;
             } else if (occurred == 0) {
-                LogPrint(BCLog::NET, "connection attempt to %s timed out\n",
+                LogDebug(BCLog::NET, "connection attempt to %s timed out\n",
                          dest_str);
                 return false;
             }
