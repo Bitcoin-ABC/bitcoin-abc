@@ -16,7 +16,7 @@ from build import BuildStatus
 from teamcity_wrapper import BuildInfo
 from test.abcbot_fixture import TEST_ABC_MEMBER_PHID, ABCBotFixture
 from test.mocks.teamcity import DEFAULT_BUILD_ID
-from test.test_endpoint_build import buildRequestQuery
+from test.test_endpoint_buildDiff import buildDiffRequestQuery
 from test.test_endpoint_status import statusRequestData
 
 BUILD_NAME = "build-name"
@@ -30,7 +30,15 @@ class PersistDataTestCase(ABCBotFixture):
         super().setUp()
 
         self.phab.get_file_content_from_master = mock.Mock()
-        self.phab.get_file_content_from_master.return_value = json.dumps({})
+        self.phab.get_file_content_from_master.return_value = json.dumps(
+            {
+                "builds": {
+                    BUILD_NAME: {
+                        "runOnDiff": True,
+                    },
+                },
+            }
+        )
 
         self.phab.set_text_panel_content = mock.Mock()
 
@@ -46,16 +54,18 @@ class PersistDataTestCase(ABCBotFixture):
         self.set_abc_members([TEST_ABC_MEMBER_PHID])
         self.set_revision_author("1234", TEST_ABC_MEMBER_PHID)
 
-        queryData = buildRequestQuery()
-        queryData.abcBuildName = BUILD_NAME
-        queryData.buildTypeId = BUILD_TYPE_ID
-        queryData.PHID = BUILD_TARGET_PHID
+        queryData = buildDiffRequestQuery()
+        queryData.targetPHID = BUILD_TARGET_PHID
+        queryData.revisionId = "1234"
+
+        self.phab.differential.getcommitpaths = mock.Mock()
+        self.phab.differential.getcommitpaths.return_value = ["file.cpp"]
 
         triggerBuildResponse = test.mocks.teamcity.buildInfo(
             test.mocks.teamcity.buildInfo_changes(["test-change"]), buildqueue=True
         )
         self.teamcity.session.send.return_value = triggerBuildResponse
-        response = self.app.post(f"/build{queryData}", headers=self.headers)
+        response = self.app.post(f"/buildDiff{queryData}", headers=self.headers)
         self.assertEqual(response.status_code, 200)
 
         # Check the diff target state was persisted

@@ -263,33 +263,6 @@ def create_server(
 
         return SUCCESS, 200
 
-    @app.route("/build", methods=["POST"])
-    @persistDatabase
-    def build():
-        buildTypeId = request.args.get("buildTypeId", None)
-        ref = request.args.get("ref", "refs/heads/master")
-
-        PHID = request.args.get("PHID", None)
-
-        abcBuildName = request.args.get("abcBuildName", None)
-        properties = None
-        if abcBuildName:
-            properties = [
-                {
-                    "name": "env.ABC_BUILD_NAME",
-                    "value": abcBuildName,
-                }
-            ]
-
-        build_id = tc.trigger_build(buildTypeId, ref, PHID, properties)["id"]
-        if PHID in create_server.db["diff_targets"]:
-            build_target = create_server.db["diff_targets"][PHID]
-        else:
-            build_target = BuildTarget(PHID)
-        build_target.queue_build(build_id, abcBuildName)
-        create_server.db["diff_targets"][PHID] = build_target
-        return SUCCESS, 200
-
     @app.route("/buildDiff", methods=["POST"])
     @persistDatabase
     def build_diff():

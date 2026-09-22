@@ -12,10 +12,11 @@ from urllib.parse import urljoin
 
 import requests
 
+import server
 import test.mocks.fixture
 import test.mocks.phabricator
 import test.mocks.teamcity
-from build import BuildStatus
+from build import BuildStatus, BuildTarget
 from githubactions import WorkflowStatus
 from phabricator_wrapper import BITCOIN_ABC_REPO
 from server import BADGE_TC_BASE
@@ -1369,18 +1370,20 @@ class EndpointStatusTestCase(ABCBotFixture):
         data = statusRequestData()
         data.buildTargetPHID = "PHID-HMBT-01234567890123456789"
 
-        def call_build(build_id=DEFAULT_BUILD_ID, build_name=data.buildName):
-            self.teamcity.session.send.side_effect = [
-                test.mocks.teamcity.buildInfo(build_id=build_id, buildqueue=True),
-            ]
-            url = f"build?buildTypeId=staging&ref=refs/tags/phabricator/diffs/{build_id}&PHID={data.buildTargetPHID}&abcBuildName={build_name}"
-            response = self.app.post(url, headers=self.headers)
-            self.assertEqual(response.status_code, 200)
+        def queue_build(build_id=DEFAULT_BUILD_ID, build_name=data.buildName):
+            if data.buildTargetPHID in server.create_server.db["diff_targets"]:
+                build_target = server.create_server.db["diff_targets"][
+                    data.buildTargetPHID
+                ]
+            else:
+                build_target = BuildTarget(data.buildTargetPHID)
+            build_target.queue_build(build_id, build_name)
+            server.create_server.db["diff_targets"][data.buildTargetPHID] = build_target
 
         # Set the status to 'running' to prevent target removal on completion.
         data.buildResult = "running"
         # Add some build target or there is no harbormaster build to link.
-        call_build()
+        queue_build()
 
         def call_status_check_artifact_search(build_id=DEFAULT_BUILD_ID):
             self.teamcity.session.send.side_effect = [
@@ -1464,7 +1467,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             data.buildId = build_id
             data.buildTypeId = data.buildTypeId
 
-            call_build(build_id, build_name)
+            queue_build(build_id, build_name)
 
             # Check the artifact is searched and add for each build
             call_status_check_artifact_search(build_id)
