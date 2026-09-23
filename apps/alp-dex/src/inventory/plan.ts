@@ -24,9 +24,13 @@ export const INVENTORY_FUND_BATCH = ALP_POLICY_MAX_OUTPUTS - 1;
 export const INVENTORY_FUND_MAX_BATCHES_PER_TOKEN = 8;
 
 /**
- * Max seller UTXOs per misc→fee action. A 9006-input tx exceeds
- * `MAX_TX_SERSIZE`; wallet auto-consolidate then re-selects the original
- * `requiredUtxos` (now partly spent) and used to crash on `.sats`.
+ * Max seller UTXOs pinned as `requiredUtxos` on one maintain tx
+ * (wrong-size cleanup and misc→fee).
+ *
+ * A tx past ~708 inputs exceeds `MAX_TX_SERSIZE`. Wallet auto-consolidate
+ * then retries the original outpoints, which that consolidate already
+ * spent, and the action fails with
+ * "Required UTXO … not available in spendableUtxos" without broadcasting.
  */
 export const MISC_SWEEP_BATCH = 400;
 

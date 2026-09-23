@@ -8,6 +8,7 @@ import {
     ALP_TOKEN_TYPE_STANDARD,
     DEFAULT_DUST_SATS,
     Script,
+    toHexRev,
     Tx,
 } from 'ecash-lib';
 import { MockChronikClient } from 'mock-chronik-client';
@@ -374,6 +375,20 @@ describe('inventory actions', () => {
         assert.strictEqual(bOut?.atoms, 7n);
         assert.strictEqual(action.changeScript?.toHex(), slushScript.toHex());
         assert.strictEqual(actionCleanupSellerToSlush([], slushScript), null);
+        assert.throws(
+            () =>
+                actionCleanupSellerToSlush(
+                    Array.from({ length: MISC_SWEEP_BATCH + 1 }, (_, i) =>
+                        utxo(i, DEFAULT_DUST_SATS, {
+                            tokenId: TOKEN_A,
+                            atoms: 1n,
+                            isMintBaton: false,
+                        }),
+                    ),
+                    slushScript,
+                ),
+            /batch the cleanup/,
+        );
     });
 
     it('actionFundInventory is outputs-only (wallet selects inputs)', () => {
@@ -821,5 +836,181 @@ describe('inventory maintain (MockChronik)', () => {
             INVENTORY_FUND_BATCH,
         );
         assert.strictEqual(result.txids.length, 1);
+    });
+
+    it('moves a utxoQty bump to slush in pinned-input batches', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        const broadcastHex: string[] = [];
+        let nextTxid = 1;
+        mock.broadcastTxs = async (txsHex: string[]) => {
+            broadcastHex.push(...txsHex);
+            return {
+                txids: txsHex.map(() =>
+                    (nextTxid++).toString(16).padStart(64, '0'),
+                ),
+            };
+        };
+
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const wrongCount = MISC_SWEEP_BATCH + 1;
+        const wrongSized = Array.from({ length: wrongCount }, (_, i) => ({
+            outpoint: {
+                txid: (i + 1).toString(16).padStart(64, '0'),
+                outIdx: 0,
+            },
+            blockHeight: 799_000,
+            isCoinbase: false,
+            sats: DEFAULT_DUST_SATS,
+            isFinal: true,
+            token: {
+                tokenId: TOKEN_A,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                atoms: 1n,
+                isMintBaton: false,
+            },
+        }));
+        const exact = {
+            outpoint: { txid: 'ee'.repeat(32), outIdx: 0 },
+            blockHeight: 799_000,
+            isCoinbase: false,
+            sats: DEFAULT_DUST_SATS,
+            isFinal: true,
+            token: {
+                tokenId: TOKEN_A,
+                tokenType: ALP_TOKEN_TYPE_STANDARD,
+                atoms: 10n,
+                isMintBaton: false,
+            },
+        };
+        // One stamp pays the 1-UTXO tail. The 400-input batch has dust surplus.
+        const stamp = {
+            outpoint: { txid: 'ff'.repeat(32), outIdx: 0 },
+            blockHeight: 799_000,
+            isCoinbase: false,
+            sats: POSTAGE_SATS,
+            isFinal: true,
+        };
+        mock.setUtxosByAddress(seller.address, [...wrongSized, exact, stamp]);
+        mock.setUtxosByAddress(slush.address, []);
+
+        const result = await maintainInventory({
+            seller,
+            slush,
+            feeAddress: FEE,
+            tradedTokens: tokens(traded(TOKEN_A, 10n)),
+        });
+
+        assert.strictEqual(result.cleanedToSlush, wrongCount);
+        assert.strictEqual(result.fundedInventory[TOKEN_A], undefined);
+        assert.strictEqual(broadcastHex.length, 2);
+        const inputCounts = broadcastHex.map(
+            hex => Tx.fromHex(hex).inputs.length,
+        );
+        assert.deepStrictEqual(inputCounts, [MISC_SWEEP_BATCH, 2]);
+        const stillExact = seller.utxos.filter(
+            utxo => utxo.token?.atoms === 10n,
+        );
+        assert.strictEqual(stillExact.length, 1);
+        assert.strictEqual(
+            seller.utxos.some(utxo => utxo.token?.atoms === 1n),
+            false,
+        );
+    });
+
+    it('resyncs after a cleanup broadcast fails mid-pass', async () => {
+        const mock = new MockChronikClient();
+        mock.setBlockchainInfo({
+            tipHash: '00'.repeat(32),
+            tipHeight: 800_000,
+        });
+        const chronik = mock as unknown as ChronikClient;
+        const { seller, slush } = createLpWallets(MNEMONIC, chronik, FEE);
+
+        const wrongCount = MISC_SWEEP_BATCH + 1;
+        let sellerUtxos = [
+            ...Array.from({ length: wrongCount }, (_, i) => ({
+                outpoint: {
+                    txid: (i + 1).toString(16).padStart(64, '0'),
+                    outIdx: 0,
+                },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: DEFAULT_DUST_SATS,
+                isFinal: true,
+                token: {
+                    tokenId: TOKEN_A,
+                    tokenType: ALP_TOKEN_TYPE_STANDARD,
+                    atoms: 1n,
+                    isMintBaton: false,
+                },
+            })),
+            {
+                outpoint: { txid: 'ff'.repeat(32), outIdx: 0 },
+                blockHeight: 799_000,
+                isCoinbase: false,
+                sats: POSTAGE_SATS,
+                isFinal: true,
+            },
+        ];
+        mock.setUtxosByAddress(seller.address, sellerUtxos);
+        mock.setUtxosByAddress(slush.address, []);
+
+        let broadcasts = 0;
+        mock.broadcastTxs = async (txsHex: string[]) => {
+            broadcasts += 1;
+            if (broadcasts > 1) {
+                throw new Error('second cleanup broadcast rejected');
+            }
+            const spent = new Set(
+                txsHex.flatMap(hex =>
+                    Tx.fromHex(hex).inputs.map(input => {
+                        const txid = input.prevOut.txid;
+                        const txidHex =
+                            typeof txid === 'string' ? txid : toHexRev(txid);
+                        return `${txidHex}:${input.prevOut.outIdx}`;
+                    }),
+                ),
+            );
+            sellerUtxos = sellerUtxos.filter(
+                utxo =>
+                    !spent.has(`${utxo.outpoint.txid}:${utxo.outpoint.outIdx}`),
+            );
+            mock.setUtxosByAddress(seller.address, sellerUtxos);
+            return {
+                txids: ['11'.repeat(32)],
+            };
+        };
+
+        await assert.rejects(
+            maintainInventory({
+                seller,
+                slush,
+                feeAddress: FEE,
+                tradedTokens: tokens(traded(TOKEN_A, 10n)),
+            }),
+            (err: unknown) => {
+                assert.ok(err instanceof MaintainInventoryError);
+                assert.ok(err.message.includes('second cleanup broadcast'));
+                return true;
+            },
+        );
+        assert.ok(broadcasts >= 2);
+        const remaining = seller.utxos.map(
+            utxo => `${utxo.outpoint.txid}:${utxo.outpoint.outIdx}`,
+        );
+        assert.deepStrictEqual(
+            remaining.sort(),
+            sellerUtxos
+                .map(utxo => `${utxo.outpoint.txid}:${utxo.outpoint.outIdx}`)
+                .sort(),
+        );
+        assert.ok(sellerUtxos.length > 0);
+        assert.ok(sellerUtxos.length < wrongCount);
     });
 });

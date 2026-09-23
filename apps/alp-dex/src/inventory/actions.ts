@@ -10,7 +10,7 @@ import {
 } from 'ecash-lib';
 import { POSTAGE_SATS } from '../constants';
 import type { SellerUtxoLike } from './classify';
-import { assertPositiveCountOrNone } from './plan';
+import { assertPositiveCountOrNone, MISC_SWEEP_BATCH } from './plan';
 
 const groupFungibleAtomsByToken = (
     utxos: SellerUtxoLike[],
@@ -70,10 +70,12 @@ const buildTokenSendOutputs = (
 
 /**
  * Seller → slush: consolidate traded-token UTXOs that are not exact inventory
- * size (wrong size from fills, external sends, etc.).
+ * size (wrong size from fills, external sends, a utxoQty change, etc.).
  *
- * Pins `requiredUtxos` so selection cannot spend fill-eligible inventory or
- * postage. XEC change goes to slush. Wallet chains if needed.
+ * Pins `requiredUtxos` so these UTXOs are spent and exact-size inventory
+ * is not substituted. A short batch pays its fee from a postage stamp.
+ * XEC change goes to slush. Callers must pass at most
+ * {@link MISC_SWEEP_BATCH} UTXOs; a larger pinned set cannot be chained.
  */
 export const actionCleanupSellerToSlush = (
     wrongSizedTraded: SellerUtxoLike[],
@@ -81,6 +83,12 @@ export const actionCleanupSellerToSlush = (
 ): payment.Action | null => {
     if (wrongSizedTraded.length === 0) {
         return null;
+    }
+    if (wrongSizedTraded.length > MISC_SWEEP_BATCH) {
+        throw new Error(
+            `wrongSizedTraded exceeds ${MISC_SWEEP_BATCH} pinned inputs ` +
+                `(got ${wrongSizedTraded.length}); batch the cleanup`,
+        );
     }
     for (const utxo of wrongSizedTraded) {
         if (utxo.token === undefined || utxo.token.isMintBaton) {

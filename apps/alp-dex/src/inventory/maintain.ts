@@ -135,7 +135,7 @@ const acceptBroadcastResult = (
 };
 
 /** Build + broadcast. Spender UTXOs update on `build()`. */
-const broadcastAction = async (
+const broadcastInventoryAction = async (
     spender: Wallet,
     action: NonNullable<ReturnType<typeof actionFundPostage>>,
     txids: string[],
@@ -221,20 +221,33 @@ export const maintainInventory = async (opts: {
         await syncLpWallets(seller, slush, localBook);
         opts.onAfterSync?.();
 
-        // 1. Wrong-sized traded tokens on seller → slush
-        //    (visible to step 2 on the next maintain pass after sync)
+        // 1. Wrong-sized traded tokens on seller → slush, in pinned-input
+        //    batches. One action for the whole pile exceeds MAX_TX_SERSIZE
+        //    once the seller holds more than ~708 of them (a utxoQty bump
+        //    marks every old-size UTXO wrong). Those atoms are visible to
+        //    step 2 on the next maintain pass after sync.
         {
             const { wrongSizedTraded } = classifySellerUtxos(
                 seller.utxos,
                 tradedTokens,
             );
-            const action = actionCleanupSellerToSlush(
-                wrongSizedTraded,
-                slushScript,
-            );
-            if (action !== null) {
-                await broadcastAction(seller, action, txids, 'cleanup→slush');
-                cleanedToSlush = wrongSizedTraded.length;
+            for (
+                let i = 0;
+                i < wrongSizedTraded.length;
+                i += MISC_SWEEP_BATCH
+            ) {
+                const batch = wrongSizedTraded.slice(i, i + MISC_SWEEP_BATCH);
+                const action = actionCleanupSellerToSlush(batch, slushScript);
+                if (action === null) {
+                    continue;
+                }
+                await broadcastInventoryAction(
+                    seller,
+                    action,
+                    txids,
+                    'cleanup→slush',
+                );
+                cleanedToSlush += batch.length;
             }
         }
 
@@ -258,7 +271,7 @@ export const maintainInventory = async (opts: {
                 if (action === null) {
                     break;
                 }
-                await broadcastAction(
+                await broadcastInventoryAction(
                     slush,
                     action,
                     txids,
@@ -308,7 +321,7 @@ export const maintainInventory = async (opts: {
             const stamps = postageFundBatchCount(postage.length, spendableSats);
             const action = actionFundPostage(stamps, sellerScript);
             if (action !== null) {
-                await broadcastAction(slush, action, txids, 'postage');
+                await broadcastInventoryAction(slush, action, txids, 'postage');
                 fundedPostage = stamps;
             }
         }
@@ -339,7 +352,12 @@ export const maintainInventory = async (opts: {
                 if (action === null) {
                     continue;
                 }
-                await broadcastAction(seller, action, txids, 'misc→fee');
+                await broadcastInventoryAction(
+                    seller,
+                    action,
+                    txids,
+                    'misc→fee',
+                );
                 for (const utxo of batch) {
                     if (!classified.belowDust.includes(utxo)) {
                         sweptMisc += 1;
@@ -350,6 +368,17 @@ export const maintainInventory = async (opts: {
 
         return partial();
     } catch (err) {
+        // build() updates the spender before broadcast, and a size failure
+        // can auto-consolidate in memory without ever sending. Reload both
+        // wallets from Chronik so the next spend matches what was broadcast.
+        try {
+            await syncLpWallets(seller, slush, localBook);
+        } catch (syncErr: unknown) {
+            console.error(
+                'inventory maintain: resync after failed pass failed:',
+                syncErr instanceof Error ? syncErr.message : String(syncErr),
+            );
+        }
         const message = err instanceof Error ? err.message : String(err);
         throw new MaintainInventoryError(message, partial(), err);
     }
