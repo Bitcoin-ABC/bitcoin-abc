@@ -52,12 +52,12 @@ def main():
 #include <chainparamsconstants.h>
 
 namespace ChainParamsConstants {{
-    const BlockHash MAINNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("{}");
+    const BlockHash MAINNET_DEFAULT_ASSUME_VALID = *BlockHash::FromHex("{}");
     const uint256 MAINNET_MINIMUM_CHAIN_WORK = uint256S("{}");
     const uint64_t MAINNET_ASSUMED_BLOCKCHAIN_SIZE = {};
     const uint64_t MAINNET_ASSUMED_CHAINSTATE_SIZE = {};
 
-    const BlockHash TESTNET_DEFAULT_ASSUME_VALID = BlockHash::fromHex("{}");
+    const BlockHash TESTNET_DEFAULT_ASSUME_VALID = *BlockHash::FromHex("{}");
     const uint256 TESTNET_MINIMUM_CHAIN_WORK = uint256S("{}");
     const uint64_t TESTNET_ASSUMED_BLOCKCHAIN_SIZE = {};
     const uint64_t TESTNET_ASSUMED_CHAINSTATE_SIZE = {};

@@ -254,7 +254,8 @@ BOOST_AUTO_TEST_CASE(to_string) {
         "hashBlock="
         "000000000000000000000000000000000000000000000000fedcba9876543210)",
         &indexPrev);
-    const BlockHash emptyHashBlock = BlockHash::fromHex("FEDCBA9876543210");
+    const BlockHash emptyHashBlock =
+        *BlockHash::FromUserHex("FEDCBA9876543210");
     index.phashBlock = &emptyHashBlock;
     indexString = index.ToString();
     BOOST_CHECK_EQUAL(indexString, expectedString);

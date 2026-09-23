@@ -145,8 +145,8 @@ class AssumeValidTest(BitcoinTestFramework):
 
         # Start node1 and node2 with assumevalid so they accept a block with a
         # bad signature.
-        self.start_node(1, extra_args=[f"-assumevalid={hex(block102.hash_int)}"])
-        self.start_node(2, extra_args=[f"-assumevalid={hex(block102.hash_int)}"])
+        self.start_node(1, extra_args=[f"-assumevalid={block102.hash_hex}"])
+        self.start_node(2, extra_args=[f"-assumevalid={block102.hash_hex}"])
 
         def wait_for_header_sync(node, height):
             expected = {

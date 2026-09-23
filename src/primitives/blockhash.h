@@ -14,10 +14,11 @@ struct BlockHash : public uint256 {
     explicit BlockHash() : uint256() {}
     explicit BlockHash(const uint256 &b) : uint256(b) {}
 
-    static BlockHash fromHex(const std::string &str) {
-        BlockHash r;
-        r.SetHexDeprecated(str);
-        return r;
+    static std::optional<BlockHash> FromHex(std::string_view str) {
+        return detail::FromHex<BlockHash>(str);
+    }
+    static std::optional<BlockHash> FromUserHex(std::string_view str) {
+        return detail::FromUserHex<BlockHash>(str);
     }
 };
 

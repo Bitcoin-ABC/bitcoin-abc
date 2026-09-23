@@ -30,9 +30,9 @@ BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(sanity) {
     const auto params = CreateChainParams(*m_node.args, ChainType::MAIN);
     const CCheckpointData &checkpoints = params->Checkpoints();
-    BlockHash p11111 = BlockHash::fromHex(
+    BlockHash p11111 = *BlockHash::FromHex(
         "0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d");
-    BlockHash p134444 = BlockHash::fromHex(
+    BlockHash p134444 = *BlockHash::FromHex(
         "00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe");
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 11111, p11111));
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 134444, p134444));
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE(sanity) {
  */
 BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
     const CCheckpointData test_checkpoints = {
-        .mapCheckpoints = {{2, BlockHash::fromHex(
+        .mapCheckpoints = {{2, *BlockHash::FromHex(
                                    "000000006a625f06636b8bb6ac7b960a8d03705"
                                    "d1ace08b1a19da3fdcc99ddbd")}},
     };
