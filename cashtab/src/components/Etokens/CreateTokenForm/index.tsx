@@ -69,6 +69,7 @@ import {
     normalizeDecimalInput,
 } from 'formatting';
 import {
+    Address,
     toHex,
     signMsg,
     SLP_TOKEN_TYPE_NFT1_CHILD,
@@ -77,7 +78,42 @@ import {
     ALP_TOKEN_TYPE_STANDARD,
     payment,
     TokenType,
+    Tx,
 } from 'ecash-lib';
+import { Wallet } from 'ecash-wallet';
+
+/**
+ * HD only. Genesis input[0] can be any receive or change address, and
+ * token-server treats that address as the minter. One-address wallets sign
+ * with wallet.sk and do not call this. The spent output must be p2pkh.
+ */
+export const hdGenesisInput0IconMinter = (
+    wallet: Wallet,
+    builtTxs: Tx[],
+): { address: string; sk: Uint8Array } => {
+    const outputScript =
+        builtTxs[builtTxs.length - 1]?.inputs[0]?.signData?.outputScript;
+    if (outputScript === undefined) {
+        throw new Error('Genesis transaction has no input[0]');
+    }
+    // HD icon signing only has p2pkh keys. fromScript throws on other
+    // scripts and accepts p2sh, which this wallet cannot sign.
+    let parsed: Address;
+    try {
+        parsed = Address.fromScript(outputScript, wallet.prefix);
+    } catch {
+        throw new Error('Only p2pkh is supported');
+    }
+    if (parsed.type !== 'p2pkh') {
+        throw new Error('Only p2pkh is supported');
+    }
+    const address = parsed.toString();
+    const keypair = wallet.getKeypairForAddress(address);
+    if (keypair?.sk === undefined) {
+        throw new Error(`Missing key for genesis input[0] at ${address}`);
+    }
+    return { address, sk: keypair.sk };
+};
 
 interface CreateTokenFormProps {
     /**
@@ -528,7 +564,10 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         supplyType: string;
         tokenIcon: File;
     }
-    const submitTokenIcon = async (tokenId: string) => {
+    const submitTokenIcon = async (
+        tokenId: string,
+        minter: { address: string; sk: Uint8Array },
+    ) => {
         if (!ecashWallet) {
             throw new Error('Wallet not initialized');
         }
@@ -542,7 +581,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
             decimals: isNftMint ? NFT_DECIMALS.toString() : formData.decimals,
             url: formData.url,
             genesisQty: isNftMint ? NFT_GENESIS_QTY : formData.genesisQty,
-            minterAddress: ecashWallet.address,
+            minterAddress: minter.address,
             tokenType: selectedTokenType.type,
             supplyType: getSupplyType(),
             tokenIcon: tokenIcon as File,
@@ -555,10 +594,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         // This function is called after the genesis tx is broadcast, using tokenId as a calling param
         submittedFormData.append('tokenId', tokenId);
         const iconHashHex = await hashFile(tokenIcon as File);
-        submittedFormData.append(
-            'signature',
-            signMsg(iconHashHex, ecashWallet.sk),
-        );
+        submittedFormData.append('signature', signMsg(iconHashHex, minter.sk));
 
         try {
             const tokenIconApprovalResponse = await fetch(
@@ -620,6 +656,8 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
         // Create token per specified user data
         try {
             let txid: string;
+            // Set after a successful broadcast. A UTXO-conflict retry replaces BuiltAction.txs.
+            let builtTxs: Tx[] = [];
             if (isNftMint) {
                 // Use ecash-wallet for NFT child minting
                 // ecash-wallet automatically handles creating qty-1 inputs if needed
@@ -664,16 +702,17 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                     return;
                 }
 
-                const broadcastResult = await ecashWallet
+                const builtNftMint = ecashWallet
                     .action(nftChildGenesisAction)
-                    .build()
-                    .broadcast();
+                    .build();
+                const broadcastResult = await builtNftMint.broadcast();
 
                 if (!broadcastResult.success) {
                     throw new Error(
                         `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
                     );
                 }
+                builtTxs = builtNftMint.txs;
 
                 // Get the last txid (for chained transactions, this is the actual mint tx)
                 txid =
@@ -761,6 +800,7 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
                         `Transaction broadcast failed: ${broadcastResult.errors?.join(', ')}`,
                     );
                 }
+                builtTxs = builtAction.txs;
 
                 // Get the first txid (genesis transactions are single-tx)
                 txid = broadcastResult.broadcasted[0];
@@ -786,7 +826,15 @@ const CreateTokenForm: React.FC<CreateTokenFormProps> = ({ groupTokenId }) => {
 
             // If this eToken/NFT Collection/NFT has an icon, upload to server
             if (tokenIcon !== null) {
-                submitTokenIcon(txid);
+                submitTokenIcon(
+                    txid,
+                    ecashWallet.isHD
+                        ? hdGenesisInput0IconMinter(ecashWallet, builtTxs)
+                        : {
+                              address: ecashWallet.address,
+                              sk: ecashWallet.sk,
+                          },
+                );
             }
         } catch (e) {
             toast.error(`${e}`);

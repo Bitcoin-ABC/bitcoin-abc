@@ -29,7 +29,7 @@ export const classifyTokenLookupError = (
     }
     if (
         message.includes('No genesis supply or mint baton output found') ||
-        message.includes('No input[0] outputScript for mint vault')
+        message.includes('No input[0] outputScript')
     ) {
         return 'invalid_genesis';
     }
@@ -45,15 +45,17 @@ const tokenTypeToString = (tokenType: TokenType): string => {
     return tokenType.type;
 };
 
-const getMintVaultMinterAddress = (tokenId: string, genesisTx: Tx): string => {
-    const firstInput = genesisTx.inputs[0];
+/**
+ * The address that minted is the one that signed genesis input[0].
+ * Token outputs only say where the supply was paid.
+ */
+const getGenesisInput0Address = (tokenId: string, genesisTx: Tx): string => {
+    const firstInput = genesisTx.inputs?.[0];
     if (
         typeof firstInput === 'undefined' ||
         typeof firstInput.outputScript !== 'string'
     ) {
-        throw new Error(
-            `No input[0] outputScript for mint vault tokenId ${tokenId}`,
-        );
+        throw new Error(`No input[0] outputScript for tokenId ${tokenId}`);
     }
     return outputScriptToAddress(firstInput.outputScript);
 };
@@ -83,19 +85,28 @@ export const getCashtabTokenMetadata = async (
     const tokenInfo: TokenInfo = await chronik.token(tokenId);
     const genesisTx = await chronik.tx(tokenId);
     const tokenType = tokenTypeToString(tokenInfo.tokenType);
+    const minterAddress = getGenesisInput0Address(tokenId, genesisTx);
 
     if (tokenType === 'SLP_TOKEN_TYPE_MINT_VAULT') {
         return {
             tokenId,
-            minterAddress: getMintVaultMinterAddress(tokenId, genesisTx),
+            minterAddress,
             tokenType,
             supplyType: 'VARIABLE',
         };
     }
 
+    if (tokenType === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+        return {
+            tokenId,
+            minterAddress,
+            tokenType,
+            supplyType: 'FIXED',
+        };
+    }
+
     let genesisMintBatons = 0;
-    let minterAddress: string | undefined;
-    let mintBatonAddress: string | undefined;
+    let sawSupply = false;
 
     for (const output of genesisTx.outputs) {
         if (output.token?.tokenId !== tokenId) {
@@ -106,25 +117,18 @@ export const getCashtabTokenMetadata = async (
 
         if (isMintBaton) {
             genesisMintBatons += 1;
-            if (typeof mintBatonAddress === 'undefined') {
-                mintBatonAddress = outputScriptToAddress(output.outputScript);
-            }
             continue;
         }
 
-        if (atoms > 0n && typeof minterAddress === 'undefined') {
-            minterAddress = outputScriptToAddress(output.outputScript);
+        if (atoms > 0n) {
+            sawSupply = true;
         }
     }
 
-    if (typeof minterAddress === 'undefined') {
-        if (typeof mintBatonAddress !== 'undefined') {
-            minterAddress = mintBatonAddress;
-        } else {
-            throw new Error(
-                `No genesis supply or mint baton output found for tokenId ${tokenId}`,
-            );
-        }
+    if (!sawSupply && genesisMintBatons === 0) {
+        throw new Error(
+            `No genesis supply or mint baton output found for tokenId ${tokenId}`,
+        );
     }
 
     return {

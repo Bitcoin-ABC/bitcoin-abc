@@ -59,6 +59,11 @@ const mockGenesisForToken = (
         timeFirstSeen: 0,
     } as TokenInfo);
     mockChronik.setTx(tokenId, {
+        inputs: [
+            {
+                outputScript: getOutputScriptFromAddress(minterAddress),
+            },
+        ],
         outputs: [
             {
                 outputScript: getOutputScriptFromAddress(minterAddress),
