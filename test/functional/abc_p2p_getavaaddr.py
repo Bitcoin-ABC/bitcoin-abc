@@ -147,6 +147,8 @@ class AvaAddrTest(BitcoinTestFramework):
                 for p in peers
             )
 
+        self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is True)
+
         tip = node.getbestblockhash()
         self.wait_until(lambda: node.isfinalblock(tip))
         self.wait_until(lambda: wait_for_finalized_proofs(peers[:8]))
@@ -273,26 +275,32 @@ class AvaAddrTest(BitcoinTestFramework):
         # get an availability score computed.
         node.mockscheduler(AVALANCHE_STATISTICS_INTERVAL)
 
-        requester = node.add_p2p_connection(AddrReceiver())
-        requester.send_and_ping(msg_getavaaddr())
-
-        # Sanity check that the availability score is set up as expected
-        peerinfo = node.getpeerinfo()
         muted_addresses = [
             avanode.addr for avanode in avanodes if not avanode.is_responding
         ]
-        assert all(
-            node.getavailabilityscore(p["id"]) < 0
-            for p in peerinfo
-            if p["addr"] in muted_addresses
-        )
-        assert all(
-            node.getavailabilityscore(p["id"]) > 0
-            for p in peerinfo
-            if p["addr"] in responding_addresses
-        )
+
+        def availability_scores_ready():
+            peerinfo = node.getpeerinfo()
+            muted_ok = all(
+                node.getavailabilityscore(p["id"]) < 0
+                for p in peerinfo
+                if p["addr"] in muted_addresses
+            )
+            responding_ok = all(
+                node.getavailabilityscore(p["id"]) > 0
+                for p in peerinfo
+                if p["addr"] in responding_addresses
+            )
+            return muted_ok and responding_ok
+
+        self.wait_until(availability_scores_ready)
+
+        requester = node.add_p2p_connection(AddrReceiver())
+        requester.send_and_ping(msg_getavaaddr())
+
         # Requester has no availability_score because it's not an avalanche
         # peer
+        peerinfo = node.getpeerinfo()
         assert_equal(node.getavailabilityscore(peerinfo[-1]["id"]), None)
 
         mock_time += MAX_ADDR_SEND_DELAY
