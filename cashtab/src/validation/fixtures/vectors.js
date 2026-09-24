@@ -3345,6 +3345,35 @@ export default {
                 userLocale: 'fr-FR',
                 returned: `Total cost of minimum buy below dust. Min offered qty must be at least 5,46.`,
             },
+            {
+                description:
+                    'Locale-formatted offered qty (period as thousands) is not treated as a decimal',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '100',
+                offeredTokenQty: '1.000', // 1000 in de-DE / fr-FR grouping
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '1000',
+                userLocale: 'de-DE',
+                returned: false,
+            },
+            {
+                description:
+                    'Still rejects min buy above offered qty when both use European grouping',
+                xecListPrice: '1',
+                selectedCurrency: 'XEC',
+                fiatPrice: 1,
+                minBuyTokenQty: '1.001',
+                offeredTokenQty: '1.000',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '1000',
+                userLocale: 'de-DE',
+                returned:
+                    'The min buy must be less than or equal to the offered quantity',
+            },
         ],
     },
     getReceiveAmountError: {

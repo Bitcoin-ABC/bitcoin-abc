@@ -1645,10 +1645,13 @@ export const getAgoraMinBuyError = (
     userLocale: string,
 ) => {
     const normalizedMinBuy = normalizeDecimalInput(minBuyTokenQty, userLocale);
+    const normalizedOfferedQty = normalizeDecimalInput(
+        offeredTokenQty,
+        userLocale,
+    );
     const normalizedListPrice = normalizeDecimalInput(xecListPrice, userLocale);
 
-    // First, make sure the min does not exceed total offerd tokens
-    if (new BigNumber(normalizedMinBuy).gt(offeredTokenQty)) {
+    if (new BigNumber(normalizedMinBuy).gt(normalizedOfferedQty)) {
         return 'The min buy must be less than or equal to the offered quantity';
     }
 
