@@ -24,7 +24,6 @@
 # SOFTWARE.
 
 # Check DNSSEC trust chain.
-# Todo: verify expiration dates
 #
 # Based on
 #  http://backreference.org/2010/11/17/dnssec-verification-with-dig/
@@ -35,6 +34,7 @@ import dns.dnssec
 import dns.message
 import dns.name
 import dns.query
+import dns.rdataclass
 import dns.rdatatype
 import dns.rdtypes.ANY.CNAME
 import dns.rdtypes.ANY.DLV
@@ -55,6 +55,15 @@ from .printerror import print_error
 
 # hard-coded trust anchors (root KSKs)
 trust_anchors = [
+    # KSK-2024 (key tag 38696). Signs the root DNSKEY RRset from 2026-10-11 (root KSK rollover).
+    # https://data.iana.org/root-anchors/root-anchors.xml
+    dns.rrset.from_text(
+        ".",
+        1,
+        "IN",
+        "DNSKEY",
+        "257 3 8 AwEAAa96jeuknZlaeSrvyAJj6ZHv28hhOKkx3rLGXVaC6rXTsDc449/cidltpkyGwCJNnOAlFNKF2jBosZBU5eeHspaQWOmOElZsjICMQMC3aeHbGiShvZsx4wMYSjH8e7Vrhbu6irwCzVBApESjbUdpWWmEnhathWu1jo+siFUiRAAxm9qyJNg/wOZqqzL/dL/q8PkcRU5oUKEpUge71M3ej2/7CPqpdVwuMoTvoB+ZOT4YeGyxMvHmbrxlFzGOHOijtzN+u1TQNatX2XBuzZNQ1K+s2CXkPIZo7s6JgZyvaBevYtxPvYLw4z9mR7K2vaF18UYH9Z9GNUUeayffKC73PYc=",
+    ),
     # KSK-2017:
     dns.rrset.from_text(
         ".",
@@ -64,37 +73,33 @@ trust_anchors = [
         "257 3 8"
         " AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3+/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kvArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF0jLHwVN8efS3rCj/EWgvIWgb9tarpVUDK/b58Da+sqqls3eNbuv7pr+eoZG+SrDK6nWeL3c6H5Apxz7LjVc1uTIdsIXxuOLYA4/ilBmSVIzuDWfdRUfhHdY6+cn8HFRm+2hM8AnXGXws9555KrUB5qihylGa8subX2Nn6UwNR1AkUTV74bU=",
     ),
-    # KSK-2010:
-    dns.rrset.from_text(
-        ".",
-        15202,
-        "IN",
-        "DNSKEY",
-        "257 3 8 AwEAAagAIKlVZrpC6Ia7gEzahOR+9W29euxhJhVVLOyQbSEW0O8gcCjF"
-        " FVQUTf6v58fLjwBd0YI0EzrAcQqBGCzh/RStIoO8g0NfnfL2MTJRkxoX"
-        " bfDaUeVPQuYEhg37NZWAJQ9VnMVDxP/VHL496M/QZxkjf5/Efucp2gaD"
-        " X6RS6CXpoY68LsvPVjR0ZSwzz1apAzvN9dlzEheX7ICJBBtuA6G3LQpz"
-        " W5hOA2hzCTMjJPJ8LbqF6dsV6DoBQzgul0sGIcGOYl7OyQdXfZ57relS"
-        " Qageu+ipAdTTJ25AsRTAoub8ONGcLmqrAmRLKBP1dfwhYB4N7knNnulq QxA+Uk1ihz0=",
-    ),
 ]
 
 
-def check_query(ns, sub, _type, keys):
-    q = dns.message.make_query(sub, _type, want_dnssec=True)
+def _query_signed(ns, sub, _type) -> tuple[dns.rrset.RRset, dns.rrset.RRset]:
+    """Returns the (not yet validated) rrset and its rrsig."""
+    name = dns.name.from_text(sub)
+    q = dns.message.make_query(name, _type, want_dnssec=True)
     response = dns.query.tcp(q, ns, timeout=5)
     assert response.rcode() == 0, "No answer"
-    answer = response.answer
-    assert len(answer) != 0, ("No DNS record found", sub, _type)
-    assert len(answer) != 1, ("No DNSSEC record found", sub, _type)
-    if answer[0].rdtype == dns.rdatatype.RRSIG:
-        rrsig, rrset = answer
-    elif answer[1].rdtype == dns.rdatatype.RRSIG:
-        rrset, rrsig = answer
-    else:
-        raise RuntimeError("No signature set in record")
-    if keys is None:
-        keys = {dns.name.from_text(sub): rrset}
+    # only accept the queried name and type, otherwise any validly signed rrset of the zone could be replayed
+    rrset = response.get_rrset(response.answer, name, dns.rdataclass.IN, _type)
+    assert rrset is not None, ("No DNS record found", sub, _type)
+    rrsig = response.get_rrset(
+        response.answer, name, dns.rdataclass.IN, dns.rdatatype.RRSIG, _type
+    )
+    assert rrsig is not None, ("No DNSSEC record found", sub, _type)
+    # reject wildcard expansions, we don't verify the NSEC(3) proof that the name itself doesn't exist
+    assert all(sig.labels == len(name) - 1 for sig in rrsig), (
+        "Wildcard DNS record not supported",
+        sub,
+        _type,
+    )
+    return rrset, rrsig
+
+
+def check_query(ns, sub, _type, keys) -> dns.rrset.RRset:
+    rrset, rrsig = _query_signed(ns, sub, _type)
     dns.dnssec.validate(rrset, rrsig, keys)
     return rrset
 
@@ -116,9 +121,9 @@ def get_and_validate(ns, url, _type):
         raise dns.dnssec.ValidationFailure("None of the trust anchors found in DNS")
     keys = {dns.name.root: root_rrset}
     # top-down verification
-    parts = url.split(".")
-    for i in range(len(parts), 0, -1):
-        sub = ".".join(parts[i - 1 :])
+    sub = ""
+    for label in reversed(url.split(".")):
+        sub = f"{label}.{sub}"
         name = dns.name.from_text(sub)
         # If server is authoritative, don't fetch DNSKEY
         query = dns.message.make_query(sub, dns.rdatatype.NS)
@@ -130,22 +135,31 @@ def get_and_validate(ns, url, _type):
         rr = rrset[0]
         if rr.rdtype == dns.rdatatype.SOA:
             continue
-        # get DNSKEY (self-signed)
-        rrset = check_query(ns, sub, dns.rdatatype.DNSKEY, None)
+        # get DNSKEY (not yet validated)
+        rrset, rrsig = _query_signed(ns, sub, dns.rdatatype.DNSKEY)
         # get DS (signed by parent)
         ds_rrset = check_query(ns, sub, dns.rdatatype.DS, keys)
-        # verify that a signed DS validates DNSKEY
-        for ds in ds_rrset:
-            for dnskey in rrset:
-                htype = "SHA256" if ds.digest_type == 2 else "SHA1"
-                good_ds = dns.dnssec.make_ds(name, dnskey, htype)
+        # find the DNSKEYs committed to by the signed DS
+        ds_keys = []
+        for dnskey in rrset:
+            for ds in ds_rrset:
+                try:
+                    good_ds = dns.dnssec.make_ds(
+                        name, dnskey, ds.digest_type, validating=True
+                    )
+                except (dns.dnssec.UnsupportedAlgorithm, dns.dnssec.DeniedByPolicy):
+                    # skip digest types we cannot verify
+                    continue
                 if ds == good_ds:
+                    ds_keys.append(dnskey)
                     break
-            else:
-                continue
-            break
-        else:
+        if not ds_keys:
             raise RuntimeError("DS does not match DNSKEY")
+        # the DNSKEY RRset must be signed by one of those keys (RFC 4035 5.2),
+        # otherwise an attacker could add their own key to it and self-sign
+        dns.dnssec.validate(
+            rrset, rrsig, {name: dns.rrset.from_rdata_list(name, rrset.ttl, ds_keys)}
+        )
         # set key for next iteration
         keys = {name: rrset}
     # get TXT record (signed by zone)

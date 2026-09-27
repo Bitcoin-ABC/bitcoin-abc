@@ -10,6 +10,6 @@ stem>=1.8.0
 certifi
 mnemonic>=0.21
 pathvalidate
-dnspython[DNSSEC]>=2.0
+dnspython[DNSSEC]>=2.3
 pycryptodomex
 certifi
