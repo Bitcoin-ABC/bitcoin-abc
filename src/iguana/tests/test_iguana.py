@@ -73,6 +73,16 @@ def test_invalid_format():
     )
 
 
+def test_invalid_tx():
+    iguana(
+        "-tx=010203",
+        "-scriptpubkey=51",
+        "-value=1",
+        expected_stderr="Error deserializing transaction: DataStream::read(): "
+        "end of data: iostream error\n",
+    )
+
+
 def test_invalid_inputindex():
     tx = CTransaction()
     iguana(

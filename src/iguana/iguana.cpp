@@ -104,7 +104,13 @@ int main(int argc, char *argv[]) {
     std::vector<uint8_t> tx_raw = ParseHex(tx_hex);
     DataStream tx_stream(MakeByteSpan(tx_raw));
     CMutableTransaction tx;
-    tx_stream >> tx;
+    try {
+        tx_stream >> tx;
+    } catch (const std::exception &e) {
+        std::cerr << "Error deserializing transaction: " << e.what()
+                  << std::endl;
+        return -1;
+    }
 
     const int64_t inputIndex =
         args.GetIntArg("-inputindex", DEFAULT_INPUT_INDEX);
