@@ -106,9 +106,8 @@ int main(int argc, char *argv[]) {
     CMutableTransaction tx;
     try {
         tx_stream >> tx;
-    } catch (const std::exception &e) {
-        std::cerr << "Error deserializing transaction: " << e.what()
-                  << std::endl;
+    } catch (const std::exception &) {
+        std::cerr << "Error deserializing transaction" << std::endl;
         return -1;
     }
 

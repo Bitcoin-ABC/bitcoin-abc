@@ -78,8 +78,7 @@ def test_invalid_tx():
         "-tx=010203",
         "-scriptpubkey=51",
         "-value=1",
-        expected_stderr="Error deserializing transaction: DataStream::read(): "
-        "end of data: iostream error\n",
+        expected_stderr="Error deserializing transaction\n",
     )
 
 
