@@ -91,6 +91,29 @@ BOOST_AUTO_TEST_CASE(process_version_msg) {
                       SEEDER_INIT_VERSION);
     testNode->TestProcessMessage(NetMsgType::VERSION, versionMessage,
                                  PeerMessagingState::AwaitingMessages);
+    BOOST_CHECK_EQUAL(testNode->GetClientSubVersion(), user_agent);
+}
+
+BOOST_AUTO_TEST_CASE(process_version_msg_oversized_subver) {
+    DataStream versionMessage{};
+    uint64_t serviceflags = ServiceFlags(NODE_NETWORK);
+    CService addr_to = vAddr[0];
+    uint64_t addr_to_services = vAddr[0].nServices;
+    CService addr_from;
+    uint64_t nonce = 0;
+    // Complete VERSION with a subversion longer than MAX_SUBVERSION_LENGTH.
+    std::string oversizedSubVer(MAX_SUBVERSION_LENGTH + 1, 'a');
+
+    versionMessage << INIT_PROTO_VERSION << serviceflags << GetTime()
+                   << addr_to_services << WithParams(CNetAddr::V1, addr_to)
+                   << serviceflags << WithParams(CNetAddr::V1, addr_from)
+                   << nonce << oversizedSubVer << GetRequireHeight();
+
+    // Deserialization failure is handled as a rejected peer message.
+    testNode->TestProcessMessage(NetMsgType::VERSION, versionMessage,
+                                 PeerMessagingState::Finished);
+    BOOST_CHECK(testNode->GetBan() > 0);
+    BOOST_CHECK(testNode->GetClientSubVersion().empty());
 }
 
 BOOST_FIXTURE_TEST_CASE(process_verack_msg, MainNetSeederTestingSetup) {
