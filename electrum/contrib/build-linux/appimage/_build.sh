@@ -105,7 +105,7 @@ PIP_FLAGS=(
     --cache-dir "$CACHEDIR/pip_cache"
 )
 
-export PIP_CONSTRAINT="$CONTRIB/requirements/build-constraint.txt"
+export PIP_BUILD_CONSTRAINT="$CONTRIB/requirements/build-constraint.txt"
 
 CFLAGS="-g0" "$python" -m pip install  -r "$CONTRIB/deterministic-build/requirements-pip.txt"
 CFLAGS="-g0" "$python" -m pip install "${PIP_FLAGS[@]}" -r "$CONTRIB/deterministic-build/requirements-build-appimage.txt"
