@@ -221,6 +221,9 @@ class ASN1Node(bytes):
                 iiii = self.first_child(iii)
                 oid = decode_OID(self.get_value_of_type(iiii, "OBJECT IDENTIFIER"))
                 iiii = self.next_node(iiii)
+                # Skip the optional critical BOOLEAN if present
+                if self[iiii[0]] == ASN1_TYPES["BOOLEAN"]:
+                    iiii = self.next_node(iiii)
                 value = self.get_value(iiii)
                 p[oid] = value
         return p
@@ -339,8 +342,16 @@ class X509(object):
             for oid, value in d.items():
                 value = ASN1Node(value)
                 if oid == "2.5.29.19":
-                    # Basic Constraints
-                    self.CA = bool(value)
+                    self.CA = False
+                    try:
+                        _, ixf, ixl = value.root()
+                        if ixf <= ixl:
+                            first = value.get_node(ixf)
+                            if value[first[0]] == ASN1_TYPES["BOOLEAN"]:
+                                bool_bytes = value.get_value_of_type(first, "BOOLEAN")
+                                self.CA = len(bool_bytes) == 1 and bool_bytes != b"\x00"
+                    except Exception:
+                        self.CA = False
                 elif oid == "2.5.29.14":
                     # Subject Key Identifier
                     r = value.root()

@@ -19,6 +19,8 @@ now = datetime.now(timezone.utc)
 def _make_cert(
     not_before_date: datetime = now - timedelta(days=1),
     not_after_date: datetime = now + timedelta(days=1),
+    ca: bool | None = None,
+    critical: bool = False,
 ) -> bytes:
     """
     Build a minimal self-signed certificate.
@@ -41,6 +43,11 @@ def _make_cert(
         .not_valid_before(not_before_date)
         .not_valid_after(not_after_date)
     )
+    if ca is not None:
+        builder = builder.add_extension(
+            x509.BasicConstraints(ca=ca, path_length=None),
+            critical=critical,
+        )
     cert = builder.sign(key, hashes.SHA256())
     return cert.public_bytes(serialization.Encoding.DER)
 
@@ -100,6 +107,36 @@ class TestX509(unittest.TestCase):
         # UTCTime with YY (>=50) must be interpreted as 19YY.
         cert = X509(_make_cert(not_before_date=dt1968, not_after_date=dt2050))
         cert.check_date()
+
+    def test_basic_constraints_ca_flag(self):
+        """
+        RFC 5280 §4.2.1.9: a certificate is a CA only when the Basic
+        Constraints extension is present *and* its cA BOOLEAN is TRUE.
+        """
+        # Extension completely absent → not a CA
+        cert_absent = X509(_make_cert(ca=None))
+        self.assertFalse(
+            cert_absent.check_ca(),
+            "certificate without Basic Constraints must not be a CA",
+        )
+
+        # cA=FALSE, non-critical
+        cert_false = X509(_make_cert(ca=False, critical=False))
+        self.assertFalse(cert_false.check_ca(), "cA=FALSE must not be treated as a CA")
+
+        # cA=FALSE, critical
+        cert_false_crit = X509(_make_cert(ca=False, critical=True))
+        self.assertFalse(
+            cert_false_crit.check_ca(), "critical cA=FALSE must not be treated as a CA"
+        )
+
+        # cA=TRUE
+        cert_true = X509(_make_cert(ca=True, critical=False))
+        self.assertTrue(cert_true.check_ca(), "cA=TRUE must be recognised as a CA")
+
+        # cA=TRUE, critical
+        cert_true = X509(_make_cert(ca=True, critical=True))
+        self.assertTrue(cert_true.check_ca(), "cA=TRUE must be recognised as a CA")
 
 
 if __name__ == "__main__":
