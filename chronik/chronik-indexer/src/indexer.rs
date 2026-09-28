@@ -849,9 +849,11 @@ impl ChronikIndexer {
                 block_txs.remove(0)
             }),
         });
+        // Remaining hashes are heights 0..height-1 after disconnecting
+        // `height`.
         self.block_merkle_tree
             .get_mut()
-            .invalidate_block(block.db_block.height as usize);
+            .truncate(block.db_block.height as usize);
         Ok(())
     }
 

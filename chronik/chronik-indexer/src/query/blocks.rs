@@ -82,6 +82,10 @@ pub enum QueryBlockError {
     )]
     InvalidCheckpointHeight(BlockHeight, BlockHeight),
 
+    /// Checkpoint height is above the chain tip
+    #[error("400: Invalid checkpoint height {0}, must be <= chain height {1}")]
+    CheckpointHeightAboveTip(BlockHeight, BlockHeight),
+
     /// Blocks page size too large
     #[error(
         "400: Blocks page size too large, \
@@ -381,15 +385,29 @@ impl<'a> QueryBlocks<'a> {
         let mut branch = Vec::<Vec<u8>>::new();
         if checkpoint_height > 0 {
             Self::check_checkpoint_height(block_height, checkpoint_height)?;
-            let bridge = &self.node.bridge;
-            let hashes: Vec<Sha256d> = bridge
-                .get_block_hashes_by_range(0, checkpoint_height)?
-                .iter()
-                .map(|raw_hash| Sha256d::from_le_bytes(raw_hash.data))
-                .collect();
+            let length = (checkpoint_height as usize).saturating_add(1);
+            let index = block_height as usize;
+            let block_reader = BlockReader::new(self.db)?;
+            let tip_height = block_reader.height()?;
+            if checkpoint_height > tip_height {
+                return Err(CheckpointHeightAboveTip(
+                    checkpoint_height,
+                    tip_height,
+                )
+                .into());
+            }
             let mut block_merkle_tree = self.block_merkle_tree.lock().await;
             let (root_hash, branch_hashes) = block_merkle_tree
-                .merkle_root_and_branch(&hashes, block_height as usize);
+                .merkle_root_and_branch(length, index, |start, count| {
+                    let mut hashes = Vec::with_capacity(count);
+                    for height in start..start + count {
+                        let block = block_reader
+                            .by_height(height as BlockHeight)?
+                            .ok_or(BlockNotFound(height.to_string()))?;
+                        hashes.push(Sha256d(block.hash.to_bytes()));
+                    }
+                    Ok(hashes)
+                })?;
             root = root_hash.to_le_bytes().to_vec();
             branch = branch_hashes
                 .iter()

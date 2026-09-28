@@ -2,18 +2,35 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-//! Module for [`MerkleTree`], a class that computes the merkle tree
-//! for a series of hashes. Intermediate hashes are cached to avoid computing
-//! the same values again and again when computing the merkle tree for
-//! the block hashes in the blockchain.
+//! Merkle proof helpers for header checkpoints and in-block tx proofs.
+//!
+//! [`MerkleTree`] caches a mid-level of the header hash tree so a proof only
+//! needs a small contiguous segment of leaf hashes (~sqrt of the chain length)
+//! instead of the full tip-length vector on every request.
 
+use abc_rust_error::Result;
 use bitcoinsuite_core::hash::{Hashed, Sha256d};
+use thiserror::Error;
 
-fn is_odd(n: usize) -> bool {
-    n % 2 == 1
+/// Errors from [`MerkleTree`] operations.
+#[derive(Debug, Error, PartialEq)]
+pub enum MerkleTreeError {
+    /// Caller passed inconsistent length/index/hash-count arguments.
+    #[error("Invalid merkle tree arguments")]
+    BadArgs,
+    /// Hash provider returned fewer hashes than requested.
+    #[error("Expected {expected} hashes from provider, got {actual}")]
+    HashCountMismatch {
+        /// Number of hashes requested.
+        expected: usize,
+        /// Number of hashes returned.
+        actual: usize,
+    },
 }
 
-fn calc_branch_len(num_hashes: usize) -> usize {
+/// Return the length of a merkle branch for `count` hashes
+/// (`ceil(log2(count))`).
+pub fn calc_branch_len(num_hashes: usize) -> usize {
     assert!(num_hashes > 0);
     // Ceil of log2(num_blocks) without floating-point arithmetic.
     // This is the number of levels in the merkle tree minus 1.
@@ -27,112 +44,308 @@ fn hash_concatenated_bytes(h1: &Sha256d, h2: &Sha256d) -> Sha256d {
     Sha256d::digest(concatenated)
 }
 
-/// A struct that computes a merkle root and merkle branch for hashes,
-/// while caching intermediate hashes that can be reused to compute the merkle
-/// tree for an extended series of hashes (e.g. the same block chain after new
-/// blocks are added).
+/// Compute a merkle root and branch for a full list of leaf hashes.
+///
+/// Used for in-block transaction merkle proofs where the leaf set is small.
+/// Returns `(root, branch)`.
+pub fn merkle_root_and_branch(
+    hashes: &[Sha256d],
+    index: usize,
+) -> (Sha256d, Vec<Sha256d>) {
+    branch_and_root(hashes, index, None)
+        .expect("merkle_root_and_branch called with invalid args")
+}
+
+fn branch_and_root(
+    hashes: &[Sha256d],
+    mut index: usize,
+    length: Option<usize>,
+) -> Result<(Sha256d, Vec<Sha256d>), MerkleTreeError> {
+    if hashes.is_empty() || index >= hashes.len() {
+        return Err(MerkleTreeError::BadArgs);
+    }
+    let nat_len = calc_branch_len(hashes.len());
+    let length = length.unwrap_or(nat_len);
+    if length < nat_len {
+        return Err(MerkleTreeError::BadArgs);
+    }
+
+    let mut working = hashes.to_vec();
+    let mut branch = Vec::with_capacity(length);
+    for _ in 0..length {
+        // Bitcoin-style merkle: odd levels duplicate the last hash so pairs
+        // are even before hashing.
+        if working.len() % 2 == 1 {
+            working.push(*working.last().unwrap());
+        }
+        branch.push(working[index ^ 1]);
+        index >>= 1;
+        let mut next = Vec::with_capacity(working.len() / 2);
+        for i in (0..working.len()).step_by(2) {
+            next.push(hash_concatenated_bytes(&working[i], &working[i + 1]));
+        }
+        working = next;
+    }
+    working
+        .into_iter()
+        .next()
+        .map(|root| (root, branch))
+        .ok_or(MerkleTreeError::BadArgs)
+}
+
+fn merkle_level(
+    hashes: &[Sha256d],
+    depth_higher: usize,
+) -> Result<Vec<Sha256d>, MerkleTreeError> {
+    // length aligned to the segment size yields an empty partial segment.
+    if hashes.is_empty() {
+        return Ok(Vec::new());
+    }
+    let size = 1usize << depth_higher;
+    let mut level = Vec::with_capacity(hashes.len().div_ceil(size));
+    let mut i = 0;
+    while i < hashes.len() {
+        let end = (i + size).min(hashes.len());
+        let (root, _branch) =
+            branch_and_root(&hashes[i..end], 0, Some(depth_higher))?;
+        level.push(root);
+        i = end;
+    }
+    Ok(level)
+}
+
+fn branch_and_root_from_level(
+    level: &[Sha256d],
+    leaf_hashes: &[Sha256d],
+    index: usize,
+    depth_higher: usize,
+) -> Result<(Sha256d, Vec<Sha256d>), MerkleTreeError> {
+    if level.is_empty() || leaf_hashes.is_empty() {
+        return Err(MerkleTreeError::BadArgs);
+    }
+    let leaf_index = (index >> depth_higher) << depth_higher;
+    let (leaf_root, mut leaf_branch) =
+        branch_and_root(leaf_hashes, index - leaf_index, Some(depth_higher))?;
+    let level_index = index >> depth_higher;
+    if level_index >= level.len() || leaf_root != level[level_index] {
+        return Err(MerkleTreeError::BadArgs);
+    }
+    let (root, level_branch) = branch_and_root(level, level_index, None)?;
+    leaf_branch.extend(level_branch);
+    Ok((root, leaf_branch))
+}
+
+/// Cached mid-level merkle tree over the block-hash chain.
+///
+/// Stores hashes at `depth_higher` above the leaves. Proofs fetch only one
+/// leaf segment of size `1 << depth_higher` and combine it with the cache.
 #[derive(Debug, Default)]
 pub struct MerkleTree {
-    levels: Vec<Vec<Sha256d>>,
+    length: usize,
+    depth_higher: usize,
+    level: Vec<Sha256d>,
+    initialized: bool,
 }
 
 impl MerkleTree {
-    /// Initialize a merkle tree cache.
+    /// Create an empty, uninitialized cache.
     pub fn new() -> Self {
-        MerkleTree { levels: Vec::new() }
+        Self::default()
     }
 
-    fn hash_one_level(
+    /// Whether the mid-level cache has been built.
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+
+    /// Number of leaf hashes the cache currently covers.
+    pub fn length(&self) -> usize {
+        self.length
+    }
+
+    fn segment_length(&self) -> usize {
+        1usize << self.depth_higher
+    }
+
+    fn leaf_start(&self, index: usize) -> usize {
+        (index >> self.depth_higher) << self.depth_higher
+    }
+
+    fn initialize_with_hashes(
         &mut self,
         hashes: &[Sha256d],
-        cache_level: usize,
-        ignore_last_cached_hash: bool,
-    ) -> Vec<Sha256d> {
-        assert!(!is_odd(hashes.len()));
-        let num_hashes_to_reuse =
-            hashes.len() / 2 - ignore_last_cached_hash as usize;
-        let mut out = if cache_level < self.levels.len()
-            && num_hashes_to_reuse <= self.levels[cache_level].len()
-        {
-            // The cache has more intermediate hashes than we need, i.e. we
-            // previously already computed the merkle root for a higher block
-            // number. Take the slice that we need.
-            self.levels[cache_level][..num_hashes_to_reuse].to_vec()
-        } else if cache_level < self.levels.len() {
-            // The cache has some intermediate hashes already computed.
-            self.levels[cache_level].to_vec()
+    ) -> Result<(), MerkleTreeError> {
+        if hashes.is_empty() {
+            return Err(MerkleTreeError::BadArgs);
+        }
+        self.length = hashes.len();
+        // Cache mid-tree: (branch_len + 1) / 2 above the leaves.
+        self.depth_higher = calc_branch_len(self.length).div_ceil(2);
+        self.level = merkle_level(hashes, self.depth_higher)?;
+        self.initialized = true;
+        Ok(())
+    }
+
+    fn get_hashes<F>(
+        get_hashes: &mut F,
+        start: usize,
+        count: usize,
+    ) -> Result<Vec<Sha256d>>
+    where
+        F: FnMut(usize, usize) -> Result<Vec<Sha256d>>,
+    {
+        let hashes = get_hashes(start, count)?;
+        if hashes.len() != count {
+            return Err(MerkleTreeError::HashCountMismatch {
+                expected: count,
+                actual: hashes.len(),
+            }
+            .into());
+        }
+        Ok(hashes)
+    }
+
+    fn extend_to<F>(&mut self, length: usize, get_hashes: &mut F) -> Result<()>
+    where
+        F: FnMut(usize, usize) -> Result<Vec<Sha256d>>,
+    {
+        if length <= self.length {
+            return Ok(());
+        }
+        // Cache mid-tree: (branch_len + 1) / 2 above the leaves.
+        let new_depth = calc_branch_len(length).div_ceil(2);
+        if new_depth != self.depth_higher {
+            let hashes = Self::get_hashes(get_hashes, 0, length)?;
+            self.initialize_with_hashes(&hashes)?;
+            return Ok(());
+        }
+
+        let start = self.leaf_start(self.length);
+        let hashes = Self::get_hashes(get_hashes, start, length - start)?;
+        let limit = start >> self.depth_higher;
+        if limit > self.level.len() {
+            return Err(MerkleTreeError::BadArgs.into());
+        }
+        self.level.truncate(limit);
+        let extra = merkle_level(&hashes, self.depth_higher)?;
+        self.level.extend(extra);
+        self.length = length;
+        Ok(())
+    }
+
+    fn level_for<F>(
+        &self,
+        length: usize,
+        get_hashes: &mut F,
+    ) -> Result<Vec<Sha256d>>
+    where
+        F: FnMut(usize, usize) -> Result<Vec<Sha256d>>,
+    {
+        // When length is segment-aligned and equals the cache length, the
+        // cached mid-level is already complete.
+        if length == self.length && self.leaf_start(length) == length {
+            return Ok(self.level.clone());
+        }
+        let limit = length >> self.depth_higher;
+        if limit > self.level.len() {
+            return Err(MerkleTreeError::BadArgs.into());
+        }
+        let mut ret = self.level[..limit].to_vec();
+        let leaf_start = self.leaf_start(length);
+        let count =
+            self.segment_length().min(length.saturating_sub(leaf_start));
+        if count > 0 {
+            let hashes = Self::get_hashes(get_hashes, leaf_start, count)?;
+            ret.extend(merkle_level(&hashes, self.depth_higher)?);
+        }
+        Ok(ret)
+    }
+
+    /// Truncate the cache to at most `length` leaf hashes (e.g. after a reorg).
+    ///
+    /// The length is rounded down to a segment boundary so the cached mid-level
+    /// never retains a partial segment that may contain invalidated hashes.
+    /// Passing `0` clears the cache entirely.
+    pub fn truncate(&mut self, length: usize) {
+        if !self.initialized {
+            return;
+        }
+        if length == 0 {
+            *self = Self::new();
+            return;
+        }
+        if length >= self.length {
+            return;
+        }
+        // Drop any partial segment that intersects the truncated region.
+        let length = self.leaf_start(length);
+        if length == 0 {
+            *self = Self::new();
+            return;
+        }
+        let limit = length >> self.depth_higher;
+        self.level.truncate(limit);
+        self.length = length;
+    }
+
+    /// Return the merkle root of the first `length` block hashes and the branch
+    /// proving that the hash at `index` is included.
+    ///
+    /// `get_hashes(start, count)` must return exactly `count` leaf hashes
+    /// starting at height `start`. Only a small segment is requested after the
+    /// cache is warm.
+    pub fn merkle_root_and_branch<F>(
+        &mut self,
+        length: usize,
+        index: usize,
+        mut get_hashes: F,
+    ) -> Result<(Sha256d, Vec<Sha256d>)>
+    where
+        F: FnMut(usize, usize) -> Result<Vec<Sha256d>>,
+    {
+        if length == 0 || index >= length {
+            return Err(MerkleTreeError::BadArgs.into());
+        }
+
+        if !self.initialized {
+            let hashes = Self::get_hashes(&mut get_hashes, 0, length)?;
+            self.initialize_with_hashes(&hashes)?;
         } else {
-            Vec::new()
-        };
-
-        for i in (2 * out.len()..hashes.len()).step_by(2) {
-            out.push(hash_concatenated_bytes(&hashes[i], &hashes[i + 1]));
-        }
-        out
-    }
-
-    /// Return the merkle root for a sequence of hashes as well as the
-    /// branch of hashes verifying that the hash at the specified index
-    /// is part of that tree (deepest pairing first).
-    pub fn merkle_root_and_branch(
-        &mut self,
-        hashes: &[Sha256d],
-        mut index: usize,
-    ) -> (Sha256d, Vec<Sha256d>) {
-        assert!(index <= hashes.len());
-
-        let branch_len = calc_branch_len(hashes.len());
-        let mut branch = Vec::with_capacity(branch_len);
-
-        let mut working_hashes = hashes.to_vec();
-        let mut do_cache_last_hash = true;
-
-        for i in 0..branch_len {
-            if is_odd(working_hashes.len()) {
-                working_hashes.push(*working_hashes.last().unwrap());
-                do_cache_last_hash = false;
-            }
-
-            branch.push(working_hashes[index ^ 1]);
-            index >>= 1;
-
-            working_hashes =
-                self.hash_one_level(&working_hashes, i, !do_cache_last_hash);
-
-            let num_hashes_to_cache = if do_cache_last_hash {
-                working_hashes.len()
-            } else {
-                working_hashes.len() - 1
-            };
-
-            if i < self.levels.len() {
-                self.levels[i] = working_hashes[..num_hashes_to_cache].to_vec();
-            } else if num_hashes_to_cache > 0 {
-                self.levels
-                    .push(working_hashes[..num_hashes_to_cache].to_vec());
-            }
+            self.extend_to(length, &mut get_hashes)?;
         }
 
-        assert_eq!(working_hashes.len(), 1);
-        (working_hashes[0], branch)
-    }
-
-    /// Invalidate a block by height: prune all previously cached hashes that
-    /// are affected by this block or any higher block.
-    pub fn invalidate_block(&mut self, height: usize) {
-        let mut last_valid_index = height / 2;
-        for level in &mut self.levels {
-            *level = level.iter().cloned().take(last_valid_index).collect();
-            last_valid_index /= 2;
+        if length > self.length {
+            return Err(MerkleTreeError::BadArgs.into());
         }
+
+        let leaf_start = self.leaf_start(index);
+        let count = self.segment_length().min(length - leaf_start);
+        let leaf_hashes = Self::get_hashes(&mut get_hashes, leaf_start, count)?;
+
+        if length < self.segment_length() {
+            return branch_and_root(&leaf_hashes, index, None)
+                .map_err(Into::into);
+        }
+
+        let level = self.level_for(length, &mut get_hashes)?;
+        branch_and_root_from_level(
+            &level,
+            &leaf_hashes,
+            index,
+            self.depth_higher,
+        )
+        .map_err(Into::into)
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use abc_rust_error::Result;
     use bitcoinsuite_core::hash::{Hashed, Sha256d};
 
-    use crate::merkle::{calc_branch_len, MerkleTree};
+    use crate::merkle::{
+        calc_branch_len, merkle_root_and_branch, MerkleTree, MerkleTreeError,
+    };
 
     fn hex_to_sha256d(hex: &str) -> Sha256d {
         Sha256d::from_be_hex(hex).unwrap()
@@ -196,48 +409,40 @@ mod tests {
         roots.iter().map(|&hex| hex_to_sha256d(hex)).collect()
     }
 
+    fn make_getter(
+        hashes: &[Sha256d],
+    ) -> impl FnMut(usize, usize) -> Result<Vec<Sha256d>> + '_ {
+        move |start, count| Ok(hashes[start..start + count].to_vec())
+    }
+
     #[test]
     fn test_roots() {
         let blockhashes = get_blockchain_hashes();
         let roots = get_merkle_roots();
         assert_eq!(blockhashes.len(), roots.len());
-        let mut merkle_tree_cached = MerkleTree::new();
         for i in 0..blockhashes.len() {
-            let (root_with_cache, _branch_with_cache) = merkle_tree_cached
-                .merkle_root_and_branch(&blockhashes[..=i], 0);
-            assert_eq!(root_with_cache, roots[i]);
-
-            // Same computation with a fresh merkle tree (without cached hashes
-            // from previous iterations)
-            let mut fresh_merkle_tree = MerkleTree::new();
-            let (root_without_cache, _) =
-                fresh_merkle_tree.merkle_root_and_branch(&blockhashes[..=i], 0);
-            assert_eq!(root_without_cache, roots[i]);
+            let (root, _) = merkle_root_and_branch(&blockhashes[..=i], 0);
+            assert_eq!(root, roots[i]);
         }
     }
 
     #[test]
     fn test_branches() {
         let blockhashes = get_blockchain_hashes();
-        let mut merkle_tree_cached = MerkleTree::new();
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=0], 0);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=0], 0);
         let expected_branch: Vec<Sha256d> = Vec::new();
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=1], 0);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=1], 0);
         assert_eq!(branch.len(), 1);
         assert_eq!(branch[0], blockhashes[1]);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=1], 1);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=1], 1);
         assert_eq!(branch.len(), 1);
         assert_eq!(branch[0], blockhashes[0]);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=2], 0);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=2], 0);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[1],
             hex_to_sha256d("66e512a6e02cea83ac65cbdd907a2731e778b96b71839ff7\
@@ -245,8 +450,7 @@ mod tests {
         ];
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=2], 1);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=2], 1);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[0],
             hex_to_sha256d("66e512a6e02cea83ac65cbdd907a2731e778b96b71839ff7\
@@ -254,8 +458,7 @@ mod tests {
         ];
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=2], 2);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=2], 2);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[2],
             hex_to_sha256d("abdc2227d02d114b77be15085c1257709252a7a103f9ac0a\
@@ -263,8 +466,7 @@ mod tests {
         ];
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=15], 7);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=15], 7);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[6],
             hex_to_sha256d("f9f17a3c6d02b0920eccb11156df370bf4117fae2233dfee\
@@ -276,8 +478,7 @@ mod tests {
         ];
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=15], 10);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=15], 10);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[11],
             hex_to_sha256d("cd5d21a5bc8ad65c8dc862bd9e6ec38f914ee6499d7e0ad2\
@@ -289,8 +490,7 @@ mod tests {
         ];
         assert_eq!(branch, expected_branch);
 
-        let (_, branch) =
-            merkle_tree_cached.merkle_root_and_branch(&blockhashes[..=15], 15);
+        let (_, branch) = merkle_root_and_branch(&blockhashes[..=15], 15);
         let expected_branch: Vec<Sha256d> = vec![
             blockhashes[14],
             hex_to_sha256d("e55021736ef89c3787e2729058a76a3cf6decf561b856c57\
@@ -304,88 +504,189 @@ mod tests {
     }
 
     #[test]
-    fn test_cache_levels() {
+    fn test_cached_matches_uncached() -> Result<()> {
         let blockhashes = get_blockchain_hashes();
-        let mut merkle_tree = MerkleTree::new();
-        for i in 1..blockhashes.len() {
-            let (_, _) =
-                merkle_tree.merkle_root_and_branch(&blockhashes[..=i], 0);
+        let roots = get_merkle_roots();
+        let mut cache = MerkleTree::new();
 
-            let num_block_hashes = i + 1;
-            let expected_num_levels = num_block_hashes.ilog2() as usize;
-            assert_eq!(merkle_tree.levels.len(), expected_num_levels);
-
-            let mut expected_num_hashes = num_block_hashes;
-            for j in 0..expected_num_levels {
-                expected_num_hashes = expected_num_hashes / 2;
-                assert_eq!(merkle_tree.levels[j].len(), expected_num_hashes);
+        for i in 0..blockhashes.len() {
+            let length = i + 1;
+            for index in 0..length {
+                let (root, branch) = cache.merkle_root_and_branch(
+                    length,
+                    index,
+                    make_getter(&blockhashes),
+                )?;
+                let (expected_root, expected_branch) =
+                    merkle_root_and_branch(&blockhashes[..length], index);
+                assert_eq!(root, expected_root);
+                assert_eq!(branch, expected_branch);
+                if index == 0 {
+                    assert_eq!(root, roots[i]);
+                }
             }
         }
+        Ok(())
+    }
 
-        // We cached results up to 17 blocks (block height #16)
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 8);
-        assert_eq!(merkle_tree.levels[1].len(), 4);
-        assert_eq!(merkle_tree.levels[2].len(), 2);
-        assert_eq!(merkle_tree.levels[3].len(), 1);
+    #[test]
+    fn test_cache_fetches_only_segment_when_warm() -> Result<()> {
+        let blockhashes = get_blockchain_hashes();
+        let mut cache = MerkleTree::new();
+        // Warm the cache for all hashes.
+        cache.merkle_root_and_branch(
+            blockhashes.len(),
+            0,
+            make_getter(&blockhashes),
+        )?;
 
-        // Invalidate the 17th block: no change in the cached tree as this odd
-        // block index was not contributing to the cached hashes
-        merkle_tree.invalidate_block(16);
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 8);
-        assert_eq!(merkle_tree.levels[1].len(), 4);
-        assert_eq!(merkle_tree.levels[2].len(), 2);
-        assert_eq!(merkle_tree.levels[3].len(), 1);
+        let mut max_count = 0usize;
+        let mut total_fetched = 0usize;
+        cache.merkle_root_and_branch(
+            blockhashes.len(),
+            7,
+            |start, count| {
+                assert!(start + count <= blockhashes.len());
+                max_count = max_count.max(count);
+                total_fetched += count;
+                Ok(blockhashes[start..start + count].to_vec())
+            },
+        )?;
+        // After warm-up, a proof should only pull one mid-level segment.
+        assert!(max_count < blockhashes.len());
+        assert!(total_fetched < blockhashes.len());
+        Ok(())
+    }
 
-        // Invalidate the 16th block
-        merkle_tree.invalidate_block(15);
-        // Note that we don't remove empty levels
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 7);
-        assert_eq!(merkle_tree.levels[1].len(), 3);
-        assert_eq!(merkle_tree.levels[2].len(), 1);
-        assert_eq!(merkle_tree.levels[3].len(), 0);
+    #[test]
+    fn test_truncate() -> Result<()> {
+        let blockhashes = get_blockchain_hashes();
+        let mut cache = MerkleTree::new();
+        cache.merkle_root_and_branch(
+            blockhashes.len(),
+            0,
+            make_getter(&blockhashes),
+        )?;
+        assert!(cache.is_initialized());
+        assert_eq!(cache.length(), blockhashes.len());
 
-        // Invalidate the 15th block: same result, as this odd block was not
-        // contributing to the cached hashes
-        merkle_tree.invalidate_block(14);
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 7);
-        assert_eq!(merkle_tree.levels[1].len(), 3);
-        assert_eq!(merkle_tree.levels[2].len(), 1);
-        assert_eq!(merkle_tree.levels[3].len(), 0);
+        cache.truncate(8);
+        assert!(cache.is_initialized());
+        assert_eq!(cache.length(), 8);
 
-        // Invalidate the 10th block
-        merkle_tree.invalidate_block(9);
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 4);
-        assert_eq!(merkle_tree.levels[1].len(), 2);
-        assert_eq!(merkle_tree.levels[2].len(), 1);
-        assert_eq!(merkle_tree.levels[3].len(), 0);
-
-        // Invalidate the 3rd block
-        merkle_tree.invalidate_block(2);
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[0].len(), 1);
-        assert_eq!(merkle_tree.levels[1].len(), 0);
-        assert_eq!(merkle_tree.levels[2].len(), 0);
-        assert_eq!(merkle_tree.levels[3].len(), 0);
-
-        // The remaining cached hash happens to be the merkle root for the
-        // first two blocks.
-        let expected_root = merkle_tree.levels[0][0];
-        let (root, _) =
-            merkle_tree.merkle_root_and_branch(&blockhashes[..=1], 0);
+        let (root, branch) =
+            cache.merkle_root_and_branch(8, 3, make_getter(&blockhashes))?;
+        let (expected_root, expected_branch) =
+            merkle_root_and_branch(&blockhashes[..8], 3);
         assert_eq!(root, expected_root);
+        assert_eq!(branch, expected_branch);
 
-        // For any power-of-2 number of blocks, the root is the lone hash in
-        // the top lovel.
-        let (root, _) =
-            merkle_tree.merkle_root_and_branch(&blockhashes[..=15], 0);
-        assert_eq!(merkle_tree.levels.len(), 4);
-        assert_eq!(merkle_tree.levels[3].len(), 1);
-        assert_eq!(root, merkle_tree.levels[3][0])
+        cache.truncate(0);
+        assert!(!cache.is_initialized());
+        assert_eq!(cache.length(), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn test_functional_sequence() -> Result<()> {
+        // Mirrors chronik_block_header.py: grow cache tip-first, then query
+        // shorter checkpoints (including lengths aligned to the segment size).
+        let blockhashes = get_blockchain_hashes();
+        let mut cache = MerkleTree::new();
+        for i in 1..11 {
+            let length = i + 1;
+            let index = i;
+            let (root, branch) = cache.merkle_root_and_branch(
+                length,
+                index,
+                make_getter(&blockhashes),
+            )?;
+            let (expected_root, expected_branch) =
+                merkle_root_and_branch(&blockhashes[..length], index);
+            assert_eq!(
+                (root, branch),
+                (expected_root, expected_branch),
+                "grow i={i}"
+            );
+        }
+        for checkpoint_height in 1..11 {
+            let length = checkpoint_height + 1;
+            for block_height in 0..length {
+                let (root, branch) = cache.merkle_root_and_branch(
+                    length,
+                    block_height,
+                    make_getter(&blockhashes),
+                )?;
+                let (expected_root, expected_branch) = merkle_root_and_branch(
+                    &blockhashes[..length],
+                    block_height,
+                );
+                assert_eq!(
+                    (root, branch),
+                    (expected_root, expected_branch),
+                    "cp={checkpoint_height} h={block_height}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_truncate_then_extend_after_reorg() -> Result<()> {
+        let mut blockhashes = get_blockchain_hashes();
+        let mut cache = MerkleTree::new();
+        cache.merkle_root_and_branch(
+            blockhashes.len(),
+            0,
+            make_getter(&blockhashes),
+        )?;
+
+        // Invalidate from height 5 upward (same idea as
+        // chronik_block_header.py).
+        cache.truncate(5);
+        // Replace the tip and grow a new fork.
+        blockhashes.truncate(5);
+        blockhashes.push(hex_to_sha256d(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        ));
+        for _ in 0..10 {
+            let n = blockhashes.len() as u8;
+            blockhashes.push(Sha256d([n; 32]));
+        }
+
+        for checkpoint_height in 1..blockhashes.len() {
+            let length = checkpoint_height + 1;
+            for block_height in 0..length {
+                let (root, branch) = cache.merkle_root_and_branch(
+                    length,
+                    block_height,
+                    make_getter(&blockhashes),
+                )?;
+                let (expected_root, expected_branch) = merkle_root_and_branch(
+                    &blockhashes[..length],
+                    block_height,
+                );
+                assert_eq!(
+                    (root, branch),
+                    (expected_root, expected_branch),
+                    "cp={checkpoint_height} h={block_height}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_bad_args() {
+        let mut cache = MerkleTree::new();
+        let hashes = get_blockchain_hashes();
+        let err = cache
+            .merkle_root_and_branch(0, 0, make_getter(&hashes))
+            .unwrap_err();
+        assert_eq!(
+            err.downcast_ref::<MerkleTreeError>(),
+            Some(&MerkleTreeError::BadArgs)
+        );
     }
 
     #[test]

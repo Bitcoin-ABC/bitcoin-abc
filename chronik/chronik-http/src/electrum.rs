@@ -26,7 +26,7 @@ use chronik_bridge::ffi;
 use chronik_db::group::GroupMember;
 use chronik_indexer::{
     indexer::ChronikIndexer,
-    merkle::MerkleTree,
+    merkle::merkle_root_and_branch,
     query::{QueryBlockError, QueryBlocks, MAX_HISTORY_PAGE_SIZE},
     subs::BlockMsgType,
     subs_group::TxMsgType,
@@ -2359,9 +2359,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
             .position(|&id| id == Sha256d(txid.to_bytes()))
             .ok_or(RPCError::InternalError)?;
 
-        let mut merkle_tree = MerkleTree::new();
-        let (_root, branch) =
-            merkle_tree.merkle_root_and_branch(&txids, index_in_block);
+        let (_root, branch) = merkle_root_and_branch(&txids, index_in_block);
         let branch: Vec<String> = branch
             .iter()
             .map(|h| hex::encode(h.to_be_bytes()))
@@ -2422,9 +2420,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         }
 
         if merkle {
-            let mut merkle_tree = MerkleTree::new();
-            let (_root, branch) =
-                merkle_tree.merkle_root_and_branch(&txids, tx_pos);
+            let (_root, branch) = merkle_root_and_branch(&txids, tx_pos);
             let branch: Vec<String> = branch
                 .iter()
                 .map(|h| hex::encode(h.to_be_bytes()))
