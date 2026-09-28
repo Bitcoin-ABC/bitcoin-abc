@@ -158,18 +158,6 @@ def decode_OID(s):
     return ".".join(map(str, r))
 
 
-def encode_OID(oid):
-    x = [int(i) for i in oid.split(".")]
-    s = chr(x[0] * 40 + x[1])
-    for i in x[2:]:
-        ss = chr(i % 128)
-        while i > 128:
-            i //= 128
-            ss = chr(128 + i % 128) + ss
-        s += ss
-    return s
-
-
 class ASN1Node(bytes):
     def get_node(self, ix):
         # return index of first byte, first content byte and last byte.
@@ -197,11 +185,6 @@ class ASN1Node(bytes):
         if self[ixs] & 0x20 != 0x20:
             raise TypeError("Can only open constructed types.", hex(self[ixs]))
         return self.get_node(ixf)
-
-    def is_child_of(node1, node2):
-        ixs, ixf, ixl = node1
-        jxs, jxf, jxl = node2
-        return ((ixf <= jxs) and (jxl <= ixl)) or ((jxf <= ixs) and (ixl <= jxl))
 
     def get_all(self, node):
         # return type + length + value
