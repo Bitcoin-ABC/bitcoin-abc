@@ -242,7 +242,7 @@ static int write_record_aaaa(uint8_t **outpos, const uint8_t *outend,
     if (ret) {
         return ret;
     }
-    if (outend - *outpos < 6) {
+    if (outend - *outpos < 18) {
         error = -5;
         goto error;
     }
