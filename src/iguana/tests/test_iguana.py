@@ -10,6 +10,7 @@ from test_framework.hash import hash160
 from test_framework.key import ECKey
 from test_framework.messages import COutPoint, CTransaction, CTxIn
 from test_framework.script import (
+    OP_1,
     OP_2DUP,
     OP_ADD,
     OP_CHECKSIG,
@@ -18,6 +19,7 @@ from test_framework.script import (
     OP_DUP,
     OP_EQUAL,
     OP_HASH160,
+    OP_IF,
     OP_NOP,
     OP_NOT,
     OP_TOALTSTACK,
@@ -279,6 +281,56 @@ OP  0: 0x01 31
        Stack (1 item):
          0: 31
 OP  0: OP_EQUAL
+"""
+    )
+
+
+def test_script_pub_key_unbalanced_conditional():
+    tx = CTransaction()
+    tx.vin = [CTxIn(COutPoint(), CScript())]
+    script_pub_key = CScript([OP_1, OP_IF, OP_1])
+    stdout = iguana(
+        "-tx=" + tx.serialize().hex(),
+        "-inputindex=0",
+        "-scriptpubkey=" + script_pub_key.hex(),
+        "-value=0",
+        expected_stderr="scriptPubKey failed execution: Invalid OP_IF construction\n",
+    )
+    assert (
+        stdout
+        == """\
+======= scriptSig =======
+       Stack (0 items): (empty stack)
+======= scriptPubKey =======
+       Stack (0 items): (empty stack)
+OP  0: OP_1
+       Stack (1 item):
+         0: 01
+OP  1: OP_IF
+       Stack (0 items): (empty stack)
+OP  2: OP_1
+"""
+    )
+
+
+def test_script_pub_key_too_big():
+    tx = CTransaction()
+    tx.vin = [CTxIn(COutPoint(), CScript())]
+    script_pub_key = CScript([OP_NOP] * 10001)
+    stdout = iguana(
+        "-tx=" + tx.serialize().hex(),
+        "-inputindex=0",
+        "-scriptpubkey=" + script_pub_key.hex(),
+        "-value=0",
+        expected_stderr="scriptPubKey failed execution: Script is too big\n",
+    )
+    assert (
+        stdout
+        == """\
+======= scriptSig =======
+       Stack (0 items): (empty stack)
+======= scriptPubKey =======
+       Stack (0 items): (empty stack)
 """
     )
 

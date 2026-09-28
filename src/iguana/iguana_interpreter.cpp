@@ -101,6 +101,12 @@ IguanaTrace IguanaInterpreter::RunScript(ScriptInterpreter &interpreter,
     trace.scriptError = ScriptError::UNKNOWN;
     trace.initialStacks.stack = interpreter.GetStack();
     trace.initialStacks.altstack = interpreter.GetAltStack();
+
+    if (!interpreter.CheckPreConditions()) {
+        trace.scriptError = interpreter.GetScriptError();
+        return trace;
+    }
+
     try {
         while (!interpreter.IsAtEnd()) {
             IguanaTraceEntry nextEntry;
@@ -130,6 +136,12 @@ IguanaTrace IguanaInterpreter::RunScript(ScriptInterpreter &interpreter,
         trace.errorMsg = strprintf("Exception: %s", ex.what());
         return trace;
     }
+
+    if (!interpreter.CheckPostConditions()) {
+        trace.scriptError = interpreter.GetScriptError();
+        return trace;
+    }
+
     trace.scriptError = ScriptError::OK;
     return trace;
 }
