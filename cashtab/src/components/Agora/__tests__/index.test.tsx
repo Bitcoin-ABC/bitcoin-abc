@@ -592,9 +592,9 @@ describe('<Agora />', () => {
         await userEvent.click(
             screen.getByRole('link', { name: /icon for.*Staked XEC.*XECX/ }),
         );
-        // Because this offer was created by this wallet, we have the option to cancel it
+        // Official minter listing — buyers see Buy (not Cancel)
         expect(
-            await screen.findByRole('button', { name: 'Cancel your offer' }),
+            await screen.findByRole('button', { name: 'Buy XECX' }),
         ).toBeInTheDocument();
     });
 

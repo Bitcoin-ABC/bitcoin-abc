@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { FEE_SATS_PER_KB_CASHTAB_LEGACY } from 'constants/transactions';
+import { XECX_MINTER_PK_HEX } from 'constants/tokens';
 import { fromHex, Script } from 'ecash-lib';
 import { AgoraPartial, AgoraOffer, AgoraOneshot } from 'ecash-agora';
 import CashtabCache, { CashtabCachedTokenInfo } from 'config/CashtabCache';
@@ -458,7 +459,7 @@ export const agoraOfferCachetAlphaUnacceptable = new AgoraOffer({
     },
 });
 
-// XECX candle created by Agora Partial Alpha
+// XECX candle from the official minter (any price is buyable in Cashtab).
 // Copied from real offer, min accept 96k XECX, lots of partial accepts already in
 const agoraPartialXecxAlphaOne = new AgoraPartial({
     dustSats: 546n,
@@ -473,7 +474,7 @@ const agoraPartialXecxAlphaOne = new AgoraPartial({
     atomsScaleFactor: 5n,
     tokenType: 0,
     truncAtoms: 175289017n,
-    makerPk: fromHex(agoraPartialAlphaWallet.pk),
+    makerPk: fromHex(XECX_MINTER_PK_HEX),
 });
 export const agoraOfferXecxAlphaOne = new AgoraOffer({
     outpoint: {

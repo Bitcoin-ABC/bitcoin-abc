@@ -234,6 +234,13 @@ export const FIRMA_MINTER_PK_HEX =
     '03fba49912622cf8bb5b3729b1b5da3e72c6b57d369c8647f6cc7c6cbed510d105';
 
 /**
+ * XECX genesis / minter pubkey (ecash:qzd5s72xhgjvr4sjfzafjt3a2vcstn4pfvs4c84egx).
+ * Order book only lists this maker or the active wallet.
+ */
+export const XECX_MINTER_PK_HEX =
+    '03e4d137b0fd6d8cfbb6aeb1d83c6cb33b19143e7faeacc1d79cf6f052dc56f650';
+
+/**
  * Tokens that may resolve Patron usernames on send.
  * XEC and every other token stay address / contact only.
  */

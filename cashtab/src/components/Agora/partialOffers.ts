@@ -12,7 +12,11 @@
 import { toHex } from 'ecash-lib';
 import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import appConfig from 'config/app';
-import { FIRMA, FIRMA_MINTER_PK_HEX } from 'constants/tokens';
+import {
+    FIRMA,
+    FIRMA_MINTER_PK_HEX,
+    XECX_MINTER_PK_HEX,
+} from 'constants/tokens';
 
 export interface PartialOffer extends AgoraOffer {
     variant: {
@@ -88,12 +92,13 @@ export const prepareBuyableOffers = (
         }
 
         const askedSats = activeOffer.askedSats(maxOfferTokens);
-        // XECX: only show 1:1 spot offers to buyers; makers still see their
-        // own off-peg listings (cancel path).
+        const makerPkHex = toHex(activeOffer.variant.params.makerPk);
+        // XECX: buyers only see the official minter's offers (any price);
+        // makers still see their own (cancel path).
         if (
             tokenId === appConfig.vipTokens.xecx.tokenId &&
             !isMakerThisOffer &&
-            askedSats !== maxOfferTokens
+            makerPkHex !== XECX_MINTER_PK_HEX
         ) {
             continue;
         }
@@ -102,7 +107,7 @@ export const prepareBuyableOffers = (
         if (
             tokenId === FIRMA.tokenId &&
             !isMakerThisOffer &&
-            toHex(activeOffer.variant.params.makerPk) !== FIRMA_MINTER_PK_HEX
+            makerPkHex !== FIRMA_MINTER_PK_HEX
         ) {
             continue;
         }

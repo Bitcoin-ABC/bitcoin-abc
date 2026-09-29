@@ -2,7 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { toHex } from 'ecash-lib';
+import { fromHex, toHex } from 'ecash-lib';
+import { AgoraOffer, AgoraPartial } from 'ecash-agora';
 import {
     findFillableOfferIndex,
     prepareBuyableOffers,
@@ -13,17 +14,70 @@ import {
     agoraOfferCachetAlphaTwo,
     agoraOfferCachetAlphaUnacceptable,
     agoraOfferCachetUnaffordable,
+    agoraOfferXecxAlphaOne,
     agoraPartialAlphaWallet,
     agoraPartialBetaMoreBalanceWallet,
 } from 'components/Agora/fixtures/mocks';
+import appConfig from 'config/app';
 
 const CACHET_TOKEN_ID =
     'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
 
+const XECX_TOKEN_ID = appConfig.vipTokens.xecx.tokenId;
+
+/** Third-party XECX listing (not the official minter). */
+const agoraPartialXecxThirdParty = new AgoraPartial({
+    dustSats: 546n,
+    enforcedLockTime: 1385162239,
+    minAcceptedScaledTruncAtoms: 1875000n,
+    numSatsTruncBytes: 1,
+    numAtomsTruncBytes: 1,
+    scaledTruncAtomsPerTruncSat: 5n,
+    scriptLen: 194,
+    tokenId: XECX_TOKEN_ID,
+    tokenProtocol: 'ALP',
+    atomsScaleFactor: 5n,
+    tokenType: 0,
+    truncAtoms: 175289017n,
+    makerPk: fromHex(agoraPartialAlphaWallet.pk),
+});
+const agoraOfferXecxThirdParty = new AgoraOffer({
+    outpoint: {
+        txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outIdx: 2,
+    },
+    status: 'OPEN',
+    token: {
+        atoms: 44873988352n,
+        isMintBaton: false,
+        tokenId: XECX_TOKEN_ID,
+        tokenType: {
+            number: 0,
+            protocol: 'ALP',
+            type: 'ALP_TOKEN_TYPE_STANDARD',
+        },
+    },
+    txBuilderInput: {
+        prevOut: {
+            outIdx: 2,
+            txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        },
+        signData: {
+            redeemScript: agoraPartialXecxThirdParty.script(),
+            sats: 546n,
+        },
+    },
+    variant: {
+        type: 'PARTIAL',
+        params: agoraPartialXecxThirdParty,
+    },
+});
+
 describe('prepareBuyableOffers', () => {
     it('sorts by spot price ascending and marks unaffordable offers', () => {
-        const walletPkHex = toHex(agoraPartialAlphaWallet.pk);
-        // Alpha wallet cannot afford the unaffordable offer's min
+        // Offers are made by alpha; view as beta with alpha's low balance so
+        // the unaffordable min is out of reach for a non-maker buyer.
+        const walletPkHex = agoraPartialBetaMoreBalanceWallet.pk;
         const prepared = prepareBuyableOffers(
             [agoraOfferCachetUnaffordable, agoraOfferCachetAffordable],
             CACHET_TOKEN_ID,
@@ -50,7 +104,7 @@ describe('prepareBuyableOffers', () => {
     });
 
     it('drops unacceptable offers that are not from the active wallet', () => {
-        const walletPkHex = toHex(agoraPartialBetaMoreBalanceWallet.pk);
+        const walletPkHex = agoraPartialBetaMoreBalanceWallet.pk;
         const prepared = prepareBuyableOffers(
             [agoraOfferCachetAlphaUnacceptable, agoraOfferCachetAlphaOne],
             CACHET_TOKEN_ID,
@@ -84,11 +138,50 @@ describe('prepareBuyableOffers', () => {
         expect(prepared.length).toBe(1);
         expect(prepared[0].isUnacceptable).toBe(true);
     });
+
+    it('keeps official XECX minter offers for buyers', () => {
+        const prepared = prepareBuyableOffers(
+            [agoraOfferXecxAlphaOne],
+            XECX_TOKEN_ID,
+            Number(agoraPartialBetaMoreBalanceWallet.state.balanceSats),
+            agoraPartialBetaMoreBalanceWallet.pk,
+        );
+        expect(prepared.length).toBe(1);
+        expect(prepared[0].outpoint.txid).toBe(
+            agoraOfferXecxAlphaOne.outpoint.txid,
+        );
+    });
+
+    it('drops third-party XECX offers for buyers', () => {
+        const prepared = prepareBuyableOffers(
+            [agoraOfferXecxThirdParty, agoraOfferXecxAlphaOne],
+            XECX_TOKEN_ID,
+            Number(agoraPartialBetaMoreBalanceWallet.state.balanceSats),
+            agoraPartialBetaMoreBalanceWallet.pk,
+        );
+        expect(prepared.length).toBe(1);
+        expect(prepared[0].outpoint.txid).toBe(
+            agoraOfferXecxAlphaOne.outpoint.txid,
+        );
+    });
+
+    it('keeps the active wallet own XECX listing even when not the minter', () => {
+        const prepared = prepareBuyableOffers(
+            [agoraOfferXecxThirdParty],
+            XECX_TOKEN_ID,
+            Number(agoraPartialAlphaWallet.state.balanceSats),
+            agoraPartialAlphaWallet.pk,
+        );
+        expect(prepared.length).toBe(1);
+        expect(prepared[0].outpoint.txid).toBe(
+            agoraOfferXecxThirdParty.outpoint.txid,
+        );
+    });
 });
 
 describe('findFillableOfferIndex', () => {
     it('selects a later offer when the cheapest cannot fill the quantity', () => {
-        const walletPkHex = toHex(agoraPartialBetaMoreBalanceWallet.pk);
+        const walletPkHex = agoraPartialBetaMoreBalanceWallet.pk;
         const prepared = prepareBuyableOffers(
             [agoraOfferCachetAffordable, agoraOfferCachetAlphaTwo],
             CACHET_TOKEN_ID,
