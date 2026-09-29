@@ -18,14 +18,21 @@ pnpm add ecash-price
 ### Basic Setup
 
 ```typescript
-import { XECPrice, ProviderStrategy, Fiat, CryptoTicker } from 'ecash-price';
-import { CoinGeckoProvider } from 'ecash-price/providers/coingecko';
+import {
+    XECPrice,
+    Fiat,
+    CryptoTicker,
+    CoinGeckoProvider,
+    CoinMarketCapProvider,
+} from 'ecash-price';
 
 const api = new XECPrice([
     new CoinGeckoProvider({
         // Optional for free tier
         apiKey: 'your-api-key',
     }),
+    // Optional fallback (keyless Public API by default; pass apiKey for Pro)
+    new CoinMarketCapProvider(),
 ]);
 
 // Fetch the current XEC price in USD
@@ -199,3 +206,7 @@ Provider-specific configuration is passed to each provider's constructor, allowi
 ### Fallback Strategies
 
 - `FALLBACK` (default): Try providers in order, use the first successful response
+
+## Changelog
+
+- 1.1.0 - Add `CoinMarketCapProvider` (optional API key; keyless Public API by default) [D20727](https://reviews.bitcoinabc.org/D20727)
