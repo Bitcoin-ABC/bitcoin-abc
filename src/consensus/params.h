@@ -66,6 +66,8 @@ struct Params {
      * upgrade
      */
     int mengerActivationTime;
+    /** Unix time used for MTP activation of 15 May 2027 12:00:00 UTC upgrade */
+    int sandersActivationTime;
 
     /** Enable or disable the miner fund by default */
     bool enableMinerFund;
