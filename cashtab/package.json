@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "5.29.2",
+    "version": "5.29.3",
     "private": true,
     "type": "module",
     "scripts": {

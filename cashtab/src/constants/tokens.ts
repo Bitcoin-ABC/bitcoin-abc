@@ -31,10 +31,10 @@ export const FIRMA_REDEEM_ADDRESS =
 export const FIRMA_APY_API_URL = 'https://stakedxec.com/api/firma-apy';
 
 /**
- * Firma-mint Agora autobuy price (XEC per FIRMA): CoinEx XECUSDT last *
- * (1 - spreadPct). Cashtab lists FIRMA→XEC redeems at this bid.
+ * Firma Agora autobuy price (XEC per FIRMA) from dex.firmaprotocol.com.
+ * Cashtab lists FIRMA→XEC redeems at this bid.
  */
-export const FIRMA_BID_API_URL = 'https://stakedxec.com/api/bid';
+export const FIRMA_BID_API_URL = 'https://dex.firmaprotocol.com/api/v1/bid';
 
 /**
  * XECX APY from stakedXec.com (same source as the marketing site hero).
