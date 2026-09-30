@@ -399,14 +399,13 @@ impl<'a> QueryBlocks<'a> {
             let mut block_merkle_tree = self.block_merkle_tree.lock().await;
             let (root_hash, branch_hashes) = block_merkle_tree
                 .merkle_root_and_branch(length, index, |start, count| {
-                    let mut hashes = Vec::with_capacity(count);
-                    for height in start..start + count {
-                        let block = block_reader
-                            .by_height(height as BlockHeight)?
-                            .ok_or(BlockNotFound(height.to_string()))?;
-                        hashes.push(Sha256d(block.hash.to_bytes()));
+                    let hashes = block_reader
+                        .hashes_by_range(start as BlockHeight, count)?;
+                    if hashes.len() != count {
+                        let missing = start + hashes.len();
+                        return Err(BlockNotFound(missing.to_string()).into());
                     }
-                    Ok(hashes)
+                    Ok(hashes.into_iter().map(Sha256d).collect())
                 })?;
             root = root_hash.to_le_bytes().to_vec();
             branch = branch_hashes

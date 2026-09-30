@@ -272,6 +272,40 @@ impl<'a> BlockReader<'a> {
         }))
     }
 
+    /// Block hashes for a contiguous height range, starting at `start_height`.
+    ///
+    /// Returns at most `count` hashes. If a height is missing before `count` is
+    /// reached (gap or past tip), the result is truncated at the first gap.
+    pub fn hashes_by_range(
+        &self,
+        start_height: BlockHeight,
+        count: usize,
+    ) -> Result<Vec<[u8; 32]>> {
+        if count == 0 || start_height < 0 {
+            return Ok(Vec::new());
+        }
+        let mut hashes = Vec::with_capacity(count);
+        let mut expected = start_height;
+        for result in self.col.db.iterator(
+            self.col.cf_blk,
+            &bh_to_bytes(start_height),
+            rocksdb::Direction::Forward,
+        ) {
+            let (height_bytes, block_data) = result?;
+            let height = bytes_to_bh(&height_bytes)?;
+            if height != expected {
+                break;
+            }
+            let block_data = db_deserialize::<SerBlock>(&block_data)?;
+            hashes.push(block_data.hash);
+            if hashes.len() >= count {
+                break;
+            }
+            expected += 1;
+        }
+        Ok(hashes)
+    }
+
     /// [`DbBlock`] by hash.
     pub fn by_hash(&self, hash: &BlockHash) -> Result<Option<DbBlock>> {
         let hash = hash.to_bytes();
