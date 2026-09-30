@@ -168,7 +168,7 @@ impl Delegation {
         let mut current_pubkey = *self.formatted_proof_master.public_key();
 
         // Use reduce_levels with a closure for verification
-        let _final_hash = match Self::reduce_levels(
+        match Self::reduce_levels(
             &initial_hash,
             &self.levels,
             |level, new_hash| {
@@ -202,9 +202,7 @@ impl Delegation {
             Err(_) => Some(
                 "Delegation validation failed: Invalid signature".to_string(),
             ),
-        };
-
-        None
+        }
     }
 
     /// Serialize the delegation to bytes.
@@ -618,5 +616,53 @@ mod tests {
             "Reserialized delegation verification failed: {:?}",
             reserialized_verification
         );
+    }
+
+    #[test]
+    fn test_verify_rejects_invalid_signatures() {
+        use super::{Delegation, DelegationLevel, LimitedProofId};
+        use crate::delegationbuilder::DelegationBuilder;
+
+        let limited_proof_id = LimitedProofId::from_array([1u8; 32]);
+        let master_secret_bytes = hex::decode(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
+        )
+        .unwrap();
+        let master_public_bytes = hex::decode(
+            "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
+        ).unwrap();
+        let delegated_public_bytes = hex::decode(
+            "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645c\
+            d85228a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a"
+        ).unwrap();
+
+        let mut builder = DelegationBuilder::new(
+            limited_proof_id.clone(),
+            &master_public_bytes,
+        )
+        .unwrap();
+        builder
+            .add_level(&master_secret_bytes, &delegated_public_bytes)
+            .unwrap();
+        let valid = builder.build().unwrap();
+        assert!(valid.verify().is_none());
+
+        let level = &valid.delegation_levels()[0];
+
+        // Corrupted signature must fail verification.
+        let mut corrupted_sig = level.signature().to_bytes();
+        corrupted_sig[0] ^= 0xff;
+        let corrupted = Delegation::new(
+            &limited_proof_id,
+            &master_public_bytes,
+            vec![DelegationLevel::new(&level.pubkey_bytes(), &corrupted_sig)
+                .unwrap()],
+        )
+        .unwrap();
+        let corrupted_result = corrupted.verify();
+        assert!(corrupted_result.is_some());
+        assert!(corrupted_result
+            .unwrap()
+            .contains("Delegation validation failed: Invalid signature"));
     }
 }

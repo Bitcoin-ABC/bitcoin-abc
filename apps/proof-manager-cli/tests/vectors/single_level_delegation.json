@@ -1,11 +1,11 @@
 {
     "delegation": {
-        "limitedid": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-        "master": "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+        "limitedid": "f2728ff26a3afdce76585f2388b74fc61d3bb8383b8fa0d82dcb13d975edaa7f",
+        "master": "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744",
         "levels": [
             {
                 "pubkey": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-                "signature": "mHZUMhCYdlQyEJh2VDIQmHZUMhCYdlQyEJh2VDIQmHZUMhCYdlQyEJh2VDIQmHZUMhCYdlQyEJh2VDIQmHZUMg=="
+                "signature": "Tnmh7N1sWd/3gRAuFRfVjXE83jQMV7zhUferOv7/gBUwtdUyp+f4NOIQw9eCQj41pX1QOVJ5xIw/6vM4KpEeIw=="
             }
         ]
     }
