@@ -54,8 +54,6 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTU_DIST} main restricted universe multiverse
         libssl-dev=1.1.1f-1ubuntu2.24 \
         gcc-9=9.4.0-1ubuntu1~20.04.2 \
         g++=4:9.3.0-1ubuntu2 \
-        rustc=1.75.0+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
-        cargo=1.75.0+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
         desktop-file-utils=0.24-1ubuntu3 \
         && \
     ln -sf /usr/bin/x86_64-linux-gnu-gcc-9 /usr/bin/gcc && \

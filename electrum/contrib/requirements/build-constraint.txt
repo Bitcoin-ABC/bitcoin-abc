@@ -1,4 +1,2 @@
-# maturin 1.10+ requires a newer rust version than is available in our Ubuntu 20.04 AppImage builder
-maturin<1.10
 # setuptools 82 removed the pkg_resources module, but protobuf 3.20.3 needs it
 setuptools<82
