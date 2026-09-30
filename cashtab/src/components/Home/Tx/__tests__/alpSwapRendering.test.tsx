@@ -54,7 +54,7 @@ describe('<Tx /> AlpSwap settle rendering', () => {
         expect(screen.getByTitle('swap')).toBeInTheDocument();
         expect(
             screen.getByText(
-                'Swapped 1.0000 BUTTER → .98 Guns · Fee 0.0109 BUTTER',
+                'Swapped 1.0000 BUTTER → 0.98 Guns · Fee 0.0109 BUTTER',
             ),
         ).toBeInTheDocument();
         expect(screen.getByText('AlpSwap')).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('<Tx /> AlpSwap settle rendering', () => {
 
         expect(screen.getByTitle('swap')).toBeInTheDocument();
         expect(
-            screen.getByText('Sold .98 Guns for .9891 BUTTER'),
+            screen.getByText('Sold 0.98 Guns for 0.9891 BUTTER'),
         ).toBeInTheDocument();
         expect(screen.queryByText(/^Sent [\d.]/)).not.toBeInTheDocument();
         expect(screen.queryByText(/^Received [\d.]/)).not.toBeInTheDocument();

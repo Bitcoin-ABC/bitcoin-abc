@@ -361,6 +361,14 @@ export default {
                 returned: '0.000000123',
             },
             {
+                description:
+                    'Decimalizes amount whose digit length equals decimals with a leading zero',
+                amount: '8000',
+                decimals: 4,
+                returned: '0.8000',
+            },
+
+            {
                 description: 'Decimalizes smallest amount of slpv1 spec',
                 amount: '1',
                 decimals: 9,

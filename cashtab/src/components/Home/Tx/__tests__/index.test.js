@@ -666,7 +666,9 @@ describe('<Tx />', () => {
         expect(screen.getByText('CashTabBits')).toBeInTheDocument();
 
         // We see the expected token action text (ticker in combined TokenDesc)
-        expect(screen.getByText('Received .123456789 CTB')).toBeInTheDocument();
+        expect(
+            screen.getByText('Received 0.123456789 CTB'),
+        ).toBeInTheDocument();
     });
     it('Received slpv1 fungible token with 9 decimals with no token info in cache', async () => {
         render(
@@ -1219,7 +1221,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the expected token action text (ticker in combined TokenDesc)
-        expect(screen.getByText('Burned .1234567 WDT')).toBeInTheDocument();
+        expect(screen.getByText('Burned 0.1234567 WDT')).toBeInTheDocument();
     });
     it('Swap tx', async () => {
         render(

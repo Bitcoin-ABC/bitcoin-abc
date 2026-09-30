@@ -1163,7 +1163,7 @@ describe('<Agora />', () => {
             screen.getByRole('link', { name: /icon for.*Cachet.*CACHET/ }),
         );
 
-        const CACHET_SPOT_MIN_QTY = '.20';
+        const CACHET_SPOT_MIN_QTY = '0.20';
 
         // We see all offers for Cachet. The spot price (Alpha's offer) is default.
         expect(

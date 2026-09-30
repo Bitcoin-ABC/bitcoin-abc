@@ -445,3 +445,82 @@ export const NftOfferWrapper = styled.div`
         border-radius: 0 0 20px 20px;
     }
 `;
+
+/** XEC / AlpDex redeem destination switch with rates. */
+export const RedeemOutputSwitch = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 16px;
+`;
+
+export const RedeemOutputOption = styled.button<{ $active?: boolean }>`
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 12px;
+    /* Title + rate + fiat + reserved impact line */
+    min-height: 118px;
+    border-radius: 12px;
+    border: 1px solid
+        ${props => (props.$active ? props.theme.accent : props.theme.border)};
+    background: ${props =>
+        props.$active
+            ? props.theme.primaryBackground
+            : props.theme.secondaryBackground};
+    color: ${props => props.theme.primaryText};
+    cursor: pointer;
+    text-align: left;
+    &:hover {
+        border-color: ${props => props.theme.accent};
+    }
+`;
+
+export const RedeemOutputOptionTitle = styled.span`
+    font-size: var(--text-base);
+    font-weight: 700;
+    line-height: 1.2;
+`;
+
+export const RedeemOutputOptionRate = styled.span`
+    display: block;
+    min-height: var(--text-sm--line-height);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    color: ${props => props.theme.secondaryText};
+    font-variant-numeric: tabular-nums;
+`;
+
+export const RedeemOutputOptionImpact = styled.span<{ $warn?: boolean }>`
+    display: block;
+    min-height: var(--text-sm--line-height);
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: ${props =>
+        props.$warn ? props.theme.formError : props.theme.secondaryText};
+`;
+
+export const RedeemBestDealFlare = styled.span`
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    background: ${props => props.theme.genesisGreen};
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+`;
+
+export const RedeemAmountInputWrap = styled.div`
+    width: 100%;
+    margin-top: 12px;
+`;

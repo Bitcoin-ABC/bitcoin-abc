@@ -3,7 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import {
+    render,
+    screen,
+    waitFor,
+    fireEvent,
+    within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { when } from 'jest-when';
@@ -48,6 +54,21 @@ import {
     XECX_APY_API_URL,
     XECX_SWEEPER_ADDRESS,
 } from 'constants/tokens';
+import { FIRMA_TOKEN_ID, XECX_TOKEN_ID } from 'config/alpSwap';
+import {
+    ammQuoteUrl,
+    spotPriceUrl,
+    swapTemplateUrl,
+} from 'services/alpSwapService';
+import { settleAlpRedeemExactIn } from 'components/Etokens/settleAlpRedeem';
+
+jest.mock('components/Etokens/settleAlpRedeem', () => {
+    const actual = jest.requireActual('components/Etokens/settleAlpRedeem');
+    return {
+        ...actual,
+        settleAlpRedeemExactIn: jest.fn(),
+    };
+});
 
 describe('<Token /> available actions rendered', () => {
     const ecc = new Ecc();
@@ -2143,7 +2164,10 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // Enter amount to redeem
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '5.45');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '5.45',
+        );
 
         // This is below dust so we get an error
         expect(
@@ -2153,9 +2177,11 @@ describe('<Token /> available actions rendered', () => {
         expect(redeemButton).toBeDisabled();
 
         // Max fills the wallet balance (same as token send)
-        await userEvent.click(screen.getByRole('button', { name: /max/i }));
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Redeem max' }),
+        );
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
             '10,000.00',
         );
 
@@ -2163,9 +2189,7 @@ describe('<Token /> available actions rendered', () => {
         expect(redeemButton).toBeEnabled();
 
         // The fiat price is previewed correctly
-        expect(
-            screen.getByText('1 XEC ($0.00003000 USD) per token'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('1 XECX = 1 XEC')).toBeInTheDocument();
 
         // Redeem
         await userEvent.click(redeemButton);
@@ -2267,17 +2291,20 @@ describe('<Token /> available actions rendered', () => {
         await waitFor(() => expect(redeemButton).toBeDisabled());
 
         // We redeem 10k XECX
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '10000',
+        );
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
+            '10,000',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
 
         // The fiat price is previewed correctly
-        expect(
-            screen.getByText('1 XEC ($0.00003000 USD) per token'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('1 XECX = 1 XEC')).toBeInTheDocument();
 
         // Redeem
         await userEvent.click(redeemButton);
@@ -2366,17 +2393,20 @@ describe('<Token /> available actions rendered', () => {
         await waitFor(() => expect(redeemButton).toBeDisabled());
 
         // We redeem 10k XECX
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10000');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '10000',
+        );
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10,000');
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
+            '10,000',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
 
         // The fiat price is previewed correctly
-        expect(
-            screen.getByText('1 XEC ($0.00003000 USD) per token'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('1 XECX = 1 XEC')).toBeInTheDocument();
 
         // Redeem
         await userEvent.click(redeemButton);
@@ -2405,6 +2435,178 @@ describe('<Token /> available actions rendered', () => {
         expect(
             screen.queryByText('Redeeming 10,000.00 XECX'),
         ).not.toBeInTheDocument();
+    });
+    it('AlpDex XECX→FIRMA redeem confirms and settles on the redeem page', async () => {
+        settleAlpRedeemExactIn.mockResolvedValue({
+            txid: 'ab'.repeat(32),
+            amountOut: 0.08,
+        });
+
+        const alpSpotUrl = spotPriceUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID);
+        const alpAmmUrl = ammQuoteUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID, '10000');
+        const alpTemplateUrl = swapTemplateUrl(XECX_TOKEN_ID, FIRMA_TOKEN_ID, {
+            from: '10000',
+            feePct: 0.01,
+        });
+        const previousFetch = global.fetch;
+        global.fetch = jest.fn(async (input, init) => {
+            const url = String(input);
+            if (url === alpSpotUrl) {
+                return {
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            rate: 0.000008,
+                            feePct: 0.01,
+                            source: 'amm',
+                            reserves: {
+                                [XECX_TOKEN_ID]: '10000000000',
+                                [FIRMA_TOKEN_ID]: '800000',
+                            },
+                        }),
+                };
+            }
+            if (url === alpAmmUrl) {
+                return {
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            amountIn: 10000,
+                            amountOut: 0.08,
+                            spotRate: 0.000008,
+                            effectiveRate: 0.000008,
+                            priceImpactPct: 0.5,
+                            feePct: 0.01,
+                        }),
+                };
+            }
+            if (url === alpTemplateUrl) {
+                return {
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            price: 9900,
+                            fee: 100,
+                            rate: 0.000008,
+                            feePct: 0.01,
+                            priceImpactPct: 0.5,
+                            outputs: [
+                                {
+                                    tokenId: XECX_TOKEN_ID,
+                                    atoms: '990000',
+                                    script: 'ab',
+                                },
+                                {
+                                    tokenId: XECX_TOKEN_ID,
+                                    atoms: '10000',
+                                    script: 'cd',
+                                },
+                                {
+                                    tokenId: FIRMA_TOKEN_ID,
+                                    atoms: '800',
+                                },
+                            ],
+                            slushScript: 'ef',
+                        }),
+                };
+            }
+            return previousFetch(input, init);
+        });
+
+        try {
+            mockedChronik.setTx(FIRMA.tx.txid, FIRMA.tx);
+            mockedChronik.setToken(FIRMA.tokenId, FIRMA.token);
+
+            const agora = new Agora(mockedChronik);
+            render(
+                <CashtabTestWrapper
+                    chronik={mockedChronik}
+                    ecc={ecc}
+                    agora={agora}
+                    route={`/send-token/${tokenMockXecx.tokenId}`}
+                />,
+            );
+
+            expect(
+                (
+                    await screen.findAllByText(
+                        new RegExp(
+                            tokenMockXecx.tokenInfo.genesisInfo.tokenName,
+                        ),
+                    )
+                )[0],
+            ).toBeInTheDocument();
+
+            await userEvent.click(
+                await screen.findByRole('button', { name: '− Redeem' }),
+            );
+
+            // Stay on XEC path first; switch to AlpDex FIRMA
+            expect(
+                await screen.findByRole('button', {
+                    name: /Redeem XECX for XEC/,
+                }),
+            ).toBeInTheDocument();
+            const redeemFor = screen.getByRole('group', {
+                name: 'Redeem for',
+            });
+            await userEvent.click(
+                within(redeemFor).getByRole('button', { name: /FIRMA/i }),
+            );
+
+            await userEvent.type(
+                screen.getByPlaceholderText('Enter redeem qty'),
+                '10000',
+            );
+
+            const alpRedeemButton = await screen.findByRole('button', {
+                name: /Redeem XECX for FIRMA/,
+            });
+            await waitFor(() => expect(alpRedeemButton).toBeEnabled(), {
+                timeout: 3000,
+            });
+
+            await userEvent.click(alpRedeemButton);
+
+            expect(
+                await screen.findByText('Redeem XECX for FIRMA?'),
+            ).toBeInTheDocument();
+            expect(screen.getByText('You sell:')).toBeInTheDocument();
+            expect(screen.getByText('You receive:')).toBeInTheDocument();
+
+            // Confirm settles on this page — do not navigate to AlpSwap
+            await userEvent.click(screen.getByText('OK'));
+
+            await waitFor(() =>
+                expect(settleAlpRedeemExactIn).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        fromTokenId: XECX_TOKEN_ID,
+                        toTokenId: FIRMA_TOKEN_ID,
+                        fromQty: 10000,
+                        template: expect.objectContaining({
+                            outputs: expect.arrayContaining([
+                                expect.objectContaining({
+                                    tokenId: XECX_TOKEN_ID,
+                                    atoms: '990000',
+                                }),
+                            ]),
+                        }),
+                    }),
+                ),
+            );
+            expect(screen.queryByTitle('AlpSwap')).not.toBeInTheDocument();
+            expect(
+                screen.queryByText('Redeem XECX for FIRMA?'),
+            ).not.toBeInTheDocument();
+            // Still on the redeem screen
+            expect(
+                screen.getByRole('button', {
+                    name: /Redeem XECX for FIRMA/,
+                }),
+            ).toBeInTheDocument();
+        } finally {
+            global.fetch = previousFetch;
+        }
     });
     it('We can redeem Firma for XEC using a workflow unique to Firma', async () => {
         // Mock Math.random()
@@ -2498,7 +2700,10 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // Enter amount to redeem
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '0.009');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '0.009',
+        );
 
         // This is below firma min redemption so we get an error
         expect(
@@ -2509,16 +2714,23 @@ describe('<Token /> available actions rendered', () => {
         expect(redeemButton).toBeDisabled();
 
         // Max fills the wallet balance (same as token send)
-        await userEvent.click(screen.getByRole('button', { name: /max/i }));
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue(
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Redeem max' }),
+        );
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
             '100.0000',
         );
 
         // Redeem a smaller qty that matches the mocked offer hex below
-        await userEvent.clear(screen.getByPlaceholderText('Total qty'));
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
+        await userEvent.clear(screen.getByPlaceholderText('Enter redeem qty'));
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '10',
+        );
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10');
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
+            '10',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2547,9 +2759,7 @@ describe('<Token /> available actions rendered', () => {
         // We see the full receive XEC amount and its fiat value (bid spread
         // means this is not assumed to be $1 of XEC per FIRMA)
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(
-            screen.getByText('400,000.01 XEC ($12.00 USD)'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
 
         // We can cancel and not create this listing
         await userEvent.click(screen.getByText('Cancel'));
@@ -2663,7 +2873,10 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // Enter amount to redeem
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '10',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();
@@ -2691,9 +2904,7 @@ describe('<Token /> available actions rendered', () => {
         ).toBeInTheDocument();
         // We see the full receive XEC amount and its fiat value
         expect(screen.getByText('You receive:')).toBeInTheDocument();
-        expect(
-            screen.getByText('400,000.01 XEC ($12.00 USD)'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('400,000.01 XEC')).toBeInTheDocument();
 
         // We see an alert as the hot wallet cannot cover this redemption
         expect(
@@ -2773,7 +2984,10 @@ describe('<Token /> available actions rendered', () => {
         ).not.toBeInTheDocument();
 
         // Enter amount to redeem
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '0.009');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '0.009',
+        );
 
         // This is below firma min redemption so we get an error
         expect(
@@ -2784,11 +2998,16 @@ describe('<Token /> available actions rendered', () => {
         expect(redeemButton).toBeDisabled();
 
         // OK we redeem more than dust
-        await userEvent.clear(screen.getByPlaceholderText('Total qty'));
+        await userEvent.clear(screen.getByPlaceholderText('Enter redeem qty'));
 
-        await userEvent.type(screen.getByPlaceholderText('Total qty'), '10');
+        await userEvent.type(
+            screen.getByPlaceholderText('Enter redeem qty'),
+            '10',
+        );
 
-        expect(screen.getByPlaceholderText('Total qty')).toHaveValue('10');
+        expect(screen.getByPlaceholderText('Enter redeem qty')).toHaveValue(
+            '10',
+        );
 
         // The redeem button is now enabled
         expect(redeemButton).toBeEnabled();

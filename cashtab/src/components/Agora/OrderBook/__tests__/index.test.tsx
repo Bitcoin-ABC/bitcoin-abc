@@ -273,7 +273,7 @@ describe('<OrderBook />', () => {
         );
 
         // The min offer amount is selected by default
-        expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
+        expect(await screen.findByText('0.10 CACHET')).toBeInTheDocument();
 
         // We see the price of the min offer amount in fiat
         expect(screen.getByText('$0.03303 USD')).toBeInTheDocument();
@@ -401,7 +401,7 @@ describe('<OrderBook />', () => {
         expect(screen.queryByTitle(CACHET_TOKEN_ID)).not.toBeInTheDocument();
 
         // The min offer amount is selected by default
-        expect(await screen.findByText('.10 CACHET')).toBeInTheDocument();
+        expect(await screen.findByText('0.10 CACHET')).toBeInTheDocument();
         // We DO NOT see the formatted price in XEC as fiat is toggled
         expect(screen.queryByText('1k XEC')).not.toBeInTheDocument();
         // We see the price in fiat
@@ -491,7 +491,7 @@ describe('<OrderBook />', () => {
 
         // For tokens with multiple partial offers available, the lowest-priced
         // offer is selected by default ("spot price")
-        const CACHET_SPOT_MIN_QTY = '.20 CACHET';
+        const CACHET_SPOT_MIN_QTY = '0.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.0072 USD';
 
@@ -535,7 +535,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(screen.getByText('12,000.66 XEC'));
 
         // We also see updates to the rendered spot details
-        const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
+        const UPDATED_CACHET_SPOT_MIN_QTY = '0.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
@@ -555,7 +555,7 @@ describe('<OrderBook />', () => {
         // Let's select our other offer
         await userEvent.click(screen.getByText('10,000.97 XEC'));
 
-        const OTHER_CACHET_SPOT_MIN_QTY = '.10 CACHET';
+        const OTHER_CACHET_SPOT_MIN_QTY = '0.10 CACHET';
         const OTHER_CACHET_SPOT_PRICE_MIN_BUY = '1k XEC';
         const OTHER_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.03003 USD';
         // Quantities are not displayed until they load, so we await
@@ -642,7 +642,7 @@ describe('<OrderBook />', () => {
         );
 
         // We see the expected spot offer for CACHET
-        const CACHET_SPOT_MIN_QTY = '.20 CACHET';
+        const CACHET_SPOT_MIN_QTY = '0.20 CACHET';
         const CACHET_SPOT_PRICE_MIN_BUY = '240.64 XEC';
         const CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.007219 USD';
 
@@ -661,7 +661,7 @@ describe('<OrderBook />', () => {
         await userEvent.click(screen.getByText('$0.3600 USD'));
 
         // We also see updates to the rendered spot details
-        const UPDATED_CACHET_SPOT_MIN_QTY = '.30 CACHET';
+        const UPDATED_CACHET_SPOT_MIN_QTY = '0.30 CACHET';
         const UPDATED_CACHET_SPOT_PRICE_MIN_BUY = '3.6k XEC';
         const UPDATED_CACHET_SPOT_PRICE_FIAT_MIN_BUY = '$0.1081 USD';
         expect(
@@ -699,7 +699,7 @@ describe('<OrderBook />', () => {
             `Select buy qty ${CACHET_TOKEN_ID}`,
         );
         // We expect this field to be populated with min buy amount by default
-        expect(buyAmountCachetInput).toHaveValue('.10');
+        expect(buyAmountCachetInput).toHaveValue('0.10');
         // Erase this input
         await userEvent.clear(buyAmountCachetInput);
 
@@ -775,8 +775,9 @@ describe('<OrderBook />', () => {
         expect(
             await screen.findByText('Execute this trade?'),
         ).toBeInTheDocument();
-        // We see target qty (also appears as the typed buy amount in the form)
-        expect(screen.getAllByText('.30')).toHaveLength(2);
+        // Typed qty stays ".30"; agora-prepared qty is decimalized "0.30"
+        expect(buyAmountCachetInput).toHaveValue('.30');
+        expect(screen.getByText('0.30')).toBeInTheDocument();
         // We DO NOT see the delta
         expect(screen.queryByText('Qty Delta:')).not.toBeInTheDocument();
         // We see the price in XEC
@@ -790,7 +791,7 @@ describe('<OrderBook />', () => {
         // Notification on successful buy
         expect(
             await screen.findByText(
-                `Bought .30 Cachet (CACHET) for 360.96 XEC ($0.01083 USD)`,
+                `Bought 0.30 Cachet (CACHET) for 360.96 XEC ($0.01083 USD)`,
             ),
         ).toBeInTheDocument();
 
@@ -1229,8 +1230,8 @@ describe('<OrderBook />', () => {
             `Select buy qty ${CACHET_TOKEN_ID}`,
         );
         // Min accept is 0.10 CACHET — must keep the fractional part (",10", not "10")
-        expect(await screen.findByDisplayValue(',10')).toBeInTheDocument();
-        expect(screen.getByText(',10 CACHET')).toBeInTheDocument();
+        expect(await screen.findByDisplayValue('0,10')).toBeInTheDocument();
+        expect(screen.getByText('0,10 CACHET')).toBeInTheDocument();
 
         await userEvent.click(screen.getByText('Max'));
         // Full offer is 100.00 CACHET — not 10.000 / 10000 from stripped decimals

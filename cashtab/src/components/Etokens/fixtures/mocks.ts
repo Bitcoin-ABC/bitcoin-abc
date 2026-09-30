@@ -3238,7 +3238,7 @@ export const EtokensWalletMock: ActiveCashtabWallet = {
             ],
             [
                 'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                '.246913633',
+                '0.246913633',
             ],
             [
                 '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
@@ -3246,7 +3246,7 @@ export const EtokensWalletMock: ActiveCashtabWallet = {
             ],
             [
                 'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
-                '.99999998',
+                '0.99999998',
             ],
             [
                 'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',

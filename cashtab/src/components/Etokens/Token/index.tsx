@@ -111,6 +111,13 @@ import {
     TokenActionMoreWrap,
     TokenActionDropdown,
     TokenActionDropdownItem,
+    RedeemOutputSwitch,
+    RedeemOutputOption,
+    RedeemOutputOptionTitle,
+    RedeemOutputOptionRate,
+    RedeemOutputOptionImpact,
+    RedeemBestDealFlare,
+    RedeemAmountInputWrap,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -120,6 +127,13 @@ import {
 } from 'chronik';
 import { GenesisInfo } from 'chronik-client';
 import { supportedFiatCurrencies } from 'config/CashtabSettings';
+import {
+    alpSwap,
+    FIRMA_TOKEN_ID,
+    XECX_TOKEN_ID,
+    firmaPerXecFromReserves,
+    isHighPriceImpact,
+} from 'config/alpSwap';
 import {
     slpSend,
     SLP_NFT1_CHILD,
@@ -131,6 +145,10 @@ import {
 import { InlineLoader } from 'components/Common/Spinner';
 import { AgoraOneshot, AgoraPartial, getAgoraPaymentAction } from 'ecash-agora';
 import OrderBook from 'components/Agora/OrderBook';
+import {
+    PercentageButton,
+    PercentageButtonsRow,
+} from 'components/Agora/OrderBook/styled';
 import DeepLinkBuy from 'components/Agora/DeepLinkBuy';
 import Collection, {
     OneshotSwiper,
@@ -147,6 +165,30 @@ import {
 import UncontrolledLink from 'components/Common/UncontrolledLink';
 import { showInstantRedeemToast } from 'components/Etokens/RedeemToast';
 import { isHotWalletCoveredRedeem } from 'components/Etokens/pendingRedeems';
+import {
+    firmaPerXecFromRedeemAmmQuote,
+    getRedeemOutputRates,
+    redeemAmountForPercent,
+    REDEEM_PERCENT_OPTIONS,
+    RedeemOutput,
+} from 'components/Etokens/redeemAmounts';
+import {
+    fetchAmmQuote,
+    fetchSpotPrice,
+    fetchSwapTemplate,
+    receivingOutputAtoms,
+    roundSwapQty,
+    SwapTemplateResponse,
+} from 'services/alpSwapService';
+import {
+    alpRedeemUserMessage,
+    assertAcceptedRedeemTemplate,
+    settleAlpRedeemExactIn,
+} from 'components/Etokens/settleAlpRedeem';
+import {
+    rememberAlpSwapSettleTxid,
+    setAlpSwapBuyerToastSuppressed,
+} from 'components/AlpSwap/rememberSettleTxid';
 
 const Token: React.FC = () => {
     const ContextValue = useContext(WalletContext);
@@ -161,6 +203,7 @@ const Token: React.FC = () => {
         chronik,
         agora,
         fiatPrice,
+        firmaPrice,
         xecxApy,
         ecashWallet,
         initialUtxoSyncComplete,
@@ -177,6 +220,12 @@ const Token: React.FC = () => {
 
     const { tokenId } = useParams();
     const [searchParams] = useSearchParams();
+    const [redeemOutput, setRedeemOutput] = useState<RedeemOutput>('xec');
+    const [showAlpRedeemConfirm, setShowAlpRedeemConfirm] =
+        useState<boolean>(false);
+    const [isSettlingAlpRedeem, setIsSettlingAlpRedeem] =
+        useState<boolean>(false);
+    const isSettlingAlpRedeemRef = useRef(false);
 
     if (typeof tokenId === 'undefined') {
         // We can't render this component without tokenId, any tokenId
@@ -376,6 +425,24 @@ const Token: React.FC = () => {
     const [nftOfferAgoraQueryError, setNftOfferAgoraQueryError] =
         useState<boolean>(false);
     const [firmaBidPrice, setFirmaBidPrice] = useState<null | number>(null);
+    /** AlpDex FIRMA-per-XECX spot for redeem XEC/FIRMA switch rates. */
+    const [alpDexFirmaPerXec, setAlpDexFirmaPerXec] = useState<null | number>(
+        null,
+    );
+    const [alpDexSpotLoaded, setAlpDexSpotLoaded] = useState(false);
+    /** Size-effective FIRMA-per-XECX from AMM quote (slippage-aware). */
+    const [alpSizeFirmaPerXec, setAlpSizeFirmaPerXec] = useState<null | number>(
+        null,
+    );
+    const [alpSizeImpactPct, setAlpSizeImpactPct] = useState<null | number>(
+        null,
+    );
+    const [alpSizeAmountOut, setAlpSizeAmountOut] = useState<null | number>(
+        null,
+    );
+    const [acceptedRedeemTemplate, setAcceptedRedeemTemplate] =
+        useState<SwapTemplateResponse | null>(null);
+    const [alpSizeQuoteLoading, setAlpSizeQuoteLoading] = useState(false);
     const [tokenDetailsExpanded, setTokenDetailsExpanded] =
         useState<boolean>(false);
 
@@ -773,6 +840,218 @@ const Token: React.FC = () => {
         }
     }, [tokenId]);
 
+    // AlpDex spot for the redeem XEC / FIRMA rate switch
+    useEffect(() => {
+        const isXecxOrFirma =
+            tokenId === appConfig.vipTokens.xecx.tokenId ||
+            tokenId === FIRMA.tokenId;
+        if (!isXecxOrFirma) {
+            setAlpDexFirmaPerXec(null);
+            setAlpDexSpotLoaded(false);
+            return;
+        }
+        let cancelled = false;
+        setAlpDexSpotLoaded(false);
+        setAlpDexFirmaPerXec(null);
+        (async () => {
+            try {
+                const spot = await fetchSpotPrice(
+                    XECX_TOKEN_ID,
+                    FIRMA_TOKEN_ID,
+                );
+                if (cancelled) {
+                    return;
+                }
+                const xecxAtoms = spot.reserves?.[XECX_TOKEN_ID];
+                const firmaAtoms = spot.reserves?.[FIRMA_TOKEN_ID];
+                if (
+                    typeof xecxAtoms !== 'string' ||
+                    typeof firmaAtoms !== 'string'
+                ) {
+                    setAlpDexFirmaPerXec(null);
+                    setAlpDexSpotLoaded(true);
+                    return;
+                }
+                const xecxDecimals =
+                    cashtabCache.tokens.get(XECX_TOKEN_ID)?.decimals ?? 2;
+                const firmaDecimals = FIRMA.token.genesisInfo.decimals;
+                setAlpDexFirmaPerXec(
+                    firmaPerXecFromReserves(
+                        xecxAtoms,
+                        firmaAtoms,
+                        xecxDecimals,
+                        firmaDecimals,
+                    ),
+                );
+                setAlpDexSpotLoaded(true);
+            } catch (err) {
+                console.error(
+                    'Error fetching AlpDex spot for redeem rates',
+                    err,
+                );
+                if (!cancelled) {
+                    setAlpDexFirmaPerXec(null);
+                    setAlpDexSpotLoaded(true);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [tokenId, cashtabCache.tokens]);
+
+    const isRedeemAction = switches.showRedeemXecx || switches.showRedeemFirma;
+
+    // Size quote for AlpSwap redeem path — rate + Best deal track slippage.
+    // The settle template is only needed when confirming a FIRMA redeem.
+    useEffect(() => {
+        const kind =
+            tokenId === appConfig.vipTokens.xecx.tokenId
+                ? 'xecx'
+                : tokenId === FIRMA.tokenId
+                  ? 'firma'
+                  : null;
+        if (kind === null || !isRedeemAction) {
+            setAlpSizeFirmaPerXec(null);
+            setAlpSizeImpactPct(null);
+            setAlpSizeAmountOut(null);
+            setAcceptedRedeemTemplate(null);
+            setAlpSizeQuoteLoading(false);
+            return;
+        }
+        if (
+            agoraPartialTokenQty === '' ||
+            agoraPartialTokenQtyError !== false
+        ) {
+            setAlpSizeFirmaPerXec(null);
+            setAlpSizeImpactPct(null);
+            setAlpSizeAmountOut(null);
+            setAcceptedRedeemTemplate(null);
+            setAlpSizeQuoteLoading(false);
+            return;
+        }
+        const qtyNum = Number(
+            normalizeDecimalInput(agoraPartialTokenQty, userLocale),
+        );
+        if (!Number.isFinite(qtyNum) || qtyNum <= 0) {
+            setAlpSizeFirmaPerXec(null);
+            setAlpSizeImpactPct(null);
+            setAlpSizeAmountOut(null);
+            setAcceptedRedeemTemplate(null);
+            setAlpSizeQuoteLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+        setAlpSizeQuoteLoading(true);
+        const timer = setTimeout(async () => {
+            try {
+                const fromTokenId =
+                    kind === 'xecx' ? XECX_TOKEN_ID : FIRMA_TOKEN_ID;
+                const toTokenId =
+                    kind === 'xecx' ? FIRMA_TOKEN_ID : XECX_TOKEN_ID;
+                const qtyDecimals =
+                    kind === 'xecx'
+                        ? (cashtabCache.tokens.get(XECX_TOKEN_ID)?.decimals ??
+                          2)
+                        : FIRMA.token.genesisInfo.decimals;
+                const qty = roundSwapQty(qtyNum, qtyDecimals);
+                const quote = await fetchAmmQuote(fromTokenId, toTokenId, qty);
+                if (cancelled) {
+                    return;
+                }
+                setAlpSizeFirmaPerXec(
+                    firmaPerXecFromRedeemAmmQuote(kind, quote),
+                );
+                setAlpSizeImpactPct(
+                    Number.isFinite(quote.priceImpactPct)
+                        ? quote.priceImpactPct
+                        : null,
+                );
+                setAlpSizeAmountOut(
+                    Number.isFinite(quote.amountOut) && quote.amountOut > 0
+                        ? quote.amountOut
+                        : null,
+                );
+                if (redeemOutput !== 'firma') {
+                    if (!cancelled) {
+                        setAcceptedRedeemTemplate(null);
+                    }
+                    return;
+                }
+                try {
+                    const template = await fetchSwapTemplate(
+                        fromTokenId,
+                        toTokenId,
+                        { from: qty, feePct: quote.feePct },
+                    );
+                    assertAcceptedRedeemTemplate({
+                        outputs: template.outputs,
+                        fromTokenId,
+                        toTokenId,
+                        fromQty: qtyNum,
+                        fromDecimals: qtyDecimals,
+                    });
+                    if (!cancelled) {
+                        const toDecimals =
+                            kind === 'xecx'
+                                ? FIRMA.token.genesisInfo.decimals
+                                : (cashtabCache.tokens.get(XECX_TOKEN_ID)
+                                      ?.decimals ?? 2);
+                        const fromTemplate =
+                            Number(
+                                receivingOutputAtoms(
+                                    template.outputs,
+                                    toTokenId,
+                                ),
+                            ) /
+                            10 ** toDecimals;
+                        setAcceptedRedeemTemplate(template);
+                        if (Number.isFinite(fromTemplate) && fromTemplate > 0) {
+                            setAlpSizeAmountOut(fromTemplate);
+                        }
+                    }
+                } catch (templateErr) {
+                    console.error(
+                        'Error fetching AlpDex settle template for redeem',
+                        templateErr,
+                    );
+                    if (!cancelled) {
+                        setAcceptedRedeemTemplate(null);
+                    }
+                }
+            } catch (err) {
+                console.error(
+                    'Error fetching AlpDex size quote for redeem',
+                    err,
+                );
+                if (!cancelled) {
+                    setAlpSizeFirmaPerXec(null);
+                    setAlpSizeImpactPct(null);
+                    setAlpSizeAmountOut(null);
+                    setAcceptedRedeemTemplate(null);
+                }
+            } finally {
+                if (!cancelled) {
+                    setAlpSizeQuoteLoading(false);
+                }
+            }
+        }, alpSwap.quoteDebounceMs);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [
+        tokenId,
+        agoraPartialTokenQty,
+        agoraPartialTokenQtyError,
+        userLocale,
+        cashtabCache.tokens,
+        isRedeemAction,
+        redeemOutput,
+    ]);
+
     useEffect(() => {
         if (
             typeof tokenId === 'undefined' ||
@@ -824,10 +1103,42 @@ const Token: React.FC = () => {
         setIsBlacklisted(null);
         setActiveTokenAction('buy');
         setSwitches(switchesOff);
+        setRedeemOutput('xec');
+        setAgoraPartialTokenQty('');
+        setAgoraPartialTokenQtyError(false);
+        setAgoraPartialMin('');
+        setAgoraPartialMinError(false);
+        setAlpSizeFirmaPerXec(null);
+        setAlpSizeImpactPct(null);
+        setAlpSizeAmountOut(null);
+        setAcceptedRedeemTemplate(null);
+        setAlpSizeQuoteLoading(false);
+        setShowAlpRedeemConfirm(false);
+        setIsSettlingAlpRedeem(false);
         // Clear any BUY deep-link confirm so it cannot leak into another token
         setShowDeepLinkBuy(false);
         setDeepLinkBuyQty(null);
     }, [tokenId]);
+
+    // Leaving redeem (Buy / Send / etc., or another token) clears qty so it
+    // cannot leak into the next redeem session.
+    useEffect(() => {
+        if (isRedeemAction) {
+            return;
+        }
+        setAgoraPartialTokenQty('');
+        setAgoraPartialTokenQtyError(false);
+        setAgoraPartialMin('');
+        setAgoraPartialMinError(false);
+        setRedeemOutput('xec');
+        setAlpSizeFirmaPerXec(null);
+        setAlpSizeImpactPct(null);
+        setAlpSizeAmountOut(null);
+        setAcceptedRedeemTemplate(null);
+        setAlpSizeQuoteLoading(false);
+        setShowAlpRedeemConfirm(false);
+        setIsSettlingAlpRedeem(false);
+    }, [isRedeemAction]);
 
     // Agora action deep links, per doc/standards/agora-deeplink.md
     //
@@ -1455,17 +1766,251 @@ const Token: React.FC = () => {
     };
 
     const onMaxRedeemQty = () => {
+        if (typeof tokenBalance !== 'string') {
+            return;
+        }
+        // Guard legacy balances decimalized as ".8000" (no leading zero when
+        // atom length equaled decimals) so fr-FR shows "0,8000" not ",8000".
+        const wireBalance = tokenBalance.startsWith('.')
+            ? `0${tokenBalance}`
+            : tokenBalance;
         handleTokenOfferedSlide({
             target: {
                 name: 'Total qty',
-                // we do not render redeem without tokenBalance
                 value: formatAmountFromWire(
-                    tokenBalance as string,
+                    wireBalance,
                     userLocale,
                     decimals as SlpDecimals,
                 ),
             },
         } as React.ChangeEvent<HTMLInputElement>);
+    };
+
+    const clearRedeemQty = () => {
+        // Empty field with no error — same as first opening redeem.
+        setAgoraPartialTokenQty('');
+        setAgoraPartialTokenQtyError(false);
+    };
+
+    const selectRedeemAmount = (amount: number) => {
+        if (typeof decimals !== 'number') {
+            return;
+        }
+        handleTokenOfferedSlide({
+            target: {
+                name: 'Total qty',
+                value: formatAmountFromWire(
+                    amount.toFixed(decimals),
+                    userLocale,
+                    decimals as SlpDecimals,
+                ),
+            },
+        } as React.ChangeEvent<HTMLInputElement>);
+    };
+
+    const selectRedeemPercent = (percent: number) => {
+        if (typeof decimals !== 'number') {
+            return;
+        }
+        const redeemBalanceNum =
+            typeof tokenBalance === 'string' ? Number(tokenBalance) : NaN;
+        const amount = redeemAmountForPercent(
+            redeemBalanceNum,
+            percent,
+            decimals,
+        );
+        if (amount === null) {
+            return;
+        }
+        selectRedeemAmount(amount);
+    };
+
+    const redeemTokenKind =
+        tokenId === appConfig.vipTokens.xecx.tokenId
+            ? 'xecx'
+            : tokenId === FIRMA.tokenId
+              ? 'firma'
+              : null;
+    const redeemBalanceNum =
+        typeof tokenBalance === 'string' ? Number(tokenBalance) : NaN;
+    const normalizedRedeemQty = normalizeDecimalInput(
+        agoraPartialTokenQty,
+        userLocale,
+    );
+    const isRedeemMaxSelected =
+        typeof tokenBalance === 'string' &&
+        typeof decimals === 'number' &&
+        agoraPartialTokenQty !== '' &&
+        normalizedRedeemQty ===
+            normalizeDecimalInput(
+                formatAmountFromWire(
+                    tokenBalance,
+                    userLocale,
+                    decimals as SlpDecimals,
+                ),
+                userLocale,
+            );
+    const isRedeemPercentSelected = (percent: number): boolean => {
+        if (
+            isRedeemMaxSelected ||
+            typeof decimals !== 'number' ||
+            agoraPartialTokenQty === ''
+        ) {
+            return false;
+        }
+        const amount = redeemAmountForPercent(
+            redeemBalanceNum,
+            percent,
+            decimals,
+        );
+        if (amount === null) {
+            return false;
+        }
+        return Number(normalizedRedeemQty) === amount;
+    };
+    const firmaInFiat =
+        typeof firmaPrice === 'number' && firmaPrice > 0
+            ? firmaPrice
+            : settings.fiatCurrency === 'usd'
+              ? 1
+              : null;
+    const redeemOutputRates =
+        redeemTokenKind !== null
+            ? getRedeemOutputRates({
+                  kind: redeemTokenKind,
+                  alpDexFirmaPerXec,
+                  alpSizeFirmaPerXec,
+                  alpSizeQuoteLoading,
+                  priceImpactPct: alpSizeImpactPct,
+                  firmaBidPriceXec: firmaBidPrice,
+                  fiatPrice,
+                  firmaInFiat,
+                  alpDexLoaded: alpDexSpotLoaded,
+                  userLocale,
+              })
+            : null;
+    const fiatSymbol =
+        supportedFiatCurrencies[settings.fiatCurrency]?.symbol ?? '$';
+    const formatRedeemFiat = (fiatPerUnit: number | null): string | null => {
+        if (fiatPerUnit === null) {
+            return null;
+        }
+        return `${fiatSymbol}${fiatPerUnit.toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.pricePrecisionDecimals,
+            maximumFractionDigits: appConfig.pricePrecisionDecimals,
+        })}`;
+    };
+
+    const alpRedeemFromTicker =
+        redeemTokenKind === 'xecx'
+            ? 'XECX'
+            : redeemTokenKind === 'firma'
+              ? 'FIRMA'
+              : '';
+    const alpRedeemToTicker =
+        redeemTokenKind === 'xecx'
+            ? 'FIRMA'
+            : redeemTokenKind === 'firma'
+              ? 'XECX'
+              : '';
+    const canPreviewAlpRedeem =
+        redeemTokenKind !== null &&
+        agoraPartialTokenQty !== '' &&
+        agoraPartialTokenQtyError === false &&
+        !alpSizeQuoteLoading &&
+        alpSizeAmountOut !== null &&
+        alpSizeAmountOut > 0 &&
+        acceptedRedeemTemplate !== null;
+
+    const previewAlpRedeem = () => {
+        if (!canPreviewAlpRedeem) {
+            return;
+        }
+        setShowAlpRedeemConfirm(true);
+    };
+
+    const confirmAlpRedeem = async () => {
+        if (!ecashWallet || redeemTokenKind === null) {
+            return;
+        }
+        const fromQty = Number(
+            normalizeDecimalInput(agoraPartialTokenQty, userLocale),
+        );
+        if (!Number.isFinite(fromQty) || fromQty <= 0) {
+            toast.error('Enter a redeem amount');
+            return;
+        }
+        const fromTokenId =
+            redeemTokenKind === 'xecx' ? XECX_TOKEN_ID : FIRMA_TOKEN_ID;
+        const toTokenId =
+            redeemTokenKind === 'xecx' ? FIRMA_TOKEN_ID : XECX_TOKEN_ID;
+        const fromDecimals =
+            redeemTokenKind === 'xecx'
+                ? (cashtabCache.tokens.get(XECX_TOKEN_ID)?.decimals ?? 2)
+                : FIRMA.token.genesisInfo.decimals;
+        const toDecimals =
+            redeemTokenKind === 'xecx'
+                ? FIRMA.token.genesisInfo.decimals
+                : (cashtabCache.tokens.get(XECX_TOKEN_ID)?.decimals ?? 2);
+
+        if (isSettlingAlpRedeemRef.current || acceptedRedeemTemplate === null) {
+            return;
+        }
+        const template = acceptedRedeemTemplate;
+        isSettlingAlpRedeemRef.current = true;
+        setIsSettlingAlpRedeem(true);
+        if (
+            !(await confirmBiometricBroadcast(
+                settings,
+                'Confirm AlpSwap redeem',
+            ))
+        ) {
+            isSettlingAlpRedeemRef.current = false;
+            setIsSettlingAlpRedeem(false);
+            return;
+        }
+
+        setAlpSwapBuyerToastSuppressed(true);
+        try {
+            const result = await settleAlpRedeemExactIn({
+                wallet: ecashWallet,
+                fromTokenId,
+                toTokenId,
+                fromQty,
+                fromDecimals,
+                toDecimals,
+                template,
+            });
+            rememberAlpSwapSettleTxid(result.txid);
+            const recvDisplay = result.amountOut.toLocaleString(userLocale, {
+                maximumFractionDigits: toDecimals,
+            });
+            toast.success(
+                <a
+                    href={`${explorer.blockExplorerUrl}/tx/${result.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {`Redeemed ${agoraPartialTokenQty} ${alpRedeemFromTicker} → ${recvDisplay} ${alpRedeemToTicker}`}
+                </a>,
+            );
+            setShowAlpRedeemConfirm(false);
+            setAgoraPartialTokenQty('');
+            setAgoraPartialTokenQtyError(false);
+            setAlpSizeFirmaPerXec(null);
+            setAlpSizeImpactPct(null);
+            setAlpSizeAmountOut(null);
+            setAcceptedRedeemTemplate(null);
+            window.setTimeout(() => {
+                setAlpSwapBuyerToastSuppressed(false);
+            }, 15_000);
+        } catch (err) {
+            setAlpSwapBuyerToastSuppressed(false);
+            toast.error(alpRedeemUserMessage(err, 'Redeem failed'));
+        } finally {
+            isSettlingAlpRedeemRef.current = false;
+            setIsSettlingAlpRedeem(false);
+        }
     };
 
     const onMaxMint = () => {
@@ -2475,6 +3020,71 @@ const Token: React.FC = () => {
                             handleCancel={() => setShowAgoraPartialInfo(false)}
                         />
                     )}
+                    {showAlpRedeemConfirm && redeemTokenKind !== null && (
+                        <Modal
+                            title={`Redeem ${alpRedeemFromTicker} for ${alpRedeemToTicker}?`}
+                            disabled={isSettlingAlpRedeem}
+                            handleOk={() => void confirmAlpRedeem()}
+                            handleCancel={() => {
+                                if (!isSettlingAlpRedeem) {
+                                    setShowAlpRedeemConfirm(false);
+                                }
+                            }}
+                            showCancelButton
+                        >
+                            <AgoraPreviewTable>
+                                <AgoraPreviewRow>
+                                    <AgoraPreviewLabel>
+                                        You sell:{' '}
+                                    </AgoraPreviewLabel>
+                                    <AgoraPreviewCol>
+                                        {agoraPartialTokenQty}{' '}
+                                        {alpRedeemFromTicker}
+                                    </AgoraPreviewCol>
+                                </AgoraPreviewRow>
+                                <AgoraPreviewRow>
+                                    <AgoraPreviewLabel>
+                                        You receive:{' '}
+                                    </AgoraPreviewLabel>
+                                    <AgoraPreviewCol>
+                                        {alpSizeAmountOut !== null
+                                            ? alpSizeAmountOut.toLocaleString(
+                                                  userLocale,
+                                                  {
+                                                      maximumFractionDigits:
+                                                          redeemTokenKind ===
+                                                          'xecx'
+                                                              ? FIRMA.token
+                                                                    .genesisInfo
+                                                                    .decimals
+                                                              : (cashtabCache.tokens.get(
+                                                                    XECX_TOKEN_ID,
+                                                                )?.decimals ??
+                                                                2),
+                                                  },
+                                              )
+                                            : '—'}{' '}
+                                        {alpRedeemToTicker}
+                                    </AgoraPreviewCol>
+                                </AgoraPreviewRow>
+                                {typeof alpSizeImpactPct === 'number' && (
+                                    <AgoraPreviewRow>
+                                        <AgoraPreviewLabel>
+                                            Impact:{' '}
+                                        </AgoraPreviewLabel>
+                                        <AgoraPreviewCol>
+                                            {alpSizeImpactPct.toFixed(2)}%
+                                        </AgoraPreviewCol>
+                                    </AgoraPreviewRow>
+                                )}
+                                {isSettlingAlpRedeem && (
+                                    <AgoraPreviewRow>
+                                        <InlineLoader />
+                                    </AgoraPreviewRow>
+                                )}
+                            </AgoraPreviewTable>
+                        </Modal>
+                    )}
                     {showLargeIconModal && (
                         <Modal
                             showButtons={false}
@@ -2836,14 +3446,6 @@ const Token: React.FC = () => {
                                                             },
                                                         )}{' '}
                                                         XEC
-                                                        {fiatPrice !== null
-                                                            ? ` (${getFormattedFiatPrice(
-                                                                  settings.fiatCurrency,
-                                                                  userLocale,
-                                                                  firmaRedeemReceiveXec,
-                                                                  fiatPrice,
-                                                              )})`
-                                                            : ''}
                                                     </AgoraPreviewCol>
                                                 </AgoraPreviewRow>
                                                 <AgoraPreviewRow>
@@ -3584,42 +4186,241 @@ const Token: React.FC = () => {
                                     {switches.showRedeemXecx && (
                                         <>
                                             <SectionCtn>
+                                                <RedeemOutputSwitch
+                                                    role="group"
+                                                    aria-label="Redeem for"
+                                                >
+                                                    <RedeemOutputOption
+                                                        type="button"
+                                                        $active={
+                                                            redeemOutput ===
+                                                            'xec'
+                                                        }
+                                                        aria-pressed={
+                                                            redeemOutput ===
+                                                            'xec'
+                                                        }
+                                                        onClick={() =>
+                                                            setRedeemOutput(
+                                                                'xec',
+                                                            )
+                                                        }
+                                                    >
+                                                        {redeemOutputRates?.best ===
+                                                            'xec' && (
+                                                            <RedeemBestDealFlare>
+                                                                Best deal
+                                                            </RedeemBestDealFlare>
+                                                        )}
+                                                        <RedeemOutputOptionTitle>
+                                                            XEC
+                                                        </RedeemOutputOptionTitle>
+                                                        <RedeemOutputOptionRate>
+                                                            {redeemTokenKind ===
+                                                            'xecx' ? (
+                                                                // Always 1:1 — do not wait on CoinGecko
+                                                                (redeemOutputRates
+                                                                    ?.xec
+                                                                    ?.rateLine ??
+                                                                '1 XECX = 1 XEC')
+                                                            ) : redeemOutputRates?.loading ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                (redeemOutputRates
+                                                                    ?.xec
+                                                                    ?.rateLine ??
+                                                                '—')
+                                                            )}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionRate>
+                                                            {!redeemOutputRates?.loading &&
+                                                            typeof redeemOutputRates
+                                                                ?.xec
+                                                                ?.fiatPerUnit ===
+                                                                'number'
+                                                                ? formatRedeemFiat(
+                                                                      redeemOutputRates
+                                                                          .xec
+                                                                          .fiatPerUnit,
+                                                                  )
+                                                                : '\u00a0'}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionImpact>
+                                                            {'\u00a0'}
+                                                        </RedeemOutputOptionImpact>
+                                                    </RedeemOutputOption>
+                                                    <RedeemOutputOption
+                                                        type="button"
+                                                        $active={
+                                                            redeemOutput ===
+                                                            'firma'
+                                                        }
+                                                        aria-pressed={
+                                                            redeemOutput ===
+                                                            'firma'
+                                                        }
+                                                        onClick={() =>
+                                                            setRedeemOutput(
+                                                                'firma',
+                                                            )
+                                                        }
+                                                    >
+                                                        {redeemOutputRates?.best ===
+                                                            'firma' && (
+                                                            <RedeemBestDealFlare>
+                                                                Best deal
+                                                            </RedeemBestDealFlare>
+                                                        )}
+                                                        <RedeemOutputOptionTitle>
+                                                            FIRMA
+                                                        </RedeemOutputOptionTitle>
+                                                        <RedeemOutputOptionRate>
+                                                            {redeemOutputRates?.loading ||
+                                                            redeemOutputRates?.firmaRateLoading ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                (redeemOutputRates
+                                                                    ?.firma
+                                                                    ?.rateLine ??
+                                                                '—')
+                                                            )}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionRate>
+                                                            {!redeemOutputRates?.loading &&
+                                                            !redeemOutputRates?.firmaRateLoading &&
+                                                            typeof redeemOutputRates
+                                                                ?.firma
+                                                                ?.fiatPerUnit ===
+                                                                'number'
+                                                                ? formatRedeemFiat(
+                                                                      redeemOutputRates
+                                                                          .firma
+                                                                          .fiatPerUnit,
+                                                                  )
+                                                                : '\u00a0'}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionImpact
+                                                            $warn={
+                                                                !redeemOutputRates?.loading &&
+                                                                !redeemOutputRates?.firmaRateLoading &&
+                                                                typeof redeemOutputRates
+                                                                    ?.firma
+                                                                    ?.impactPct ===
+                                                                    'number' &&
+                                                                isHighPriceImpact(
+                                                                    redeemOutputRates
+                                                                        .firma
+                                                                        .impactPct,
+                                                                )
+                                                            }
+                                                        >
+                                                            {!redeemOutputRates?.loading &&
+                                                            !redeemOutputRates?.firmaRateLoading &&
+                                                            typeof redeemOutputRates
+                                                                ?.firma
+                                                                ?.impactPct ===
+                                                                'number'
+                                                                ? `Impact: ${redeemOutputRates.firma.impactPct.toFixed(
+                                                                      2,
+                                                                  )}%`
+                                                                : '\u00a0'}
+                                                        </RedeemOutputOptionImpact>
+                                                    </RedeemOutputOption>
+                                                </RedeemOutputSwitch>
                                                 <SectionLabel>
                                                     Quantity
                                                 </SectionLabel>
                                                 <SendTokenFormRow>
                                                     <InputRow>
-                                                        <Slider
-                                                            name={'Total qty'}
-                                                            value={
-                                                                agoraPartialTokenQty
-                                                            }
-                                                            handleSlide={
-                                                                handleTokenOfferedSlide
-                                                            }
-                                                            error={
-                                                                agoraPartialTokenQtyError
-                                                            }
-                                                            min={0}
-                                                            max={tokenBalance}
-                                                            step={parseFloat(
-                                                                `1e-${decimals}`,
+                                                        <PercentageButtonsRow
+                                                            role="group"
+                                                            aria-label="Redeem quantity"
+                                                        >
+                                                            {REDEEM_PERCENT_OPTIONS.map(
+                                                                percent => (
+                                                                    <PercentageButton
+                                                                        key={
+                                                                            percent
+                                                                        }
+                                                                        type="button"
+                                                                        isActive={isRedeemPercentSelected(
+                                                                            percent,
+                                                                        )}
+                                                                        aria-label={`Redeem ${percent}%`}
+                                                                        disabled={
+                                                                            typeof decimals !==
+                                                                                'number' ||
+                                                                            redeemAmountForPercent(
+                                                                                redeemBalanceNum,
+                                                                                percent,
+                                                                                decimals,
+                                                                            ) ===
+                                                                                null
+                                                                        }
+                                                                        onClick={() =>
+                                                                            selectRedeemPercent(
+                                                                                percent,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            percent
+                                                                        }
+                                                                        %
+                                                                    </PercentageButton>
+                                                                ),
                                                             )}
-                                                            allowTypedInput
-                                                            userLocale={
-                                                                userLocale
-                                                            }
-                                                            maxDecimals={
-                                                                decimals as SlpDecimals
-                                                            }
-                                                            handleOnMax={
-                                                                onMaxRedeemQty
-                                                            }
-                                                        />
+                                                            <PercentageButton
+                                                                type="button"
+                                                                isActive={
+                                                                    isRedeemMaxSelected
+                                                                }
+                                                                aria-label="Redeem max"
+                                                                disabled={
+                                                                    !(
+                                                                        typeof tokenBalance ===
+                                                                            'string' &&
+                                                                        Number(
+                                                                            tokenBalance,
+                                                                        ) > 0
+                                                                    )
+                                                                }
+                                                                onClick={
+                                                                    onMaxRedeemQty
+                                                                }
+                                                            >
+                                                                Max
+                                                            </PercentageButton>
+                                                        </PercentageButtonsRow>
+                                                        <RedeemAmountInputWrap>
+                                                            <SendTokenInput
+                                                                name="Total qty"
+                                                                placeholder="Enter redeem qty"
+                                                                value={
+                                                                    agoraPartialTokenQty
+                                                                }
+                                                                error={
+                                                                    agoraPartialTokenQtyError
+                                                                }
+                                                                handleInput={
+                                                                    handleTokenOfferedSlide
+                                                                }
+                                                                handleOnClear={
+                                                                    clearRedeemQty
+                                                                }
+                                                                userLocale={
+                                                                    userLocale
+                                                                }
+                                                                maxDecimals={
+                                                                    decimals as SlpDecimals
+                                                                }
+                                                            />
+                                                        </RedeemAmountInputWrap>
                                                     </InputRow>
                                                 </SendTokenFormRow>
 
-                                                {!tokenListPriceError &&
+                                                {redeemOutput === 'xec' &&
+                                                    !tokenListPriceError &&
                                                     formData.tokenListPrice !==
                                                         '' &&
                                                     formData.tokenListPrice !==
@@ -3630,33 +4431,53 @@ const Token: React.FC = () => {
                                                         </ListPricePreview>
                                                     )}
                                                 <SendTokenFormRow>
-                                                    <PrimaryButton
-                                                        style={{
-                                                            marginTop: '12px',
-                                                        }}
-                                                        disabled={
-                                                            apiError ||
-                                                            agoraPartialTokenQtyError !==
-                                                                false ||
-                                                            agoraPartialMinError !==
-                                                                false ||
-                                                            tokenListPriceError !==
-                                                                false ||
-                                                            formData.tokenListPrice ===
-                                                                '' ||
-                                                            formData.tokenListPrice ===
-                                                                null ||
-                                                            agoraPartialTokenQty ===
-                                                                '' ||
-                                                            agoraPartialMin ===
-                                                                ''
-                                                        }
-                                                        onClick={
-                                                            previewAgoraPartial
-                                                        }
-                                                    >
-                                                        Redeem XECX for XEC
-                                                    </PrimaryButton>
+                                                    {redeemOutput === 'xec' ? (
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                apiError ||
+                                                                agoraPartialTokenQtyError !==
+                                                                    false ||
+                                                                agoraPartialMinError !==
+                                                                    false ||
+                                                                tokenListPriceError !==
+                                                                    false ||
+                                                                formData.tokenListPrice ===
+                                                                    '' ||
+                                                                formData.tokenListPrice ===
+                                                                    null ||
+                                                                agoraPartialTokenQty ===
+                                                                    '' ||
+                                                                agoraPartialMin ===
+                                                                    ''
+                                                            }
+                                                            onClick={
+                                                                previewAgoraPartial
+                                                            }
+                                                        >
+                                                            Redeem XECX for XEC
+                                                        </PrimaryButton>
+                                                    ) : (
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                !canPreviewAlpRedeem ||
+                                                                isSettlingAlpRedeem
+                                                            }
+                                                            onClick={
+                                                                previewAlpRedeem
+                                                            }
+                                                        >
+                                                            Redeem XECX for
+                                                            FIRMA
+                                                        </PrimaryButton>
+                                                    )}
                                                 </SendTokenFormRow>
                                             </SectionCtn>
                                         </>
@@ -3668,42 +4489,214 @@ const Token: React.FC = () => {
                                     {switches.showRedeemFirma && (
                                         <>
                                             <SectionCtn>
+                                                <RedeemOutputSwitch
+                                                    role="group"
+                                                    aria-label="Redeem for"
+                                                >
+                                                    <RedeemOutputOption
+                                                        type="button"
+                                                        $active={
+                                                            redeemOutput ===
+                                                            'xec'
+                                                        }
+                                                        aria-pressed={
+                                                            redeemOutput ===
+                                                            'xec'
+                                                        }
+                                                        onClick={() =>
+                                                            setRedeemOutput(
+                                                                'xec',
+                                                            )
+                                                        }
+                                                    >
+                                                        {redeemOutputRates?.best ===
+                                                            'xec' && (
+                                                            <RedeemBestDealFlare>
+                                                                Best deal
+                                                            </RedeemBestDealFlare>
+                                                        )}
+                                                        <RedeemOutputOptionTitle>
+                                                            XEC
+                                                        </RedeemOutputOptionTitle>
+                                                        <RedeemOutputOptionRate>
+                                                            {redeemTokenKind ===
+                                                            'xecx' ? (
+                                                                // Always 1:1 — do not wait on CoinGecko
+                                                                (redeemOutputRates
+                                                                    ?.xec
+                                                                    ?.rateLine ??
+                                                                '1 XECX = 1 XEC')
+                                                            ) : redeemOutputRates?.loading ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                (redeemOutputRates
+                                                                    ?.xec
+                                                                    ?.rateLine ??
+                                                                '—')
+                                                            )}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionImpact>
+                                                            {'\u00a0'}
+                                                        </RedeemOutputOptionImpact>
+                                                    </RedeemOutputOption>
+                                                    <RedeemOutputOption
+                                                        type="button"
+                                                        $active={
+                                                            redeemOutput ===
+                                                            'firma'
+                                                        }
+                                                        aria-pressed={
+                                                            redeemOutput ===
+                                                            'firma'
+                                                        }
+                                                        onClick={() =>
+                                                            setRedeemOutput(
+                                                                'firma',
+                                                            )
+                                                        }
+                                                    >
+                                                        {redeemOutputRates?.best ===
+                                                            'firma' && (
+                                                            <RedeemBestDealFlare>
+                                                                Best deal
+                                                            </RedeemBestDealFlare>
+                                                        )}
+                                                        <RedeemOutputOptionTitle>
+                                                            XECX
+                                                        </RedeemOutputOptionTitle>
+                                                        <RedeemOutputOptionRate>
+                                                            {redeemOutputRates?.loading ||
+                                                            redeemOutputRates?.firmaRateLoading ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                (redeemOutputRates
+                                                                    ?.firma
+                                                                    ?.rateLine ??
+                                                                '—')
+                                                            )}
+                                                        </RedeemOutputOptionRate>
+                                                        <RedeemOutputOptionImpact
+                                                            $warn={
+                                                                !redeemOutputRates?.loading &&
+                                                                !redeemOutputRates?.firmaRateLoading &&
+                                                                typeof redeemOutputRates
+                                                                    ?.firma
+                                                                    ?.impactPct ===
+                                                                    'number' &&
+                                                                isHighPriceImpact(
+                                                                    redeemOutputRates
+                                                                        .firma
+                                                                        .impactPct,
+                                                                )
+                                                            }
+                                                        >
+                                                            {!redeemOutputRates?.loading &&
+                                                            !redeemOutputRates?.firmaRateLoading &&
+                                                            typeof redeemOutputRates
+                                                                ?.firma
+                                                                ?.impactPct ===
+                                                                'number'
+                                                                ? `Impact: ${redeemOutputRates.firma.impactPct.toFixed(
+                                                                      2,
+                                                                  )}%`
+                                                                : '\u00a0'}
+                                                        </RedeemOutputOptionImpact>
+                                                    </RedeemOutputOption>
+                                                </RedeemOutputSwitch>
                                                 <SectionLabel>
                                                     Quantity
                                                 </SectionLabel>
                                                 <SendTokenFormRow>
                                                     <InputRow>
-                                                        <Slider
-                                                            name={'Total qty'}
-                                                            value={
-                                                                agoraPartialTokenQty
-                                                            }
-                                                            handleSlide={
-                                                                handleTokenOfferedSlide
-                                                            }
-                                                            error={
-                                                                agoraPartialTokenQtyError
-                                                            }
-                                                            min={0}
-                                                            max={tokenBalance}
-                                                            step={parseFloat(
-                                                                `1e-${decimals}`,
+                                                        <PercentageButtonsRow
+                                                            role="group"
+                                                            aria-label="Redeem quantity"
+                                                        >
+                                                            {REDEEM_PERCENT_OPTIONS.map(
+                                                                percent => (
+                                                                    <PercentageButton
+                                                                        key={
+                                                                            percent
+                                                                        }
+                                                                        type="button"
+                                                                        isActive={isRedeemPercentSelected(
+                                                                            percent,
+                                                                        )}
+                                                                        aria-label={`Redeem ${percent}%`}
+                                                                        disabled={
+                                                                            typeof decimals !==
+                                                                                'number' ||
+                                                                            redeemAmountForPercent(
+                                                                                redeemBalanceNum,
+                                                                                percent,
+                                                                                decimals,
+                                                                            ) ===
+                                                                                null
+                                                                        }
+                                                                        onClick={() =>
+                                                                            selectRedeemPercent(
+                                                                                percent,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            percent
+                                                                        }
+                                                                        %
+                                                                    </PercentageButton>
+                                                                ),
                                                             )}
-                                                            allowTypedInput
-                                                            userLocale={
-                                                                userLocale
-                                                            }
-                                                            maxDecimals={
-                                                                decimals as SlpDecimals
-                                                            }
-                                                            handleOnMax={
-                                                                onMaxRedeemQty
-                                                            }
-                                                        />
+                                                            <PercentageButton
+                                                                type="button"
+                                                                isActive={
+                                                                    isRedeemMaxSelected
+                                                                }
+                                                                aria-label="Redeem max"
+                                                                disabled={
+                                                                    !(
+                                                                        typeof tokenBalance ===
+                                                                            'string' &&
+                                                                        Number(
+                                                                            tokenBalance,
+                                                                        ) > 0
+                                                                    )
+                                                                }
+                                                                onClick={
+                                                                    onMaxRedeemQty
+                                                                }
+                                                            >
+                                                                Max
+                                                            </PercentageButton>
+                                                        </PercentageButtonsRow>
+                                                        <RedeemAmountInputWrap>
+                                                            <SendTokenInput
+                                                                name="Total qty"
+                                                                placeholder="Enter redeem qty"
+                                                                value={
+                                                                    agoraPartialTokenQty
+                                                                }
+                                                                error={
+                                                                    agoraPartialTokenQtyError
+                                                                }
+                                                                handleInput={
+                                                                    handleTokenOfferedSlide
+                                                                }
+                                                                handleOnClear={
+                                                                    clearRedeemQty
+                                                                }
+                                                                userLocale={
+                                                                    userLocale
+                                                                }
+                                                                maxDecimals={
+                                                                    decimals as SlpDecimals
+                                                                }
+                                                            />
+                                                        </RedeemAmountInputWrap>
                                                     </InputRow>
                                                 </SendTokenFormRow>
 
-                                                {!tokenListPriceError &&
+                                                {redeemOutput === 'xec' &&
+                                                    !tokenListPriceError &&
                                                     formData.tokenListPrice !==
                                                         '' &&
                                                     formData.tokenListPrice !==
@@ -3714,30 +4707,50 @@ const Token: React.FC = () => {
                                                         </ListPricePreview>
                                                     )}
                                                 <SendTokenFormRow>
-                                                    <PrimaryButton
-                                                        style={{
-                                                            marginTop: '12px',
-                                                        }}
-                                                        disabled={
-                                                            apiError ||
-                                                            agoraPartialTokenQtyError !==
-                                                                false ||
-                                                            agoraPartialTokenQty ===
-                                                                '0' ||
-                                                            agoraPartialTokenQty ===
-                                                                '' ||
-                                                            isCalculatingRedeemFirma
-                                                        }
-                                                        onClick={
-                                                            previewFirmaPartial
-                                                        }
-                                                    >
-                                                        {isCalculatingRedeemFirma ? (
-                                                            <InlineLoader />
-                                                        ) : (
-                                                            `Redeem Firma for XEC`
-                                                        )}
-                                                    </PrimaryButton>
+                                                    {redeemOutput === 'xec' ? (
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                apiError ||
+                                                                agoraPartialTokenQtyError !==
+                                                                    false ||
+                                                                agoraPartialTokenQty ===
+                                                                    '0' ||
+                                                                agoraPartialTokenQty ===
+                                                                    '' ||
+                                                                isCalculatingRedeemFirma
+                                                            }
+                                                            onClick={
+                                                                previewFirmaPartial
+                                                            }
+                                                        >
+                                                            {isCalculatingRedeemFirma ? (
+                                                                <InlineLoader />
+                                                            ) : (
+                                                                `Redeem Firma for XEC`
+                                                            )}
+                                                        </PrimaryButton>
+                                                    ) : (
+                                                        <PrimaryButton
+                                                            style={{
+                                                                marginTop:
+                                                                    '12px',
+                                                            }}
+                                                            disabled={
+                                                                !canPreviewAlpRedeem ||
+                                                                isSettlingAlpRedeem
+                                                            }
+                                                            onClick={
+                                                                previewAlpRedeem
+                                                            }
+                                                        >
+                                                            Redeem FIRMA for
+                                                            XECX
+                                                        </PrimaryButton>
+                                                    )}
                                                 </SendTokenFormRow>
                                             </SectionCtn>
                                         </>

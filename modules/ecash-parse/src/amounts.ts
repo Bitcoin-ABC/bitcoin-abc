@@ -62,7 +62,9 @@ export const decimalizeTokenAmount = (
         return amount;
     }
 
-    if (decimals > amount.length) {
+    // When amount.length === decimals (e.g. 8000 atoms, 4 decimals), pad one
+    // leading zero so we return "0.8000" instead of ".8000".
+    if (decimals >= amount.length) {
         amount = `${new Array(decimals - amount.length + 1)
             .fill(0)
             .join('')}${amount}`;

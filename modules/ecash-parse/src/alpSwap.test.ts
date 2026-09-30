@@ -342,7 +342,7 @@ describe('AlpSwap parseTx', () => {
                 butterGenesis,
             ),
             // to-token (Guns) has no genesisInfo here → atoms + truncated id
-            'Sold 98 4b7ac...7056c for .9891 BUTTER',
+            'Sold 98 4b7ac...7056c for 0.9891 BUTTER',
         );
 
         const makerParsed = parseTx(alpDexSettleTx, [MAKER_FEE_HASH]);

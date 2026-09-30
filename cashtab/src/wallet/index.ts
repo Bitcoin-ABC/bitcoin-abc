@@ -386,7 +386,9 @@ export const decimalizeTokenAmount = (
     // You may have "123" with 9 decimal places strlength 3, decimals 9
     // This should be 0.000000123
     // So, you must add 7 zeros before the 123 before proceeding
-    if (decimals > amount.length) {
+    // When amount.length === decimals (e.g. 8000 atoms, 4 decimals), pad one
+    // leading zero so we return "0.8000" instead of ".8000".
+    if (decimals >= amount.length) {
         // We pad with decimals - amount.length 0s, plus an extra zero so we return "0.000" instead of ".000"
         amount = `${new Array(decimals - amount.length + 1)
             .fill(0)

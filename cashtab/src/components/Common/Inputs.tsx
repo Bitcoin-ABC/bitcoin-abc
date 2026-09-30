@@ -852,7 +852,9 @@ interface SendTokenInputProps {
     inputDisabled?: boolean;
     error: false | string;
     handleInput: React.ChangeEventHandler<HTMLInputElement>;
-    handleOnMax: () => void;
+    handleOnMax?: () => void;
+    /** When set, show an × suffix while the field has a value. */
+    handleOnClear?: () => void;
     userLocale?: string;
     maxDecimals?: number;
     label?: string;
@@ -871,6 +873,7 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     error = false,
     handleInput,
     handleOnMax,
+    handleOnClear,
     userLocale = 'en-US',
     maxDecimals,
     label,
@@ -883,12 +886,19 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     const useKeypad = enableAmountKeypad && shouldUseAmountKeypad();
     const [keypadActive, setKeypadActive] = useState(false);
     const stringValue = String(value ?? '');
+    const showMax = typeof handleOnMax === 'function';
+    const canClear = typeof handleOnClear === 'function';
+    const hasValue = stringValue.trim() !== '';
+    // Keep LeftInput + suffix mounted when clear is enabled so typing does not
+    // remount the field the first time a value appears.
+    const showSuffix = showMax || canClear;
+    const InputField = showSuffix ? LeftInput : CashtabInput;
 
     return (
         <CashtabInputWrapper>
             {label && <InputLabel>{label}</InputLabel>}
             <InputRow invalid={typeof error === 'string'}>
-                <LeftInput
+                <InputField
                     placeholder={placeholder}
                     type="text"
                     inputMode={useKeypad ? 'none' : 'decimal'}
@@ -915,14 +925,28 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
                     autoCorrect={autoCorrect}
                     autoCapitalize={autoCapitalize}
                 />
-                <OnMaxBtnToken
-                    onClick={handleOnMax}
-                    // Disable max when the amount is fixed (e.g. prefilled by a
-                    // deep link), matching the XEC amount input's max button
-                    disabled={inputDisabled}
-                >
-                    max
-                </OnMaxBtnToken>
+                {canClear && (
+                    <OnMaxBtnToken
+                        type="button"
+                        aria-label="Clear amount"
+                        title="Clear amount"
+                        onClick={handleOnClear}
+                        disabled={inputDisabled || !hasValue}
+                    >
+                        ×
+                    </OnMaxBtnToken>
+                )}
+                {showMax && !canClear && (
+                    <OnMaxBtnToken
+                        type="button"
+                        onClick={handleOnMax}
+                        // Disable max when the amount is fixed (e.g. prefilled by a
+                        // deep link), matching the XEC amount input's max button
+                        disabled={inputDisabled}
+                    >
+                        max
+                    </OnMaxBtnToken>
+                )}
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
             {useKeypad && (
