@@ -30,6 +30,7 @@ import time
 import traceback
 import urllib.parse
 
+import certifi
 import requests
 
 try:
@@ -89,7 +90,7 @@ ACK_HEADERS = {
     "User-Agent": USER_AGENT,
 }
 
-ca_path = requests.certs.where()
+ca_path = certifi.where()
 ca_list = None
 ca_keyID = None
 

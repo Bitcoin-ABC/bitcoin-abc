@@ -128,12 +128,12 @@ if is_local:
 def check_imports():
     """pure-python dependencies need to be imported here for pyinstaller"""
     try:
+        import certifi  # pylint: disable=C0415  # noqa: F401
         import dns  # pylint: disable=C0415,W0611  # noqa: F401
         import google.protobuf  # pylint: disable=C0415,W0611  # noqa: F401
         import jsonrpclib  # pylint: disable=C0415,W0611  # noqa: F401
         import pyaes  # pylint: disable=C0415,W0611  # noqa: F401
         import qrcode  # pylint: disable=C0415,W0611  # noqa: F401
-        import requests  # pylint: disable=C0415  # noqa: F401
     except ImportError as i_e:
         sys.exit("Error: %s. Try 'sudo pip install <module-name>'" % str(i_e))
     from google.protobuf import (  # pylint: disable=C0415,W0611  # noqa: F401
@@ -147,7 +147,7 @@ def check_imports():
     )
 
     # make sure that certificates are here
-    certs = requests.utils.DEFAULT_CA_BUNDLE_PATH
+    certs = certifi.where()
     if not os.path.exists(certs):
         raise AssertionError("Certificates not found")
 

@@ -36,7 +36,7 @@ import traceback
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
-import requests
+import certifi
 from pathvalidate import sanitize_filename
 
 from . import pem, util, x509
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     InterfaceRequest = Tuple[str, List[Any], int]
     """(method, params, id)"""
 
-ca_path = requests.certs.where()
+ca_path = certifi.where()
 
 PING_INTERVAL = 300
 SOCKET_CONNECT_TIMEOUT = 10

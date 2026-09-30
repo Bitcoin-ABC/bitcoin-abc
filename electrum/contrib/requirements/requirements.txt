@@ -12,3 +12,4 @@ mnemonic>=0.21
 pathvalidate
 dnspython[DNSSEC]>=2.0
 pycryptodomex
+certifi
