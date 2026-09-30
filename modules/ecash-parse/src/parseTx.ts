@@ -172,8 +172,14 @@ export const parseTx = (tx: Tx, hashes: string[]): ParsedTx => {
         const { outputScript, sats } = output;
         outputSatoshis += sats;
         if (outputScript.startsWith(opReturn.opReturnPrefixHex)) {
-            stackArray = getStackArray(outputScript);
-            opReturnOutputScript = outputScript;
+            try {
+                stackArray = getStackArray(outputScript);
+                opReturnOutputScript = outputScript;
+            } catch {
+                // Non-push-only / malformed OP_RETURN must not fail parseTx
+                stackArray = [];
+                opReturnOutputScript = '';
+            }
             continue;
         }
         let walletIncludesThisOutputScript = false;

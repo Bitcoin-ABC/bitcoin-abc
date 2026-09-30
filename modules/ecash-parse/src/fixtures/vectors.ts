@@ -19942,4 +19942,54 @@ export const parseFixtures = [
             ],
         },
     },
+    {
+        description:
+            'Does not throw on non-push-only OP_RETURN (6a61 = OP_RETURN OP_NOP)',
+        tx: {
+            txid: '0000000000000000000000000000000000000000000000000000000000000000',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                        outIdx: 0,
+                    },
+                    inputScript: '00',
+                    sats: 1000n,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a9144c8f13b8a1b3b9297d553b6b7cd02158b99147e588ac',
+                },
+            ],
+            outputs: [
+                {
+                    sats: 0n,
+                    outputScript: '6a61',
+                },
+                {
+                    sats: 546n,
+                    outputScript:
+                        '76a914ebc488744ea4b0ca90fd93f06765a4973e918aaa88ac',
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 0,
+            size: 100,
+            isCoinbase: false,
+            tokenEntries: [],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+            isFinal: true,
+        },
+        walletHashes: ['ebc488744ea4b0ca90fd93f06765a4973e918aaa'],
+        parsed: {
+            satoshisSent: 546,
+            replyAddress: 'ecash:qpxg7yac5xemj2ta25akklxsy9vtny28u5m73jvduu',
+            stackArray: [],
+            xecTxType: 'Received',
+            appActions: [],
+            parsedTokenEntries: [],
+            recipients: [],
+        },
+    },
 ] as ParseFixture[];
