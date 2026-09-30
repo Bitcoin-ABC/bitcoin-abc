@@ -55,7 +55,7 @@ set -e
 
 info "Using docker: $docker_version"
 
-DOCKER_SUFFIX=ub2004
+DOCKER_SUFFIX=ub2204
 IMGNAME="electrumabc-appimage-builder-img-$DOCKER_SUFFIX"
 CONTAINERNAME="electrumabc-appimage-builder-cont-$DOCKER_SUFFIX"
 

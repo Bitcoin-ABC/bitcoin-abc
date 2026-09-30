@@ -5,7 +5,7 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-setup_pkg "libevent" "https://github.com/libevent/libevent.git" "4c908dde58ef780eeefcc9df4db3063ca62ea862"
+setup_pkg "libevent" "https://github.com/libevent/libevent.git" "release-2.1.13-stable"
 
 if ! [ -x configure ] ; then
     ./autogen.sh || fail "Could not configure $pkgname"
@@ -19,8 +19,11 @@ if ! [ -r config.status ] ; then
         --with-pic \
         --disable-samples \
         --disable-libevent-regress \
-        CPPFLAGS=-I"$parentbuilddir"/openssl/dist \
-        LDFLAGS=-L"$parentbuilddir"/openssl/dist || fail "Could not configure $pkgname"
+        CPPFLAGS="-I$parentbuilddir/openssl/dist/include" \
+        LDFLAGS="-L$parentbuilddir/openssl/dist/lib" \
+        OPENSSL_CFLAGS="-I$parentbuilddir/openssl/dist/include" \
+        OPENSSL_LIBS="-L$parentbuilddir/openssl/dist/lib -lssl -lcrypto" \
+        PKG_CONFIG_PATH="$parentbuilddir/openssl/dist/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" || fail "Could not configure $pkgname"
 fi
 make -j$WORKER_COUNT || fail "Could not build $pkgname"
 make install || fail "Could not install $pkgname"
