@@ -644,6 +644,55 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'BlockForge',
     },
+    // SoloHash.co.uk - parsed from payout script
+    {
+        height: '969203',
+        coinbaseHex:
+            '03f3c90e04a837be6a00000bf7fb6768339f000009174d696e656420627920536f6c6f486173682e636f2e756b',
+        payoutOutputScript:
+            '76a91425f2cb1e370c350110297c3db60df16400e37d3a88ac',
+        parsed: 'SoloHash.co.uk',
+    },
+    // SoloHash.co.uk - parsed from coinbase hex fragment
+    {
+        height: '969203',
+        coinbaseHex:
+            '03f3c90e04a837be6a00000bf7fb6768339f000009174d696e656420627920536f6c6f486173682e636f2e756b',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'SoloHash.co.uk',
+    },
+    // White Walker - parsed from payout script
+    {
+        height: '969199',
+        coinbaseHex:
+            '03efc90e0004d81bbe6a04e073dd240cc80ebe6a47c140dad1d347000e2f57686974652057616c6b65722f',
+        payoutOutputScript:
+            '76a9143d8308e9b871c3f13ec337adeedb0ec0d07f2f2f88ac',
+        parsed: 'White Walker',
+    },
+    // White Walker - parsed from coinbase hex fragment
+    {
+        height: '969199',
+        coinbaseHex:
+            '03efc90e0004d81bbe6a04e073dd240cc80ebe6a47c140dad1d347000e2f57686974652057616c6b65722f',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'White Walker',
+    },
+    // MinersMe - parsed from payout script
+    {
+        height: '969194',
+        coinbaseHex: '03eac90e2f4d696e6572734d652f00000359296f4fcb6618572b',
+        payoutOutputScript:
+            '76a91459dda57000ebec43d710b631cf8ced61693ddae088ac',
+        parsed: 'MinersMe',
+    },
+    // MinersMe - parsed from coinbase hex fragment
+    {
+        height: '969194',
+        coinbaseHex: '03eac90e2f4d696e6572734d652f00000359296f4fcb6618572b',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'MinersMe',
+    },
 ];
 
 export default minerTestFixtures;

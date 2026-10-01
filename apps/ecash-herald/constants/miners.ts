@@ -274,6 +274,27 @@ const miners: Miners = {
                 coinbaseHexFragment: '426c6f636b466f726765', // ascii BlockForge
             },
         ],
+        [
+            '76a91425f2cb1e370c350110297c3db60df16400e37d3a88ac',
+            {
+                miner: 'SoloHash.co.uk',
+                coinbaseHexFragment: '536f6c6f486173682e636f2e756b', // ascii SoloHash.co.uk
+            },
+        ],
+        [
+            '76a9143d8308e9b871c3f13ec337adeedb0ec0d07f2f2f88ac',
+            {
+                miner: 'White Walker',
+                coinbaseHexFragment: '57686974652057616c6b6572', // ascii White Walker
+            },
+        ],
+        [
+            '76a91459dda57000ebec43d710b631cf8ced61693ddae088ac',
+            {
+                miner: 'MinersMe',
+                coinbaseHexFragment: '4d696e6572734d65', // ascii MinersMe
+            },
+        ],
     ],
 };
 

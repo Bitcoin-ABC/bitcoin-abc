@@ -159,6 +159,9 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "mkpool.com",
         "minepoolis.com",
         "BlockForge",
+        "SoloHash.co.uk",
+        "White Walker",
+        "MinersMe",
         // Jackpool is not identifiable by a substring in the coinbase data
     ];
 
@@ -598,6 +601,28 @@ mod tests {
             render_miner(blockforge_coinbase_hex).unwrap(),
             "BlockForge"
         );
+
+        // SoloHash.co.uk 969203
+        let solohash_coinbase_hex = b"\x03\xf3\xc9\x0e\x04\xa87\xbej\x00\x00\
+            \x0b\xf7\xfbgh3\x9f\x00\x00\x09\x17Mined by SoloHash.co.uk";
+        assert_eq!(
+            render_miner(solohash_coinbase_hex).unwrap(),
+            "SoloHash.co.uk"
+        );
+
+        // White Walker 969199
+        let white_walker_coinbase_hex = b"\x03\xef\xc9\x0e\x00\x04\xd8\x1b\
+            \xbej\x04\xe0s\xdd$\x0c\xc8\x0e\xbejG\xc1@\xda\xd1\xd3G\x00\x0e\
+            /White Walker/";
+        assert_eq!(
+            render_miner(white_walker_coinbase_hex).unwrap(),
+            "White Walker"
+        );
+
+        // MinersMe 969194
+        let minersme_coinbase_hex =
+            b"\x03\xea\xc9\x0e/MinersMe/\x00\x00\x03Y)oO\xcbf\x18W+";
+        assert_eq!(render_miner(minersme_coinbase_hex).unwrap(), "MinersMe");
 
         // Unknown miner
         // genesis block 0
