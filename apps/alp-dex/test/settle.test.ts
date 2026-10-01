@@ -364,7 +364,11 @@ describe('POST /api/v1/swap settle body validation', () => {
         assert.strictEqual(audit.logs[0]!.taker, 'Unknown');
         assert.ok(!('serializedTxHex' in audit.logs[0]!));
         assert.strictEqual(opsMessages.length, 1);
-        assert.match(opsMessages[0]!, /Swap Failed/);
+        assert.match(opsMessages[0]!, /Rejected settle request/);
+        assert.match(opsMessages[0]!, /10\.0\.0\.1/);
+        assert.match(opsMessages[0]!, /\(missing\)/);
+        assert.ok(!opsMessages[0]!.includes('Swap Failed'));
+        assert.ok(!opsMessages[0]!.includes('nk.own'));
     });
 
     it('rejects missing prePostageInputSats', async () => {
@@ -437,16 +441,38 @@ describe('POST /api/v1/swap settle body validation', () => {
     });
 
     it('rejects invalid transaction hex', async () => {
+        const posted = 'invalid_hex_string';
         const res = await request(app)
             .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+            .set('X-Forwarded-For', '64.34.92.103')
             .send({
-                serializedTxHex: 'invalid_hex_string',
+                serializedTxHex: posted,
                 prePostageInputSats: '1000',
                 tokenId: TOKEN_B,
                 atoms: '10000',
             })
             .expect(400);
         assert.match(res.body.error, /deserialize/);
+        assert.strictEqual(opsMessages.length, 1);
+        assert.match(opsMessages[0]!, /Rejected settle request/);
+        assert.ok(opsMessages[0]!.includes(`<code>64.34.92.103</code>`));
+        assert.ok(opsMessages[0]!.includes(`<code>${posted}</code>`));
+        assert.ok(!opsMessages[0]!.includes('Swap Failed'));
+    });
+
+    it('reports the posted string when the pair is rejected', async () => {
+        const posted = '02000000';
+        const other = 'cc'.repeat(32);
+        const res = await request(app)
+            .post(`/api/v1/swap/${TOKEN_A}/${other}`)
+            .set('X-Forwarded-For', '64.34.92.103')
+            .send({ serializedTxHex: posted })
+            .expect(400);
+        assert.match(res.body.error, /not a traded token/);
+        assert.strictEqual(opsMessages.length, 1);
+        assert.ok(opsMessages[0]!.includes('<code>64.34.92.103</code>'));
+        assert.ok(opsMessages[0]!.includes(`<code>${posted}</code>`));
+        assert.ok(!opsMessages[0]!.includes('Swap Failed'));
     });
 
     it('rejects tokenId that is not the receiving token', async () => {

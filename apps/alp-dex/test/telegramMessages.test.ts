@@ -14,7 +14,9 @@ import {
     formatXec,
     getBroadcastFailedMessage,
     getFormerInventoryNotice,
+    formatPostedSettleString,
     getInvalidSwapMessage,
+    getRejectedSettleMessage,
     getSwapFailedMessage,
     getSwapSuccessfulMessage,
     previewAddressLabel,
@@ -281,6 +283,38 @@ describe('telegram message builders', () => {
         );
         assert.ok(without.includes('nk.own'));
         assert.ok(!without.includes('<b>From:</b>'));
+    });
+
+    it('builds a rejected-settle alert with IP and posted string', () => {
+        const posted = '02000000';
+        const message = getRejectedSettleMessage({
+            clientIp: '64.34.92.103',
+            postedTxHex: posted,
+            errorMsg: 'Failed to deserialize transaction: <not a tx>',
+            fromTokenId: TOKEN_A,
+            toTokenId: TOKEN_B,
+            fromTicker: 'FIRMA',
+            toTicker: 'XECX',
+        });
+        assert.ok(message.includes('⚠️ <b>Rejected settle request</b>'));
+        assert.ok(message.includes('<code>64.34.92.103</code>'));
+        assert.ok(message.includes(`<code>${posted}</code>`));
+        assert.ok(message.includes('&lt;not a tx&gt;'));
+        assert.ok(message.includes('FIRMA'));
+        assert.ok(message.includes('XECX'));
+        assert.ok(!message.includes('Swap Failed'));
+        assert.ok(!message.includes('nk.own'));
+        assert.strictEqual(formatPostedSettleString(undefined), '(missing)');
+        assert.strictEqual(formatPostedSettleString(''), '(empty)');
+        assert.strictEqual(
+            formatPostedSettleString(12),
+            '(not a string: number)',
+        );
+        const long = 'ab'.repeat(50);
+        assert.ok(
+            formatPostedSettleString(long).endsWith(`(${long.length} chars)`),
+        );
+        assert.ok(formatPostedSettleString(long).length < long.length);
     });
 
     it('builds former-inventory notice with token links', () => {

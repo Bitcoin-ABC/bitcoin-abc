@@ -399,3 +399,69 @@ export const getSwapFailedMessage = (
 ${amountLines}${formatSwapperLines(userAddress, username)}
 ${formatPriceImpactLine(priceImpactPct)}<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
 };
+
+/** Posted hex included in a rejected-settle alert. Longer values are clipped. */
+const POSTED_TX_PREVIEW_CHARS = 80;
+
+/**
+ * Label for the `serializedTxHex` a client posted on a rejected settle.
+ * Missing and non-string values get a short label instead of a fake tx.
+ */
+export const formatPostedSettleString = (value: unknown): string => {
+    if (typeof value !== 'string') {
+        return value === undefined || value === null
+            ? '(missing)'
+            : `(not a string: ${typeof value})`;
+    }
+    if (value.length === 0) {
+        return '(empty)';
+    }
+    if (value.length <= POSTED_TX_PREVIEW_CHARS) {
+        return value;
+    }
+    return (
+        `${value.slice(0, POSTED_TX_PREVIEW_CHARS)}… ` +
+        `(${value.length} chars)`
+    );
+};
+
+export interface RejectedSettleMessageParams {
+    clientIp: string;
+    postedTxHex: unknown;
+    errorMsg: string;
+    fromTokenId?: string;
+    toTokenId?: string;
+    fromTicker?: string | null;
+    toTicker?: string | null;
+}
+
+/**
+ * Telegram HTML for a settle rejected before a transaction was parsed.
+ * Includes the client IP and the posted hex, not a swapper address.
+ */
+export const getRejectedSettleMessage = (
+    params: RejectedSettleMessageParams,
+): string => {
+    const {
+        clientIp,
+        postedTxHex,
+        errorMsg,
+        fromTokenId,
+        toTokenId,
+        fromTicker,
+        toTicker,
+    } = params;
+    const fromLinked = fromTokenId
+        ? tokenLinkedLabel(fromTokenId, fromTicker)
+        : 'UNKNOWN';
+    const toLinked = toTokenId
+        ? tokenLinkedLabel(toTokenId, toTicker)
+        : 'UNKNOWN';
+
+    return `⚠️ <b>Rejected settle request</b>
+
+<b>IP:</b> <code>${escapeHtml(clientIp)}</code>
+<b>Pair:</b> ${fromLinked} → ${toLinked}
+<b>Posted:</b> <code>${escapeHtml(formatPostedSettleString(postedTxHex))}</code>
+<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
+};

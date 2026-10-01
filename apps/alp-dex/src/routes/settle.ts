@@ -22,6 +22,7 @@ import type { BookHub } from '../ops/bookHub';
 import {
     getBroadcastFailedMessage,
     getInvalidSwapMessage,
+    getRejectedSettleMessage,
     getSwapFailedMessage,
     getSwapSuccessfulMessage,
 } from '../ops/telegramMessages';
@@ -139,6 +140,20 @@ const parseBodyInteger = (
 export const clientIpFromRequest = (req: Request): string =>
     req.ip ?? req.socket.remoteAddress ?? 'unknown';
 
+/**
+ * The `serializedTxHex` field as posted, including non-strings and junk.
+ * Unknown when the body is not a JSON object or the field is absent.
+ */
+const readPostedSerializedTxHex = (body: unknown): unknown => {
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+        return undefined;
+    }
+    if (!('serializedTxHex' in body)) {
+        return undefined;
+    }
+    return (body as SettleBody).serializedTxHex;
+};
+
 const humanQty = (atoms: bigint, decimals: number | undefined): number => {
     if (decimals === undefined) {
         return 0;
@@ -194,6 +209,8 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
             let fromTokenId = req.params.fromTokenId;
             let toTokenId = req.params.toTokenId;
             let serializedTxHex = '';
+            /** Raw `serializedTxHex` field, captured even when it is not a tx. */
+            let postedTxHex: unknown;
             let parsedSwap: ParsedPartiallySignedSwap | undefined;
             let takerAddress = 'Unknown';
             let displayRate = 0;
@@ -288,9 +305,19 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         toTicker,
                         priceImpactPct: tradePriceImpactPct,
                     });
+                } else if (parsedSwap === undefined) {
+                    message = getRejectedSettleMessage({
+                        clientIp,
+                        postedTxHex,
+                        errorMsg: errorMsg ?? 'Unknown error',
+                        fromTokenId,
+                        toTokenId,
+                        fromTicker,
+                        toTicker,
+                    });
                 } else {
                     message = getSwapFailedMessage({
-                        parsedSwap: parsedSwap ?? null,
+                        parsedSwap,
                         errorMsg: errorMsg ?? 'Unknown error',
                         fromDecimals,
                         toDecimals,
@@ -312,6 +339,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
             };
 
             try {
+                postedTxHex = readPostedSerializedTxHex(req.body);
                 const pair = assertConfiguredPair(
                     tradedConfig,
                     tradedTokens,
