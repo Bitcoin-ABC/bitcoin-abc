@@ -229,7 +229,7 @@ class AvalancheMaxElementsTest(BitcoinTestFramework):
         all_hashes_present = [False] * len(quorum_limited)
         self.wait_until(
             lambda: check_polled_blocks(
-                quorum_limited, blocks[:-MAX_ELEMENTS_POLL_LIMITED]
+                quorum_limited, blocks[-MAX_ELEMENTS_POLL_LIMITED:]
             ),
         )
 
