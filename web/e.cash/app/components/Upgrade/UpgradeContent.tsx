@@ -24,30 +24,6 @@ export default function UpgradeContent({
     <div className="relative w-full py-20">
       <ContentContainer className="max-w-[700px]">
         <div className="space-y-12">
-          {/* What happened Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-            viewport={{ once: true }}
-            className="space-y-6"
-          >
-            <PlusHeader text="What happened?" />
-            <p>
-              The planned upgrade of the eCash network has successfully been
-              completed. The first post-upgrade block is block number{" "}
-              <Link
-                href="https://explorer.e.cash/block/000000000000000098694560815190dba8bbe2f06c08a7c23837df3c4886cba2"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 transition-colors hover:text-blue-300"
-              >
-                949200
-              </Link>
-              .
-            </p>
-          </motion.div>
-
           {/* Who needs to upgrade Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -74,6 +50,26 @@ export default function UpgradeContent({
             </p>
           </motion.div>
 
+          {/* When will it activate Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <PlusHeader text="Exactly when will the upgrade activate?" />
+            <p>
+              In order to activate reliably at a predictable time, the network
+              upgrade uses the &ldquo;Median Time Past&rdquo; mechanism. The
+              upgrade activates when the median of the last 11 blocks reaches
+              timestamp 1794744000 (12:00:00 UTC on November 15th, 2026). This
+              means that the upgrade does not actually activate exactly at that
+              time, but typically about one hour later, when 6 blocks with
+              timestamps greater than the activation time have been produced.
+            </p>
+          </motion.div>
+
           {/* Features Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -88,14 +84,6 @@ export default function UpgradeContent({
               because of the automatic replay protection that is part of the
               6-month upgrade cadence, it is necessary for all full node
               operators to upgrade to {latestMajor}.
-            </p>
-            <p>
-              Versions {latestMajor} and later include improvements to the
-              Avalanche Pre-Consensus and mining layers that enable the eCash
-              network to handle much larger transaction volume during periods of
-              high activity. While these improvements were not activated by the
-              network upgrade, the mandatory update make sure it was fully
-              deployed by the time the network upgrade activates.
             </p>
           </motion.div>
 

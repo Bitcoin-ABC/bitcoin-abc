@@ -6,8 +6,8 @@ import UpgradeHero from "../components/Upgrade/UpgradeHero";
 import UpgradeContent from "../components/Upgrade/UpgradeContent";
 import StartBuildingSection from "../components/Atoms/StartBuildingSection";
 
-const oldVersion = "0.32.11";
-const minVersion = "0.33.0";
+const oldVersion = "0.33.13";
+const minVersion = "0.34.0";
 const minMinor = minVersion.slice(0, 4);
 
 async function getLatestVersion(): Promise<string> {
