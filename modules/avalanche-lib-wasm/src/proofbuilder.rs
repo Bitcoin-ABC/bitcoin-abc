@@ -608,4 +608,52 @@ mod tests {
         assert_eq!(proof.signed_stakes().len(), 5);
         assert_eq!(proof.verify().is_none(), true);
     }
+
+    #[test]
+    fn test_proof_builder_uncompressed_master() {
+        let master_privkey = hex::decode(PROOF_MASTER_PRIVKEY).unwrap();
+        let master_pubkey =
+            hex::decode(PROOF_MASTER_PUBKEY_UNCOMPRESSED).unwrap();
+        let payout_script = hex::decode(P2PKH_SCRIPT).unwrap();
+        let stake_privkey = hex::decode(STAKE_PRIVKEY).unwrap();
+
+        let mut builder = ProofBuilder::new_with_master_pubkey(
+            42,
+            2051222400,
+            &master_privkey,
+            &master_pubkey,
+            &payout_script,
+        )
+        .unwrap();
+        builder
+            .add_stake_with_key(create_test_stake(), &stake_privkey)
+            .unwrap();
+
+        let proof = builder.build().unwrap();
+
+        assert_eq!(proof.sequence(), 42);
+        assert_eq!(proof.expiration_time(), 2051222400);
+        assert_eq!(proof.master_pubkey(), master_pubkey);
+        assert_eq!(proof.signed_stakes().len(), 1);
+        assert_eq!(proof.verify().is_none(), true);
+
+        // Commitment must hash the master bytes verbatim (same as C++).
+        assert_eq!(
+            StakeCommitment::new(
+                1788965717,
+                &hex::decode(PROOF_MASTER_PUBKEY).unwrap(),
+            )
+            .unwrap()
+            .hash()
+            .to_hex(),
+            "83ee2cd0f48cac8a8310ff34b7790aa8c3d3029de0fc0fe2a418d4013782de21"
+        );
+        assert_eq!(
+            StakeCommitment::new(1788965717, &master_pubkey)
+                .unwrap()
+                .hash()
+                .to_hex(),
+            "e5412083a73a79a4a7f1ed87059dda649f6906e5ecf18ff141115bc648bbcbaa"
+        );
+    }
 }

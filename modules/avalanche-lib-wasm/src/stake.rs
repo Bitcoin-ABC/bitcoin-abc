@@ -60,9 +60,9 @@ impl StakeCommitment {
         let mut data = Vec::new();
         data.extend_from_slice(&self.expiration_time.to_le_bytes());
 
-        // Always use compressed public key format for stake commitment
-        // serialization
-        let master_pubkey_bytes = self.master_pubkey.serialize_compressed();
+        // Preserve the master pubkey format so the commitment hash matches the
+        // C++ node (which hashes the stored CPubKey bytes verbatim).
+        let master_pubkey_bytes = self.master_pubkey.serialize();
         data.extend_from_slice(&write_compact_size(
             master_pubkey_bytes.len() as u64
         ));

@@ -48,6 +48,77 @@ fn test_workflow_sign_and_validate() {
 }
 
 #[test]
+fn test_workflow_uncompressed_master() {
+    let commitment_file = create_temp_file(&load_test_vector(
+        "commitment_proof_uncompressed_master.json",
+    ));
+
+    // Sign stakes against the uncompressed master commitment.
+    let sign_stakes_output = proof_manager_cmd()
+        .arg("sign")
+        .arg("--type")
+        .arg("stakes")
+        .arg("--input-file")
+        .arg("tests/vectors/unsigned_stakes.json")
+        .arg("--private-key")
+        .arg(STAKES_PRIVATE_KEY)
+        .arg("--commitment")
+        .arg(commitment_file.path())
+        .output()
+        .unwrap();
+
+    assert!(sign_stakes_output.status.success());
+    let signed_stakes_json =
+        String::from_utf8(sign_stakes_output.stdout).unwrap();
+    let signed_stakes: Value =
+        serde_json::from_str(&signed_stakes_json).unwrap();
+
+    // Build an unsigned proof with the uncompressed master and signed stakes.
+    let mut commitment_json: Value = serde_json::from_str(&load_test_vector(
+        "commitment_proof_uncompressed_master.json",
+    ))
+    .unwrap();
+    commitment_json["proof"]["stakes"] = signed_stakes["stakes"].clone();
+    let unsigned_proof_file = create_temp_file(
+        &serde_json::to_string_pretty(&commitment_json).unwrap(),
+    );
+
+    let sign_proof_output = proof_manager_cmd()
+        .arg("sign")
+        .arg("--type")
+        .arg("proof")
+        .arg("--input-file")
+        .arg(unsigned_proof_file.path())
+        .arg("--private-key")
+        .arg(PROOF_MASTER_PRIVATE_KEY)
+        .output()
+        .unwrap();
+
+    assert!(sign_proof_output.status.success());
+    let signed_proof_json =
+        String::from_utf8(sign_proof_output.stdout).unwrap();
+    let signed_proof: Value = serde_json::from_str(&signed_proof_json).unwrap();
+    let signed_proof_file = create_temp_file(&signed_proof_json);
+
+    let master = signed_proof["proof"]["master"].as_str().unwrap();
+    assert!(
+        master.starts_with("04"),
+        "Master should remain uncompressed"
+    );
+    assert_eq!(master.len(), 130);
+
+    proof_manager_cmd()
+        .arg("validate")
+        .arg("--type")
+        .arg("proof")
+        .arg("--input-file")
+        .arg(signed_proof_file.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"valid\":true"));
+}
+
+#[test]
 fn test_create_delegation_and_sign() {
     // First, convert proof JSON to hex
     let hex_output = proof_manager_cmd()
