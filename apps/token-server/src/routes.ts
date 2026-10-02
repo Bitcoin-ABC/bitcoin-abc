@@ -193,6 +193,30 @@ export const startExpressServer = (
                 });
             }
 
+            // Denied tokens stay on the blacklist after their icons are denied.
+            // Reject re-uploads so a reused signature cannot resurrect them.
+            try {
+                const blacklistEntry = await getOneBlacklistEntry(
+                    pool,
+                    tokenId,
+                );
+                if (blacklistEntry) {
+                    return res.status(403).json({
+                        status: 'error',
+                        msg: `Token ${tokenId} is blacklisted`,
+                    });
+                }
+            } catch (err) {
+                console.error(
+                    `Error checking blacklist for /new ${tokenId}`,
+                    err,
+                );
+                return res.status(500).json({
+                    status: 'error',
+                    msg: `Failed to check status for ${tokenId}`,
+                });
+            }
+
             const { minterAddress, tokenType, supplyType } = req.body;
             if (
                 typeof minterAddress !== 'string' ||

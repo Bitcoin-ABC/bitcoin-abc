@@ -11,7 +11,12 @@ import { Bot } from 'grammy';
 import { createFsFromVolume, vol, IFs, DirectoryJSON } from 'memfs';
 import sharp from 'sharp';
 import { Pool } from 'pg';
-import { seedBlacklist, initialBlacklist, resetBlacklist } from '../src/db';
+import {
+    seedBlacklist,
+    initialBlacklist,
+    resetBlacklist,
+    insertBlacklistEntry,
+} from '../src/db';
 import { createTestPool } from '../test/testDb';
 import { hashTokenIcon } from '../src/iconAuth';
 import { insertCashtabToken } from '../src/cashtabTokens';
@@ -359,6 +364,39 @@ describe('routes.js', function () {
             .expect({
                 status: 'error',
                 msg: `Invalid tokenId: ${traversalTokenId}`,
+            });
+    });
+    it('If the tokenId is blacklisted, the /new request is rejected', async function () {
+        await insertBlacklistEntry(testPool, TEST_TOKEN_ID, {
+            reason: 'denied by moderator',
+            timestamp: Math.round(Date.now() / 1000),
+            addedBy: 'test',
+        });
+
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return appendCashtabNewTokenFields(
+            request(app).post(`/new`),
+            TEST_TOKEN_ID,
+            {
+                iconBuffer: semiTransparentRedPng,
+            },
+        )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Token ${TEST_TOKEN_ID} is blacklisted`,
             });
     });
     it('If the token icon already exists on the server, the /new request is rejected', async function () {
