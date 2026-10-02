@@ -434,6 +434,12 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     /**
+     * Decrement VoteRecord::inflight for each inventory. Duplicate invs in the
+     * vector are aggregated before clearing.
+     */
+    void clearInflightRequests(const std::vector<CInv> &invs)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
+    /**
      * Decrement VoteRecord::inflight for each inventory by the given count.
      */
     void clearInflightRequests(const std::map<CInv, uint8_t> &inflightRequests)

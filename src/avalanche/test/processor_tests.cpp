@@ -1014,16 +1014,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_and_response, P, VoteItemProviders) {
     checkRegisterVotesError(avanodeid, resp, "invalid-ava-response-content");
     BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
 
-    // At this stage we have reached the max inflight requests for our inv, so
-    // it won't be requested anymore until the requests are fullfilled. Let's
-    // vote on another item with no inflight request so the remaining tests
-    // makes sense.
-    invs = getInvsForNextPoll();
-    BOOST_CHECK(invs.empty());
-
-    item = provider.buildVoteItem();
-    itemid = provider.getVoteItemId(item);
-    BOOST_CHECK(addToReconcile(item));
+    // The item should remain pollable.
+    for (int i = 0; i < AVALANCHE_MAX_INFLIGHT_POLL; i++) {
+        resp = {getRound(), 0, {Vote(0, itemid)}};
+        runEventLoop();
+        BOOST_CHECK(registerVotes(avanodeid, resp, updates));
+        BOOST_CHECK_EQUAL(getSuitableNodeToQuery(), avanodeid);
+    }
 
     invs = getInvsForNextPoll();
     BOOST_CHECK_EQUAL(invs.size(), 1);

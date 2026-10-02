@@ -596,6 +596,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
     if (votes.size() != size) {
         disconnect = true;
         error = "invalid-ava-response-size";
+        clearInflightRequests(invs);
         return false;
     }
 
@@ -603,6 +604,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         if (invs[i].hash != votes[i].GetHash()) {
             disconnect = true;
             error = "invalid-ava-response-content";
+            clearInflightRequests(invs);
             return false;
         }
     }
@@ -1320,11 +1322,7 @@ void Processor::runEventLoop() {
         // Roll back inflight counters for the polls that were never dispatched.
         // Done after releasing cs_peerManager to avoid lock inversion with
         // voteRecords.
-        std::map<CInv, uint8_t> undelivered;
-        for (const CInv &inv : invs) {
-            undelivered[inv]++;
-        }
-        clearInflightRequests(undelivered);
+        clearInflightRequests(invs);
     } while (nodeid != NO_NODE);
 }
 
@@ -1357,6 +1355,14 @@ void Processor::clearTimedoutRequests() {
     }
 
     clearInflightRequests(timedout_items);
+}
+
+void Processor::clearInflightRequests(const std::vector<CInv> &invs) {
+    std::map<CInv, uint8_t> counts;
+    for (const CInv &inv : invs) {
+        counts[inv]++;
+    }
+    clearInflightRequests(counts);
 }
 
 void Processor::clearInflightRequests(
