@@ -67,7 +67,7 @@ export function encodeBase58(input: Uint8Array): string {
         result[idx] = '1';
     }
     for (let idx = startIdx; idx < b58.length; ++idx) {
-        result[idx] = BASE58_CHARS[b58[idx]];
+        result[numZeroes++] = BASE58_CHARS[b58[idx]];
     }
     return result.join('');
 }

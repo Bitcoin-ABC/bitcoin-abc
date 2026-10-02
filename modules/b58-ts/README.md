@@ -21,7 +21,11 @@ decodeBase58('1111111111');
 
 ### Change log
 
-0.1.0
+**0.1.0**
 
 - Initialized [D17260](https://reviews.bitcoinabc.org/D17260)
 - Automated publishing [D17262](https://reviews.bitcoinabc.org/D17262)
+
+**0.1.1**
+
+- Fix padding of the leading zeroes during encoding [D20746](https://reviews.bitcoinabc.org/D20746)
