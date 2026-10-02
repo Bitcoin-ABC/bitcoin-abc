@@ -880,9 +880,13 @@ class LedgerPlugin(HWPluginBase):
         client = self.scan_and_create_client_for_device(
             device_id=device_id, wizard=wizard
         )
+        # Sanity-check the device. get_xpub() also derives the parent node, and
+        # since v2.4.10 the Ledger Bitcoin Cash app only derives paths under
+        # m/*/145', m/*/0', m/45' and m/4541509', so the old m/44'/0' probe
+        # (parent m/44') failed with "Invalid status 6f00".
         wizard.run_task_without_blocking_gui(
-            task=lambda: client.get_xpub("m/44'/0'", "standard")
-        )  # TODO replace by direct derivation once Nano S > 1.1
+            task=lambda: client.get_xpub("m/44'/145'/0'", "standard")
+        )
         return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
