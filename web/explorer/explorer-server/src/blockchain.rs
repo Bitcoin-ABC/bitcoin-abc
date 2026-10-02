@@ -55,7 +55,7 @@ pub fn destination_from_script<'a>(
         [65, pk @ .., OP_CHECKSIG] => Destination::P2PK(pk.to_vec()),
         [OP_RETURN, data @ ..] => {
             let ops = Script::new(data.to_vec().into());
-            let ops = ops.iter_ops().map(|op| op.unwrap()).collect();
+            let ops = ops.iter_ops().filter_map(Result::ok).collect();
             Destination::Nulldata(ops)
         }
         _ => Destination::Unknown(script.to_vec()),
