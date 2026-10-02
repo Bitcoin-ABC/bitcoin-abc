@@ -1,5 +1,19 @@
 # Release notes
 
+## Release 5.5.2
+
+- Sanitize error logs to avoid logging secrets in verbose mode (D20473).
+- Detect a wallet's own coins when loading an Avalanche Proof from a hex string,
+  so the stake signature is properly updated when the commitment data changes
+  (D20515, D20517).
+- Fix sorting coins by column header for PyQt6 (D20529).
+- Don't prompt for a non-existent password when signing stakes with a hardware
+  wallet (D20532).
+- Fix an error when opening the delegation editor with a hardware wallet (D20533).
+- Improve the code's robustness against malformed server messages (D20584).
+- Fix decoding of validity dates past 2050 for X.509 certificates (D20713).
+
+
 ## Release 5.5.1
 
 - Changing the gap limit now affects also the change addresses (D19906).
