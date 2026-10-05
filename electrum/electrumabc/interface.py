@@ -736,7 +736,7 @@ class Interface(PrintError):
 
         return False
 
-    def get_responses(self):
+    def get_responses(self) -> list[tuple[Optional[InterfaceRequest], Optional[dict]]]:
         """Call if there is data available on the socket.  Returns a list of
         (request, response) pairs.  Notifications are singleton
         unsolicited responses presumably as a result of prior

@@ -914,13 +914,23 @@ class Network(util.DaemonThread):
             callback(response)
 
     @staticmethod
-    def get_index(method, params):
-        """hashable index for subscriptions and cache"""
-        return str(method) + (":" + str(params[0]) if params else "")
+    def check_params(params, min_len):
+        return isinstance(params, (list, tuple)) and len(params) >= min_len
 
-    def process_responses(self, interface):
+    def get_index(self, method, params):
+        """hashable index for subscriptions and cache"""
+        return str(method) + (
+            ":" + str(params[0]) if self.check_params(params, 1) else ""
+        )
+
+    def process_responses(self, interface: Interface):
         responses = interface.get_responses()
         for request, response in responses:
+            if request is None and response is None:
+                # Closed remotely / misbehaving
+                self.connection_down(interface.server)
+                break
+
             if request:
                 method, params, message_id = request
                 k = self.get_index(method, params)
@@ -945,19 +955,26 @@ class Network(util.DaemonThread):
                 # Only once we've received a response to an addr subscription
                 # add it to the list; avoids double-sends on reconnection
                 if method == "blockchain.scripthash.subscribe":
+                    if not self.check_params(params, 1):
+                        self.connection_down(interface.server)
+                        break
                     self.subscribed_addresses.add(params[0])
             else:
-                if not response:  # Closed remotely / misbehaving
-                    self.connection_down(interface.server)
-                    break
                 # Rewrite response shape to match subscription request response
                 method = response.get("method")
                 params = response.get("params")
+
                 k = self.get_index(method, params)
                 if method == "blockchain.headers.subscribe":
+                    if not self.check_params(params, 1):
+                        self.connection_down(interface.server)
+                        break
                     response["result"] = params[0]
                     response["params"] = []
                 elif method == "blockchain.scripthash.subscribe":
+                    if not self.check_params(params, 2):
+                        self.connection_down(interface.server)
+                        break
                     response["params"] = [params[0]]  # addr
                     response["result"] = params[1]
                 callbacks = self.subscriptions.get(k, [])
