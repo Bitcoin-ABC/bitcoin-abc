@@ -52,6 +52,8 @@ pub struct ChronikSettings {
     pub ws_ping_interval: Duration,
     /// Enable CORS headers
     pub enable_cors: bool,
+    /// Maximum script size in bytes for WebSocket script subscriptions
+    pub subscription_max_script_size: usize,
 }
 
 /// Params defining what and where to serve for [`ChronikServer`].

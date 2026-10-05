@@ -9,6 +9,7 @@
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
+#include <script/script.h>
 #include <util/chaintype.h>
 #include <util/result.h>
 #include <util/time.h>
@@ -147,6 +148,17 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                    .c_str())}};
     }
 
+    const int64_t subscription_max_script_size =
+        args.GetIntArg("-chroniksubsmaxscriptsize",
+                       chronik::DEFAULT_SUBSCRIPTION_MAX_SCRIPT_SIZE);
+    if (subscription_max_script_size < 1 ||
+        subscription_max_script_size > MAX_SCRIPT_SIZE) {
+        return {{_(strprintf("The -chroniksubsmaxscriptsize value should "
+                             "be within the range [1, %d].",
+                             MAX_SCRIPT_SIZE)
+                       .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -188,6 +200,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .electrum_idle_timeout = static_cast<uint32_t>(electrum_idle_timeout),
         .max_subs = static_cast<size_t>(max_subs),
         .max_subs_per_ip = static_cast<size_t>(max_subs_per_ip),
+        .subscription_max_script_size =
+            static_cast<size_t>(subscription_max_script_size),
     }};
 }
 

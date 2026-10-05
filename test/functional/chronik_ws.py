@@ -25,6 +25,7 @@ from test_framework.txtools import pad_tx
 from test_framework.util import (
     assert_equal,
     assert_recv_all_any_order,
+    chronik_sub_script,
     chronik_sub_to_blocks,
     chronik_sub_to_txs,
     chronik_sub_txid,
@@ -700,6 +701,42 @@ class ChronikWsTest(BitcoinTestFramework):
             r"Error: The -chronikmaxsubsperip value should be within the range \[1,",
             match=ErrorMatch.PARTIAL_REGEX,
         )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxscriptsize=-1"],
+            r"Error: The -chroniksubsmaxscriptsize value should be within the range \[1, 10000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxscriptsize=0"],
+            r"Error: The -chroniksubsmaxscriptsize value should be within the range \[1, 10000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxscriptsize=10001"],
+            r"Error: The -chroniksubsmaxscriptsize value should be within the range \[1, 10000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+
+        self.start_node(
+            0,
+            extra_args=self.extra_args[0] + ["-chroniksubsmaxscriptsize=201"],
+        )
+        chronik = node.get_chronik_client()
+        ws = chronik.ws()
+        # 201-byte "other" script is accepted
+        chronik_sub_script(ws, node, "other", bytes(201))
+        # 202-byte "other" script is rejected
+        ws.sub_script("other", bytes(202))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="400: Script subscription of 202 bytes exceeds the maximum of 201 bytes"
+                ),
+            ),
+        )
+        ws.close()
+        node.stop_node()
 
         # Per-IP limit
         self.start_node(

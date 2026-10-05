@@ -33,6 +33,10 @@ static const uint32_t DEFAULT_ELECTRUM_MAX_HISTORY{200'000};
 // Defaults for Chronik subscription caps.
 static constexpr uint64_t DEFAULT_MAX_SUBS{10'000'000};
 static constexpr uint64_t DEFAULT_MAX_SUBS_PER_IP{75'000};
+// Largest standard locking script a client has a reason to subscribe to: a
+// 3-of-3 bare multisig with uncompressed pubkeys (OP_3 <65-byte key>*3 OP_3
+// OP_CHECKMULTISIG = 201 bytes).
+static constexpr uint64_t DEFAULT_SUBSCRIPTION_MAX_SCRIPT_SIZE{201};
 
 static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
 

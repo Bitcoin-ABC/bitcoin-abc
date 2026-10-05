@@ -59,6 +59,13 @@ pub enum ChronikWsError {
     /// Client exceeded the subscription limit.
     #[error("503: {0}")]
     SubscriptionLimit(String),
+
+    /// Script payload exceeds `-chroniksubsmaxscriptsize`.
+    #[error(
+        "400: Script subscription of {0} bytes exceeds the maximum of {1} \
+         bytes"
+    )]
+    ScriptTooLarge(usize, usize),
 }
 
 use self::ChronikWsError::*;
@@ -106,6 +113,7 @@ struct SubRecv {
     sub_guards: Vec<SubscriptionGuard>,
     client_key: SubscriptionClientKey,
     subscription_limiter: SubscriptionLimiterRef,
+    subscription_max_script_size: usize,
 }
 
 impl SubRecv {
@@ -279,6 +287,14 @@ impl SubRecv {
                     }
                     subs.subs_script_mut().unsubscribe_from_member(&&script)
                 } else if !self.scripts.contains_key(&script_variant) {
+                    let script_len = script.bytecode().len();
+                    if script_len > self.subscription_max_script_size {
+                        return Err(ScriptTooLarge(
+                            script_len,
+                            self.subscription_max_script_size,
+                        )
+                        .into());
+                    }
                     log_chronik!("WS subscribe to {}\n", script_variant);
                     self.acquire_sub()?;
                     let recv =
@@ -559,6 +575,7 @@ pub async fn handle_subscribe_socket(
         sub_guards: Vec::new(),
         client_key: SubscriptionClientKey::Ip(peer_ip),
         subscription_limiter,
+        subscription_max_script_size: settings.subscription_max_script_size,
     };
     let mut last_msg = None;
 

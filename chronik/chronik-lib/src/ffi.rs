@@ -68,6 +68,8 @@ mod ffi_inner {
         pub max_subs: usize,
         /// Maximum number of simultaneous subscriptions per client IP
         pub max_subs_per_ip: usize,
+        /// Maximum script size in bytes for WebSocket script subscriptions
+        pub subscription_max_script_size: usize,
     }
 
     /// Settings for tuning the TxNumCache.

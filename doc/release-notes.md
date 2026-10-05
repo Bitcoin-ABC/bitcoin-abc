@@ -4,6 +4,7 @@ Bitcoin ABC version 0.34.1 is now available from:
 
   <https://download.bitcoinabc.org/0.34.1/>
 
+This release includes the following features and fixes:
 - Add new format string placeholders for `walletnotify`:
   - `%b` - the hash of the block containting the transaction (`unconfirmed` if a mempool transaction)
   - `%h` - the height of the block containing the transaction (`-1` if a mempool transaction)
@@ -22,3 +23,7 @@ Bitcoin ABC version 0.34.1 is now available from:
   `GET /rest/headers/<BLOCK-HASH>.<bin|hex|json>?count=<COUNT=5>`
   instead of
   `GET /rest/headers/<COUNT>/<BLOCK-HASH>.<bin|hex|json>` (deprecated)
+- A new `-chroniksubsmaxscriptsize` option limits the size of scripts that can
+  be registered on Chronik WebSocket subscriptions (default: 201 bytes, a
+  standard 3-of-3 uncompressed bare multisig). Oversized scripts are still
+  indexed and remain available via HTTP and txid lookup.
