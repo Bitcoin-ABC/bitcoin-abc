@@ -409,4 +409,35 @@ describe('ecash-herald chronikWsHandler.js', function () {
         // Check that the correct msg info was sent
         assert.deepEqual(result, msgSuccess);
     });
+    it('initializeWebsocket catches a handler failure instead of rejecting', async function () {
+        const mockedChronik = new MockChronikClient();
+        const telegramBot = new MockTelegramBot();
+        const ws = await initializeWebsocket(
+            mockedChronik as unknown as ChronikClient,
+            telegramBot,
+            mockChannelId,
+            memoryCache,
+        );
+        const logged: unknown[][] = [];
+        const originalError = console.error;
+        console.error = (...args: unknown[]) => {
+            logged.push(args);
+        };
+        try {
+            await (ws as unknown as MockWsEndpoint).onMessage!({
+                type: 'BLK_INVALIDATED',
+                msgType: 'BLK_INVALIDATED',
+                blockHeight: 1,
+                blockHash: 'aa',
+                blockTimestamp: 1,
+            } as unknown as WsMsgClient);
+        } finally {
+            console.error = originalError;
+        }
+        assert.ok(
+            logged.some(
+                args => args[0] === 'Error handling chronik block message',
+            ),
+        );
+    });
 });

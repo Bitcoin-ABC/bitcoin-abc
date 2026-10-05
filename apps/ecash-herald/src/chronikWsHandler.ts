@@ -76,15 +76,22 @@ export const initializeWebsocket = async (
 ): Promise<WsEndpoint> => {
     // Subscribe to chronik websocket
     const ws = chronik.ws({
-        onMessage: async msg => {
-            await parseWebsocketMessage(
+        onMessage: msg => {
+            // Catch here. chronik does not await this callback, so a rejection
+            // from hostile block data would otherwise crash the process.
+            return parseWebsocketMessage(
                 chronik,
                 msg,
                 telegramBot,
                 channelId,
                 memoryCache,
                 priceFetcher,
-            );
+            ).catch(err => {
+                const message =
+                    err instanceof Error ? err.message : 'unknown error';
+                console.error('Error handling chronik block message', message);
+                return false;
+            });
         },
     });
     // Wait for WS to be connected:

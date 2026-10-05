@@ -25,7 +25,11 @@ import {
     PriceResponse,
     Period,
 } from 'ecash-price';
-import { heraldSend, sendBlockSummary } from './telegram';
+import {
+    heraldSend,
+    prepareStringForTelegramHTML,
+    sendBlockSummary,
+} from './telegram';
 import {
     getTokenInfoMap,
     getOutputscriptInfoMap,
@@ -40,6 +44,19 @@ import { MemoryCache } from 'cache-manager';
 import { MockTelegramBot } from '../test/mocks/telegramBotMock';
 
 const miners = JSON.parse(JSON.stringify(knownMinersJson), jsonReviver);
+
+/**
+ * Log a staker-API failure without the request URL.
+ * Axios errors include config.url, which contains the API key.
+ */
+export const logActiveStakersError = (err: unknown): void => {
+    const message =
+        err instanceof Error ? err.message : 'unknown error getting stakers';
+    const key = secrets.prod.stakerApiKey;
+    const redacted =
+        key !== '' ? message.split(key).join('[redacted]') : message;
+    console.error('Error getting activeStakers', redacted);
+};
 
 // This is expected for TelegramBot.sendMessage but is not available in its types
 // Based on Telegram API docs
@@ -182,7 +199,7 @@ export const handleBlockFinalized = async (
                 )
             ).data;
         } catch (err) {
-            console.error(`Error getting activeStakers`, err);
+            logActiveStakersError(err);
             // Do not include this info in the tg msg
         }
     }
@@ -230,8 +247,11 @@ export const handleBlockFinalized = async (
     }
 
     // Don't await, this can take some time to complete due to remote
-    // caching.
-    getNextStakingReward(blockHeight + 1, memoryCache);
+    // caching. Catch so a failed lookup cannot reject unhandled.
+    getNextStakingReward(blockHeight + 1, memoryCache).catch(err => {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        console.error('Error caching next staking reward', message);
+    });
 
     // Broadcast block summary telegram message(s)
     return await sendBlockSummary(
@@ -300,7 +320,7 @@ export const handleBlockInvalidated = async (
         `Hash: ${blockHash}` +
         `\n` +
         `Timestamp: ${blockTimestamp}\n` +
-        `Mined by ${miner}\n` +
+        `Mined by ${prepareStringForTelegramHTML(miner)}\n` +
         `Staking reward winner: ${stakingRewardWinnerAddress}\n` +
         `Guessed reject reason: ${reason}`;
 
@@ -397,7 +417,7 @@ export const handleUtcMidnight = async (
             )
         ).data;
     } catch (err) {
-        console.error(`Error getting activeStakers`, err);
+        logActiveStakersError(err);
         // Do not include this info in the tg msg
     }
 

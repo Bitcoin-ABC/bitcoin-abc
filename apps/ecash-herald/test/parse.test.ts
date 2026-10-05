@@ -241,6 +241,78 @@ describe('parse.js functions', function () {
             assert.strictEqual(result, msg);
         }
     });
+    it('getSwapTgMsg escapes HTML in the buy or sell field', function () {
+        const msg = getSwapTgMsg(
+            [
+                '53574150',
+                '01',
+                '01',
+                '11'.repeat(32),
+                Buffer.from('<b>BUY</b>', 'ascii').toString('hex'),
+            ],
+            false,
+        );
+        assert.ok(msg.includes('&lt;b&gt;BUY&lt;/b&gt;'));
+        assert.ok(!msg.includes('<b>BUY</b>'));
+    });
+    it('parseMemoOutputScript does not put a hostile image URL in an href', function () {
+        const hostile = 'https://evil.example/"></a><b>x';
+        const parsed = parseMemoOutputScript([
+            '6d0a',
+            Buffer.from(hostile, 'utf8').toString('hex'),
+        ]);
+        assert.ok(!parsed.msg.includes('<b>x'));
+        assert.ok(parsed.msg.includes('&lt;/a&gt;&lt;b&gt;x'));
+    });
+    it('getBlockTgMessage escapes a coinbase miner string and drops a hostile token doc URL', function () {
+        const tokenId = 'ab'.repeat(32);
+        const parsedBlock: HeraldParsedBlock = {
+            hash: '00'.repeat(32),
+            height: 800000,
+            miner: 'ViaBTC, <b>pwn</b>',
+            staker: false,
+            numTxs: 1,
+            parsedTxs: [
+                {
+                    txid: tokenId,
+                    genesisInfo: { tokenId },
+                    opReturnInfo: false,
+                    txFee: 200,
+                    xecSendingOutputScripts: new Set(['76a91400']),
+                    xecReceivingOutputs: new Map<string, bigint>([
+                        ['76a91401', 546n],
+                    ]),
+                    totalSatsSent: 546n,
+                    tokenSendInfo: false,
+                    agoraInfo: false,
+                    tokenBurnInfo: false,
+                },
+            ],
+            tokenIds: new Set([tokenId]),
+            outputScripts: new Set(),
+        };
+        const msg = getBlockTgMessage(
+            parsedBlock,
+            [],
+            new Map([
+                [
+                    tokenId,
+                    {
+                        tokenTicker: 'TCK',
+                        tokenName: 'Name',
+                        url: 'https://evil.example/"></a><b>doc',
+                        decimals: 0,
+                    },
+                ],
+            ]),
+            false,
+        ).join('\n');
+        assert.ok(msg.includes('ViaBTC, &lt;b&gt;pwn&lt;/b&gt;'));
+        assert.ok(!msg.includes('<b>pwn</b>'));
+        assert.ok(!msg.includes('<b>doc'));
+        assert.ok(!msg.includes('[doc]'));
+        assert.ok(msg.includes('Name'));
+    });
     it('parseOpReturn handles Cashtab Msgs', function () {
         for (let i = 0; i < cashtabMsgs.length; i += 1) {
             const { hex, stackArray, msg } = cashtabMsgs[i];

@@ -27,7 +27,7 @@ import {
     getTokenInfoMap,
 } from '../src/chronik';
 import { summarizeTxHistory } from '../src/parse';
-import { CoinDanceStaker } from '../src/events';
+import { CoinDanceStaker, logActiveStakersError } from '../src/events';
 import { sendBlockSummary } from '../src/telegram';
 import secrets from '../secrets';
 import { Bot } from 'grammy';
@@ -100,7 +100,7 @@ const getDailySummary = async (
             )
         ).data;
     } catch (err) {
-        console.error(`Error getting activeStakers`, err);
+        logActiveStakersError(err);
         // Do not include this info in the tg msg
     }
 

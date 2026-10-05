@@ -23,8 +23,19 @@ const job = new CronJob(
     // see https://www.npmjs.com/package/cron
     // seconds[0-59] minutes[0-59] hours[0-23] day-of-month[1-31] month[1-12] day-of-week[0-7]
     '0 0 0 * * *', // cronTime
-    () =>
-        handleUtcMidnight(chronik, telegramBot, dailyChannelId, mainChannelId), // onTick
+    () => {
+        // cron does not catch a rejected onTick promise
+        handleUtcMidnight(
+            chronik,
+            telegramBot,
+            dailyChannelId,
+            mainChannelId,
+        ).catch(err => {
+            const message =
+                err instanceof Error ? err.message : 'unknown error';
+            console.error('Error in daily summary', message);
+        });
+    }, // onTick
     null, // onComplete
     false, // start
     'UTC', // timeZone

@@ -5,6 +5,7 @@
 import assert from 'assert';
 import {
     prepareStringForTelegramHTML,
+    prepareUrlForTelegramHref,
     splitOverflowTgMsg,
     sendBlockSummary,
     heraldSend,
@@ -55,6 +56,27 @@ describe('ecash-herald telegram.js functions', function () {
             prepareStringForTelegramHTML(noChangeExpected),
             noChangeExpected,
         );
+    });
+    it('prepareUrlForTelegramHref keeps a plain https URL and escapes ampersands', function () {
+        assert.strictEqual(
+            prepareUrlForTelegramHref('https://cashtab.com/'),
+            'https://cashtab.com/',
+        );
+        assert.strictEqual(
+            prepareUrlForTelegramHref('https://example.com/?a=1&b=2'),
+            'https://example.com/?a=1&amp;b=2',
+        );
+    });
+    it('prepareUrlForTelegramHref rejects attribute breakout and non-http schemes', function () {
+        assert.strictEqual(
+            prepareUrlForTelegramHref('https://evil.example/"></a><b>x'),
+            undefined,
+        );
+        assert.strictEqual(
+            prepareUrlForTelegramHref('javascript:alert(1)'),
+            undefined,
+        );
+        assert.strictEqual(prepareUrlForTelegramHref(''), undefined);
     });
     it(`Given a block summary string array longer than 4096 characters, splitOverflowTgMsg returns an array of strings each shorter than 4096 characters`, function () {
         assert.deepEqual(splitOverflowTgMsg(overflowMsg), overflowMsgSplit);

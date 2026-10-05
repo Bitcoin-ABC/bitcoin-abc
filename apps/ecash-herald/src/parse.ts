@@ -39,7 +39,11 @@ import {
     BLITZCHIPS_OUTPUTSCRIPT,
     EVERYDAYJACKPOT_OUTPUTSCRIPT,
 } from '../constants/games';
-import { prepareStringForTelegramHTML, splitOverflowTgMsg } from './telegram';
+import {
+    prepareStringForTelegramHTML,
+    prepareUrlForTelegramHref,
+    splitOverflowTgMsg,
+} from './telegram';
 import { OutputscriptInfo } from './chronik';
 import {
     satsToFormattedValue,
@@ -607,10 +611,14 @@ export const parseMemoOutputScript = (
             // 01 - Set profile picture
             // <url> (1-217 bytes)
 
-            // url is utf8 encoded stack[1]
+            // url is utf8 encoded stack[1]. Only link http(s) URLs;
+            // anything else is escaped text so it cannot inject markup.
             const url = Buffer.from(stackArray[1], 'hex').toString('utf8');
-            // Link to it
-            msg += `<a href="${url}">[img]</a>`;
+            const href = prepareUrlForTelegramHref(url);
+            msg +=
+                href === undefined
+                    ? prepareStringForTelegramHTML(url)
+                    : `<a href="${href}">[img]</a>`;
             break;
         }
         case '0c': {
@@ -1619,8 +1627,10 @@ export const getSwapTgMsg = (
                     }
                 }
 
-                // buy or sell?
-                msg += Buffer.from(stackArray[4], 'hex').toString('ascii');
+                // buy or sell? Attacker-controlled; escape before HTML.
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[4] ?? '', 'hex').toString('ascii'),
+                );
 
                 // Add price info if present
                 // price in XEC, must convert <rate_in_sats_int> from sats to XEC
@@ -1853,11 +1863,13 @@ export const getBlockTgMessage = (
             tokenName = prepareStringForTelegramHTML(tokenName);
             // Make sure tokenName does not contain telegram html escape characters
             tokenTicker = prepareStringForTelegramHTML(tokenTicker);
-            // Do not apply this parsing to tokenDocumentUrl, as this could change the URL
-            // If this breaks the msg, so be it
-            // Would only happen for bad URLs
+            // Only link a plain http(s) document URL. A quote or tag in the
+            // URL would inject markup or make Telegram reject the block msg.
+            const docHref = prepareUrlForTelegramHref(url);
+            const docLink =
+                docHref === undefined ? '' : ` <a href="${docHref}">[doc]</a>`;
             genesisTxTgMsgLines.push(
-                `${emojis.tokenGenesis}<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker}) <a href="${url}">[doc]</a>`,
+                `${emojis.tokenGenesis}<a href="${config.blockExplorer}/tx/${tokenId}">${tokenName}</a> (${tokenTicker})${docLink}`,
             );
             // This parsed tx has a tg msg line. Move on to the next one.
             continue;
@@ -2382,7 +2394,7 @@ export const getBlockTgMessage = (
             config.blockExplorer
         }/block/${hash}">${height}</a> | ${numTxs.toLocaleString('en-US')} tx${
             numTxs > 1 ? `s` : ''
-        } | ${miner}`,
+        } | ${prepareStringForTelegramHTML(miner)}`,
     );
 
     // Halving countdown
@@ -3902,7 +3914,9 @@ export const summarizeTxHistory = (
     for (let i = 0; i < topMiners.length; i += 1) {
         const count = topMiners[i][1];
         const pct = (100 * (count / blockCount)).toFixed(0);
-        tgMsg.push(`${i + 1}. ${topMiners[i][0]}, ${count} <i>(${pct}%)</i>`);
+        tgMsg.push(
+            `${i + 1}. ${prepareStringForTelegramHTML(topMiners[i][0])}, ${count} <i>(${pct}%)</i>`,
+        );
     }
     tgMsg.push('');
 

@@ -235,6 +235,43 @@ export const prepareStringForTelegramHTML = (string: string): string => {
 };
 
 /**
+ * Return an http(s) URL safe to place in a Telegram HTML href.
+ * Rejects anything that could close the attribute or start a tag.
+ * Ampersands are escaped so an entity such as `&quot;` cannot be decoded
+ * into a quote. The original URL is otherwise left unchanged.
+ *
+ * @param url Untrusted URL, for example a token document or memo image
+ */
+export const prepareUrlForTelegramHref = (url: string): string | undefined => {
+    if (url.length === 0 || url.length > 2048) {
+        return undefined;
+    }
+    // Quotes, angle brackets, backslashes, and whitespace break out of href
+    // or make Telegram reject the whole message.
+    if (!/^https?:\/\/[^\s"<>\\]+$/i.test(url)) {
+        return undefined;
+    }
+    for (let i = 0; i < url.length; i += 1) {
+        const code = url.charCodeAt(i);
+        if (code < 32 || code === 127) {
+            return undefined;
+        }
+    }
+    try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            return undefined;
+        }
+        if (parsed.username !== '' || parsed.password !== '') {
+            return undefined;
+        }
+    } catch {
+        return undefined;
+    }
+    return url.replace(/&/g, '&amp;');
+};
+
+/**
  * Send a Telegram message with serialized delivery, 429 retry_after handling,
  * and exponential backoff for other transient errors.
  *

@@ -188,14 +188,35 @@ describe('ecash-herald events.js', function () {
             onNoMatch: 'throwException',
         });
 
-        const result = await handleBlockFinalized(
-            mockedChronik as unknown as ChronikClient,
-            telegramBot,
-            channelId,
-            thisBlock.parsedBlock.hash,
-            thisBlock.parsedBlock.height,
-            memoryCache,
-            mockFetcher,
+        const stakerLogs: unknown[][] = [];
+        const originalError = console.error;
+        console.error = (...args: unknown[]) => {
+            if (args[0] === 'Error getting activeStakers') {
+                stakerLogs.push(args);
+            }
+            originalError(...args);
+        };
+
+        let result;
+        try {
+            result = await handleBlockFinalized(
+                mockedChronik as unknown as ChronikClient,
+                telegramBot,
+                channelId,
+                thisBlock.parsedBlock.hash,
+                thisBlock.parsedBlock.height,
+                memoryCache,
+                mockFetcher,
+            );
+        } finally {
+            console.error = originalError;
+        }
+
+        const renderedStakerLogs = JSON.stringify(stakerLogs);
+        assert.ok(stakerLogs.length > 0);
+        assert.strictEqual(
+            renderedStakerLogs.includes(secrets.prod.stakerApiKey),
+            false,
         );
 
         // Check that sendMessage was called successfully
