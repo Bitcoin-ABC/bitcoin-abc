@@ -36,6 +36,8 @@ interface ChromeMessage {
     addressRequestApproved?: boolean;
     address?: string;
     tabId?: number;
+    frameId?: number;
+    documentId?: string;
     txResponse?: {
         approved: boolean;
         txid?: string;
@@ -66,6 +68,140 @@ const isExtensionPageSender = (
     return Boolean(sender.url?.startsWith(`${extensionOrigin}/`));
 };
 
+/** Chrome documentId, safe to round-trip in an extension popup query. */
+const DOCUMENT_ID_RE = /^[A-Za-z0-9_-]{1,128}$/;
+
+interface PageMessageSender {
+    tab?: { id?: number };
+    frameId?: number;
+    url?: string;
+    origin?: string;
+    documentId?: string;
+}
+
+interface PageFrameTarget {
+    tabId: number;
+    frameId: number;
+    /** URL of the frame that sent the request. */
+    url: string;
+    documentId?: string;
+}
+
+/**
+ * Frame that sent a dApp request.
+ *
+ * The active tab URL is the top-level page. An iframe content script must be
+ * identified by `sender.url` (and answered at `sender.frameId`) so it cannot
+ * inherit the host site's name or receive another frame's reply.
+ * Keep in sync with src/extension/messageGuards.ts.
+ */
+const pageFrameFromSender = (
+    sender: PageMessageSender,
+): PageFrameTarget | null => {
+    const tabId = sender.tab?.id;
+    const frameId = sender.frameId;
+    const url = sender.url;
+    if (typeof tabId !== 'number' || !Number.isInteger(tabId) || tabId < 0) {
+        return null;
+    }
+    if (
+        typeof frameId !== 'number' ||
+        !Number.isInteger(frameId) ||
+        frameId < 0
+    ) {
+        return null;
+    }
+    if (typeof url !== 'string' || url.length === 0) {
+        return null;
+    }
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        return null;
+    }
+    if (
+        parsed.protocol !== 'https:' &&
+        parsed.protocol !== 'http:' &&
+        parsed.protocol !== 'file:'
+    ) {
+        return null;
+    }
+    // Require the frame origin to match its URL so a sandboxed or inherited
+    // origin is not labeled as the embedded document's site.
+    if (
+        parsed.protocol !== 'file:' &&
+        (typeof sender.origin !== 'string' || sender.origin !== parsed.origin)
+    ) {
+        return null;
+    }
+    const documentId = sender.documentId;
+    if (documentId !== undefined && !DOCUMENT_ID_RE.test(documentId)) {
+        return null;
+    }
+    if (documentId === undefined) {
+        return { tabId, frameId, url };
+    }
+    return { tabId, frameId, url, documentId };
+};
+
+interface FrameDelivery {
+    tabId: number;
+    frameId: number;
+    documentId?: string;
+}
+
+interface FrameDeliveryMessage {
+    tabId?: number;
+    frameId?: number;
+    documentId?: string;
+}
+
+/**
+ * Tab and frame echoed by the extension popup.
+ * A missing frameId must not fall back to a tab-wide broadcast.
+ * Keep in sync with src/extension/messageGuards.ts.
+ */
+const frameDeliveryFromApproval = (
+    message: FrameDeliveryMessage,
+): FrameDelivery | null => {
+    const tabId = message.tabId;
+    const frameId = message.frameId;
+    const documentId = message.documentId;
+    if (typeof tabId !== 'number' || !Number.isInteger(tabId) || tabId < 0) {
+        return null;
+    }
+    if (
+        typeof frameId !== 'number' ||
+        !Number.isInteger(frameId) ||
+        frameId < 0
+    ) {
+        return null;
+    }
+    if (documentId === undefined) {
+        return { tabId, frameId };
+    }
+    if (!DOCUMENT_ID_RE.test(documentId)) {
+        return null;
+    }
+    return { tabId, frameId, documentId };
+};
+
+const deliverToFrame = (
+    target: FrameDelivery,
+    message: Record<string, unknown>,
+): void => {
+    const options: chrome.tabs.MessageSendOptions = {
+        frameId: target.frameId,
+    };
+    if (target.documentId !== undefined) {
+        options.documentId = target.documentId;
+    }
+    chrome.tabs.sendMessage(target.tabId, message, options).catch(err => {
+        console.log('Failed to deliver extension response to frame', err);
+    });
+};
+
 chrome.runtime.onMessage.addListener(function (
     request: ChromeMessage,
     sender: chrome.runtime.MessageSender,
@@ -75,24 +211,26 @@ chrome.runtime.onMessage.addListener(function (
         console.log(
             `Received a transaction request, opening Cashtab extension`,
         );
-        openSendXec(request.txInfo);
+        const page = pageFrameFromSender(sender);
+        if (!page) {
+            console.warn('Ignoring transaction request with no page frame');
+            return;
+        }
+        openSendXec(request.txInfo, page).catch(err => {
+            console.log('Error opening send for extension tx request', err);
+        });
     }
     // Handle an address sharing request
     if (request.text === `Cashtab` && request.addressRequest) {
-        // get the tab this message came from
         // Note that chrome extension does not support making this listener async
-        // so need to use this Promise.then() syntax
-        getCurrentActiveTab().then(
-            requestingTab => {
-                openAddressShareApproval('addressRequest', requestingTab);
-            },
-            err => {
-                console.log(
-                    'Error in getCurrentActiveTab() triggered by ecash address request',
-                    err,
-                );
-            },
-        );
+        const page = pageFrameFromSender(sender);
+        if (!page) {
+            console.warn('Ignoring address request with no page frame');
+            return;
+        }
+        openAddressShareApproval('addressRequest', page).catch(err => {
+            console.log('Error opening address share approval', err);
+        });
     }
     // Handle user approval / rejection of an ecash address sharing request
     if (
@@ -107,15 +245,23 @@ chrome.runtime.onMessage.addListener(function (
             );
             return;
         }
-        // If approved, then share the address
+        const target = frameDeliveryFromApproval(request);
+        if (!target) {
+            console.warn('Ignoring address approval with no requesting frame');
+            return;
+        }
+        // If approved, then share the address with the requesting frame only
         if (request.addressRequestApproved) {
-            chrome.tabs.sendMessage(Number(request.tabId), {
+            deliverToFrame(target, {
                 success: true,
                 address: request.address,
             });
         } else {
-            // If denied, let the webpage know that the user denied this request
-            handleDeniedAddressRequest(request.tabId);
+            // If denied, let the requesting frame know that the user denied this request
+            deliverToFrame(target, {
+                success: false,
+                reason: 'User denied the request',
+            });
         }
     }
 
@@ -125,57 +271,23 @@ chrome.runtime.onMessage.addListener(function (
             console.warn('Ignoring txResponse from non-extension sender');
             return;
         }
-        handleTransactionResponse(request.tabId, request.txResponse);
+        const target = frameDeliveryFromApproval(request);
+        if (!target) {
+            console.warn('Ignoring txResponse with no requesting frame');
+            return;
+        }
+        deliverToFrame(target, {
+            type: 'FROM_CASHTAB',
+            text: 'Cashtab',
+            txResponse: request.txResponse,
+        });
     }
 });
-
-// Get the current active tab
-const getCurrentActiveTab = async function (): Promise<chrome.tabs.Tab> {
-    return new Promise((resolve, reject) => {
-        try {
-            chrome.tabs.query(
-                { active: true, currentWindow: true },
-                function (tabs: chrome.tabs.Tab[]) {
-                    resolve(tabs[0]);
-                },
-            );
-        } catch (err) {
-            console.log(`Error in getCurrentActiveTab()`, err);
-            reject(err);
-        }
-    });
-};
-
-async function handleDeniedAddressRequest(tabId?: number): Promise<void> {
-    if (!tabId) return;
-    chrome.tabs.sendMessage(Number(tabId), {
-        success: false,
-        reason: 'User denied the request',
-    });
-}
-
-async function handleTransactionResponse(
-    tabId?: number,
-    txResponse?: {
-        approved: boolean;
-        txid?: string;
-        reason?: string;
-    },
-): Promise<void> {
-    if (!tabId || !txResponse) {
-        return;
-    }
-    chrome.tabs.sendMessage(Number(tabId), {
-        type: 'FROM_CASHTAB',
-        text: 'Cashtab',
-        txResponse: txResponse,
-    });
-}
 
 // Open Cashtab extension with a request for address sharing
 async function openAddressShareApproval(
     request: string,
-    tab: chrome.tabs.Tab,
+    page: PageFrameTarget,
 ): Promise<void> {
     let left = 0;
     let top = 0;
@@ -197,7 +309,16 @@ async function openAddressShareApproval(
         left = Math.max(screenX + (outerWidth - NOTIFICATION_WIDTH), 0);
     }
 
-    const queryString = `request=${request}&tabId=${tab.id}&tabUrl=${tab.url}`;
+    const params = new URLSearchParams({
+        request,
+        tabId: String(page.tabId),
+        frameId: String(page.frameId),
+        tabUrl: page.url,
+    });
+    if (page.documentId !== undefined) {
+        params.set('documentId', page.documentId);
+    }
+    const queryString = params.toString();
 
     // create new notification popup
     await openWindow({
@@ -211,7 +332,10 @@ async function openAddressShareApproval(
 }
 
 // Open Cashtab extension with transaction information in the query string
-async function openSendXec(txInfo: Record<string, string>): Promise<void> {
+async function openSendXec(
+    txInfo: Record<string, string>,
+    page: PageFrameTarget,
+): Promise<void> {
     let left = 0;
     let top = 0;
     try {
@@ -232,12 +356,15 @@ async function openSendXec(txInfo: Record<string, string>): Promise<void> {
         left = Math.max(screenX + (outerWidth - NOTIFICATION_WIDTH), 0);
     }
 
-    // Get the current active tab to pass the tabId
-    const currentTab = await getCurrentActiveTab();
+    // Always append documentId. A BIP21 value can already contain
+    // &documentId=, and SendXec keeps the last occurrence. Omitting the key
+    // when this frame has none would let that injected id win, and the reply
+    // would target a document that never asked.
     const queryString =
         Object.keys(txInfo)
             .map(key => key + '=' + txInfo[key])
-            .join('&') + `&tabId=${currentTab.id}`;
+            .join('&') +
+        `&tabId=${page.tabId}&frameId=${page.frameId}&documentId=${encodeURIComponent(page.documentId ?? '')}`;
 
     // create new notification popup
     await openWindow({

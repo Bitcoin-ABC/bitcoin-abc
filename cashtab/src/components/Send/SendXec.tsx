@@ -54,6 +54,11 @@ import {
     parseTokenMultisendRows,
     previewAddress,
 } from 'helpers';
+import {
+    DOCUMENT_ID_RE,
+    lastQueryParam,
+    stripExtensionRoutingParams,
+} from 'extension/messageGuards';
 import { ChronikClient } from 'chronik-client';
 import {
     getCashtabMsgTargetOutput,
@@ -551,6 +556,8 @@ const parseCashtabTxInfoFromSendHash = (
     txApply: null | {
         txInfo: CashtabTxInfo;
         extensionTabId: string | null;
+        extensionFrameId: string | null;
+        extensionDocumentId: string | null;
     };
 } => {
     if (
@@ -619,14 +626,15 @@ const parseCashtabTxInfoFromSendHash = (
     }
 
     txInfo.parseAllAsBip21 = parseAllAsBip21;
-    const tabParams = new URLSearchParams(txInfoStr);
 
     return {
         hasQuerySegment: true,
         flagUrlBasedTransaction: !isSendTokenViewOnly,
         txApply: {
             txInfo,
-            extensionTabId: tabParams.get('tabId'),
+            extensionTabId: lastQueryParam(txInfoStr, 'tabId'),
+            extensionFrameId: lastQueryParam(txInfoStr, 'frameId'),
+            extensionDocumentId: lastQueryParam(txInfoStr, 'documentId'),
         },
     };
 };
@@ -882,6 +890,12 @@ const SendXec: React.FC = () => {
     const [isExtensionTransaction, setIsExtensionTransaction] =
         useState<boolean>(false);
     const [extensionTabId, setExtensionTabId] = useState<number | null>(null);
+    const [extensionFrameId, setExtensionFrameId] = useState<number | null>(
+        null,
+    );
+    const [extensionDocumentId, setExtensionDocumentId] = useState<
+        string | null
+    >(null);
     const [isUrlBasedTransaction, setIsUrlBasedTransaction] =
         useState<boolean>(false);
 
@@ -1720,6 +1734,10 @@ const SendXec: React.FC = () => {
                         txid: txid,
                     },
                     tabId: extensionTabId,
+                    frameId: extensionFrameId,
+                    ...(extensionDocumentId
+                        ? { documentId: extensionDocumentId }
+                        : {}),
                 };
                 console.info(
                     '[Cashtab] Sending txResponse success message:',
@@ -1774,6 +1792,10 @@ const SendXec: React.FC = () => {
                         reason: reason,
                     },
                     tabId: extensionTabId,
+                    frameId: extensionFrameId,
+                    ...(extensionDocumentId
+                        ? { documentId: extensionDocumentId }
+                        : {}),
                 };
                 console.log(
                     '[Cashtab] Sending txReponse rejection message:',
@@ -1885,9 +1907,19 @@ const SendXec: React.FC = () => {
         }
         setTxInfoFromUrl(txApply.txInfo);
         const tabId = txApply.extensionTabId;
-        if (tabId) {
+        const frameId = txApply.extensionFrameId;
+        if (tabId && frameId && /^\d+$/.test(tabId) && /^\d+$/.test(frameId)) {
             setIsExtensionTransaction(true);
-            setExtensionTabId(parseInt(tabId));
+            setExtensionTabId(parseInt(tabId, 10));
+            setExtensionFrameId(parseInt(frameId, 10));
+            // An empty documentId is the service worker saying this frame has
+            // none. Do not fall back to an earlier documentId inside the BIP21.
+            const documentId = txApply.extensionDocumentId;
+            setExtensionDocumentId(
+                documentId !== null && DOCUMENT_ID_RE.test(documentId)
+                    ? documentId
+                    : null,
+            );
         }
     }, [location.search]);
 
@@ -1905,14 +1937,12 @@ const SendXec: React.FC = () => {
                 : { ...previous, multiAddressInput: '' },
         );
         if (txInfoFromUrl.parseAllAsBip21) {
-            // Strip tabId from BIP21 URI before entering into address field
+            // Strip extension routing params before entering into address field
             let bip21Uri = txInfoFromUrl.bip21;
             if (!bip21Uri) {
                 return;
             }
-            if (bip21Uri.includes('&tabId=')) {
-                bip21Uri = bip21Uri.replace(/&tabId=\d+/, '');
-            }
+            bip21Uri = stripExtensionRoutingParams(bip21Uri);
 
             // Parse the BIP21 URI to check if it contains token_id
             const parsedAddressInput = parseAddressInput(

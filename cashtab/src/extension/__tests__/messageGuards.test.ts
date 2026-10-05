@@ -5,10 +5,15 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import {
+    DOCUMENT_ID_RE,
+    frameDeliveryFromApproval,
     getRelayedPageMessage,
     isExtensionPageSender,
     isPrivilegedExtensionMessage,
     isTrustedPageMessageEvent,
+    lastQueryParam,
+    pageFrameFromSender,
+    stripExtensionRoutingParams,
 } from 'extension/messageGuards';
 
 const EXTENSION_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
@@ -195,6 +200,170 @@ describe('isTrustedPageMessageEvent', () => {
     });
 });
 
+describe('pageFrameFromSender', () => {
+    it('identifies an iframe by its own url and frameId', () => {
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 12,
+                url: 'https://evil.example/frame.html',
+                origin: 'https://evil.example',
+                documentId: 'ABCDEF0123456789',
+            }),
+        ).toEqual({
+            tabId: 4,
+            frameId: 12,
+            url: 'https://evil.example/frame.html',
+            documentId: 'ABCDEF0123456789',
+        });
+    });
+
+    it('identifies the top frame when frameId is 0', () => {
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 0,
+                url: 'https://pay.example/checkout',
+                origin: 'https://pay.example',
+            }),
+        ).toEqual({
+            tabId: 4,
+            frameId: 0,
+            url: 'https://pay.example/checkout',
+        });
+    });
+
+    it('rejects a sender with no tab or frame', () => {
+        expect(
+            pageFrameFromSender({
+                frameId: 0,
+                url: 'https://pay.example/',
+                origin: 'https://pay.example',
+            }),
+        ).toBeNull();
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                url: 'https://pay.example/',
+                origin: 'https://pay.example',
+            }),
+        ).toBeNull();
+    });
+
+    it('rejects an origin that does not match the frame url', () => {
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 2,
+                url: 'https://evil.example/ad.html',
+                origin: 'https://pay.example',
+            }),
+        ).toBeNull();
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 2,
+                url: 'https://evil.example/ad.html',
+                origin: 'null',
+            }),
+        ).toBeNull();
+    });
+
+    it('rejects non-page urls and a bad document id', () => {
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 0,
+                url: 'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag/index.html',
+                origin: 'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag',
+            }),
+        ).toBeNull();
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 1,
+                url: 'about:srcdoc',
+                origin: 'https://pay.example',
+            }),
+        ).toBeNull();
+        expect(
+            pageFrameFromSender({
+                tab: { id: 4 },
+                frameId: 0,
+                url: 'https://pay.example/',
+                origin: 'https://pay.example',
+                documentId: 'not a document id',
+            }),
+        ).toBeNull();
+    });
+});
+
+describe('frameDeliveryFromApproval', () => {
+    it('keeps a top-frame target and an iframe target', () => {
+        expect(frameDeliveryFromApproval({ tabId: 4, frameId: 0 })).toEqual({
+            tabId: 4,
+            frameId: 0,
+        });
+        expect(
+            frameDeliveryFromApproval({
+                tabId: 4,
+                frameId: 12,
+                documentId: 'ABCDEF0123456789',
+            }),
+        ).toEqual({
+            tabId: 4,
+            frameId: 12,
+            documentId: 'ABCDEF0123456789',
+        });
+    });
+
+    it('rejects a missing frame so the reply cannot be broadcast', () => {
+        expect(frameDeliveryFromApproval({ tabId: 4 })).toBeNull();
+        expect(
+            frameDeliveryFromApproval({ tabId: 4, frameId: 1.5 }),
+        ).toBeNull();
+        expect(
+            frameDeliveryFromApproval({
+                tabId: 4,
+                frameId: 1,
+                documentId: '../other',
+            }),
+        ).toBeNull();
+    });
+});
+
+const ADDR = 'ecash:qr4vamgywn8ll05kqqjuslfl7k4dw9q4qut8funqv9';
+
+describe('stripExtensionRoutingParams', () => {
+    it('leaves a payment documentId that starts with ?', () => {
+        const payment = `${ADDR}?documentId=1234&amount=1`;
+        const popupQuery = `${payment}&tabId=4&frameId=0&documentId=`;
+
+        expect(stripExtensionRoutingParams(payment)).toBe(payment);
+        expect(stripExtensionRoutingParams(popupQuery)).toBe(payment);
+        // Stripping the ? form would glue amount on with & and break it.
+        expect(payment.replace(/\?documentId=[A-Za-z0-9_-]*/g, '')).toBe(
+            `${ADDR}&amount=1`,
+        );
+    });
+
+    it('removes routing keys appended after a bare address', () => {
+        expect(
+            stripExtensionRoutingParams(
+                `${ADDR}&tabId=4&frameId=0&documentId=`,
+            ),
+        ).toBe(ADDR);
+    });
+
+    it('uses the appended documentId, not one inside the payment link', () => {
+        const query = `bip21=${ADDR}?documentId=1234&tabId=4&frameId=0&documentId=`;
+        expect(lastQueryParam(query, 'documentId')).toBe('');
+        expect(DOCUMENT_ID_RE.test('')).toBe(false);
+        expect(lastQueryParam(query, 'tabId')).toBe('4');
+        expect(lastQueryParam(query, 'frameId')).toBe('0');
+    });
+});
+
 describe('extension sources enforce the same policy', () => {
     const serviceWorker = readFileSync(
         path.join(process.cwd(), 'extension/src/service_worker.ts'),
@@ -204,6 +373,16 @@ describe('extension sources enforce the same policy', () => {
         path.join(process.cwd(), 'extension/src/contentscript.ts'),
         'utf8',
     );
+
+    it('service worker replies only to the requesting frame', () => {
+        expect(serviceWorker).not.toContain('getCurrentActiveTab');
+        expect(serviceWorker).not.toMatch(/active:\s*true/);
+        expect(serviceWorker).toContain('pageFrameFromSender(sender)');
+        expect(serviceWorker).toContain('frameId: target.frameId');
+        const sendCalls =
+            serviceWorker.match(/chrome\.tabs\.sendMessage\(/g) || [];
+        expect(sendCalls).toHaveLength(1);
+    });
 
     it('service worker validates sender for privileged messages', () => {
         expect(serviceWorker).toMatch(

@@ -8,6 +8,7 @@ import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import { StoredCashtabWallet, sortWalletsForDisplay } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { previewAddress } from 'helpers';
+import { DOCUMENT_ID_RE } from 'extension/messageGuards';
 import {
     AddressShareModal,
     WalletAddressRow,
@@ -24,6 +25,12 @@ const Extension: React.FC = () => {
         useState<boolean>(false);
     const [addressRequestTabId, setAddressRequestTabId] = useState<
         number | null
+    >(null);
+    const [addressRequestFrameId, setAddressRequestFrameId] = useState<
+        number | null
+    >(null);
+    const [addressRequestDocumentId, setAddressRequestDocumentId] = useState<
+        string | null
     >(null);
     const [addressRequestTabUrl, setAddressRequestTabUrl] =
         useState<string>('');
@@ -59,7 +66,9 @@ const Extension: React.FC = () => {
     const handleWalletConnect = async (
         wallet: StoredCashtabWallet,
     ): Promise<void> => {
-        if (addressRequestTabId === null) return;
+        if (addressRequestTabId === null || addressRequestFrameId === null) {
+            return;
+        }
 
         // If the selected wallet is not the active wallet, activate it first
         if (ecashWallet.address !== wallet.address) {
@@ -78,6 +87,10 @@ const Extension: React.FC = () => {
             addressRequestApproved: true,
             url: addressRequestTabUrl,
             tabId: addressRequestTabId,
+            frameId: addressRequestFrameId,
+            ...(addressRequestDocumentId
+                ? { documentId: addressRequestDocumentId }
+                : {}),
             address: wallet.address,
         });
 
@@ -87,7 +100,9 @@ const Extension: React.FC = () => {
     };
 
     const handleRejectedAddressShare = async (): Promise<void> => {
-        if (addressRequestTabId === null) return;
+        if (addressRequestTabId === null || addressRequestFrameId === null) {
+            return;
+        }
 
         await chrome.runtime.sendMessage({
             type: 'FROM_CASHTAB',
@@ -95,6 +110,10 @@ const Extension: React.FC = () => {
             addressRequestApproved: false,
             url: addressRequestTabUrl,
             tabId: addressRequestTabId,
+            frameId: addressRequestFrameId,
+            ...(addressRequestDocumentId
+                ? { documentId: addressRequestDocumentId }
+                : {}),
         });
         setShowApproveAddressShareModal(false);
         // Close the popup after user action
@@ -120,14 +139,42 @@ const Extension: React.FC = () => {
             const queryString = queryStringArray[1];
             const queryStringParams = new URLSearchParams(queryString);
             const request = queryStringParams.get('request');
-            const tabId = parseInt(queryStringParams.get('tabId') || '0');
+            const tabIdRaw = queryStringParams.get('tabId');
+            const frameIdRaw = queryStringParams.get('frameId');
             const tabUrl = queryStringParams.get('tabUrl') || '';
+            const documentId = queryStringParams.get('documentId');
             if (request !== 'addressRequest') {
                 return;
             }
+            if (
+                tabIdRaw === null ||
+                frameIdRaw === null ||
+                !/^\d+$/.test(tabIdRaw) ||
+                !/^\d+$/.test(frameIdRaw)
+            ) {
+                return;
+            }
+            if (documentId !== null && !DOCUMENT_ID_RE.test(documentId)) {
+                return;
+            }
+            try {
+                const parsedUrl = new URL(tabUrl);
+                if (
+                    parsedUrl.protocol !== 'https:' &&
+                    parsedUrl.protocol !== 'http:' &&
+                    parsedUrl.protocol !== 'file:'
+                ) {
+                    return;
+                }
+            } catch {
+                return;
+            }
 
-            // Open a modal that asks for user approval
-            setAddressRequestTabId(tabId);
+            // Open a modal that asks for user approval.
+            // tabUrl is the requesting frame, which may be an iframe.
+            setAddressRequestTabId(Number(tabIdRaw));
+            setAddressRequestFrameId(Number(frameIdRaw));
+            setAddressRequestDocumentId(documentId);
             setAddressRequestTabUrl(tabUrl);
             setShowApproveAddressShareModal(true);
         } catch {
