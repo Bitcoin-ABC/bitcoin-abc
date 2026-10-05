@@ -885,6 +885,13 @@ void SetupServerArgs(NodeContext &node) {
                   chronik::DEFAULT_SUBSCRIPTION_MAX_SCRIPT_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
         OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chroniksubsmaxpluginsize",
+        strprintf("Maximum plugin group size in bytes for Chronik WebSocket "
+                  "plugin subscriptions (default: %u).",
+                  chronik::DEFAULT_SUBSCRIPTION_MAX_PLUGIN_SIZE),
+        ArgsManager::ALLOW_ANY | ArgsManager::DISALLOW_NEGATION,
+        OptionsCategory::CHRONIK);
 #endif
     argsman.AddArg(
         "-blockfilterindex=<type>",

@@ -66,6 +66,10 @@ pub enum ChronikWsError {
          bytes"
     )]
     ScriptTooLarge(usize, usize),
+
+    /// Plugin group exceeds `-chroniksubsmaxpluginsize`.
+    #[error("400: Plugin group of {0} bytes exceeds the maximum of {1} bytes")]
+    PluginGroupTooLarge(usize, usize),
 }
 
 use self::ChronikWsError::*;
@@ -114,6 +118,7 @@ struct SubRecv {
     client_key: SubscriptionClientKey,
     subscription_limiter: SubscriptionLimiterRef,
     subscription_max_script_size: usize,
+    subscription_max_plugin_size: usize,
 }
 
 impl SubRecv {
@@ -339,6 +344,15 @@ impl SubRecv {
                 }
             }
             WsSubType::PluginGroup(plugin_name, group) => {
+                if !sub.is_unsub
+                    && group.len() > self.subscription_max_plugin_size
+                {
+                    return Err(PluginGroupTooLarge(
+                        group.len(),
+                        self.subscription_max_plugin_size,
+                    )
+                    .into());
+                }
                 let Some(plugin_idx) =
                     indexer.plugin_name_map().idx_by_name(&plugin_name)
                 else {
@@ -576,6 +590,7 @@ pub async fn handle_subscribe_socket(
         client_key: SubscriptionClientKey::Ip(peer_ip),
         subscription_limiter,
         subscription_max_script_size: settings.subscription_max_script_size,
+        subscription_max_plugin_size: settings.subscription_max_plugin_size,
     };
     let mut last_msg = None;
 

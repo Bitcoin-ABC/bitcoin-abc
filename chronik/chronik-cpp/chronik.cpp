@@ -159,6 +159,17 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                        .c_str())}};
     }
 
+    const int64_t subscription_max_plugin_size =
+        args.GetIntArg("-chroniksubsmaxpluginsize",
+                       chronik::DEFAULT_SUBSCRIPTION_MAX_PLUGIN_SIZE);
+    if (subscription_max_plugin_size < 1 ||
+        subscription_max_plugin_size > 2 * MAX_SCRIPT_SIZE) {
+        return {{_(strprintf("The -chroniksubsmaxpluginsize value should "
+                             "be within the range [1, %d].",
+                             2 * MAX_SCRIPT_SIZE)
+                       .c_str())}};
+    }
+
     return {{
         .net = ParseNet(params.GetChainType()),
         .datadir = args.GetDataDirBase().u8string(),
@@ -202,6 +213,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         .max_subs_per_ip = static_cast<size_t>(max_subs_per_ip),
         .subscription_max_script_size =
             static_cast<size_t>(subscription_max_script_size),
+        .subscription_max_plugin_size =
+            static_cast<size_t>(subscription_max_plugin_size),
     }};
 }
 

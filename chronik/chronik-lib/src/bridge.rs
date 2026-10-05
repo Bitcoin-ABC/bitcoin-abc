@@ -138,10 +138,11 @@ fn try_setup_chronik(
         SubscriptionLimiter::new_ref(params.max_subs, params.max_subs_per_ip);
     log!(
         "Chronik subscription limits: max_subs={}, max_subs_per_ip={}, \
-         subscription_max_script_size={}\n",
+         subscription_max_script_size={}, subscription_max_plugin_size={}\n",
         params.max_subs,
         params.max_subs_per_ip,
         params.subscription_max_script_size,
+        params.subscription_max_plugin_size,
     );
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -164,6 +165,8 @@ fn try_setup_chronik(
                     enable_cors: params.enable_cors,
                     subscription_max_script_size: params
                         .subscription_max_script_size,
+                    subscription_max_plugin_size: params
+                        .subscription_max_plugin_size,
                 },
                 subscription_limiter,
             })

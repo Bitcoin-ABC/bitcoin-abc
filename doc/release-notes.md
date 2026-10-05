@@ -23,7 +23,7 @@ This release includes the following features and fixes:
   `GET /rest/headers/<BLOCK-HASH>.<bin|hex|json>?count=<COUNT=5>`
   instead of
   `GET /rest/headers/<COUNT>/<BLOCK-HASH>.<bin|hex|json>` (deprecated)
-- A new `-chroniksubsmaxscriptsize` option limits the size of scripts that can
-  be registered on Chronik WebSocket subscriptions (default: 201 bytes, a
-  standard 3-of-3 uncompressed bare multisig). Oversized scripts are still
-  indexed and remain available via HTTP and txid lookup.
+- New Chronik options `-chroniksubsmaxscriptsize` and `-chroniksubsmaxpluginsize`
+  limit the size of scripts and plugin groups that can be registered on
+  WebSocket subscriptions (defaults: 201 and 100 bytes). Oversized payloads are
+  still indexed and remain available via HTTP and txid lookup.

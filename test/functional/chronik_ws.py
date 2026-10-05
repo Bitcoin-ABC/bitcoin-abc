@@ -716,10 +716,29 @@ class ChronikWsTest(BitcoinTestFramework):
             r"Error: The -chroniksubsmaxscriptsize value should be within the range \[1, 10000\]",
             match=ErrorMatch.PARTIAL_REGEX,
         )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxpluginsize=-1"],
+            r"Error: The -chroniksubsmaxpluginsize value should be within the range \[1, 20000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxpluginsize=0"],
+            r"Error: The -chroniksubsmaxpluginsize value should be within the range \[1, 20000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
+        node.assert_start_raises_init_error(
+            ["-chronik", "-chroniksubsmaxpluginsize=20001"],
+            r"Error: The -chroniksubsmaxpluginsize value should be within the range \[1, 20000\]",
+            match=ErrorMatch.PARTIAL_REGEX,
+        )
 
         self.start_node(
             0,
-            extra_args=self.extra_args[0] + ["-chroniksubsmaxscriptsize=201"],
+            extra_args=self.extra_args[0]
+            + [
+                "-chroniksubsmaxscriptsize=201",
+                "-chroniksubsmaxpluginsize=100",
+            ],
         )
         chronik = node.get_chronik_client()
         ws = chronik.ws()
@@ -733,6 +752,26 @@ class ChronikWsTest(BitcoinTestFramework):
                 error=pb.Error(
                     msg="400: Script subscription of 202 bytes exceeds the maximum of 201 bytes"
                 ),
+            ),
+        )
+        # Plugin group size is enforced before the plugin-loaded check, so an
+        # oversized group is rejected even if the plugin is not loaded.
+        ws.sub_plugin("agora", bytes(101))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="400: Plugin group of 101 bytes exceeds the maximum of 100 bytes"
+                ),
+            ),
+        )
+        # A 100-byte group passes the size cap and fails only because agora is
+        # not loaded in this test.
+        ws.sub_plugin("agora", bytes(100))
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                error=pb.Error(msg='404: Plugin "agora" not loaded'),
             ),
         )
         ws.close()

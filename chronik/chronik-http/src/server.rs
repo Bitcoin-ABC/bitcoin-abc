@@ -54,6 +54,8 @@ pub struct ChronikSettings {
     pub enable_cors: bool,
     /// Maximum script size in bytes for WebSocket script subscriptions
     pub subscription_max_script_size: usize,
+    /// Maximum plugin group size in bytes for WebSocket plugin subscriptions
+    pub subscription_max_plugin_size: usize,
 }
 
 /// Params defining what and where to serve for [`ChronikServer`].

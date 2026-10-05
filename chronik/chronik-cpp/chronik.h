@@ -37,6 +37,9 @@ static constexpr uint64_t DEFAULT_MAX_SUBS_PER_IP{75'000};
 // 3-of-3 bare multisig with uncompressed pubkeys (OP_3 <65-byte key>*3 OP_3
 // OP_CHECKMULTISIG = 201 bytes).
 static constexpr uint64_t DEFAULT_SUBSCRIPTION_MAX_SCRIPT_SIZE{201};
+// Default max plugin subscription size. Enough for a hash or a public key plus
+// some extra data.
+static constexpr uint64_t DEFAULT_SUBSCRIPTION_MAX_PLUGIN_SIZE{100};
 
 static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
 
