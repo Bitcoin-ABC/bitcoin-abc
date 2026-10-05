@@ -34,7 +34,7 @@ import threading
 import time
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 
 import certifi
 from pathvalidate import sanitize_filename
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
     from .blockchain import Blockchain, Header
 
-    InterfaceRequest = Tuple[str, List[Any], int]
+    InterfaceRequest = tuple[str, list[Any], int]
     """(method, params, id)"""
 
 ca_path = certifi.where()
@@ -162,7 +162,7 @@ class TcpConnection(threading.Thread, PrintError):
 
     def _get_socket_and_verify_ca_cert_checked(
         self, *, suppress_errors
-    ) -> Tuple[Optional[ssl.SSLSocket], bool]:
+    ) -> tuple[Optional[ssl.SSLSocket], bool]:
         """Attempts to connect to the remote host, assuming it is using a CA
         signed certificate. If the cert is valid then a tuple of: (wrapped
         SSLSocket, False) is returned. Otherwise (None, bool) is returned on
@@ -587,9 +587,9 @@ class Interface(PrintError):
         # Dump network messages.  Set at runtime from the console.
         self.debug = False
         self.request_time = time.time()
-        self.unsent_requests: List[InterfaceRequest] = []
+        self.unsent_requests: list[InterfaceRequest] = []
         """[(method, params, id), ...]"""
-        self.unanswered_requests: Dict[int, InterfaceRequest] = {}
+        self.unanswered_requests: dict[int, InterfaceRequest] = {}
         """{id: (method, params, id), ...}"""
         self.last_send = time.time()
 
@@ -634,7 +634,7 @@ class Interface(PrintError):
         except Exception:
             pass
 
-    def queue_request(self, method: str, params: List[Any], id_: int):
+    def queue_request(self, method: str, params: list[Any], id_: int):
         """Queue a request, later to be sent with send_requests when the
         socket is available for writing."""
         self.request_time = time.time()

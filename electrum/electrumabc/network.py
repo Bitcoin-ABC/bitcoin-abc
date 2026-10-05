@@ -35,7 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Iterable, Optional, Union
 
 import socks
 
@@ -51,7 +51,7 @@ from .tor import TorController, check_proxy_bypass_tor_control
 from .transaction import DUST_THRESHOLD
 from .utils import Event
 
-NetworkRequest = Tuple[str, List[Any], Callable]
+NetworkRequest = tuple[str, list[Any], Callable]
 """(method, params, callback)
 Method and params are passed to the interface with a unique request id. Callback is
 called and takes the interface's response as a parameter.
@@ -277,7 +277,7 @@ class Network(util.DaemonThread):
             )
         )
         self.default_server = self.get_config_server()
-        self.bad_certificate_servers: Dict[str, str] = {}
+        self.bad_certificate_servers: dict[str, str] = {}
         self.server_list_updated = Event()
 
         self.tor_controller = TorController(self.config)
@@ -300,8 +300,8 @@ class Network(util.DaemonThread):
         # taking looking to get 3 confirmations of the first verification.
         if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
             self.verifications_required = 3
-        self.checkpoint_servers_verified: Dict[
-            str, Dict[str, Union[int, Optional[str]]]
+        self.checkpoint_servers_verified: dict[
+            str, dict[str, Union[int, Optional[str]]]
         ] = {}
         """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
         where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
@@ -319,7 +319,7 @@ class Network(util.DaemonThread):
         self.subscriptions = defaultdict(list)
         self.sub_cache = {}  # note: needs self.interface_lock
 
-        self.callbacks: Dict[str, List[Callable]] = defaultdict(list)
+        self.callbacks: dict[str, list[Callable]] = defaultdict(list)
         """{event: [f1(event, *args), f2(event, *args), ...], ...}
         Network callbacks can be registered via  Network.register_callback (usually from
         the GUI code, but also from the fusion plugin) and can be triggered via
@@ -332,11 +332,11 @@ class Network(util.DaemonThread):
             os.mkdir(dir_path)
             os.chmod(dir_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 
-        self.subscribed_addresses: Set[str] = set()
+        self.subscribed_addresses: set[str] = set()
         """Scripthashes we want the servers to monitor and notify us about."""
 
         # Requests from client we've not seen a response to
-        self.unanswered_requests: Dict[int, NetworkRequest] = {}
+        self.unanswered_requests: dict[int, NetworkRequest] = {}
         """{request_id: (method, params, callback), ...}"""
 
         # retry times
@@ -347,15 +347,15 @@ class Network(util.DaemonThread):
         """The main server we are currently communicating with.
         Requires self.interface_lock.
         """
-        self.interfaces: Dict[str, Interface] = {}
+        self.interfaces: dict[str, Interface] = {}
         """The servers we are connecting to or have an ongoing connection with.
         The dict key is a "<host>:<port>:<protocol>" string.
         Requires self.interface_lock.
         """
         self.auto_connect: bool = self.config.get(ConfigKeys.AUTO_CONNECT)
-        self.connecting: Set[str] = set()
+        self.connecting: set[str] = set()
         """Set of servers as "<host>:<port>:<protocol>" strings."""
-        self.requested_chunks: Set[int] = set()
+        self.requested_chunks: set[int] = set()
         """Set of indices of header chunks requested from the interface.
         The blockchain is cut in chunks of 2016 blocks, and the index of a chunk is
         base_height // 2016."""
@@ -483,7 +483,7 @@ class Network(util.DaemonThread):
     def queue_request(
         self,
         method: str,
-        params: List[Any],
+        params: list[Any],
         interface: Optional[Interface] = None,
         *,
         callback: Optional[Callable] = None,
@@ -1050,7 +1050,7 @@ class Network(util.DaemonThread):
 
     def _cancel_pending_sends(
         self, callback, *, method=None, params=None
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         ct = 0
         nmsgs = 0
         with self.pending_sends_lock:
@@ -1975,7 +1975,7 @@ class Network(util.DaemonThread):
         self,
         interface: Interface,
         merkle_root: str,
-        merkle_branch: List[str],
+        merkle_branch: list[str],
         header: str,
         header_height: int,
     ) -> bool:
@@ -2069,7 +2069,7 @@ class Network(util.DaemonThread):
             raise util.ServerError(r.get("error"))
         return r.get("result")
 
-    def get_raw_tx_for_txid(self, txid, timeout=30) -> Tuple[bool, str]:
+    def get_raw_tx_for_txid(self, txid, timeout=30) -> tuple[bool, str]:
         """Used by UI code to retrieve a transaction from the blockchain by
         txid.  (Qt Gui: Tools -> Load transaction -> From the blockchain)
 
