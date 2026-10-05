@@ -254,6 +254,22 @@ const mockAlpSwapFetch = () => {
                 return jsonResponse({
                     ...templateResponse,
                     priceImpactPct: 17.61,
+                    outputs: [
+                        {
+                            tokenId: TOKEN_A,
+                            atoms: '19801',
+                            script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+                        },
+                        {
+                            tokenId: TOKEN_A,
+                            script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
+                            atoms: '199',
+                        },
+                        {
+                            tokenId: TOKEN_B,
+                            atoms: '98',
+                        },
+                    ],
                 }) as Response;
             }
             if (
@@ -1039,6 +1055,97 @@ describe('<AlpSwap />', () => {
         );
     });
 
+    it('Signs the quoted template and ignores a later template response', async () => {
+        const templateFrom1 = swapTemplateUrl(TOKEN_A, TOKEN_B, {
+            from: '1',
+            feePct: MAKER_FEE_PCT,
+        });
+        let templateCalls = 0;
+        const inner = global.fetch as jest.Mock;
+        global.fetch = jest.fn(
+            async (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                if (url === templateFrom1) {
+                    templateCalls += 1;
+                    if (templateCalls > 1) {
+                        return jsonResponse({
+                            ...templateResponse,
+                            outputs: [
+                                {
+                                    tokenId: TOKEN_A,
+                                    atoms: '100000000',
+                                    script: '76a914111111111111111111111111111111111111111188ac',
+                                },
+                                { tokenId: TOKEN_B, atoms: '1' },
+                                {
+                                    tokenId: 'ab'.repeat(32),
+                                    atoms: '1',
+                                    script: '76a914222222222222222222222222222222222222222288ac',
+                                },
+                            ],
+                        }) as Response;
+                    }
+                }
+                return inner(input, init);
+            },
+        ) as jest.Mock;
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithAlpSwapBalance,
+            localforage,
+        );
+        seedTokenChronik(
+            mockedChronik as {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setToken: (tokenId: string, token: any) => void;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                setTx: (txid: string, tx: any) => void;
+            },
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/alpswap" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        const fromInput = await screen.findByLabelText('Swap from amount');
+        await userEvent.type(fromInput, '1');
+
+        await act(async () => {
+            await new Promise(resolve =>
+                setTimeout(resolve, alpSwap.quoteDebounceMs + 50),
+            );
+        });
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('Swap to amount')).toHaveValue('0.98');
+        });
+
+        const swapButton = screen.getByRole('button', { name: /^Swap$/ });
+        await waitFor(() => expect(swapButton).not.toBeDisabled());
+        await userEvent.click(swapButton);
+
+        const postedSettleUrl = settleUrl(TOKEN_A, TOKEN_B);
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                postedSettleUrl,
+                expect.objectContaining({ method: 'POST' }),
+            );
+        });
+
+        const settleCall = (fetch as jest.Mock).mock.calls.find(
+            ([url, init]) =>
+                url === postedSettleUrl && init && init.method === 'POST',
+        );
+        expect(settleCall).toBeDefined();
+        const body = JSON.parse(settleCall![1].body);
+        expect(body.atoms).toBe('98');
+        expect(templateCalls).toBe(1);
+    });
+
     it('Warns on high price impact and does not settle until the user accepts', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithAlpSwapBalance,
@@ -1235,13 +1342,13 @@ describe('<AlpSwap />', () => {
                         outputs: [
                             {
                                 tokenId: XECX_TOKEN_ID,
-                                atoms: '198',
+                                atoms: '9900',
                                 script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
                             },
                             {
                                 tokenId: XECX_TOKEN_ID,
                                 script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
-                                atoms: '2',
+                                atoms: '100',
                             },
                             {
                                 tokenId: FIRMA_TOKEN_ID,
@@ -1272,13 +1379,13 @@ describe('<AlpSwap />', () => {
                         outputs: [
                             {
                                 tokenId: FIRMA_TOKEN_ID,
-                                atoms: '990099',
+                                atoms: '99000',
                                 script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
                             },
                             {
                                 tokenId: FIRMA_TOKEN_ID,
                                 script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
-                                atoms: '9901',
+                                atoms: '1000',
                             },
                             {
                                 tokenId: XECX_TOKEN_ID,

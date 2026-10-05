@@ -45,8 +45,8 @@ import {
     fetchInventory,
     fetchSpotPrice,
     fetchSwapTemplate,
-    fetchSwapTemplateMatchingReserves,
     settleSwap,
+    assertAcceptedSwapOutputs,
     roundSwapQty,
     uniqueTokenIdsFromPairs,
     findPair,
@@ -520,8 +520,7 @@ const AlpSwap: React.FC = () => {
                     return;
                 }
                 applyBookToSpot(book, from, to);
-                // Settle uses the REST template, not the rate pill.
-                // Re-quote so consecutive fills do not post stale atomsTo.
+                // Re-quote so the amount on screen stays the one we will sign.
                 const intent = quoteIntentRef.current;
                 if (intent === null || isSwappingRef.current) {
                     return;
@@ -648,6 +647,9 @@ const AlpSwap: React.FC = () => {
 
     const runQuote = useCallback(
         async (exactIn: boolean, qtyRaw: number) => {
+            if (isSwappingRef.current) {
+                return;
+            }
             if (
                 !fromTokenId ||
                 !toTokenId ||
@@ -788,6 +790,19 @@ const AlpSwap: React.FC = () => {
                     }
                     return;
                 }
+
+                assertAcceptedSwapOutputs({
+                    outputs: template.outputs,
+                    fromTokenId,
+                    toTokenId,
+                    fromDecimals: activePair.fromDecimals,
+                    toDecimals: activePair.toDecimals,
+                    exactIn,
+                    qty,
+                    price: template.price,
+                    fee: template.fee,
+                    platformFee: template.platformFee,
+                });
 
                 setActiveQuote({
                     template,
@@ -1107,40 +1122,43 @@ const AlpSwap: React.FC = () => {
             return;
         }
 
-        if (
-            !(await confirmBiometricBroadcast(
-                cashtabState.settings,
-                'Confirm AlpSwap',
-            ))
-        ) {
-            return;
-        }
-
+        // Freeze the quote the user is looking at. Confirm must not
+        // fetch another template and sign that instead.
+        const acceptedQuote = activeQuote;
         isSwappingRef.current = true;
-        setIsSwapping(true);
-        setQuoteError(null);
-        setAlpSwapBuyerToastSuppressed(true);
+        quoteRequestId.current += 1;
         try {
-            const book = lastBookRef.current;
-            const directed =
-                book !== null
-                    ? directedSpotFromBook(book, fromTokenId, toTokenId)
-                    : null;
-            const template = await fetchSwapTemplateMatchingReserves(
+            if (
+                !(await confirmBiometricBroadcast(
+                    cashtabState.settings,
+                    'Confirm AlpSwap',
+                ))
+            ) {
+                return;
+            }
+
+            setIsSwapping(true);
+            setQuoteError(null);
+            setAlpSwapBuyerToastSuppressed(true);
+            assertAcceptedSwapOutputs({
+                outputs: acceptedQuote.template.outputs,
                 fromTokenId,
                 toTokenId,
-                activeQuote.exactIn
-                    ? { from: activeQuote.qty, feePct: swapMakerFeePct }
-                    : { to: activeQuote.qty, feePct: swapMakerFeePct },
-                directed?.reserves ?? null,
-            );
+                fromDecimals: activePair.fromDecimals,
+                toDecimals: activePair.toDecimals,
+                exactIn: acceptedQuote.exactIn,
+                qty: acceptedQuote.qty,
+                price: acceptedQuote.template.price,
+                fee: acceptedQuote.template.fee,
+                platformFee: acceptedQuote.template.platformFee,
+            });
             const built = buildAlpSwapPostageTx({
                 wallet: ecashWallet,
-                outputs: template.outputs,
+                outputs: acceptedQuote.template.outputs,
                 receivingTokenId: toTokenId,
                 receivingDecimals: activePair.toDecimals,
                 receivingUtxoQty,
-                slushScriptHex: template.slushScript,
+                slushScriptHex: acceptedQuote.template.slushScript,
             });
 
             const result = await settleSwap(fromTokenId, toTokenId, {

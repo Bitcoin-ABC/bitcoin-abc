@@ -43,6 +43,8 @@ import {
     splitExactInTotalAtoms,
     cpExactInOutAtoms,
     pairReservesMatch,
+    assertAcceptedSwapOutputs,
+    wireQtyToAtoms,
     minExactOutQtyForFeeOutputs,
     toPerFromRateFromReserveAtoms,
     resolveToPerFromRate,
@@ -706,6 +708,95 @@ describe('alpSwapService helpers', () => {
         expect(split.priceLegAtoms).toBe(1471n);
         expect(cpExactInOutAtoms(1471n, 49930120824n, 33814928n)).toBe(0n);
         expect(cpExactInOutAtoms(1477n, 49930120824n, 33814928n)).toBe(1n);
+    });
+
+    it('wireQtyToAtoms rejects excess fractional digits including trailing zeros', () => {
+        expect(wireQtyToAtoms('3', 2)).toBe(300n);
+        expect(wireQtyToAtoms('3.14', 2)).toBe(314n);
+        expect(wireQtyToAtoms('3.1', 2)).toBe(310n);
+        expect(wireQtyToAtoms('3.00', 2)).toBe(300n);
+        expect(() => wireQtyToAtoms('3.000000000000', 2)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+        expect(() => wireQtyToAtoms('3.140000000000', 2)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+        expect(() => wireQtyToAtoms('3.141', 2)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+        expect(() => wireQtyToAtoms('3.', 2)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+        expect(() => wireQtyToAtoms('3e2', 2)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+        expect(wireQtyToAtoms('3', 0)).toBe(3n);
+        expect(() => wireQtyToAtoms('3.0', 0)).toThrow(
+            'Swap quote does not match the accepted amount',
+        );
+    });
+
+    it('assertAcceptedSwapOutputs accepts the quoted payment only', () => {
+        const honest = [
+            {
+                tokenId: TOKEN_A,
+                atoms: '9901',
+                script: '76a9149ee291ccce035e375060873f38d848a3cc6a09d288ac',
+            },
+            {
+                tokenId: TOKEN_A,
+                atoms: '99',
+                script: '76a9142de858cfe16bd61aa29b93250c8ca943f9a127a588ac',
+            },
+            { tokenId: TOKEN_B, atoms: '98' },
+        ];
+        expect(() =>
+            assertAcceptedSwapOutputs({
+                outputs: honest,
+                fromTokenId: TOKEN_A,
+                toTokenId: TOKEN_B,
+                fromDecimals: 4,
+                toDecimals: 2,
+                exactIn: true,
+                qty: '1',
+            }),
+        ).not.toThrow();
+        expect(() =>
+            assertAcceptedSwapOutputs({
+                outputs: [
+                    {
+                        tokenId: TOKEN_A,
+                        atoms: '100000000',
+                        script: '76a914111111111111111111111111111111111111111188ac',
+                    },
+                    { tokenId: TOKEN_B, atoms: '98' },
+                ],
+                fromTokenId: TOKEN_A,
+                toTokenId: TOKEN_B,
+                fromDecimals: 4,
+                toDecimals: 2,
+                exactIn: true,
+                qty: '1',
+            }),
+        ).toThrow('Swap quote does not match the accepted amount');
+        expect(() =>
+            assertAcceptedSwapOutputs({
+                outputs: [
+                    ...honest,
+                    {
+                        tokenId: 'ab'.repeat(32),
+                        atoms: '1',
+                        script: '76a914222222222222222222222222222222222222222288ac',
+                    },
+                ],
+                fromTokenId: TOKEN_A,
+                toTokenId: TOKEN_B,
+                fromDecimals: 4,
+                toDecimals: 2,
+                exactIn: true,
+                qty: '1',
+            }),
+        ).toThrow('Swap quote does not match the accepted amount');
     });
 
     it('pairReservesMatch compares book vs REST atom strings', () => {

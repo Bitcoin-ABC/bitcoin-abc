@@ -993,54 +993,128 @@ export const pairReservesMatch = (
     );
 };
 
+const ACCEPTED_QUOTE_MISMATCH = 'Swap quote does not match the accepted amount';
+
 /**
- * Fetch a swap template. When `expectedReserves` is set, retry until
- * REST spot reserves match (post-settle maintain can dip in-memory
- * wallets; the live book is the settle snapshot).
+ * Human qty string → atoms. Rejects scientific notation and any
+ * fractional digits past genesis decimals (including trailing zeros).
+ *
+ * @param qty Plain decimal string (`from=` / `to=` wire qty)
+ * @param decimals Token genesis decimals
  */
-export async function fetchSwapTemplateMatchingReserves(
-    fromTokenId: string,
-    toTokenId: string,
-    params: { from?: string; to?: string; feePct: number },
-    expectedReserves: Record<string, string> | null,
-    opts?: { attempts?: number; delayMs?: number },
-    baseUrl = alpSwapBaseUrl(),
-): Promise<SwapTemplateResponse> {
-    const attempts = opts?.attempts ?? 20;
-    const delayMs = opts?.delayMs ?? 100;
-    let template = await fetchSwapTemplate(
+export function wireQtyToAtoms(qty: string, decimals: number): bigint {
+    if (!Number.isInteger(decimals) || decimals < 0 || decimals > 18) {
+        throw new Error(`Invalid token decimals: ${decimals}`);
+    }
+    const s = qty.trim();
+    const qtyRe =
+        decimals === 0 ? /^\d+$/ : new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`);
+    if (!qtyRe.test(s)) {
+        throw new Error(ACCEPTED_QUOTE_MISMATCH);
+    }
+    const [wholeRaw, fracRaw = ''] = s.split('.');
+    const fracPadded = (fracRaw + '0'.repeat(decimals)).slice(0, decimals);
+    const scale = 10n ** BigInt(decimals);
+    return (
+        BigInt(wholeRaw) * scale +
+        (decimals === 0 || fracPadded === '' ? 0n : BigInt(fracPadded))
+    );
+}
+
+/**
+ * Require `outputs` to be the trade the user already accepted.
+ *
+ * Only the from/to pair may appear. From-token atoms must equal the
+ * quoted payment. The single unscripted output is the to-token receive.
+ * A later server response must not be signed in place of this template.
+ *
+ * @param outputs Template outputs already shown to the user
+ * @param fromTokenId Pay-side token
+ * @param toTokenId Receive-side token
+ * @param fromDecimals Pay-token decimals
+ * @param toDecimals Receive-token decimals
+ * @param exactIn True when `qty` is the from-token payment
+ * @param qty Accepted wire qty (`from` on exact-in, `to` on exact-out)
+ * @param price Exact-out price-leg human qty
+ * @param fee Exact-out maker-fee human qty
+ * @param platformFee Exact-out platform-fee human qty
+ */
+export function assertAcceptedSwapOutputs(params: {
+    outputs: SwapOutput[];
+    fromTokenId: string;
+    toTokenId: string;
+    fromDecimals: number;
+    toDecimals: number;
+    exactIn: boolean;
+    qty: string;
+    price?: number;
+    fee?: number;
+    platformFee?: number;
+}): void {
+    const {
+        outputs,
         fromTokenId,
         toTokenId,
-        params,
-        baseUrl,
-    );
-    if (expectedReserves === null) {
-        return template;
+        fromDecimals,
+        toDecimals,
+        exactIn,
+        qty,
+        price = 0,
+        fee = 0,
+        platformFee = 0,
+    } = params;
+    if (!Array.isArray(outputs) || outputs.length === 0) {
+        throw new Error(ACCEPTED_QUOTE_MISMATCH);
     }
-    for (let i = 0; i < attempts; i++) {
-        const spot = await fetchSpotPrice(fromTokenId, toTokenId, baseUrl);
-        if (
-            pairReservesMatch(
-                expectedReserves,
-                spot.reserves,
-                fromTokenId,
-                toTokenId,
-            )
-        ) {
-            if (i === 0) {
-                return template;
-            }
-            return fetchSwapTemplate(fromTokenId, toTokenId, params, baseUrl);
+    let fromAtoms = 0n;
+    let receiveAtoms = 0n;
+    let receiveCount = 0;
+    for (const output of outputs) {
+        if (output.tokenId !== fromTokenId && output.tokenId !== toTokenId) {
+            throw new Error(ACCEPTED_QUOTE_MISMATCH);
         }
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-        template = await fetchSwapTemplate(
-            fromTokenId,
-            toTokenId,
-            params,
-            baseUrl,
-        );
+        let atoms: bigint;
+        try {
+            atoms = BigInt(output.atoms);
+        } catch {
+            throw new Error(ACCEPTED_QUOTE_MISMATCH);
+        }
+        if (atoms <= 0n) {
+            throw new Error(ACCEPTED_QUOTE_MISMATCH);
+        }
+        const scripted =
+            typeof output.script === 'string' && output.script.length > 0;
+        if (output.tokenId === toTokenId) {
+            if (scripted) {
+                throw new Error(ACCEPTED_QUOTE_MISMATCH);
+            }
+            receiveCount += 1;
+            receiveAtoms += atoms;
+        } else if (!scripted) {
+            throw new Error(ACCEPTED_QUOTE_MISMATCH);
+        } else {
+            fromAtoms += atoms;
+        }
     }
-    return template;
+    if (receiveCount !== 1 || receiveAtoms < 1n || fromAtoms < 1n) {
+        throw new Error(ACCEPTED_QUOTE_MISMATCH);
+    }
+    if (exactIn) {
+        if (fromAtoms !== wireQtyToAtoms(qty, fromDecimals)) {
+            throw new Error(ACCEPTED_QUOTE_MISMATCH);
+        }
+        return;
+    }
+    if (receiveAtoms !== wireQtyToAtoms(qty, toDecimals)) {
+        throw new Error(ACCEPTED_QUOTE_MISMATCH);
+    }
+    const expectedFrom =
+        toTokenAtoms(price, fromDecimals) +
+        toTokenAtoms(fee, fromDecimals) +
+        toTokenAtoms(platformFee, fromDecimals);
+    if (fromAtoms !== expectedFrom) {
+        throw new Error(ACCEPTED_QUOTE_MISMATCH);
+    }
 }
 
 export function cpExactInOutAtoms(
