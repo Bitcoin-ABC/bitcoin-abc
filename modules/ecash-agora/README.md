@@ -377,3 +377,7 @@ Running from `bitcoin-abc/modules/ecash-agora` if your build dir is `bitcoin-abc
 
 - Guard `historicOffers` against short TAKEN ONESHOT txs (only enforced outputs) and identify partial-accept leftover offers by their Agora plugin instead of a P2PKH script prefix
 - Patch-bump `ecash-wallet` to 6.2.1 so it publishes with the latest `ecash-lib`
+
+### 4.2.10 [D20768](https://reviews.bitcoinabc.org/D20768)
+
+- Patch bump to catch the latest `ecash-lib` and `ecash-wallet`

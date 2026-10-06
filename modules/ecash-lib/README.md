@@ -119,3 +119,4 @@ console.log(toHex(rawTx));
 - 4.13.0 - Load WASM from an embedded base64 payload via a single `initWasm` entry point (Node.js, browser, and bundlers like Next.js). Remove separate Node.js WASM files and dual `indexBrowser` / `indexNodeJs` package entries. [D20201](https://reviews.bitcoinabc.org/D20201)
 - 4.14.0 - Add optional `changeScript` on `payment.Action` so XEC change can go to a script other than the spending wallet. [D20561](https://reviews.bitcoinabc.org/D20561)
 - 4.14.1 - Bound `parseMultisigRedeemScript` so `m` must be a safe integer in `1..=n` and `n <= MAX_PUBKEYS_PER_MULTISIG`, preventing `Psbt.toTx()` from allocating `Array(m)` for a crafted redeem script. [D20580](https://reviews.bitcoinabc.org/D20580)
+- 4.14.2 - Patch bump to catch the latest `b58-ts` [D20768](https://reviews.bitcoinabc.org/D20768)

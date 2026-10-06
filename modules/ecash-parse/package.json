@@ -1,6 +1,6 @@
 {
     "name": "ecash-parse",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Parse eCash transactions and build notification messages",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

@@ -92,3 +92,9 @@ pnpm test
 ```
 
 CI: `ecash-parse-tests` and dependent jobs (e.g. `cashtab-tests`) build this package before consumers.
+
+## Changelog
+
+### 1.0.1 [D20768](https://reviews.bitcoinabc.org/D20768)
+
+- Patch bump to catch the latest `b58-ts`, `ecash-lib`, and `ecash-agora`
