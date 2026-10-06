@@ -70,6 +70,7 @@ COPY modules/ecash-agora ./modules/ecash-agora
 COPY modules/ecashaddrjs ./modules/ecashaddrjs
 COPY modules/b58-ts ./modules/b58-ts
 COPY modules/chronik-client ./modules/chronik-client/
+COPY modules/mock-chronik-client ./modules/mock-chronik-client
 COPY --from=wasmbuilder /app/modules/ecash-lib ./modules/ecash-lib
 COPY modules/ecash-wallet ./modules/ecash-wallet/
 
@@ -81,6 +82,7 @@ RUN pnpm \
   --filter b58-ts \
   --filter chronik-client \
   --filter ecash-lib \
+  --filter mock-chronik-client \
   --filter ecash-wallet \
   --filter ecash-agora \
   run build
