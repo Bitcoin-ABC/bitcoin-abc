@@ -814,12 +814,120 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // We see expected summary of additional bip21 outputs
         expect(screen.getByText('Parsed BIP21 outputs')).toBeInTheDocument();
+        expect(screen.getByText(destinationAddress)).toBeInTheDocument();
+        expect(screen.getByText('110.00 XEC')).toBeInTheDocument();
+        expect(screen.getByText(secondOutputAddr)).toBeInTheDocument();
+        expect(screen.getByText('5.50 XEC')).toBeInTheDocument();
+    });
+    it('Legacy value is rejected when the address already has a BIP21 amount', async () => {
+        const hash =
+            '#/send?address=ecash%3Aqr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv%3Famount%3D10%26addr%3Decash%3Aqp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5%26amount%3D10&value=5000';
+        setLocationHash(hash);
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
         expect(
-            screen.getByText(`qr6lws...6lyxkv, 110.00 XEC`),
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12');
+
+        expect(
+            await screen.findByText('Cannot combine BIP21 amount with value'),
         ).toBeInTheDocument();
         expect(
-            screen.getByText(`qp4dxt...qkrjp5, 5.50 XEC`),
+            screen.queryByText('BIP21: Sending 20.00 XEC to 2 outputs'),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText(/5,000/)).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
+    });
+    it('Legacy value is rejected when a single BIP21 amount is also set', async () => {
+        const hash = `#/send?address=${encodeURIComponent(
+            'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=10',
+        )}&value=5000`;
+        setLocationHash(hash);
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        expect(
+            await screen.findByText('Cannot combine BIP21 amount with value'),
         ).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue('');
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).toHaveStyle('cursor: not-allowed');
+    });
+    it('A BIP21 link replaces an open Send to many list', async () => {
+        const user = userEvent.setup({ delay: null });
+        const destinationAddress =
+            'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
+        const secondOutputAddr =
+            'ecash:qp4dxtmjlkc6upn29hh9pr2u8rlznwxeqqy0qkrjp5';
+        const bip21Str = `${destinationAddress}?amount=10&addr=${secondOutputAddr}&amount=10`;
+        const navigateRef = { current: null };
+        setLocationHash('#/send');
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/send"
+                navigateRef={navigateRef}
+            />,
+        );
+
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+        expect(
+            await screen.findByTitle('Balance XEC', {}, { timeout: 10000 }),
+        ).toHaveTextContent('9,513.12');
+
+        await user.click(screen.getByRole('button', { name: /Advanced/i }));
+        await user.click(screen.getByRole('button', { name: 'Send to many' }));
+        const multiSendInputEl = screen.getByPlaceholderText(
+            /One address & amount per line/,
+        );
+        const multiSendInput =
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035,100\necash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6,50';
+        await user.type(multiSendInputEl, multiSendInput);
+        expect(multiSendInputEl).toHaveValue(multiSendInput);
+        expect(screen.getByText('150 XEC')).toBeInTheDocument();
+
+        setLocationHash(`#/send?bip21=${bip21Str}`);
+        navigateRef.current('/send?link=1');
+
+        expect(
+            await screen.findByText('BIP21: Sending 20.00 XEC to 2 outputs'),
+        ).toBeInTheDocument();
+        expect(screen.getByText(destinationAddress)).toBeInTheDocument();
+        expect(screen.getAllByText('10.00 XEC')).toHaveLength(2);
+        expect(screen.getByText(secondOutputAddr)).toBeInTheDocument();
+        expect(multiSendInputEl).toHaveValue('');
+        expect(screen.queryByText('150 XEC')).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: 'Accept' }),
+        ).not.toHaveStyle('cursor: not-allowed');
     });
     it('bip21 param - valid bip21 token send', async () => {
         const destinationAddress =

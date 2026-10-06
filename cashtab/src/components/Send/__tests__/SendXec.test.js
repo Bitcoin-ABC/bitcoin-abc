@@ -3,7 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import {
+    render,
+    screen,
+    waitFor,
+    fireEvent,
+    within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import {
@@ -1819,12 +1825,27 @@ describe('<SendXec />', () => {
 
         await user.click(screen.getByRole('button', { name: 'Send' }));
 
-        expect(await screen.findByText('Confirm Send')).toBeInTheDocument();
+        const confirmTitle = await screen.findByText('Confirm Send');
+        const confirmBody = confirmTitle.parentElement;
         // Total of both BIP21 outputs, not the first-output amount alone
         expect(
             screen.getByText('Send 1,251.56 XEC to 2 outputs?'),
         ).toBeInTheDocument();
         expect(screen.queryByText('Send 17 XEC')).not.toBeInTheDocument();
+        expect(
+            within(confirmBody).getByText(
+                'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+            ),
+        ).toBeInTheDocument();
+        expect(within(confirmBody).getByText('17.00 XEC')).toBeInTheDocument();
+        expect(
+            within(confirmBody).getByText(
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            within(confirmBody).getByText('1,234.56 XEC'),
+        ).toBeInTheDocument();
         // Eye stays on the send field only; modal must not imply a single payee
         expect(
             screen.getAllByRole('button', { name: 'Show full address' }),
@@ -2186,11 +2207,17 @@ describe('<SendXec />', () => {
         // We see a summary table of addresses and amounts
         expect(screen.getByText('Parsed BIP21 outputs')).toBeInTheDocument();
         expect(
-            screen.getByText('qp89xg...9nhgg6, 17.00 XEC'),
+            screen.getByText(
+                'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+            ),
         ).toBeInTheDocument();
+        expect(screen.getByText('17.00 XEC')).toBeInTheDocument();
         expect(
-            screen.getByText('qz2708...rf5035, 1,234.56 XEC'),
+            screen.getByText(
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            ),
         ).toBeInTheDocument();
+        expect(screen.getByText('1,234.56 XEC')).toBeInTheDocument();
 
         // Click Send
         await user.click(

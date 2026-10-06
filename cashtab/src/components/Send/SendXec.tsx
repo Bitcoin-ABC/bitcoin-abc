@@ -1079,6 +1079,35 @@ const SendXec: React.FC = () => {
         ];
     };
 
+    /**
+     * XEC amounts for a multi-output BIP21. The first row is the URI's
+     * primary `amount`; the rest are `addr`/`amount` pairs. The send review
+     * and `send()` both use this list, so a legacy URL `value` cannot change
+     * a hidden output.
+     */
+    const getBip21XecOutputRows = (
+        parsed: CashtabParsedAddressInfo,
+    ): Array<{ address: string; amountXec: string }> => {
+        if (
+            !isBip21MultipleOutputsSafe(parsed) ||
+            typeof parsed.address.value !== 'string'
+        ) {
+            return [];
+        }
+        return [
+            {
+                address: parsed.address.value,
+                amountXec: parsed.amount.value,
+            },
+            ...parsed.parsedAdditionalXecOutputs.value.map(
+                ([address, amountXec]) => ({
+                    address,
+                    amountXec,
+                }),
+            ),
+        ];
+    };
+
     const isValidFirmaRedeemTx = (
         parsedAddressInput: CashtabParsedAddressInfo,
     ): parsedAddressInput is {
@@ -1130,16 +1159,12 @@ const SendXec: React.FC = () => {
         setTokenIdQueryError(false);
     };
 
-    // Shorthand this calc as well as it is used in multiple spots
-    // Note that we must "double cover" some conditions bc typescript doesn't get it
-    const bip21MultipleOutputsFormattedTotalSendXec =
-        isBip21MultipleOutputsSafe(parsedAddressInput)
-            ? parsedAddressInput.parsedAdditionalXecOutputs.value.reduce(
-                  (accumulator, addressAmountArray) =>
-                      accumulator + parseFloat(addressAmountArray[1]),
-                  parseFloat(parsedAddressInput.amount.value),
-              )
-            : 0;
+    // Amounts the multi-output review shows, and that send() will broadcast
+    const bip21XecOutputRows = getBip21XecOutputRows(parsedAddressInput);
+    const bip21MultipleOutputsFormattedTotalSendXec = bip21XecOutputRows.reduce(
+        (accumulator, row) => accumulator + parseFloat(row.amountXec),
+        0,
+    );
 
     const bip21TokenSendToManyRows =
         getBip21TokenSendToManyRows(parsedAddressInput);
@@ -1870,6 +1895,15 @@ const SendXec: React.FC = () => {
         if (txInfoFromUrl === false) {
             return;
         }
+        // A send link is the payment on screen. Drop a manual Send to many
+        // list so Accept builds the link instead of that list.
+        setIsOneToManyXECSend(false);
+        setMultiSendAddressError(false);
+        setFormData(previous =>
+            previous.multiAddressInput === ''
+                ? previous
+                : { ...previous, multiAddressInput: '' },
+        );
         if (txInfoFromUrl.parseAllAsBip21) {
             // Strip tabId from BIP21 URI before entering into address field
             let bip21Uri = txInfoFromUrl.bip21;
@@ -1948,16 +1982,44 @@ const SendXec: React.FC = () => {
             }
         } else {
             // Enter address into input field and trigger handleAddressChange for validation
+            const legacyAddress = txInfoFromUrl.address ?? '';
+            const parsedLegacyAddress = parseAddressInput(
+                legacyAddress,
+                balanceSats,
+                userLocale,
+            );
+            const legacyValue = txInfoFromUrl.value;
+            const hasLegacyValue =
+                typeof legacyValue === 'string' &&
+                legacyValue !== 'null' &&
+                legacyValue !== 'undefined' &&
+                legacyValue !== '' &&
+                !Number.isNaN(parseFloat(legacyValue));
+            // amount= and value= are two ways to set the send amount. A link
+            // that uses both is rejected instead of letting one override the other.
+            if (
+                typeof parsedLegacyAddress.amount !== 'undefined' &&
+                hasLegacyValue
+            ) {
+                setParsedAddressInput(
+                    parseAddressInput('', balanceSats, userLocale),
+                );
+                setFormData(previous => ({
+                    ...previous,
+                    address: legacyAddress,
+                    amount: '',
+                }));
+                setSendAddressError('Cannot combine BIP21 amount with value');
+                setSendAmountError(false);
+                return;
+            }
             handleAddressChange({
                 target: {
                     name: 'address',
-                    value: txInfoFromUrl.address,
+                    value: legacyAddress,
                 },
             } as React.ChangeEvent<HTMLInputElement>);
-            if (
-                typeof txInfoFromUrl.value !== 'undefined' &&
-                !Number.isNaN(parseFloat(txInfoFromUrl.value))
-            ) {
+            if (hasLegacyValue) {
                 // Only update the amount field if txInfo.value is a good input
                 // Sometimes we want this field to be adjusted by the user, e.g. a donation amount
 
@@ -2053,6 +2115,18 @@ const SendXec: React.FC = () => {
             );
 
             Event('Send.js', 'SendToMany', selectedCurrency);
+        } else if (bip21XecOutputRows.length > 0) {
+            // Build every output from the BIP21 rows on the review screen.
+            // Do not take the first amount from formData.amount: a legacy
+            // URL `value` can overwrite that field while the amount input
+            // stays hidden.
+            bip21XecOutputRows.forEach(row => {
+                targetOutputs.push({
+                    script: Script.fromAddress(row.address),
+                    sats: BigInt(toSatoshis(parseFloat(row.amountXec))),
+                });
+            });
+            Event('Send.js', 'SendToMany', selectedCurrency);
         } else {
             // Handle XEC send to one address
             const cleanAddress = formData.address.split('?')[0];
@@ -2070,20 +2144,7 @@ const SendXec: React.FC = () => {
                 script: Script.fromAddress(cleanAddress),
                 sats: BigInt(satoshisToSend),
             });
-
-            if (isBip21MultipleOutputsSafe(parsedAddressInput)) {
-                parsedAddressInput.parsedAdditionalXecOutputs.value.forEach(
-                    ([addr, amount]) => {
-                        targetOutputs.push({
-                            script: Script.fromAddress(addr),
-                            sats: BigInt(toSatoshis(parseFloat(amount))),
-                        });
-                    },
-                );
-                Event('Send.js', 'SendToMany', selectedCurrency);
-            } else {
-                Event('Send.js', 'Send', selectedCurrency);
-            }
+            Event('Send.js', 'Send', selectedCurrency);
         }
 
         // Send and notify
@@ -3003,21 +3064,48 @@ const SendXec: React.FC = () => {
         opReturnRawError === false &&
         formData.opReturnRaw !== '';
 
-    const disableSendButton = shouldSendXecBeDisabled(
-        formData,
-        balanceSats,
-        apiError,
-        sendAmountError,
-        sendAddressError,
-        multiSendAddressError,
-        sendWithCashtabMsg,
-        cashtabMsgError,
-        sendWithOpReturnRaw,
-        opReturnRawError,
-        inputDataRawError,
-        priceApiError,
-        isOneToManyXECSend,
-    );
+    const bip21OutputSats: number[] = [];
+    let bip21OutputsHaveInvalidAmount = false;
+    for (const row of bip21XecOutputRows) {
+        try {
+            bip21OutputSats.push(toSatoshis(parseFloat(row.amountXec)));
+        } catch {
+            // Per-output validation already disables send for a bad amount.
+            bip21OutputsHaveInvalidAmount = true;
+            break;
+        }
+    }
+    const bip21MultipleOutputsTotalSats = bip21OutputsHaveInvalidAmount
+        ? 0
+        : bip21OutputSats.reduce((sum, sats) => sum + sats, 0);
+    const bip21MultipleOutputsTotalError =
+        bip21MultipleOutputsTotalSats > balanceSats
+            ? `Amount ${toXec(bip21MultipleOutputsTotalSats).toLocaleString(
+                  userLocale,
+                  { minimumFractionDigits: appConfig.cashDecimals },
+              )} ${appConfig.ticker} exceeds wallet balance of ${toXec(
+                  balanceSats,
+              ).toLocaleString(userLocale, { minimumFractionDigits: 2 })} ${
+                  appConfig.ticker
+              }`
+            : false;
+
+    const disableSendButton =
+        shouldSendXecBeDisabled(
+            formData,
+            balanceSats,
+            apiError,
+            sendAmountError,
+            sendAddressError,
+            multiSendAddressError,
+            sendWithCashtabMsg,
+            cashtabMsgError,
+            sendWithOpReturnRaw,
+            opReturnRawError,
+            inputDataRawError,
+            priceApiError,
+            isOneToManyXECSend,
+        ) || bip21MultipleOutputsTotalError !== false;
 
     // Check if token send button should be disabled
     // Check if empp_raw is present but token is not ALP (same condition as UI visibility)
@@ -3144,6 +3232,23 @@ const SendXec: React.FC = () => {
         }
     }
 
+    const bip21XecOutputList = (
+        <ol>
+            {bip21XecOutputRows.map((row, index) => (
+                <li key={`${row.address}-${index}`}>
+                    <div>{row.address}</div>
+                    <div>
+                        {parseFloat(row.amountXec).toLocaleString(userLocale, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })}{' '}
+                        XEC
+                    </div>
+                </li>
+            ))}
+        </ol>
+    );
+
     return (
         <>
             <OuterCtn>
@@ -3234,6 +3339,11 @@ const SendXec: React.FC = () => {
                                 <RevealableAddress
                                     address={confirmSendAddress}
                                 />
+                            )}
+                            {isBip21MultipleOutputsSafe(parsedAddressInput) && (
+                                <ParsedBip21Info>
+                                    {bip21XecOutputList}
+                                </ParsedBip21Info>
                             )}
                         </Modal>
                     )}
@@ -3956,23 +4066,33 @@ const SendXec: React.FC = () => {
                                     {isBip21MultipleOutputsSafe(
                                         parsedAddressInput,
                                     ) ? (
-                                        <Info>
-                                            <b>
-                                                BIP21: Sending{' '}
-                                                {bip21MultipleOutputsFormattedTotalSendXec.toLocaleString(
-                                                    userLocale,
+                                        <>
+                                            <Info>
+                                                <b>
+                                                    BIP21: Sending{' '}
+                                                    {bip21MultipleOutputsFormattedTotalSendXec.toLocaleString(
+                                                        userLocale,
+                                                        {
+                                                            maximumFractionDigits: 2,
+                                                            minimumFractionDigits: 2,
+                                                        },
+                                                    )}{' '}
+                                                    XEC to{' '}
+                                                    {parsedAddressInput
+                                                        .parsedAdditionalXecOutputs
+                                                        .value.length + 1}{' '}
+                                                    outputs
+                                                </b>
+                                            </Info>
+                                            {bip21MultipleOutputsTotalError !==
+                                                false && (
+                                                <Alert>
                                                     {
-                                                        maximumFractionDigits: 2,
-                                                        minimumFractionDigits: 2,
-                                                    },
-                                                )}{' '}
-                                                XEC to{' '}
-                                                {parsedAddressInput
-                                                    .parsedAdditionalXecOutputs
-                                                    .value.length + 1}{' '}
-                                                outputs
-                                            </b>
-                                        </Info>
+                                                        bip21MultipleOutputsTotalError
+                                                    }
+                                                </Alert>
+                                            )}
+                                        </>
                                     ) : (
                                         <SendXecInput
                                             name="amount"
@@ -4259,54 +4379,7 @@ const SendXec: React.FC = () => {
                                             Parsed BIP21 outputs
                                         </ParsedBip21InfoLabel>
                                         <ParsedBip21Info>
-                                            <ol>
-                                                <li
-                                                    title={
-                                                        parsedAddressInput
-                                                            .address
-                                                            .value as string
-                                                    }
-                                                >{`${(
-                                                    parsedAddressInput.address
-                                                        .value as string
-                                                ).slice(6, 12)}...${(
-                                                    parsedAddressInput.address
-                                                        .value as string
-                                                ).slice(-6)}, ${parseFloat(
-                                                    parsedAddressInput.amount
-                                                        .value,
-                                                ).toLocaleString(userLocale, {
-                                                    minimumFractionDigits: 2,
-                                                    maximumFractionDigits: 2,
-                                                })} XEC`}</li>
-                                                {Array.from(
-                                                    parsedAddressInput
-                                                        .parsedAdditionalXecOutputs
-                                                        .value,
-                                                ).map(
-                                                    ([addr, amount], index) => {
-                                                        return (
-                                                            <li
-                                                                key={index}
-                                                                title={addr}
-                                                            >{`${addr.slice(
-                                                                6,
-                                                                12,
-                                                            )}...${addr.slice(
-                                                                -6,
-                                                            )}, ${parseFloat(
-                                                                amount,
-                                                            ).toLocaleString(
-                                                                userLocale,
-                                                                {
-                                                                    minimumFractionDigits: 2,
-                                                                    maximumFractionDigits: 2,
-                                                                },
-                                                            )} XEC`}</li>
-                                                        );
-                                                    },
-                                                )}
-                                            </ol>
+                                            {bip21XecOutputList}
                                         </ParsedBip21Info>
                                     </ParsedBip21InfoRow>
                                 </SendXecRow>
