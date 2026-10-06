@@ -1,0 +1,105 @@
+<?php
+
+abstract class AbstractRuffExternalLinter extends ArcanistExternalLinter {
+
+  public function getInfoURI() {
+    return 'https://docs.astral.sh/ruff/';
+  }
+
+  public function getInfoDescription() {
+    return pht('Fast Python linter and code formatter');
+  }
+
+  public function getLinterConfigurationOptions() {
+    $options = array();
+    return $options + parent::getLinterConfigurationOptions();
+  }
+
+  /**
+   * To make ruff write the output to stdout, pass the input via stdin.
+   *
+   * This method could be removed if we did only checking, but
+   * we want to apply some fixes automatically, and
+   * arcanist needs to get the modified file content back.
+   *
+   * This method also bypass the include and exclude rules in the .ruff.toml
+   * file, but since those rules are duplicated in .arclint, for performance
+   * purpose, this is not a problem.
+   */
+  protected function buildFutures(array $paths) {
+    $executable = $this->getExecutableCommand();
+
+    $futures = array();
+    foreach ($paths as $path) {
+      $disk_path = $this->getEngine()->getFilePathOnDisk($path);
+      $bin = csprintf(
+        '%C %Ls --stdin-filename %s -',
+        $executable,
+        $this->getCommandFlags(),
+        $disk_path
+      );
+      $future = new ExecFuture('%C', $bin);
+      /* Write the input file to stdin */
+      $input = file_get_contents($disk_path);
+      $future->write($input);
+      $future->setCWD($this->getProjectRoot());
+      $futures[$path] = $future;
+    }
+
+    return $futures;
+  }
+
+  public function getDefaultBinary() {
+    return 'ruff';
+  }
+
+  public function getVersion() {
+    list($stdout, $stderr) = execx('%C --version',
+      $this->getExecutableCommand());
+    $matches = array();
+
+    /* Support a.b or a.b.c version numbering scheme */
+    $regex = '/^ruff (?P<version>\d+\.\d+(?:\.\d+)?)/';
+
+    if (preg_match($regex, $stdout, $matches)) {
+      return $matches['version'];
+    }
+
+    return false;
+  }
+
+  public function getInstallInstructions() {
+    return pht('pip install ruff');
+  }
+
+  public function shouldExpectCommandErrors() {
+    return false;
+  }
+
+  protected function parseLinterOutput($path, $err, $stdout, $stderr) {
+    if ($err != 0) {
+      return false;
+    }
+
+    $root = $this->getProjectRoot();
+    $path = Filesystem::resolvePath($path, $root);
+    $orig = file_get_contents($path);
+    if ($orig == $stdout) {
+      return array();
+    }
+
+    $message = id(new ArcanistLintMessage())
+      ->setPath($path)
+      ->setLine(1)
+      ->setChar(1)
+      ->setGranularity(ArcanistLinter::GRANULARITY_FILE)
+      ->setCode(strtoupper($this->getLinterName()))
+      ->setSeverity(ArcanistLintSeverity::SEVERITY_AUTOFIX)
+      ->setName('Code style violation')
+      ->setDescription("'$path' has code style errors.")
+      ->setOriginalText($orig)
+      ->setReplacementText($stdout);
+
+    return array($message);
+  }
+}
