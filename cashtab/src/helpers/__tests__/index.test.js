@@ -114,6 +114,39 @@ describe('Cashtab helper functions', () => {
                 onChainFirmaCachedInfo,
             );
         });
+
+        it('storedCashtabCacheToMap drops token rows with decimals outside 0-9', () => {
+            const inRange = {
+                ...UNKNOWN_TOKEN_CACHED_INFO,
+                genesisInfo: {
+                    ...UNKNOWN_TOKEN_CACHED_INFO.genesisInfo,
+                    decimals: 9,
+                },
+            };
+            const outOfRange = {
+                ...UNKNOWN_TOKEN_CACHED_INFO,
+                genesisInfo: {
+                    ...UNKNOWN_TOKEN_CACHED_INFO.genesisInfo,
+                    decimals: 2147483647,
+                },
+            };
+            const tokenId =
+                '1111111111111111111111111111111111111111111111111111111111111111';
+
+            const restored = storedCashtabCacheToMap({
+                tokens: [
+                    [UNKNOWN_TOKEN_ID, UNKNOWN_TOKEN_CACHED_INFO],
+                    [tokenId, outOfRange],
+                    [FIRMA.tokenId, inRange],
+                ],
+            });
+
+            expect(restored.tokens.has(tokenId)).toBe(false);
+            expect(restored.tokens.get(UNKNOWN_TOKEN_ID)).toEqual(
+                UNKNOWN_TOKEN_CACHED_INFO,
+            );
+            expect(restored.tokens.get(FIRMA.tokenId)).toEqual(inRange);
+        });
     });
     describe('Address and token ID preview functions', () => {
         it('previewAddress: should format ecash addresses correctly', () => {

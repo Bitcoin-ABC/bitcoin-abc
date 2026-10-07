@@ -25,6 +25,26 @@ const LEGACY_FIRMA_ALPHA_TOKEN_NAME = 'Firma Alpha';
 const LEGACY_FIRMA_ALPHA_TOKEN_TICKER = 'FIRMA ALPHA';
 
 /**
+ * Drop cached token rows whose genesis decimals are outside 0-9.
+ * SLP and ALP never mint those values. A stored out-of-range decimals
+ * makes decimalizeTokenAmount allocate from that integer on the next load.
+ * @param tokens Token cache map (mutated in place)
+ */
+export const dropOutOfRangeTokenDecimalCacheEntries = (
+    tokens: Map<string, CashtabCachedTokenInfo>,
+): void => {
+    for (const [tokenId, cached] of tokens) {
+        const decimals = cached?.genesisInfo?.decimals;
+        if (typeof decimals !== 'number') {
+            continue;
+        }
+        if (!Number.isInteger(decimals) || decimals < 0 || decimals > 9) {
+            tokens.delete(tokenId);
+        }
+    }
+};
+
+/**
  * Remove pre-migration Firma Alpha cache rows from a token map.
  * @param tokens Token cache map (mutated in place)
  */
@@ -132,6 +152,7 @@ export const storedCashtabCacheToMap = (
     storedCashtabCache: CashtabCacheJson,
 ): CashtabCache => {
     const tokens = new Map(storedCashtabCache.tokens);
+    dropOutOfRangeTokenDecimalCacheEntries(tokens);
     invalidateLegacyFirmaAlphaCacheEntries(tokens);
     return {
         ...storedCashtabCache,

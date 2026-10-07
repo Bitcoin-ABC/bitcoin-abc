@@ -374,13 +374,6 @@ export default {
                 decimals: 9,
                 returned: '0.000000001',
             },
-            {
-                description:
-                    'Can decimalize for arbitrary decimals, as long as decimals is an integer',
-                amount: '11111111123456789123456789',
-                decimals: 18,
-                returned: '11111111.123456789123456789',
-            },
         ],
         expectedErrors: [
             {
@@ -401,6 +394,18 @@ export default {
                 amount: '123',
                 decimals: 1.1234,
                 error: 'decimals must be an integer',
+            },
+            {
+                description: 'Throws error if decimals is above 9',
+                amount: '11111111123456789123456789',
+                decimals: 18,
+                error: 'decimals must be an integer between 0 and 9',
+            },
+            {
+                description: 'Throws error if decimals is negative',
+                amount: '123',
+                decimals: -1,
+                error: 'decimals must be an integer between 0 and 9',
             },
         ],
     },
@@ -469,6 +474,18 @@ export default {
                 decimalizedAmount: '100.123',
                 decimals: 1.23,
                 error: 'decimals must be an integer',
+            },
+            {
+                description: 'Throws error if decimals is above 9',
+                decimalizedAmount: '100.123',
+                decimals: 18,
+                error: 'decimals must be an integer between 0 and 9',
+            },
+            {
+                description: 'Throws error if decimals is negative',
+                decimalizedAmount: '100',
+                decimals: -1,
+                error: 'decimals must be an integer between 0 and 9',
             },
             {
                 description:

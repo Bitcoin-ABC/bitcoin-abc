@@ -12,6 +12,7 @@ import {
     isValidWsSubscription,
     verifyLokadId,
     verifyPluginSubscription,
+    assertTokenDecimals,
     verifyTokenId,
     verifyTxid,
 } from './validation';
@@ -1870,6 +1871,7 @@ function convertToGenesisInfo(
     genesisInfo: proto.GenesisInfo,
     tokenType: TokenType,
 ): GenesisInfo {
+    assertTokenDecimals(genesisInfo.decimals);
     const decoder = new TextDecoder();
     const returnedGenesisInfo: GenesisInfo = {
         tokenTicker: decoder.decode(genesisInfo.tokenTicker),

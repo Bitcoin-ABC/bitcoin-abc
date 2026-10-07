@@ -74,6 +74,26 @@ export const verifyTxid = (txid: string) => {
     }
 };
 
+/** SLP and ALP both reject genesis decimals above 9. */
+const TOKEN_DECIMALS_MAX = 9;
+
+/**
+ * Throw if `decimals` is outside the on-chain token decimals range.
+ * Protobuf encodes this field as uint32, which is wider than the spec.
+ * @param decimals - Decimals value from a Chronik genesis info message
+ */
+export const assertTokenDecimals = (decimals: number): void => {
+    if (
+        !Number.isInteger(decimals) ||
+        decimals < 0 ||
+        decimals > TOKEN_DECIMALS_MAX
+    ) {
+        throw new Error(
+            `Invalid token decimals: ${decimals}. Decimals must be an integer from 0 to 9.`,
+        );
+    }
+};
+
 // Tested in test/integration/plugins.ts
 export const verifyPluginSubscription = (
     pluginSubscription: WsSubPluginClient,

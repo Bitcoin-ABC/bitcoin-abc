@@ -9,7 +9,7 @@ import * as proto from '../proto/chronik';
 import { ChronikClient, WsEndpoint } from '../src/ChronikClient';
 import { FailoverProxy, appendWsUrls } from '../src/failoverProxy';
 import { toHex } from '../src/hex';
-import { isValidWsSubscription } from '../src/validation';
+import { assertTokenDecimals, isValidWsSubscription } from '../src/validation';
 import vectors from './vectors';
 
 const expect = chai.expect;
@@ -142,6 +142,21 @@ describe('deriveEndpointIndex', () => {
             indexOrder.push(proxyInterface.deriveEndpointIndex(i));
         }
         expect(indexOrder).to.eql([3, 0, 1, 2]);
+    });
+});
+
+describe('assertTokenDecimals', () => {
+    it('accepts integers from 0 to 9', () => {
+        for (let decimals = 0; decimals <= 9; decimals += 1) {
+            expect(() => assertTokenDecimals(decimals)).not.to.throw();
+        }
+    });
+    it('rejects decimals outside 0 to 9', () => {
+        for (const decimals of [-1, 10, 2147483647]) {
+            expect(() => assertTokenDecimals(decimals)).to.throw(
+                `Invalid token decimals: ${decimals}. Decimals must be an integer from 0 to 9.`,
+            );
+        }
     });
 });
 

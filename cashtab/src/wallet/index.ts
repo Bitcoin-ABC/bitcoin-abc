@@ -373,6 +373,11 @@ export const decimalizeTokenAmount = (
     if (!Number.isInteger(decimals)) {
         throw new Error('decimals must be an integer');
     }
+    if (decimals < 0 || decimals > 9) {
+        // SLP and ALP genesis decimals are 0-9. Reject before allocating
+        // a padding array sized from this value.
+        throw new Error('decimals must be an integer between 0 and 9');
+    }
     if (decimals === 0) {
         // If we have 0 decimal places, and amount is a stringified integer
         // amount is already correct
@@ -485,6 +490,11 @@ export const undecimalizeTokenAmount = (
     }
     if (!Number.isInteger(decimals)) {
         throw new Error('decimals must be an integer');
+    }
+    if (decimals < 0 || decimals > 9) {
+        // SLP and ALP genesis decimals are 0-9. Reject before allocating
+        // a padding array sized from this value.
+        throw new Error('decimals must be an integer between 0 and 9');
     }
 
     // If decimals is 0, we should not have a decimal point, or it should be at the very end
