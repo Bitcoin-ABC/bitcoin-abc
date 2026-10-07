@@ -7,7 +7,7 @@ import random
 import time
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.messages import AvalancheTxVoteError
+from test_framework.messages import MSG_TX, AvalancheTxVoteError, AvalancheVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
@@ -201,7 +201,11 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             )
             if (index := random.randint(0, chain_length + 1)) < chain_length:
                 txids = [tx["txid"] for tx in chain[: index + 1]]
-                finalize_txs(txids, other_response=AvalancheTxVoteError.INVALID)
+                finalize_txs(
+                    txids,
+                    other_response=AvalancheVoteError.UNKNOWN,
+                    response_map={MSG_TX: AvalancheTxVoteError.INVALID},
+                )
                 # Not only this tx is finalized, but all its ancestors are
                 finalized_txids.extend(txids)
 
