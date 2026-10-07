@@ -29,7 +29,7 @@ use chronik_db::{
         BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
         DbBlock, GroupHistoryMemData, GroupHistorySettings, GroupUtxoMemData,
         MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
-        TxNum, TxReader, TxWriter, UpgradeWriter,
+        TxNum, TxReader, TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsGroup, PluginsReader, PluginsWriter},
@@ -55,7 +55,6 @@ use crate::{
 };
 
 const CURRENT_INDEXER_VERSION: SchemaVersion = 13;
-const LAST_UPGRADABLE_VERSION: SchemaVersion = 10;
 
 /// Function ptr to decompress script scripts
 pub type DecompressScriptFn = fn(&[u8]) -> Result<Vec<u8>>;
@@ -184,8 +183,7 @@ pub enum ChronikIndexerError {
     /// Database is outdated
     #[error(
         "DB outdated: Chronik has version {CURRENT_INDEXER_VERSION}, but the \
-         database has version {0}. The last upgradable version is \
-         {LAST_UPGRADABLE_VERSION}. -reindex/-chronikreindex to reindex the \
+         database has version {0}. -reindex/-chronikreindex to reindex the \
          database to the new version."
     )]
     DatabaseOutdated(SchemaVersion),
@@ -273,7 +271,6 @@ struct ChronikIndexerPathInfo {
 #[derive(Debug)]
 struct ChronikIndexerDbInfo {
     db: Db,
-    schema_version: u64,
     needs_lokad_id_reindex: bool,
     needs_scripthash_reindex: bool,
     plugin_name_map: PluginNameMap,
@@ -312,7 +309,7 @@ impl ChronikIndexer {
 
         let db = Db::open(db_path)?;
         let is_db_empty = db.is_db_empty()?;
-        let schema_version = verify_schema_version(&db)?;
+        verify_schema_version(&db)?;
         verify_enable_token_index(&db, params.enable_token_index)?;
         let needs_lokad_id_reindex = verify_lokad_id_index(
             &db,
@@ -332,7 +329,6 @@ impl ChronikIndexer {
 
         Ok(ChronikIndexerDbInfo {
             db,
-            schema_version,
             needs_lokad_id_reindex,
             needs_scripthash_reindex,
             plugin_name_map,
@@ -346,13 +342,6 @@ impl ChronikIndexer {
     ) -> Result<Self> {
         let path_info = ChronikIndexer::prepare_db_folder(&params)?;
         let db_info = ChronikIndexer::prepare_db(&params, &path_info.db_path)?;
-
-        upgrade_db_if_needed(
-            &db_info.db,
-            &node,
-            db_info.schema_version,
-            params.enable_token_index,
-        )?;
 
         let mempool = Mempool::new(
             ScriptGroup,
@@ -1291,11 +1280,11 @@ impl ChronikIndexer {
     }
 }
 
-fn verify_schema_version(db: &Db) -> Result<u64> {
+fn verify_schema_version(db: &Db) -> Result<()> {
     let metadata_reader = MetadataReader::new(db)?;
     let metadata_writer = MetadataWriter::new(db)?;
     let is_empty = db.is_db_empty()?;
-    let schema_version = match metadata_reader
+    match metadata_reader
         .schema_version()
         .wrap_err(CorruptedSchemaVersion)?
     {
@@ -1304,14 +1293,13 @@ fn verify_schema_version(db: &Db) -> Result<u64> {
             if schema_version > CURRENT_INDEXER_VERSION {
                 return Err(ChronikOutdated(schema_version).into());
             }
-            if schema_version < LAST_UPGRADABLE_VERSION {
+            if schema_version < CURRENT_INDEXER_VERSION {
                 return Err(DatabaseOutdated(schema_version).into());
             }
             log!(
                 "Chronik has version {CURRENT_INDEXER_VERSION}, DB has \
                  version {schema_version}\n"
             );
-            schema_version
         }
         None => {
             if !is_empty {
@@ -1325,10 +1313,9 @@ fn verify_schema_version(db: &Db) -> Result<u64> {
                 "Chronik has version {CURRENT_INDEXER_VERSION}, initialized \
                  DB with that version\n"
             );
-            CURRENT_INDEXER_VERSION
         }
     };
-    Ok(schema_version)
+    Ok(())
 }
 
 fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
@@ -1356,89 +1343,6 @@ fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
     metadata_writer
         .update_is_token_index_enabled(&mut batch, enable_token_index)?;
     db.write_batch(batch)?;
-    Ok(())
-}
-
-fn upgrade_db_if_needed(
-    db: &Db,
-    node: &Node,
-    mut schema_version: u64,
-    enable_token_index: bool,
-) -> Result<()> {
-    let load_tx = |file_num, data_pos, undo_pos| {
-        Ok(Tx::from(node.bridge.load_tx(file_num, data_pos, undo_pos)?))
-    };
-
-    // DB has version 10, upgrade to 11
-    if schema_version == 10 {
-        upgrade_10_to_11(db, enable_token_index)?;
-        schema_version = 11;
-    }
-    // DB has version 11, upgrade to 12
-    if schema_version == 11 {
-        upgrade_11_to_12(db, enable_token_index, load_tx)?;
-    }
-    // DB has version 12, upgrade to 13
-    if schema_version == 12 {
-        upgrade_12_to_13(db, enable_token_index, load_tx, || {
-            node.bridge.shutdown_requested()
-        })?;
-    }
-    Ok(())
-}
-
-fn upgrade_10_to_11(db: &Db, enable_token_index: bool) -> Result<()> {
-    log!("Upgrading Chronik DB from version 10 to 11...\n");
-    let script_utxo_writer = ScriptUtxoWriter::new(db, ScriptGroup)?;
-    script_utxo_writer.upgrade_10_to_11()?;
-    if enable_token_index {
-        let token_id_utxo_writer = TokenIdUtxoWriter::new(db, TokenIdGroup)?;
-        token_id_utxo_writer.upgrade_10_to_11()?;
-    }
-    let mut batch = WriteBatch::default();
-    let metadata_writer = MetadataWriter::new(db)?;
-    metadata_writer.update_schema_version(&mut batch, 11)?;
-    db.write_batch(batch)?;
-    log!("Successfully upgraded Chronik DB from version 10 to 11.\n");
-    Ok(())
-}
-
-fn upgrade_11_to_12(
-    db: &Db,
-    enable_token_index: bool,
-    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
-) -> Result<()> {
-    log!("Upgrading Chronik DB from version 11 to 12...\n");
-    if enable_token_index {
-        let token_writer = TokenWriter::new(db)?;
-        token_writer.upgrade_11_to_12(load_tx)?;
-    }
-    let mut batch = WriteBatch::default();
-    let metadata_writer = MetadataWriter::new(db)?;
-    metadata_writer.update_schema_version(&mut batch, 12)?;
-    db.write_batch(batch)?;
-    log!("Successfully upgraded Chronik DB from version 11 to 12.\n");
-    Ok(())
-}
-
-fn upgrade_12_to_13(
-    db: &Db,
-    enable_token_index: bool,
-    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
-    shutdown_requested: impl Fn() -> bool,
-) -> Result<()> {
-    log!("Upgrading Chronik DB from version 12 to 13...\n");
-    let upgrade_writer = UpgradeWriter::new(db)?;
-    if enable_token_index {
-        upgrade_writer.fix_mint_vault_txs(&load_tx)?;
-    }
-    upgrade_writer.fix_p2pk_compression(&load_tx, &shutdown_requested)?;
-    upgrade_writer.remove_opreturn_scripts()?;
-    let mut batch = WriteBatch::default();
-    let metadata_writer = MetadataWriter::new(db)?;
-    metadata_writer.update_schema_version(&mut batch, 13)?;
-    db.write_batch(batch)?;
-    log!("Successfully upgraded Chronik DB from version 12 to 13.\n");
     Ok(())
 }
 
@@ -1802,6 +1706,24 @@ mod tests {
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::DatabaseOutdated(0),
+        );
+
+        // Override DB schema version to CURRENT_INDEXER_VERSION - 1
+        {
+            let db = Db::open(&chronik_path)?;
+            let mut batch = WriteBatch::default();
+            MetadataWriter::new(&db)?.update_schema_version(
+                &mut batch,
+                CURRENT_INDEXER_VERSION - 1,
+            )?;
+            db.write_batch(batch)?;
+        }
+        // -> DB too old
+        assert_eq!(
+            ChronikIndexer::prepare_db(&params, &chronik_path)
+                .unwrap_err()
+                .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::DatabaseOutdated(CURRENT_INDEXER_VERSION - 1),
         );
 
         // Override DB schema version to CURRENT_INDEXER_VERSION + 1

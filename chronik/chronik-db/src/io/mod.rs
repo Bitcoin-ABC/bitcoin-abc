@@ -13,7 +13,6 @@ mod metadata;
 mod spent_by;
 pub mod token;
 mod txs;
-mod upgrade;
 
 pub use self::block_stats::*;
 pub use self::blocks::*;
@@ -22,4 +21,3 @@ pub use self::group_utxos::*;
 pub use self::metadata::*;
 pub use self::spent_by::*;
 pub use self::txs::*;
-pub use self::upgrade::*;

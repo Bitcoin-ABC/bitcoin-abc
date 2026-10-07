@@ -104,7 +104,7 @@ Re-index only Chronik (for example after database corruption) without touching t
 
 > **Tip**
 >
-> Since the first stable Chronik release, database upgrades for newer versions run automatically at startup — you should rarely need this flag.
+> Chronik databases from older node versions are not upgraded automatically. Use this flag (or `-reindex`) if the schema version is too old.
 
 ### `-chronikperfstats`
 

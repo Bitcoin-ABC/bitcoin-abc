@@ -7,7 +7,6 @@
 use std::{marker::PhantomData, time::Instant};
 
 use abc_rust_error::Result;
-use chronik_util::log;
 use rocksdb::{compaction_filter::Decision, WriteBatch};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -101,21 +100,6 @@ pub enum GroupUtxoError {
         encoded = hex::encode(.1),
     )]
     UnknownOperandPrefix(u8, Vec<u8>),
-
-    /// Upgrade failed.
-    #[error(
-        "Upgrade failed, could not parse {} for key {}: {error}",
-        hex::encode(.value),
-        hex::encode(.key),
-    )]
-    UpgradeFailed {
-        /// Key that failed
-        key: Box<[u8]>,
-        /// Value that failed parsing in the old format
-        value: Box<[u8]>,
-        /// Error message
-        error: String,
-    },
 }
 
 fn partial_merge_utxos(
@@ -294,47 +278,6 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
     /// Clear all UTXO data from the DB
     pub fn wipe(&self, batch: &mut WriteBatch) {
         batch.delete_range_cf(self.col.cf, [].as_ref(), &[0xff; 16]);
-    }
-
-    /// Upgrade the DB from version 10 to version 11
-    pub fn upgrade_10_to_11(&self) -> Result<()> {
-        log!(
-            "Upgrading Chronik UTXO set for {}. Do not kill the process \
-             during upgrade, it will corrupt the database.\n",
-            G::utxo_conf().cf_name
-        );
-        let estimated_num_keys =
-            self.col.db.estimate_num_keys(self.col.cf)?.unwrap_or(0);
-        let mut batch = WriteBatch::default();
-        for (db_idx, old_utxos_ser) in
-            self.col.db.full_iterator(self.col.cf).enumerate()
-        {
-            let (key, old_utxos_ser) = old_utxos_ser?;
-            let utxos = match db_deserialize::<Vec<UtxoEntry<G::UtxoData>>>(
-                &old_utxos_ser,
-            ) {
-                Ok(utxos) => utxos,
-                Err(err) => {
-                    return Err(UpgradeFailed {
-                        key,
-                        value: old_utxos_ser,
-                        error: err.to_string(),
-                    }
-                    .into());
-                }
-            };
-            let new_utxos_ser =
-                db_serialize_vec::<UtxoEntry<G::UtxoData>>(utxos)?;
-            batch.put_cf(self.col.cf, key, new_utxos_ser);
-            if db_idx % 10000 == 0 {
-                log!("Upgraded {db_idx} of {estimated_num_keys} (estimated)\n");
-                self.col.db.write_batch(batch)?;
-                batch = WriteBatch::default();
-            }
-        }
-        self.col.db.write_batch(batch)?;
-        log!("Upgrade for {} complete\n", G::utxo_conf().cf_name);
-        Ok(())
     }
 
     pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {

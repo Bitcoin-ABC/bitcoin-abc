@@ -50,7 +50,7 @@ By default, Chronik has SLP/ALP token indexing **enabled**. However, if you don'
 ### `-chronikreindex`
 Sometimes it is necessary to re-index only Chronik, e.g. if the database corrupted through an outage. Supply `-chronikreindex` to only reindex the Chronik database and to leave the node untouched.
 
-Note: Since the official release of Chronik, database upgrades for newer versions will be done automatically at startup, so you probably won't have to use this option too often.
+Note: Chronik databases from older node versions are not upgraded automatically. Use `-chronikreindex` (or `-reindex`) if the schema version is too old.
 
 ### `-chronikperfstats`
 If you want to help Bitcoin ABC optimizing Chronik, you can provide this flag when resyncing the node. It collects some performance statistics in the `<datadir>/perf` folder, which will help us with development.
