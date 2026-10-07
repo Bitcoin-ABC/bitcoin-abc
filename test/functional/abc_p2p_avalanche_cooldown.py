@@ -5,7 +5,7 @@
 
 import time
 
-from test_framework.avatools import get_ava_p2p_interface
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.key import ECPubKey
 from test_framework.messages import (
@@ -129,9 +129,16 @@ class AvalancheCooldownTest(BitcoinTestFramework):
         quorum = get_quorum()
         poll_node = quorum[0]
 
-        assert node.getavalancheinfo()["ready_to_poll"] is True
-
         proofid = poll_node.proof.proofid
+
+        # We need a finalized block for preconsensus
+        tip = node.getbestblockhash()
+
+        def vote_until_final():
+            can_find_inv_in_poll(quorum, int(tip, 16))
+            return node.isfinalblock(tip)
+
+        self.wait_until(vote_until_final)
 
         # Make a transaction to poll
         self.generate(wallet, 1, sync_fun=self.no_op)

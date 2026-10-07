@@ -416,7 +416,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards, !cs_peerManager,
                                  !cs_finalizedItems);
 
-    bool isPreconsensusActivated(const CBlockIndex *pprev) const;
+    bool isPreconsensusActivated(const CBlockIndex *pprev) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizationTip);
     bool isStakingPreconsensusActivated(const CBlockIndex *pprev) const;
 
     size_t getMaxElementPoll() const { return m_maxElementPoll; }
@@ -426,7 +427,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
                                  !cs_finalizationTip, !cs_stakingRewards);
     void transactionAddedToMempool(const CTransactionRef &tx)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems, !cs_finalizationTip);
     void runEventLoop()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
                                  !cs_finalizedItems);

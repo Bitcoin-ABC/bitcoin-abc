@@ -110,6 +110,13 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         quorum = get_quorum()
         assert node.getavalancheinfo()["ready_to_poll"]
 
+        def has_finalized_block(block_hash):
+            can_find_inv_in_poll(quorum, int(block_hash, 16))
+            return node.isfinalblock(block_hash)
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_block(tip))
+
         poll_node = quorum[0]
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
@@ -191,10 +198,6 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         for q in quorum:
             self.wait_until(lambda: has_finalized_proof(q.proof.proofid))
-
-        def has_finalized_block(block_hash):
-            can_find_inv_in_poll(quorum, int(block_hash, 16))
-            return node.isfinalblock(block_hash)
 
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_block(tip))

@@ -506,7 +506,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
             m_node.mempool->addUnchecked(entry);
             BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
                 entry, m_node.chainman->GetConsensus(),
-                *m_node.chainman->ActiveChain().Tip(), finalizedTxIds));
+                *m_node.chainman->ActiveChain().Tip(),
+                m_node.chainman->ActiveChainstate(), finalizedTxIds));
         }
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
         BOOST_CHECK_EQUAL(finalizedTxIds[0], tx->GetId());
@@ -522,7 +523,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
             LOCK2(::cs_main, m_node.mempool->cs);
             BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
                 entry, m_node.chainman->GetConsensus(),
-                *m_node.chainman->ActiveChain().Tip(), finalizedTxIds));
+                *m_node.chainman->ActiveChain().Tip(),
+                m_node.chainman->ActiveChainstate(), finalizedTxIds));
         }
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 0);
 
@@ -558,7 +560,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         LOCK2(::cs_main, m_node.mempool->cs);
         BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
             last_entry, m_node.chainman->GetConsensus(),
-            *m_node.chainman->ActiveChain().Tip(), finalizedTxIds));
+            *m_node.chainman->ActiveChain().Tip(),
+            m_node.chainman->ActiveChainstate(), finalizedTxIds));
     }
     BOOST_CHECK_EQUAL(finalizedTxIds.size(), 10);
     m_node.validation_signals->SyncWithValidationInterfaceQueue();

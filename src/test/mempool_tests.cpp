@@ -604,6 +604,7 @@ BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
 
         std::vector<TxId> finalizedTxIds;
         BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry, params, tip,
+                                               chainman.ActiveChainstate(),
                                                finalizedTxIds));
         BOOST_CHECK(pool.isAvalancheFinalizedPreConsensus(txid));
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
@@ -723,7 +724,8 @@ BOOST_AUTO_TEST_CASE(setAvalancheFinalized_ContextualCheckTransactionFailures) {
         // Check it can't be finalized
         std::vector<TxId> finalizedTxIds;
         BOOST_CHECK(!mempool.setAvalancheFinalized(
-            bad_entry, params, active_chain_tip, finalizedTxIds));
+            bad_entry, params, active_chain_tip,
+            m_node.chainman->ActiveChainstate(), finalizedTxIds));
         BOOST_CHECK(finalizedTxIds.empty());
 
         mempool.clear(/*include_finalized_txs=*/true);
@@ -734,7 +736,8 @@ BOOST_AUTO_TEST_CASE(setAvalancheFinalized_ContextualCheckTransactionFailures) {
         BOOST_CHECK(mempool.exists(good.GetId()));
 
         BOOST_CHECK(mempool.setAvalancheFinalized(
-            good_entry, params, active_chain_tip, finalizedTxIds));
+            good_entry, params, active_chain_tip,
+            m_node.chainman->ActiveChainstate(), finalizedTxIds));
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
 
         mempool.clear(/*include_finalized_txs=*/true);

@@ -1561,7 +1561,9 @@ bool Processor::GetLocalAcceptance::operator()(
 }
 
 bool Processor::isPreconsensusActivated(const CBlockIndex *pprev) const {
-    return m_preConsensus;
+    // Require at least one avalanche-finalized block so we rely on a finalized
+    // utxo set.
+    return m_preConsensus && hasFinalizedTip();
 }
 
 bool Processor::isStakingPreconsensusActivated(const CBlockIndex *pprev) const {

@@ -21,6 +21,7 @@
 #include <util/check.h>
 #include <util/moneystr.h>
 #include <util/time.h>
+#include <validation.h> // For Chainstate
 #include <validationinterface.h>
 
 #include <algorithm>
@@ -547,6 +548,7 @@ std::vector<TxMempoolInfo> CTxMemPool::infoAll() const {
 bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
                                        const Consensus::Params &params,
                                        const CBlockIndex &active_chain_tip,
+                                       Chainstate &active_chainstate,
                                        std::vector<TxId> &finalizedTxIds) {
     AssertLockHeld(::cs_main);
     AssertLockHeld(cs);
@@ -603,6 +605,38 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
                          : strprintf(" for parent %s",
                                      entry->GetSharedTx()->GetId().ToString()));
             return false;
+        }
+
+        // Avoid transient state by delaying finalization until the block that
+        // spends the coin is avalanche-finalized.
+        for (const CTxIn &txin : entry->GetTx().vin) {
+            // Mempool parent
+            if (mapTx.count(txin.prevout.GetTxId()) != 0) {
+                continue;
+            }
+
+            const Coin &coin =
+                active_chainstate.CoinsTip().AccessCoin(txin.prevout);
+            if (coin.IsSpent()) {
+                // Coin is empty, aka not in the UTXO set. Should never happen
+                // outside of tests.
+                continue;
+            }
+
+            const CBlockIndex *pindex =
+                active_chainstate.m_chain[coin.GetHeight()];
+            if (!active_chainstate.IsBlockAvalancheFinalized(pindex)) {
+                LogDebug(
+                    BCLog::AVALANCHE,
+                    "Delay storing finalized tx %s as it spends a "
+                    "coin from a non-finalized block%s\n",
+                    tx->GetTx().GetId().ToString(),
+                    entry->GetSharedTx()->GetId() == tx->GetSharedTx()->GetId()
+                        ? ""
+                        : strprintf(" for parent %s",
+                                    entry->GetSharedTx()->GetId().ToString()));
+                return false;
+            }
         }
 
         // It is possible (and normal) that an ancestor is already finalized.

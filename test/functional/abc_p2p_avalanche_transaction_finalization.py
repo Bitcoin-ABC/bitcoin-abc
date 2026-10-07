@@ -5,6 +5,7 @@
 
 import time
 
+from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE
 from test_framework.avatools import (
     assert_response,
     can_find_inv_in_poll,
@@ -534,6 +535,63 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         while node.getmempoolinfo()["size"] > 0:
             self.generate(self.wallet, 1)
 
+    def test_finalization_confirmed_parent(self):
+        self.log.info(
+            "Check finalization is delayed while a parent is only confirmed in "
+            "a non-finalized block"
+        )
+
+        node = self.nodes[0]
+
+        self.generate(self.wallet, 2)
+        self.finalize_tip()
+
+        parent = self.wallet.send_self_transfer(from_node=node)
+        child = self.wallet.send_self_transfer(
+            from_node=node, utxo_to_spend=parent["new_utxo"]
+        )
+        assert parent["txid"] in node.getrawmempool()
+        assert child["txid"] in node.getrawmempool()
+
+        # Mine only the parent so the child spends a confirmed but not
+        # avalanche-finalized coin.
+        tip = self.generateblock(
+            node,
+            output=ADDRESS_ECREG_P2SH_OP_TRUE,
+            transactions=[parent["txid"]],
+        )["hash"]
+        self.wallet.rescan_utxos()
+        assert parent["txid"] not in node.getrawmempool()
+        assert child["txid"] in node.getrawmempool()
+        assert not node.isfinalblock(tip)
+
+        with node.wait_for_debug_log(
+            [
+                f"Delay storing finalized tx {child['txid']} as it spends a "
+                f"coin from a non-finalized block".encode()
+            ],
+            chatty_callable=lambda: can_find_inv_in_poll(
+                self.quorum,
+                int(child["txid"], 16),
+                response=AvalancheTxVoteError.ACCEPTED,
+                # Do not accidentally finalize the parent block while voting
+                other_response=AvalancheTxVoteError.UNKNOWN,
+            ),
+        ):
+            pass
+
+        assert child["txid"] in node.getrawmempool()
+        assert not node.isfinaltransaction(child["txid"])
+        assert not node.isfinalblock(tip)
+
+        # Once the parent block is avalanche-finalized, the child can be stored.
+        self.finalize_tip()
+        assert node.isfinaltransaction(parent["txid"], tip)
+        self.finalize_tx(
+            int(child["txid"], 16), other_response=AvalancheTxVoteError.UNKNOWN
+        )
+        assert node.isfinaltransaction(child["txid"])
+
     def init(self):
         self.now = int(time.time())
         self.nodes[0].setmocktime(self.now)
@@ -571,6 +629,7 @@ class AvalancheTransactionFinalizationTest(BitcoinTestFramework):
         self.test_blockmintxfee()
         self.test_expiry()
         self.test_mempool_full()
+        self.test_finalization_confirmed_parent()
 
 
 if __name__ == "__main__":

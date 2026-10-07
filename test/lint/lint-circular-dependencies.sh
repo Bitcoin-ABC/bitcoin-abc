@@ -32,6 +32,8 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "kernel/coinstats -> validation -> kernel/coinstats"
     "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"
     "kernel/disconnected_transactions -> validation -> policy/block/preconsensus -> kernel/disconnected_transactions"
+    "txmempool -> validation -> txmempool"
+    "policy/block/preconsensus -> txmempool -> validation -> policy/block/preconsensus"
 
     # Temporary, removed in a followup
     "index/base -> node/context -> net_processing -> index/blockfilterindex -> index/base"

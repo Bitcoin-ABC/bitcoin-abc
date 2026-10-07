@@ -54,10 +54,12 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
         node_non_preconsensus.setmocktime(now)
         node_preconsensus.setmocktime(now)
 
+        # Preconsensus stays inactive until at least one block is
+        # avalanche-finalized, even when the feature flag is enabled.
         assert not node_non_preconsensus.getinfo()["avalanche_preconsensus"]
         assert not node_non_preconsensus.getinfo()["avalanche_mining_preconsensus"]
-        assert node_preconsensus.getinfo()["avalanche_preconsensus"]
-        assert node_preconsensus.getinfo()["avalanche_mining_preconsensus"]
+        assert not node_preconsensus.getinfo()["avalanche_preconsensus"]
+        assert not node_preconsensus.getinfo()["avalanche_mining_preconsensus"]
 
         def get_quorum(node):
             return [
@@ -110,6 +112,11 @@ class AvalancheMiningPreconsensusTest(BitcoinTestFramework):
             )
 
         finalize_tip(tip)
+
+        assert not node_non_preconsensus.getinfo()["avalanche_preconsensus"]
+        assert not node_non_preconsensus.getinfo()["avalanche_mining_preconsensus"]
+        assert node_preconsensus.getinfo()["avalanche_preconsensus"]
+        assert node_preconsensus.getinfo()["avalanche_mining_preconsensus"]
 
         # Create a bunch of transactions and finalize half of them
         txs = []

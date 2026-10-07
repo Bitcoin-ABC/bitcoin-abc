@@ -533,6 +533,7 @@ public:
     bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
                                const Consensus::Params &params,
                                const CBlockIndex &active_chain_tip,
+                               Chainstate &active_chainstate,
                                std::vector<TxId> &finalizedTxIds)
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main, cs);
 

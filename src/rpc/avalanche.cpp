@@ -1935,8 +1935,9 @@ static RPCHelpMan finalizetransaction() {
             UniValue ret(UniValue::VARR);
 
             std::vector<TxId> finalizedTxids;
-            if (!mempool.setAvalancheFinalized(**entry, chainman.GetConsensus(),
-                                               *tip, finalizedTxids)) {
+            if (!mempool.setAvalancheFinalized(
+                    **entry, chainman.GetConsensus(), *tip,
+                    chainman.ActiveChainstate(), finalizedTxids)) {
                 // If the function returned false, the finalizedTxids vector
                 // should not be relied upon
                 return ret;

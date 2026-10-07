@@ -41,6 +41,18 @@ using node::CBlockTemplate;
 using node::CBlockTemplateEntry;
 using util::ToString;
 
+namespace avalanche {
+namespace {
+    struct AvalancheTest {
+        static void setFinalizationTip(Processor &p,
+                                       const CBlockIndex *pindex) {
+            LOCK(p.cs_finalizationTip);
+            p.finalizationTip = pindex;
+        }
+    };
+} // namespace
+} // namespace avalanche
+
 namespace miner_tests {
 struct MinerTestingSetup : public AvalancheTestingSetup {
     bool m_preconsensus{false};
@@ -86,7 +98,8 @@ struct MinerTestingSetup : public AvalancheTestingSetup {
         m_node.mempool->addUnchecked(entry);
         if (m_preconsensus) {
             std::vector<TxId> dummy;
-            m_node.mempool->setAvalancheFinalized(entry, params, tip, dummy);
+            m_node.mempool->setAvalancheFinalized(
+                entry, params, tip, chainman.ActiveChainstate(), dummy);
         }
     }
 };
@@ -644,7 +657,8 @@ void MinerTestingSetup::TestBasicMining(
         std::vector<TxId> dummy;
         BOOST_CHECK(m_node.mempool->setAvalancheFinalized(
             mempool_entry, chainparams.GetConsensus(),
-            *Assert(m_node.chainman->ActiveTip()), dummy));
+            *Assert(m_node.chainman->ActiveTip()),
+            m_node.chainman->ActiveChainstate(), dummy));
     }
 
     BOOST_CHECK(pblocktemplate =
@@ -672,7 +686,8 @@ void MinerTestingSetup::TestPrioritisedMining(
             if (m_preconsensus) {
                 std::vector<TxId> dummy;
                 m_node.mempool->setAvalancheFinalized(
-                    pool_entry, chainparams.GetConsensus(), tip, dummy);
+                    pool_entry, chainparams.GetConsensus(), tip,
+                    chainman.ActiveChainstate(), dummy);
             }
 
             return txid;
@@ -824,6 +839,14 @@ void MinerTestingSetup::CreateNewBlock_validity() {
 
     LOCK(cs_main);
     LOCK(m_node.mempool->cs);
+
+    // Finalize tip->pprev rather than the tip to avoid transient state:
+    // TestBasicMining mutates tip->nHeight, which would break GetAncestor on
+    // the finalized index.
+    CBlockIndex *finalized = m_node.chainman->ActiveTip()->pprev;
+    BOOST_CHECK(m_node.chainman->ActiveChainstate().AvalancheFinalizeBlock(
+        finalized, *Assert(m_node.avalanche)));
+    avalanche::AvalancheTest::setFinalizationTip(*m_node.avalanche, finalized);
 
     TestBasicMining(chainparams, scriptPubKey, txFirst, baseheight);
 

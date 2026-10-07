@@ -7395,7 +7395,7 @@ void PeerManagerImpl::ProcessMessage(
                             m_mempool.setAvalancheFinalized(
                                 **it, m_chainparams.GetConsensus(),
                                 *Assert(m_chainman.ActiveTip()),
-                                finalizedTxIds);
+                                m_chainman.ActiveChainstate(), finalizedTxIds);
 
                             for (const auto &finalized_txid : finalizedTxIds) {
                                 m_avalanche->setRecentlyFinalized(

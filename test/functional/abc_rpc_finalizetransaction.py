@@ -5,10 +5,13 @@
 
 import time
 
-from test_framework.p2p import P2PInterface
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
+from test_framework.messages import AvalancheTxVoteError
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 from test_framework.wallet import MiniWallet
+
+QUORUM_NODE_COUNT = 16
 
 
 class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
@@ -17,6 +20,11 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
         self.noban_tx_relay = True
         self.extra_args = [
             [
+                "-avacooldown=0",
+                "-avaproofstakeutxoconfirmations=1",
+                "-avaproofstakeutxodustthreshold=1000000",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
                 # This is disabled by default on the test framework
                 "-avalanchepreconsensusmining=1",
             ],
@@ -25,14 +33,30 @@ class AvalancheFinalizeTransactionTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
 
-        wallet = MiniWallet(node)
-
         now = int(time.time())
         node.setmocktime(now)
 
-        # The node needs a peer connection for the block template to be
-        # generated
-        node.add_p2p_connection(P2PInterface())
+        # Build a quorum so we can avalanche-finalize the tip. The ava peers
+        # also satisfy getblocktemplate's peer requirement.
+        quorum = [
+            get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
+        ]
+        self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is True)
+
+        tip = node.getbestblockhash()
+
+        def finalize_tip():
+            can_find_inv_in_poll(
+                quorum,
+                int(tip, 16),
+                response=AvalancheTxVoteError.ACCEPTED,
+                other_response=AvalancheTxVoteError.UNKNOWN,
+            )
+            return node.isfinalblock(tip)
+
+        self.wait_until(finalize_tip)
+
+        wallet = MiniWallet(node)
 
         # Add some non finalized txs to the mempool
         txids = [wallet.send_self_transfer(from_node=node)["txid"] for _ in range(5)]
