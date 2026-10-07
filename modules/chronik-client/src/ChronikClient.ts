@@ -1366,17 +1366,27 @@ export class WsEndpoint {
         this.ws.send(encodedSubscription);
     }
 
-    public async handleMsg(wsMsg: MessageEvent) {
+    public async handleMsg(wsMsg: MessageEvent, sourceWs?: ws.WebSocket) {
         if (typeof this.onMessage === 'undefined') {
             return;
         }
-        const data =
-            typeof window === 'undefined'
-                ? // NodeJS
-                  (wsMsg.data as Uint8Array)
-                : // Browser
-                  new Uint8Array(await (wsMsg.data as Blob).arrayBuffer());
-        const msg = proto.WsMsg.decode(data);
+        let msg: proto.WsMsg;
+        try {
+            const data =
+                typeof window === 'undefined'
+                    ? // NodeJS
+                      (wsMsg.data as Uint8Array)
+                    : // Browser
+                      new Uint8Array(await (wsMsg.data as Blob).arrayBuffer());
+            msg = proto.WsMsg.decode(data);
+        } catch (err) {
+            console.error('Failed to decode Chronik websocket message:', err);
+            // Close the socket that delivered this frame. this.close() would
+            // set manuallyClosed and skip failover. After the browser Blob
+            // read yields, this.ws may already be a replacement connection.
+            (sourceWs ?? this.ws)?.close();
+            return;
+        }
         if (typeof msg.error !== 'undefined') {
             this.onMessage({ type: 'Error', ...msg.error });
         } else if (typeof msg.block !== 'undefined') {

@@ -266,8 +266,18 @@ export class FailoverProxy {
                 this._workingIndex = index;
 
                 const ws = new WebSocket(thisProxyWsUrl);
-                ws.onmessage = (e: MessageEvent) =>
-                    wsEndpoint.handleMsg(e as MessageEvent);
+                ws.onmessage = (e: MessageEvent) => {
+                    // handleMsg is async. Catch so a thrown application
+                    // callback is not an unhandled rejection. Decode failures
+                    // close the socket inside handleMsg; a callback error
+                    // must leave it open.
+                    wsEndpoint.handleMsg(e as MessageEvent, ws).catch(err => {
+                        console.error(
+                            'Chronik websocket message handler failed:',
+                            err,
+                        );
+                    });
+                };
                 ws.onerror = () => {
                     if (wsEndpoint.onError !== undefined) {
                         wsEndpoint.close();

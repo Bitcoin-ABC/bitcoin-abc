@@ -408,3 +408,7 @@ Requires Chronik's `POST /script/batch/summary` endpoint (**Chronik server >= 0.
 # 6.2.2 [D20768](https://reviews.bitcoinabc.org/D20768)
 
 - Patch bump to catch the latest `ecash-lib`
+
+# 6.2.3 [D20775](https://reviews.bitcoinabc.org/D20775)
+
+- Patch bump to catch the latest `chronik-client`

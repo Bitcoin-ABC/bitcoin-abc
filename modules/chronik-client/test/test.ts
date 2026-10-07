@@ -4,6 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { WebSocket, WebSocketServer } from 'ws';
 import * as proto from '../proto/chronik';
 import { ChronikClient, WsEndpoint } from '../src/ChronikClient';
 import { FailoverProxy, appendWsUrls } from '../src/failoverProxy';
@@ -374,5 +375,233 @@ describe('WsEndpoint._resubscribeAll', () => {
             frame => typeof frame.plugin !== 'undefined',
         );
         expect(pluginFrames).to.have.length(4);
+    });
+});
+
+describe('WsEndpoint malformed frame', () => {
+    const waitFor = async (predicate: () => boolean) => {
+        const started = Date.now();
+        while (!predicate()) {
+            if (Date.now() - started > 1000) {
+                throw new Error('timed out');
+            }
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+    };
+
+    it('closes the socket and reconnects when a frame cannot be decoded', async () => {
+        const wss = new WebSocketServer({ port: 0, host: '127.0.0.1' });
+        await new Promise<void>(resolve => {
+            wss.on('listening', () => resolve());
+        });
+        const address = wss.address();
+        if (address === null || typeof address === 'string') {
+            throw new Error('expected a TCP listen address');
+        }
+
+        const chronik = new ChronikClient([`http://127.0.0.1:${address.port}`]);
+        const delivered: string[] = [];
+        const endpoint = chronik.ws({
+            onMessage: msg => {
+                if (msg.type === 'Tx') {
+                    delivered.push(msg.txid);
+                }
+            },
+        });
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+
+        const originalConnectWs = proxy.connectWs.bind(proxy);
+        let connectWsCallCount = 0;
+        proxy.connectWs = async (ep: WsEndpoint) => {
+            connectWsCallCount += 1;
+            if (connectWsCallCount === 1) {
+                return originalConnectWs(ep);
+            }
+        };
+
+        const rejections: unknown[] = [];
+        const onRejection = (reason: unknown) => {
+            rejections.push(reason);
+        };
+        const originalConsoleError = console.error;
+        console.error = () => {};
+        process.on('unhandledRejection', onRejection);
+
+        let serverSocket: import('ws').WebSocket | undefined;
+        const serverConnected = new Promise<void>(resolve => {
+            wss.once('connection', socket => {
+                serverSocket = socket;
+                resolve();
+            });
+        });
+
+        try {
+            await proxy.connectWs(endpoint);
+            await endpoint.connected;
+            await serverConnected;
+            if (serverSocket === undefined) {
+                throw new Error(
+                    'websocket server did not accept the connection',
+                );
+            }
+
+            const goodFrame = proto.WsMsg.encode({
+                tx: {
+                    msgType: proto.TxMsgType.TX_ADDED_TO_MEMPOOL,
+                    txid: new Uint8Array(32).fill(0xab),
+                    finalizationReason: undefined,
+                },
+            }).finish();
+            serverSocket.send(goodFrame);
+            await waitFor(() => delivered.length === 1);
+            expect(delivered).to.eql(['ab'.repeat(32)]);
+            expect(connectWsCallCount).to.equal(1);
+
+            serverSocket.send(Buffer.from([0xff, 0xff, 0xff]));
+            await waitFor(() => connectWsCallCount === 2);
+            await new Promise(resolve => setImmediate(resolve));
+
+            expect(rejections).to.eql([]);
+            expect(delivered).to.eql(['ab'.repeat(32)]);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            process.off('unhandledRejection', onRejection);
+            console.error = originalConsoleError;
+            endpoint.manuallyClosed = true;
+            endpoint.ws?.close();
+            await new Promise<void>((resolve, reject) => {
+                wss.close(err => (err ? reject(err) : resolve()));
+            });
+        }
+    });
+
+    it('does not reconnect when the application callback throws', async () => {
+        const wss = new WebSocketServer({ port: 0, host: '127.0.0.1' });
+        await new Promise<void>(resolve => {
+            wss.on('listening', () => resolve());
+        });
+        const address = wss.address();
+        if (address === null || typeof address === 'string') {
+            throw new Error('expected a TCP listen address');
+        }
+
+        const chronik = new ChronikClient([`http://127.0.0.1:${address.port}`]);
+        const endpoint = chronik.ws({
+            onMessage: () => {
+                throw new Error('app failed');
+            },
+        });
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+
+        const originalConnectWs = proxy.connectWs.bind(proxy);
+        let connectWsCallCount = 0;
+        proxy.connectWs = async (ep: WsEndpoint) => {
+            connectWsCallCount += 1;
+            if (connectWsCallCount === 1) {
+                return originalConnectWs(ep);
+            }
+        };
+
+        const rejections: unknown[] = [];
+        const onRejection = (reason: unknown) => {
+            rejections.push(reason);
+        };
+        const originalConsoleError = console.error;
+        console.error = () => {};
+        process.on('unhandledRejection', onRejection);
+
+        let serverSocket: import('ws').WebSocket | undefined;
+        const serverConnected = new Promise<void>(resolve => {
+            wss.once('connection', socket => {
+                serverSocket = socket;
+                resolve();
+            });
+        });
+
+        try {
+            await proxy.connectWs(endpoint);
+            await endpoint.connected;
+            await serverConnected;
+            if (serverSocket === undefined) {
+                throw new Error(
+                    'websocket server did not accept the connection',
+                );
+            }
+
+            const goodFrame = proto.WsMsg.encode({
+                tx: {
+                    msgType: proto.TxMsgType.TX_ADDED_TO_MEMPOOL,
+                    txid: new Uint8Array(32).fill(0xab),
+                    finalizationReason: undefined,
+                },
+            }).finish();
+            serverSocket.send(goodFrame);
+            await new Promise(resolve => setTimeout(resolve, 30));
+
+            expect(rejections).to.eql([]);
+            expect(connectWsCallCount).to.equal(1);
+            expect(endpoint.ws?.readyState).to.equal(WebSocket.OPEN);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            process.off('unhandledRejection', onRejection);
+            console.error = originalConsoleError;
+            endpoint.manuallyClosed = true;
+            endpoint.ws?.close();
+            await new Promise<void>((resolve, reject) => {
+                wss.close(err => (err ? reject(err) : resolve()));
+            });
+        }
+    });
+
+    it('closes the socket that delivered the frame, not a later replacement', async () => {
+        const chronik = new ChronikClient(['https://chronik.example.com']);
+        const endpoint = chronik.ws({
+            onMessage: () => {},
+        });
+        let replacementClosed = false;
+        const replacement = {
+            close: () => {
+                replacementClosed = true;
+            },
+        };
+        let sourceClosed = false;
+        const source = {
+            close: () => {
+                sourceClosed = true;
+            },
+        };
+        const originalConsoleError = console.error;
+        console.error = () => {};
+        const globalWithWindow = globalThis as { window?: unknown };
+        const previousWindow = globalWithWindow.window;
+        globalWithWindow.window = {};
+        try {
+            const frame = {
+                data: {
+                    arrayBuffer: async () => {
+                        endpoint.ws = replacement as NonNullable<
+                            WsEndpoint['ws']
+                        >;
+                        return new Uint8Array([0xff, 0xff, 0xff]).buffer;
+                    },
+                },
+            } as Parameters<WsEndpoint['handleMsg']>[0];
+            await endpoint.handleMsg(
+                frame,
+                source as NonNullable<WsEndpoint['ws']>,
+            );
+            expect(sourceClosed).to.equal(true);
+            expect(replacementClosed).to.equal(false);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            console.error = originalConsoleError;
+            if (previousWindow === undefined) {
+                delete globalWithWindow.window;
+            } else {
+                globalWithWindow.window = previousWindow;
+            }
+        }
     });
 });

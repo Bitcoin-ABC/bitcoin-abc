@@ -146,3 +146,7 @@ If you have any implementation questions regarding this mock tool please check t
     3.4.1 [D20538](https://reviews.bitcoinabc.org/D20538)
 
 - Patch bump to catch the latest `chronik-client`
+
+    3.4.2 [D20775](https://reviews.bitcoinabc.org/D20775)
+
+- Patch bump to catch the latest `chronik-client`
