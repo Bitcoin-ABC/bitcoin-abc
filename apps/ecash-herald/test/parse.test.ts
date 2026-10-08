@@ -264,6 +264,25 @@ describe('parse.js functions', function () {
         assert.ok(!parsed.msg.includes('<b>x'));
         assert.ok(parsed.msg.includes('&lt;/a&gt;&lt;b&gt;x'));
     });
+    it('parseMemoOutputScript falls back to text for a short address push', function () {
+        // Follow user (06) with a 4-byte push instead of a 20-byte hash160.
+        // encodeCashAddress would otherwise throw ValidationError (Invalid hash size).
+        const expected = {
+            app: opReturn.memo.app,
+            msg: `${opReturn.memo['06']}|${Buffer.from(
+                'deadbeef',
+                'hex',
+            ).toString('utf8')}`,
+        };
+        assert.deepEqual(parseMemoOutputScript(['6d06', 'deadbeef']), expected);
+        assert.deepEqual(parseOpReturn('026d0604deadbeef'), expected);
+    });
+    it('parseMemoOutputScript falls back when an address push is missing', function () {
+        assert.deepEqual(parseMemoOutputScript(['6d06']), {
+            app: opReturn.memo.app,
+            msg: `${opReturn.memo['06']}|[invalid memo]`,
+        });
+    });
     it('getBlockTgMessage escapes a coinbase miner string and drops a hostile token doc URL', function () {
         const tokenId = 'ab'.repeat(32);
         const parsedBlock: HeraldParsedBlock = {

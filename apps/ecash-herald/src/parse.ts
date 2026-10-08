@@ -505,6 +505,30 @@ export const parseMultipushStack = (
 };
 
 /**
+ * Render memo OP_RETURN pushes as escaped text when structured parsing fails.
+ * @param stackArray memo pushes including the 2-byte protocol/action prefix
+ */
+const memoFallbackMsg = (stackArray: string[]): string => {
+    const actionCode = stackArray[0]?.slice(-2);
+    let msg = '';
+    if (
+        typeof actionCode === 'string' &&
+        Object.keys(opReturn.memo).includes(actionCode)
+    ) {
+        msg += `${opReturn.memo[actionCode]}|`;
+    }
+    const payload = stackArray
+        .slice(1)
+        .map(push => Buffer.from(push, 'hex').toString('utf8'))
+        .join('|');
+    msg += prepareStringForTelegramHTML(payload || '[invalid memo]');
+    if (msg.includes('BCH')) {
+        return '[check memo.cash for msg]';
+    }
+    return msg;
+};
+
+/**
  * Parse a stackArray according to OP_RETURN rules to convert to a useful tg msg
  * @param stackArray an array containing a hex string for every push of this memo OP_RETURN outputScript
  * @returns A useful string to describe this tx in a telegram msg
@@ -513,241 +537,255 @@ export const parseMemoOutputScript = (
     stackArray: string[],
 ): HeraldOpReturnInfo => {
     const app = opReturn.memo.app;
-    let msg = '';
+    try {
+        let msg = '';
 
-    // Get the action code from stackArray[0]
-    // For memo txs, this will be the last 2 characters of this initial push
-    const actionCode = stackArray[0].slice(-2);
+        // Get the action code from stackArray[0]
+        // For memo txs, this will be the last 2 characters of this initial push
+        const actionCode = stackArray[0].slice(-2);
 
-    if (Object.keys(opReturn.memo).includes(actionCode)) {
-        // If you parse for this action code, include its description in the tg msg
-        msg += opReturn.memo[actionCode];
-        // Include a formatting spacer in between action code and newsworthy info
-        msg += '|';
+        if (Object.keys(opReturn.memo).includes(actionCode)) {
+            // If you parse for this action code, include its description in the tg msg
+            msg += opReturn.memo[actionCode];
+            // Include a formatting spacer in between action code and newsworthy info
+            msg += '|';
+        }
+
+        switch (actionCode) {
+            case '01': // Set name <name> (1-217 bytes)
+            case '02': // Post memo <message> (1-217 bytes)
+            case '05': // Set profile text <text> (1-217 bytes)
+            case '0d': // Topic Follow <topic_name> (1-214 bytes)
+            case '0e': // Topic Unfollow <topic_name> (1-214 bytes)
+                // Action codes with only 1 push after the protocol identifier
+                // that is utf8 encoded
+
+                // Include decoded utf8 msg
+                // Make sure the OP_RETURN msg does not contain telegram html escape characters
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[1], 'hex').toString('utf8'),
+                );
+                break;
+            case '03':
+                /**
+                 * 03 - Reply to memo
+                 * <tx_hash> (32 bytes)
+                 * <message> (1-184 bytes)
+                 */
+
+                // The tx hash is in hex, not utf8 encoded
+                // For now, we don't have much to do with this txid in a telegram bot
+
+                // Link to the liked or reposted memo
+                // Do not remove tg escape characters as you want this to parse
+                msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
+
+                // Include a formatting spacer
+                msg += '|';
+
+                // Add the reply
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+                break;
+            case '04':
+                /**
+                 * 04 - Like / tip memo <tx_hash> (32 bytes)
+                 */
+
+                // Link to the liked or reposted memo
+                msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
+                break;
+            case '0b': {
+                // 0b - Repost memo <tx_hash> (32 bytes) <message> (0-184 bytes)
+
+                // Link to the liked or reposted memo
+                msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
+
+                // Include a formatting spacer
+                msg += '|';
+
+                // Add the msg
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+
+                break;
+            }
+            case '06':
+            case '07':
+            case '16':
+            case '17': {
+                /**
+                 * Follow user - 06 <address> (20 bytes)
+                 * Unfollow user - 07 <address> (20 bytes)
+                 * Mute user - 16 <address> (20 bytes)
+                 * Unmute user - 17 <address> (20 bytes)
+                 */
+
+                // The address is a hex-encoded hash160
+                // all memo addresses are p2pkh
+                const address = encodeCashAddress(
+                    'ecash',
+                    'p2pkh',
+                    stackArray[1],
+                );
+
+                // Link to the address in the msg
+                msg += `<a href="${
+                    config.blockExplorer
+                }/address/${address}">${returnAddressPreview(address)}</a>`;
+                break;
+            }
+            case '0a': {
+                // 01 - Set profile picture
+                // <url> (1-217 bytes)
+
+                // url is utf8 encoded stack[1]. Only link http(s) URLs;
+                // anything else is escaped text so it cannot inject markup.
+                const url = Buffer.from(stackArray[1], 'hex').toString('utf8');
+                const href = prepareUrlForTelegramHref(url);
+                msg +=
+                    href === undefined
+                        ? prepareStringForTelegramHTML(url)
+                        : `<a href="${href}">[img]</a>`;
+                break;
+            }
+            case '0c': {
+                /**
+                 * 0c - Post Topic Message
+                 * <topic_name> (1-214 bytes)
+                 * <message> (1-[214-len(topic_name)] bytes)
+                 */
+
+                // Add the topic
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[1], 'hex').toString('utf8'),
+                );
+
+                // Add a format spacer
+                msg += '|';
+
+                // Add the topic msg
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+                break;
+            }
+            case '10': {
+                /**
+                 * 10 - Create Poll
+                 * <poll_type> (1 byte)
+                 * <option_count> (1 byte)
+                 * <question> (1-209 bytes)
+                 * */
+
+                // You only need the question here
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[3], 'hex').toString('utf8'),
+                );
+
+                break;
+            }
+            case '13': {
+                /**
+                 * 13 Add poll option
+                 * <poll_tx_hash> (32 bytes)
+                 * <option> (1-184 bytes)
+                 */
+
+                // Only parse the option for now
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+
+                break;
+            }
+            case '14': {
+                /**
+                 * 14 - Poll Vote
+                 * <poll_tx_hash> (32 bytes)
+                 * <comment> (0-184 bytes)
+                 */
+
+                // We just want the comment
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+
+                break;
+            }
+            case '20':
+            case '24':
+            case '26': {
+                /**
+                 * 20 - Link request
+                 * 24 - Send money
+                 * 26 - Set address alias
+                 * <address_hash> (20 bytes)
+                 * <message> (1-194 bytes)
+                 */
+
+                // The address is a hex-encoded hash160
+                // all memo addresses are p2pkh
+                const address = encodeCashAddress(
+                    'ecash',
+                    'p2pkh',
+                    stackArray[1],
+                );
+
+                // Link to the address in the msg
+                msg += `<a href="${
+                    config.blockExplorer
+                }/address/${address}">${returnAddressPreview(address)}</a>`;
+
+                // Add a format spacer
+                msg += '|';
+
+                // Add the msg
+                msg += prepareStringForTelegramHTML(
+                    Buffer.from(stackArray[2], 'hex').toString('utf8'),
+                );
+                break;
+            }
+            case '21':
+            case '22':
+            case '30':
+            case '31':
+            case '32':
+            case '35': {
+                /**
+                 * https://github.com/memocash/mips/blob/master/mip-0009/mip-0009.md#specification
+                 *
+                 * These would require additional processing to get info about the specific tokens
+                 * For now, not worth it. Just print the action.
+                 *
+                 * 21 - Link accept
+                 * 22 - Link revoke
+                 * 30 - Sell tokens
+                 * 31 - Token buy offer
+                 * 32 - Attach token sale signature
+                 * 35 - Pin token post
+                 */
+
+                // Remove formatting spacer
+                msg = msg.slice(0, -1);
+                break;
+            }
+
+            default:
+                msg += `Unknown memo action`;
+        }
+        // Test for msgs that are intended for non-XEC audience
+        if (msg.includes('BCH')) {
+            msg = `[check memo.cash for msg]`;
+        }
+        return { app, msg };
+    } catch {
+        // Short/malformed pushes (e.g. Invalid hash size from encodeCashAddress)
+        // must not abort block summarization.
+        return { app, msg: memoFallbackMsg(stackArray) };
     }
-
-    switch (actionCode) {
-        case '01': // Set name <name> (1-217 bytes)
-        case '02': // Post memo <message> (1-217 bytes)
-        case '05': // Set profile text <text> (1-217 bytes)
-        case '0d': // Topic Follow <topic_name> (1-214 bytes)
-        case '0e': // Topic Unfollow <topic_name> (1-214 bytes)
-            // Action codes with only 1 push after the protocol identifier
-            // that is utf8 encoded
-
-            // Include decoded utf8 msg
-            // Make sure the OP_RETURN msg does not contain telegram html escape characters
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[1], 'hex').toString('utf8'),
-            );
-            break;
-        case '03':
-            /**
-             * 03 - Reply to memo
-             * <tx_hash> (32 bytes)
-             * <message> (1-184 bytes)
-             */
-
-            // The tx hash is in hex, not utf8 encoded
-            // For now, we don't have much to do with this txid in a telegram bot
-
-            // Link to the liked or reposted memo
-            // Do not remove tg escape characters as you want this to parse
-            msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
-
-            // Include a formatting spacer
-            msg += '|';
-
-            // Add the reply
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-            break;
-        case '04':
-            /**
-             * 04 - Like / tip memo <tx_hash> (32 bytes)
-             */
-
-            // Link to the liked or reposted memo
-            msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
-            break;
-        case '0b': {
-            // 0b - Repost memo <tx_hash> (32 bytes) <message> (0-184 bytes)
-
-            // Link to the liked or reposted memo
-            msg += `<a href="${config.blockExplorer}/tx/${stackArray[1]}">memo</a>`;
-
-            // Include a formatting spacer
-            msg += '|';
-
-            // Add the msg
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-
-            break;
-        }
-        case '06':
-        case '07':
-        case '16':
-        case '17': {
-            /**
-             * Follow user - 06 <address> (20 bytes)
-             * Unfollow user - 07 <address> (20 bytes)
-             * Mute user - 16 <address> (20 bytes)
-             * Unmute user - 17 <address> (20 bytes)
-             */
-
-            // The address is a hex-encoded hash160
-            // all memo addresses are p2pkh
-            const address = encodeCashAddress('ecash', 'p2pkh', stackArray[1]);
-
-            // Link to the address in the msg
-            msg += `<a href="${
-                config.blockExplorer
-            }/address/${address}">${returnAddressPreview(address)}</a>`;
-            break;
-        }
-        case '0a': {
-            // 01 - Set profile picture
-            // <url> (1-217 bytes)
-
-            // url is utf8 encoded stack[1]. Only link http(s) URLs;
-            // anything else is escaped text so it cannot inject markup.
-            const url = Buffer.from(stackArray[1], 'hex').toString('utf8');
-            const href = prepareUrlForTelegramHref(url);
-            msg +=
-                href === undefined
-                    ? prepareStringForTelegramHTML(url)
-                    : `<a href="${href}">[img]</a>`;
-            break;
-        }
-        case '0c': {
-            /**
-             * 0c - Post Topic Message
-             * <topic_name> (1-214 bytes)
-             * <message> (1-[214-len(topic_name)] bytes)
-             */
-
-            // Add the topic
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[1], 'hex').toString('utf8'),
-            );
-
-            // Add a format spacer
-            msg += '|';
-
-            // Add the topic msg
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-            break;
-        }
-        case '10': {
-            /**
-             * 10 - Create Poll
-             * <poll_type> (1 byte)
-             * <option_count> (1 byte)
-             * <question> (1-209 bytes)
-             * */
-
-            // You only need the question here
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[3], 'hex').toString('utf8'),
-            );
-
-            break;
-        }
-        case '13': {
-            /**
-             * 13 Add poll option
-             * <poll_tx_hash> (32 bytes)
-             * <option> (1-184 bytes)
-             */
-
-            // Only parse the option for now
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-
-            break;
-        }
-        case '14': {
-            /**
-             * 14 - Poll Vote
-             * <poll_tx_hash> (32 bytes)
-             * <comment> (0-184 bytes)
-             */
-
-            // We just want the comment
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-
-            break;
-        }
-        case '20':
-        case '24':
-        case '26': {
-            /**
-             * 20 - Link request
-             * 24 - Send money
-             * 26 - Set address alias
-             * <address_hash> (20 bytes)
-             * <message> (1-194 bytes)
-             */
-
-            // The address is a hex-encoded hash160
-            // all memo addresses are p2pkh
-            const address = encodeCashAddress('ecash', 'p2pkh', stackArray[1]);
-
-            // Link to the address in the msg
-            msg += `<a href="${
-                config.blockExplorer
-            }/address/${address}">${returnAddressPreview(address)}</a>`;
-
-            // Add a format spacer
-            msg += '|';
-
-            // Add the msg
-            msg += prepareStringForTelegramHTML(
-                Buffer.from(stackArray[2], 'hex').toString('utf8'),
-            );
-            break;
-        }
-        case '21':
-        case '22':
-        case '30':
-        case '31':
-        case '32':
-        case '35': {
-            /**
-             * https://github.com/memocash/mips/blob/master/mip-0009/mip-0009.md#specification
-             *
-             * These would require additional processing to get info about the specific tokens
-             * For now, not worth it. Just print the action.
-             *
-             * 21 - Link accept
-             * 22 - Link revoke
-             * 30 - Sell tokens
-             * 31 - Token buy offer
-             * 32 - Attach token sale signature
-             * 35 - Pin token post
-             */
-
-            // Remove formatting spacer
-            msg = msg.slice(0, -1);
-            break;
-        }
-
-        default:
-            msg += `Unknown memo action`;
-    }
-    // Test for msgs that are intended for non-XEC audience
-    if (msg.includes('BCH')) {
-        msg = `[check memo.cash for msg]`;
-    }
-    return { app, msg };
 };
 
 const POW_ACTION_TYPES: Record<string, string> = {
