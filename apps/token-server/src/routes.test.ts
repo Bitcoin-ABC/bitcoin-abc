@@ -260,6 +260,168 @@ describe('routes.js', function () {
                 status: 'ok',
             });
     });
+    it('/new still succeeds and alerts when name is omitted', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
+        const png = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        await request(app)
+            .post(`/new`)
+            .field('ticker', 'TST')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', TEST_MINTER_ADDRESS)
+            .field('tokenType', TEST_TOKEN_TYPE)
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .field('signature', getTestIconUploadSignature(png))
+            .attach('tokenIcon', png, 'mockicon.png')
+            .expect(200)
+            .expect({ status: 'ok' });
+
+        assert.equal(
+            fs.existsSync(
+                `${config.imageDir}/${config.iconSizes[0]}/${TEST_TOKEN_ID}.png`,
+            ),
+            true,
+        );
+    });
+    it('/new still succeeds and alerts when ticker is omitted', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
+        const png = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        await request(app)
+            .post(`/new`)
+            .field('name', 'Test Token')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', TEST_MINTER_ADDRESS)
+            .field('tokenType', TEST_TOKEN_TYPE)
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .field('signature', getTestIconUploadSignature(png))
+            .attach('tokenIcon', png, 'mockicon.png')
+            .expect(200)
+            .expect({ status: 'ok' });
+
+        assert.equal(
+            fs.existsSync(
+                `${config.imageDir}/${config.iconSizes[0]}/${TEST_TOKEN_ID}.png`,
+            ),
+            true,
+        );
+    });
+    it('/new still succeeds and alerts when name is sent twice', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
+        const png = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        await request(app)
+            .post(`/new`)
+            .field('name', 'First')
+            .field('name', 'Second')
+            .field('ticker', 'TST')
+            .field('decimals', '3')
+            .field('url', 'https://cashtab.com/')
+            .field('genesisQty', '10000')
+            .field('tokenId', TEST_TOKEN_ID)
+            .field('minterAddress', TEST_MINTER_ADDRESS)
+            .field('tokenType', TEST_TOKEN_TYPE)
+            .field('supplyType', TEST_SUPPLY_TYPE)
+            .field('signature', getTestIconUploadSignature(png))
+            .attach('tokenIcon', png, 'mockicon.png')
+            .expect(200)
+            .expect({ status: 'ok' });
+
+        assert.equal(
+            fs.existsSync(
+                `${config.imageDir}/${config.iconSizes[0]}/${TEST_TOKEN_ID}.png`,
+            ),
+            true,
+        );
+    });
+    it('/new rolls back served icons when the moderation alert fails', async function () {
+        mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
+        const png = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        const failingBot = {
+            api: {
+                sendPhoto: () =>
+                    Promise.reject(new Error('telegram unavailable')),
+            },
+        };
+        const failingApp = startExpressServer(
+            5002,
+            testPool,
+            failingBot as unknown as Bot,
+            fs,
+            'test-channel-id',
+            mockChronik as unknown as ChronikClient,
+            testChronikLookup,
+        );
+
+        try {
+            await appendCashtabNewTokenFields(
+                request(failingApp).post(`/new`),
+                TEST_TOKEN_ID,
+                { iconBuffer: png },
+            )
+                .attach('tokenIcon', png, 'mockicon.png')
+                .expect(500)
+                .expect({
+                    status: 'error',
+                    msg: `Failed to send moderation alert for ${TEST_TOKEN_ID}`,
+                });
+
+            for (const size of config.iconSizes) {
+                assert.equal(
+                    fs.existsSync(
+                        `${config.imageDir}/${size}/${TEST_TOKEN_ID}.png`,
+                    ),
+                    false,
+                    `expected no served icon at size ${size}`,
+                );
+            }
+        } finally {
+            failingApp.close();
+        }
+    });
     it('We can accept a png upload from Cashtab extension and resize it on the server', async function () {
         mockGenesisForToken(mockChronik, TEST_TOKEN_ID);
         // Create a mock 512x512 png that sharp can process

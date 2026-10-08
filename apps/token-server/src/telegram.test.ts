@@ -17,6 +17,7 @@ import {
     alertNewTokenIcon,
     appendStatusToCaption,
     buildNewTokenIconCaption,
+    escapeTelegramHtml,
     formatTokenTypeLabel,
     initializeTelegramBot,
     prepareTelegramBotForPolling,
@@ -1032,6 +1033,34 @@ describe('telegram.ts, token-server Telegram admin actions', function () {
             assert.match(caption, /Token&lt;with&gt;tags/);
             assert.match(caption, /\(T&amp;ST\)/);
             assert.match(caption, new RegExp(`<code>${TEST_TOKEN_ID}</code>$`));
+        });
+
+        it('omits ticker parentheses when ticker is empty', () => {
+            const caption = buildNewTokenIconCaption(
+                {
+                    ...baseTokenInfo,
+                    ticker: '',
+                },
+                {
+                    tokensMinted: 1,
+                    blacklistedTokens: 0,
+                },
+            );
+
+            assert.match(caption, />Lazy Carl<\/a>\n/);
+            assert.doesNotMatch(caption, /\(\)/);
+        });
+    });
+
+    describe('escapeTelegramHtml', function () {
+        it('escapes &, <, and >', function () {
+            assert.equal(escapeTelegramHtml('a&b<c>d'), 'a&amp;b&lt;c&gt;d');
+        });
+        it('returns empty string for non-string input', function () {
+            assert.equal(escapeTelegramHtml(undefined), '');
+            assert.equal(escapeTelegramHtml(null), '');
+            assert.equal(escapeTelegramHtml(['a', 'b']), '');
+            assert.equal(escapeTelegramHtml(1), '');
         });
     });
 });

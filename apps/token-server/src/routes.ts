@@ -16,6 +16,7 @@ import {
     isValidSupplyType,
     isValidTokenId,
     isValidTokenType,
+    normalizeMultipartString,
 } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
 import { Bot } from 'grammy';
@@ -34,7 +35,7 @@ import {
 } from './tokenMetadata';
 import { ChronikClient } from 'chronik-client';
 import { Pool } from 'pg';
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, existsSync, unlinkSync } from 'fs';
 import { IFs } from 'memfs';
 
 /**
@@ -76,7 +77,28 @@ function logIpInfo(req: Request) {
 interface FsLikeRoutes {
     existsSync: typeof existsSync;
     writeFileSync: typeof writeFileSync;
+    unlinkSync: typeof unlinkSync;
 }
+
+/**
+ * Remove served icon files for a tokenId (all configured sizes).
+ * Used to roll back an upload when the moderation alert cannot be sent.
+ */
+const removeServedIconFiles = (
+    fs: FsLikeRoutes | IFs,
+    tokenId: string,
+): void => {
+    for (const size of config.iconSizes) {
+        const iconPath = `${config.imageDir}/${size}/${tokenId}.png`;
+        try {
+            if (fs.existsSync(iconPath)) {
+                fs.unlinkSync(iconPath);
+            }
+        } catch (err) {
+            console.error(`Failed to remove icon file ${iconPath}`, err);
+        }
+    }
+};
 
 export const startExpressServer = (
     port: number,
@@ -372,23 +394,37 @@ export const startExpressServer = (
                 });
             }
 
-            // Send tg msg with approve/deny option
-            alertNewTokenIcon(telegramBot, telegramChannelId, pool, {
-                tokenId,
-                name: req.body.name,
-                ticker: req.body.ticker,
-                decimals: req.body.decimals,
-                url: req.body.url,
-                genesisQty: req.body.genesisQty,
-                minterAddress: chainMetadata.minterAddress,
-                tokenType: chainMetadata.tokenType,
-                supplyType: chainMetadata.supplyType,
-            }).catch(err => {
+            // Normalize multipart caption fields before moderation alert.
+            // Multer may yield undefined or string[] for these; never pass
+            // those through to the Telegram caption builder.
+            const name = normalizeMultipartString(req.body.name);
+            const ticker = normalizeMultipartString(req.body.ticker);
+
+            // Moderation alert is required: if it cannot be sent, roll back
+            // the served icons so an unreviewed icon is not left live.
+            try {
+                await alertNewTokenIcon(telegramBot, telegramChannelId, pool, {
+                    tokenId,
+                    name,
+                    ticker,
+                    decimals: req.body.decimals,
+                    url: req.body.url,
+                    genesisQty: req.body.genesisQty,
+                    minterAddress: chainMetadata.minterAddress,
+                    tokenType: chainMetadata.tokenType,
+                    supplyType: chainMetadata.supplyType,
+                });
+            } catch (err) {
                 console.error(
                     `Failed to send Telegram alert for new token icon ${tokenId}:`,
                     err,
                 );
-            });
+                removeServedIconFiles(fs, tokenId);
+                return res.status(500).json({
+                    status: 'error',
+                    msg: `Failed to send moderation alert for ${tokenId}`,
+                });
+            }
             return res.status(200).json({
                 status: 'ok',
             });

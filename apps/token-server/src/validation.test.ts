@@ -7,6 +7,7 @@ import {
     isTokenImageRequest,
     isValidPngBuffer,
     isValidTokenId,
+    normalizeMultipartString,
 } from '../src/validation';
 import vectors from '../test/vectors';
 import { fromHex } from 'ecash-lib';
@@ -49,6 +50,30 @@ describe('validation.ts', function () {
                 isValidPngBuffer(Buffer.from([0xff, 0xd8, 0xff, 0x00])),
                 false,
             );
+        });
+    });
+    describe('normalizeMultipartString', function () {
+        it('returns strings unchanged', function () {
+            assert.equal(normalizeMultipartString('Token'), 'Token');
+            assert.equal(normalizeMultipartString(''), '');
+        });
+        it('coerces undefined and null to empty string', function () {
+            assert.equal(normalizeMultipartString(undefined), '');
+            assert.equal(normalizeMultipartString(null), '');
+        });
+        it('takes the first string element from an array', function () {
+            assert.equal(
+                normalizeMultipartString(['first', 'second']),
+                'first',
+            );
+        });
+        it('coerces non-string array elements to empty string', function () {
+            assert.equal(normalizeMultipartString([1, 2]), '');
+            assert.equal(normalizeMultipartString([]), '');
+        });
+        it('coerces other types to empty string', function () {
+            assert.equal(normalizeMultipartString(42), '');
+            assert.equal(normalizeMultipartString({ name: 'x' }), '');
         });
     });
 });

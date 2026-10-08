@@ -66,3 +66,17 @@ export const isValidPngBuffer = (data: Buffer | Uint8Array): boolean => {
         Buffer.from(data.subarray(0, PNG_MAGIC_BYTES.length)),
     );
 };
+
+/**
+ * Coerce a multipart form field to a single string.
+ * Multer may leave fields undefined or return string[] when a field is repeated.
+ */
+export const normalizeMultipartString = (value: unknown): string => {
+    if (typeof value === 'string') {
+        return value;
+    }
+    if (Array.isArray(value) && typeof value[0] === 'string') {
+        return value[0];
+    }
+    return '';
+};

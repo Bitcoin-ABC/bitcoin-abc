@@ -363,9 +363,18 @@ const EXPLORER_BASE_URL = 'https://explorer.e.cash';
 
 /**
  * Escape text for Telegram HTML (parse_mode: 'HTML').
+ * Non-strings are treated as empty so caption building cannot throw on
+ * malformed multipart fields.
  */
-export const escapeTelegramHtml = (text: string): string =>
-    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const escapeTelegramHtml = (text: unknown): string => {
+    if (typeof text !== 'string') {
+        return '';
+    }
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+};
 
 /**
  * Append a moderation status line to an existing Telegram photo caption
