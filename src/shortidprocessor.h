@@ -76,6 +76,7 @@ public:
             if (shortIdIndexMap.bucket_size(shortIdIndexMap.bucket(
                     shortids[i])) > maxShortIdPerBucket) {
                 evenlyDistributed = false;
+                break;
             }
         }
 

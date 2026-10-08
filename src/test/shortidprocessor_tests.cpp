@@ -62,6 +62,17 @@ BOOST_AUTO_TEST_CASE(processing_items) {
     }
 
     {
+        // Distinct shortids with threshold 0 must abort after the first insert.
+        std::vector<uint64_t> shortids(1000);
+        for (size_t i = 0; i < shortids.size(); i++) {
+            shortids[i] = i;
+        }
+        TestItemShortIdProcessor p({}, shortids, 0);
+        BOOST_CHECK(!p.isEvenlyDistributed());
+        BOOST_CHECK_EQUAL(p.getShortIdCount(), 1);
+    }
+
+    {
         // Trigger the short id collision
         TestItemShortIdProcessor p({}, {0, 0}, 1);
         BOOST_CHECK_EQUAL(p.getItemCount(), 2);
