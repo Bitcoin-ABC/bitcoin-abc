@@ -61,6 +61,15 @@ pub fn decode_private_key(key: &str) -> Result<Vec<u8>> {
                 );
             }
 
+            // Validate checksum before trusting the key material
+            let payload_len = decoded.len() - 4;
+            let payload = &decoded[..payload_len];
+            let checksum = &decoded[payload_len..];
+            let hash = avalanche_lib_wasm::hash::sha256d(payload);
+            if checksum != &hash[..4] {
+                anyhow::bail!("Invalid WIF checksum");
+            }
+
             // Extract private key (skip version byte, take 32 bytes)
             let private_key = &decoded[1..33];
 
@@ -159,6 +168,31 @@ mod tests {
         let invalid_wif = "invalid_wif";
         let result = decode_private_key(invalid_wif);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decode_wif_rejects_bad_checksum() {
+        // Build a compressed WIF payload with an intentionally wrong checksum.
+        let private_key = hex::decode(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
+        )
+        .unwrap();
+        let mut payload = Vec::with_capacity(38);
+        payload.push(0x80);
+        payload.extend_from_slice(&private_key);
+        payload.push(0x01);
+        let hash = avalanche_lib_wasm::hash::sha256d(&payload);
+        let bad_checksum = [0u8; 4];
+        assert_ne!(&hash[..4], &bad_checksum);
+        payload.extend_from_slice(&bad_checksum);
+        let bad_wif = bs58::encode(&payload).into_string();
+
+        let result = decode_private_key(&bad_wif);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid WIF checksum"));
     }
 
     #[test]

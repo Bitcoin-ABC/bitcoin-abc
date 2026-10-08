@@ -8,8 +8,8 @@ use anyhow::Result;
 use avalanche_lib_wasm::key::{derive_public_key, generate_private_key};
 use serde_json::json;
 
+use crate::io::write_secret_output;
 use crate::wif::encode_private_key_to_wif;
-use crate::write_output;
 
 pub fn generate_keypair_command(output: Option<PathBuf>) -> Result<()> {
     // Generate a secure random private key
@@ -39,8 +39,9 @@ pub fn generate_keypair_command(output: Option<PathBuf>) -> Result<()> {
     });
     let output_content = serde_json::to_string_pretty(&keypair_json)?;
 
-    // Write output
-    write_output(&output_content, output)?;
+    // Write key material with restrictive permissions (0600) when saving to a
+    // file; stdout is unchanged for piping into other tools.
+    write_secret_output(&output_content, output)?;
 
     Ok(())
 }

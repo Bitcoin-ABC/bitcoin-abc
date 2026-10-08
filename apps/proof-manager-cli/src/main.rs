@@ -23,7 +23,6 @@ use decode::decode_command;
 use delegate::delegate_command;
 use generatekeypair::generate_keypair_command;
 use getid::getid_command;
-use io::write_output;
 use sign::sign_command;
 use validate::validate_command;
 

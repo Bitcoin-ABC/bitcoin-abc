@@ -2,7 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::fs;
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+#[cfg(unix)]
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
@@ -45,11 +48,57 @@ pub fn read_input(
 }
 
 pub fn write_output(content: &str, output: Option<PathBuf>) -> Result<()> {
+    write_output_with_mode(content, output, None)
+}
+
+/// Write output, creating the file with restrictive permissions (0600) when
+/// writing key material to disk.
+pub fn write_secret_output(
+    content: &str,
+    output: Option<PathBuf>,
+) -> Result<()> {
+    write_output_with_mode(content, output, Some(0o600))
+}
+
+fn write_output_with_mode(
+    content: &str,
+    output: Option<PathBuf>,
+    mode: Option<u32>,
+) -> Result<()> {
     match output {
         Some(path) => {
-            fs::write(&path, content).with_context(|| {
+            let mut options = OpenOptions::new();
+            options.write(true).create(true).truncate(true);
+            #[cfg(unix)]
+            if let Some(mode) = mode {
+                options.mode(mode);
+            }
+
+            let mut file = options.open(&path).with_context(|| {
+                format!("Failed to open output file: {:?}", path)
+            })?;
+            file.write_all(content.as_bytes()).with_context(|| {
                 format!("Failed to write output file: {:?}", path)
             })?;
+
+            // mode() only applies on create; enforce permissions if the file
+            // already existed.
+            #[cfg(unix)]
+            if let Some(mode) = mode {
+                let mut perms = fs::metadata(&path)
+                    .with_context(|| {
+                        format!("Failed to read permissions for: {:?}", path)
+                    })?
+                    .permissions();
+                perms.set_mode(mode);
+                fs::set_permissions(&path, perms).with_context(|| {
+                    format!(
+                        "Failed to set restrictive permissions on: {:?}",
+                        path
+                    )
+                })?;
+            }
+
             println!("Output written to: {:?}", path);
         }
         None => {
@@ -94,10 +143,40 @@ pub fn process_input_and_detect_type(
 #[cfg(test)]
 mod tests {
     use std::io::Write;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
 
     use tempfile::NamedTempFile;
 
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn test_write_secret_output_sets_0600() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let path = temp_dir.path().join("secret.json");
+
+        write_secret_output("{\"k\":1}", Some(path.clone())).unwrap();
+
+        let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_write_secret_output_overwrites_existing_mode() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let path = temp_dir.path().join("secret.json");
+        fs::write(&path, "old").unwrap();
+        let mut perms = fs::metadata(&path).unwrap().permissions();
+        perms.set_mode(0o644);
+        fs::set_permissions(&path, perms).unwrap();
+
+        write_secret_output("{\"k\":1}", Some(path.clone())).unwrap();
+
+        let mode = fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+    }
 
     #[test]
     fn test_process_hex_input_with_explicit_type() {

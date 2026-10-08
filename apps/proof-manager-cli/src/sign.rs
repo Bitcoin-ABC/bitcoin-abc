@@ -17,13 +17,12 @@ use avalanche_lib_wasm::{
     stake::{SignedStake, Stake, StakeCommitment},
 };
 
-use crate::io::process_input_and_detect_type;
+use crate::io::{process_input_and_detect_type, write_output};
 use crate::json::delegation::{delegation_to_json, WrappedDelegation};
 use crate::json::proof::{proof_to_json, WrappedProof};
 use crate::json::stake::{signed_stakes_to_json, StakeJson, WrappedStakes};
 use crate::privacy::attempt_history_cleanup;
 use crate::wif::decode_private_key;
-use crate::write_output;
 
 #[allow(clippy::too_many_arguments)]
 pub fn sign_command(

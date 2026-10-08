@@ -78,6 +78,7 @@ Private keys are never stored in JSON files. Instead, the CLI uses a secure sign
 
 - Unsigned configurations contain only public data
 - Private keys are provided securely via stdin or command-line argument (hex or WIF format)
+- WIF private keys are validated with their checksum on decode so typos are rejected
 - The wrapped JSON format (`{"proof": {...}}`, `{"stakes": [...]}`) makes type detection unambiguous and prevents type confusion
 - Stakes are signed individually first, then unsigned proofs contain already-signed stakes
 - All cryptographic operations use the `avalanche-lib-wasm` library's public API (ProofBuilder, DelegationBuilder) for consistency with other applications
@@ -346,9 +347,11 @@ Generate a secure random keypair using avalanche-lib-wasm crypto:
 # Generate keypair and output to stdout
 proof-manager generate-keypair
 
-# Save keypair to file
+# Save keypair to file (created with mode 0600)
 proof-manager generate-keypair --output keypair.json
 ```
+
+When `--output` is used, the keypair file is created with restrictive permissions (`0600`).
 
 The output includes:
 
