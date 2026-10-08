@@ -587,34 +587,118 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         self.send_and_check_for_polling(peer, immature_proof.serialize().hex())
 
     def invalid_avaproof_rate_limit_tests(self, node):
-        self.restart_node(0)
+        # confirmations=2 so gen_proof yields an immature proof; keep a non-zero
+        # conflicting cooldown so we can also hit COOLDOWN_NOT_ELAPSED.
+        self.avaproof_stake_utxo_confirmations = 2
+        self.restart_node(
+            0,
+            extra_args=[
+                "-avaproofstakeutxodustthreshold=1000000",
+                f"-avaproofstakeutxoconfirmations={self.avaproof_stake_utxo_confirmations}",
+                f"-avalancheconflictingproofcooldown={self.conflicting_proof_cooldown}",
+                f"-avalanchepeerreplacementcooldown={self.peer_replacement_cooldown}",
+                "-avacooldown=0",
+                "-avastalevotethreshold=140",
+                "-avastalevotefactor=1",
+                "-avaminquorumstake=0",
+                "-avaminavaproofsnodecount=0",
+                "-whitelist=noban@127.0.0.1",
+                "-persistavapeers=0",
+            ],
+        )
 
-        peer = get_ava_p2p_interface(self, node)
+        peer = get_ava_p2p_interface(
+            self, node, stake_utxo_confirmations=self.avaproof_stake_utxo_confirmations
+        )
+
+        # Preferred proof so later ones can land as cooldown/conflicting/rejected.
+        peer.send_avaproof(
+            avalanche_proof_from_hex(self.build_conflicting_proof(node, 1000))
+        )
+        peer.sync_with_ping()
+
+        # Build the immature proof before any further generates in this test.
+        _, immature_proof = gen_proof(self, node)
 
         mock_time = int(time.time())
         node.setmocktime(mock_time)
 
+        def send_soft_fail_proof(proof, reject_reason=None, expected_pool=None):
+            # Conflicting proofs are worth polling, so they skip the
+            # "Not polling" log; verify via the conflicting pool instead.
+            expected_msgs = (
+                [f"Not polling the avalanche proof ({reject_reason})"]
+                if reject_reason is not None
+                else ["received: avaproof"]
+            )
+            with node.assert_debug_log(
+                expected_msgs,
+                unexpected_msgs=["too-many-invalid-avaproofs"],
+            ):
+                peer.send_avaproof(proof)
+                peer.sync_with_ping()
+
+            if expected_pool is not None:
+                assert (
+                    uint256_hex(proof.proofid)
+                    in node.getavalancheproofs()[expected_pool]
+                )
+
         def send_missing_utxo_proof(sequence):
-            peer.send_avaproof(
-                avalanche_proof_from_hex(self.build_missing_utxo_proof(node, sequence))
+            send_soft_fail_proof(
+                avalanche_proof_from_hex(self.build_missing_utxo_proof(node, sequence)),
+                reject_reason="utxo-missing-or-spent",
             )
 
         self.log.info(
-            "Invalid avalanche proofs below the rate limit do not trigger Misbehaving"
+            "Mixed soft-fail avaproofs below the rate limit do not trigger Misbehaving"
         )
-        with node.assert_debug_log(
-            ["received: avaproof"],
-            unexpected_msgs=["too-many-invalid-avaproofs"],
-        ):
-            for i in range(AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
-                send_missing_utxo_proof(i)
-            peer.sync_with_ping()
+        # COOLDOWN_NOT_ELAPSED
+        send_soft_fail_proof(
+            avalanche_proof_from_hex(self.build_conflicting_proof(node, 20)),
+            reject_reason="cooldown-not-elapsed",
+        )
+
+        mock_time += self.conflicting_proof_cooldown
+        node.setmocktime(mock_time)
+
+        # CONFLICTING (wins the conflicting pool; polled, so no "Not polling" log).
+        # Registration also bumps the preferred peer's conflict cooldown.
+        send_soft_fail_proof(
+            avalanche_proof_from_hex(self.build_conflicting_proof(node, 10)),
+            expected_pool="conflicting",
+        )
+
+        mock_time += self.conflicting_proof_cooldown
+        node.setmocktime(mock_time)
+
+        # REJECTED (loses to the proof already in the conflicting pool)
+        send_soft_fail_proof(
+            avalanche_proof_from_hex(self.build_conflicting_proof(node, 5)),
+            reject_reason="rejected-proof",
+        )
+        # IMMATURE
+        send_soft_fail_proof(
+            immature_proof,
+            reject_reason="immature-proof",
+            expected_pool="immature",
+        )
+        # MISSING_UTXO for the remaining slots below the limit
+        for i in range(4, AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
+            send_missing_utxo_proof(i)
 
         self.log.info(
             "Reaching the invalid avalanche proof rate limit triggers Misbehaving"
         )
+        # The proof that trips the limit returns before the "Not polling" log.
         with node.assert_debug_log(["Misbehaving", "too-many-invalid-avaproofs"]):
-            send_missing_utxo_proof(AVALANCHE_MAX_INVALID_AVAPROOFS - 1)
+            peer.send_avaproof(
+                avalanche_proof_from_hex(
+                    self.build_missing_utxo_proof(
+                        node, AVALANCHE_MAX_INVALID_AVAPROOFS - 1
+                    )
+                )
+            )
             peer.sync_with_ping()
 
         self.log.info(
@@ -623,16 +707,17 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
         mock_time += AVALANCHE_INVALID_AVAPROOFS_INTERVAL
         node.setmocktime(mock_time)
 
-        with node.assert_debug_log(
-            ["received: avaproof"],
-            unexpected_msgs=["too-many-invalid-avaproofs"],
-        ):
-            for i in range(AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
-                send_missing_utxo_proof(100 + i)
-            peer.sync_with_ping()
+        for i in range(AVALANCHE_MAX_INVALID_AVAPROOFS - 1):
+            send_missing_utxo_proof(100 + i)
 
         with node.assert_debug_log(["Misbehaving", "too-many-invalid-avaproofs"]):
-            send_missing_utxo_proof(100 + AVALANCHE_MAX_INVALID_AVAPROOFS - 1)
+            peer.send_avaproof(
+                avalanche_proof_from_hex(
+                    self.build_missing_utxo_proof(
+                        node, 100 + AVALANCHE_MAX_INVALID_AVAPROOFS - 1
+                    )
+                )
+            )
             peer.sync_with_ping()
 
 

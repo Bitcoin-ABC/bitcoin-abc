@@ -127,9 +127,9 @@ static constexpr auto GETAVAADDR_INTERVAL{2min};
 static constexpr auto GETAVAPROOFS_INTERVAL{1min};
 
 /**
- * Maximum number of failed avaproof registrations (e.g. missing UTXO, rejected,
- * cooldown) a peer may send within AVALANCHE_INVALID_AVAPROOFS_INTERVAL before
- * being discouraged.
+ * Maximum number of failed avaproof registrations (e.g. missing UTXO, immature,
+ * conflicting, rejected, cooldown) a peer may send within
+ * AVALANCHE_INVALID_AVAPROOFS_INTERVAL before being discouraged.
  */
 static constexpr size_t AVALANCHE_MAX_INVALID_AVAPROOFS{10};
 /**
@@ -588,8 +588,8 @@ struct Peer {
 
     /**
      * Timestamps of recent failed avaproof registrations from this peer
-     * (missing UTXO, rejected, cooldown), used as a sliding window for
-     * rate-limiting.
+     * (missing UTXO, immature, conflicting, rejected, cooldown), used as a
+     * sliding window for rate-limiting.
      */
     std::vector<std::chrono::seconds> m_invalid_avaproof_times
         GUARDED_BY(NetEventsInterface::g_msgproc_mutex);
@@ -9515,9 +9515,12 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
 
     // Rate-limit uncached registration failures that still pay for (or follow)
     // full proof verification. Do not setInvalid: the proof may become
-    // acceptable later (e.g. missing UTXO appears, cooldown elapses).
+    // acceptable later (e.g. missing UTXO appears, stakes mature, preferred
+    // conflict is overturned, cooldown elapses).
     const auto result = state.GetResult();
     if (result == avalanche::ProofRegistrationResult::MISSING_UTXO ||
+        result == avalanche::ProofRegistrationResult::IMMATURE ||
+        result == avalanche::ProofRegistrationResult::CONFLICTING ||
         result == avalanche::ProofRegistrationResult::REJECTED ||
         result == avalanche::ProofRegistrationResult::COOLDOWN_NOT_ELAPSED) {
         auto &times = peer.m_invalid_avaproof_times;
