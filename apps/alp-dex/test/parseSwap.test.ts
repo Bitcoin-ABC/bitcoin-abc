@@ -305,6 +305,31 @@ describe('parsePartiallySignedSwap', () => {
         return new Tx({ inputs: [], outputs });
     };
 
+    it('rejects a second SEND section for the same token id', () => {
+        // Fee lives in the first TOKEN_A section (outIdx 2). The price leg
+        // is a later TOKEN_A section (outIdx 1). Chronik drops that section
+        // as DuplicateTokenId, so the price output is uncolored.
+        const opReturn = emppScript([
+            alpSend(TOKEN_A, ALP_TOKEN_TYPE_STANDARD.number, [0n, 200n, 0n]),
+            alpSend(TOKEN_A, ALP_TOKEN_TYPE_STANDARD.number, [10_000n, 0n, 0n]),
+            alpSend(TOKEN_B, ALP_TOKEN_TYPE_STANDARD.number, [0n, 0n, 4_997n]),
+        ]);
+        const dust = dustScript();
+        const tx = new Tx({
+            inputs: [],
+            outputs: [
+                { sats: 0n, script: opReturn },
+                { sats: DEFAULT_DUST_SATS, script: dust },
+                { sats: DEFAULT_DUST_SATS, script: dust },
+                { sats: DEFAULT_DUST_SATS, script: dust },
+            ],
+        });
+        assert.throws(
+            () => parsePartiallySignedSwap(tx),
+            /duplicate ALP SEND section for token/,
+        );
+    });
+
     it('rejects overlapping ALP amounts for the same output', () => {
         // Two sections both color outIdx 1 (array index 0).
         const opReturn = emppScript([

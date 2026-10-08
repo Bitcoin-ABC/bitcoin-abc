@@ -132,6 +132,9 @@ export const assertMakerFeeAtoms = (
 /**
  * Parse a postage-ready ALP swap tx (EMPP/ALP sends) into mid-tx outs.
  *
+ * A second SEND for a token id is dropped by Chronik as DuplicateTokenId and
+ * leaves that output uncolored.
+ *
  * @throws {ValidationError} if the tx cannot be parsed as a swap
  */
 export const parsePartiallySignedSwap = (
@@ -161,6 +164,7 @@ export const parsePartiallySignedSwap = (
 
     const outputAtomsMap = new Map<number, bigint>();
     const outputTokenIdMap = new Map<number, string>();
+    const seenSendTokenIds = new Set<string>();
 
     for (const push of emppPushes) {
         let alpResult;
@@ -188,6 +192,13 @@ export const parsePartiallySignedSwap = (
                 'Invalid swap: ALP SEND section missing tokenId or amounts',
             );
         }
+        const tokenId = alpResult.tokenId.toLowerCase();
+        if (seenSendTokenIds.has(tokenId)) {
+            throw new ValidationError(
+                `Invalid swap: duplicate ALP SEND section for token ${tokenId}`,
+            );
+        }
+        seenSendTokenIds.add(tokenId);
         for (
             let arrayIdx = 0;
             arrayIdx < alpResult.sendAtomsArray.length;
