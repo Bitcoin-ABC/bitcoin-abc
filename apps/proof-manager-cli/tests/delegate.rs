@@ -38,3 +38,29 @@ fn test_delegate_from_delegation() {
         .success()
         .stdout(predicate::str::contains("delegation"));
 }
+
+#[test]
+fn test_delegate_rejects_invalid_pubkey_hex() {
+    proof_manager_cmd()
+        .arg("delegate")
+        .arg("--input-file")
+        .arg("tests/vectors/proof_with_single_stake.json")
+        .arg("--pubkey")
+        .arg("not-valid-hex")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Invalid delegated pubkey"));
+}
+
+#[test]
+fn test_delegate_rejects_wrong_length_pubkey() {
+    proof_manager_cmd()
+        .arg("delegate")
+        .arg("--input-file")
+        .arg("tests/vectors/proof_with_single_stake.json")
+        .arg("--pubkey")
+        .arg("deadbeef")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Invalid delegated pubkey"));
+}

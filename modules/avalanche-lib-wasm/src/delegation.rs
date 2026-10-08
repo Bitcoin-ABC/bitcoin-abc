@@ -278,6 +278,14 @@ impl Delegation {
             ));
         }
 
+        if data.len() < offset + pubkey_len as usize {
+            return Err(format!(
+                "Invalid delegation format: insufficient data for {} byte \
+                 proof master key",
+                pubkey_len
+            ));
+        }
+
         let formatted_proof_master = FormattedPublicKey::from_slice(
             &data[offset..offset + pubkey_len as usize],
         )?;
@@ -615,6 +623,23 @@ mod tests {
             reserialized_verification.is_none(),
             "Reserialized delegation verification failed: {:?}",
             reserialized_verification
+        );
+    }
+
+    #[test]
+    fn test_deserialize_rejects_truncated_uncompressed_master() {
+        use super::Delegation;
+
+        // Minimal length (67) passes the upfront check, but declares a 65-byte
+        // proof master (compact size 0x41) that does not fit in the buffer.
+        let mut data = vec![0u8; 67];
+        data[32] = 0x41; // compact size: 65-byte pubkey
+
+        let err = Delegation::deserialize(&data).unwrap_err();
+        assert!(
+            err.contains("insufficient data for 65 byte proof master key"),
+            "unexpected error: {}",
+            err
         );
     }
 

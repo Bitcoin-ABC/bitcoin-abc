@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use predicates::prelude::*;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 mod fixture;
 use fixture::{proof_manager_cmd, TEST_PRIVATE_KEY};
@@ -70,6 +70,66 @@ fn test_invalid_private_key() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("Invalid private key"));
+}
+
+fn sample_stake_json(amount: Value, height: u64) -> String {
+    let txid =
+        "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    let pubkey =
+        "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
+    serde_json::json!({
+        "stakes": [{
+            "txid": txid,
+            "vout": 0,
+            "amount": amount,
+            "height": height,
+            "iscoinbase": false,
+            "pubkey": pubkey
+        }]
+    })
+    .to_string()
+}
+
+#[test]
+fn test_sign_rejects_height_with_top_bit() {
+    let input = fixture::create_temp_file(&sample_stake_json(
+        json!(100000000),
+        1 << 31,
+    ));
+
+    proof_manager_cmd()
+        .arg("sign")
+        .arg("--type")
+        .arg("stakes")
+        .arg("--input-file")
+        .arg(input.path())
+        .arg("--private-key")
+        .arg(TEST_PRIVATE_KEY)
+        .arg("--commitment")
+        .arg("tests/vectors/commitment_proof.json")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("exceeds maximum encodable value"));
+}
+
+#[test]
+fn test_sign_rejects_negative_amount() {
+    let input =
+        fixture::create_temp_file(&sample_stake_json(json!(-1), 800000));
+
+    proof_manager_cmd()
+        .arg("sign")
+        .arg("--type")
+        .arg("stakes")
+        .arg("--input-file")
+        .arg(input.path())
+        .arg("--private-key")
+        .arg(TEST_PRIVATE_KEY)
+        .arg("--commitment")
+        .arg("tests/vectors/commitment_proof.json")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Amount cannot be negative"));
 }
 
 #[test]

@@ -29,7 +29,26 @@ where
     D: Deserializer<'de>,
 {
     let xec_amount: f64 = f64::deserialize(deserializer)?;
-    Ok((xec_amount * 100.0).round() as u64)
+    xec_to_sats(xec_amount).map_err(serde::de::Error::custom)
+}
+
+/// Convert an XEC amount to satoshis, rejecting negative, non-finite, and
+/// overflowing values.
+pub fn xec_to_sats(xec_amount: f64) -> Result<u64, String> {
+    if !xec_amount.is_finite() {
+        return Err("Amount must be a finite number".to_string());
+    }
+    if xec_amount < 0.0 {
+        return Err("Amount cannot be negative".to_string());
+    }
+
+    let sats = (xec_amount * 100.0).round();
+    // u64::MAX as f64 is 2^64; reject anything that would saturate on cast.
+    if !sats.is_finite() || sats < 0.0 || sats >= (u64::MAX as f64) {
+        return Err("Amount overflows maximum u64 satoshis".to_string());
+    }
+
+    Ok(sats as u64)
 }
 
 /// Custom serializer to convert signature bytes to base64 string
@@ -136,5 +155,26 @@ where
         Err(_) => {
             Err(serde::de::Error::custom("Invalid hex string for pubkey"))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_xec_to_sats() {
+        assert_eq!(xec_to_sats(0.0).unwrap(), 0);
+        assert_eq!(xec_to_sats(1.0).unwrap(), 100);
+        assert_eq!(xec_to_sats(100_000_000.0).unwrap(), 10_000_000_000);
+        assert_eq!(xec_to_sats(1.23).unwrap(), 123);
+
+        assert!(xec_to_sats(-1.0).unwrap_err().contains("negative"));
+        assert!(xec_to_sats(f64::NAN).unwrap_err().contains("finite"));
+        assert!(xec_to_sats(f64::INFINITY).unwrap_err().contains("finite"));
+        assert!(xec_to_sats(f64::NEG_INFINITY)
+            .unwrap_err()
+            .contains("finite"));
+        assert!(xec_to_sats(1e30).unwrap_err().contains("overflows"));
     }
 }

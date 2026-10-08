@@ -140,6 +140,16 @@ impl Stake {
         iscoinbase: bool,
         pubkey: &[u8],
     ) -> Result<Stake, String> {
+        // Height is packed as height << 1 | iscoinbase in a u32, so the top
+        // bit must remain clear or it is silently truncated on encode.
+        if height >= (1u32 << 31) {
+            return Err(format!(
+                "Stake height {} exceeds maximum encodable value {}",
+                height,
+                (1u32 << 31) - 1
+            ));
+        }
+
         let utxo = OutPoint::new(&txid.to_bytes(), vout)?;
 
         let formatted_pubkey = FormattedPublicKey::from_slice(pubkey)?;
@@ -677,5 +687,33 @@ impl SignedStake {
         };
 
         Ok((SignedStake::new(stake, signature), offset))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_stake_height_encoding_bounds() {
+        let txid = TxId::from_array([1u8; 32]);
+        let pubkey = crate::key::derive_public_key(&[1u8; 32]).unwrap();
+        let max_height = (1u32 << 31) - 1;
+
+        let stake = Stake::new(
+            txid.clone(),
+            0,
+            10_000_000_000,
+            max_height,
+            false,
+            &pubkey,
+        )
+        .expect("max encodable height should succeed");
+        assert_eq!(stake.height(), max_height);
+
+        let err =
+            Stake::new(txid, 0, 10_000_000_000, 1u32 << 31, false, &pubkey)
+                .expect_err("height with top bit set must be rejected");
+        assert!(err.contains("exceeds maximum encodable value"));
     }
 }

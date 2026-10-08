@@ -129,17 +129,31 @@ pub fn delegation_to_json(
         .with_context(|| "Failed to serialize delegation to JSON")
 }
 
+/// Parse a delegated pubkey hex string (33 or 65 bytes, valid secp256k1 point)
+fn parse_delegated_pubkey(delegated_pubkey_hex: &str) -> Result<Vec<u8>> {
+    let pubkey_bytes = hex::decode(delegated_pubkey_hex)
+        .with_context(|| "Invalid delegated pubkey hex")?;
+
+    // Validate length and that it is a valid secp256k1 public key
+    avalanche_lib_wasm::pubkey::FormattedPublicKey::from_slice(&pubkey_bytes)
+        .map_err(|e| anyhow::anyhow!("Invalid delegated pubkey: {}", e))?;
+
+    Ok(pubkey_bytes)
+}
+
 /// Create a delegation JSON from a proof
 pub fn delegate_from_proof(
     proof: &avalanche_lib_wasm::proof::Proof,
     delegated_pubkey_hex: &str,
 ) -> Result<DelegationJson> {
+    let pubkey = parse_delegated_pubkey(delegated_pubkey_hex)?;
+
     // For a proof, we create a single level without signature (unsigned)
     let unsigned_delegation = DelegationJson {
         limitedid: proof.limited_proof_id().to_bytes(),
         master: proof.master_pubkey(),
         levels: vec![DelegationLevelJson {
-            pubkey: hex::decode(delegated_pubkey_hex).unwrap_or_default(),
+            pubkey,
             signature: Vec::new(), // Empty signature for unsigned level
         }],
     };
@@ -186,7 +200,7 @@ pub fn delegate_from_delegation(
 
     // Add the new level WITHOUT signature (it's unsigned)
     levels.push(DelegationLevelJson {
-        pubkey: hex::decode(delegated_pubkey_hex).unwrap_or_default(),
+        pubkey: parse_delegated_pubkey(delegated_pubkey_hex)?,
         signature: Vec::new(), // Empty signature for unsigned level
     });
 
