@@ -165,6 +165,24 @@ namespace {
         return pb.build();
     }
 
+    /*
+     * Build a proof with a distinct claimed height per stake. Required when the
+     * proof mixes mature and immature UTXOs: amount/height/pubkey are checked
+     * before maturity, so claimed heights must match the coins.
+     */
+    static ProofRef buildProof(
+        const CKey &key,
+        const std::vector<std::tuple<COutPoint, Amount, uint32_t>> &outpoints,
+        const CKey &master = CKey::MakeCompressedKey(), int64_t sequence = 1,
+        bool is_coinbase = false, int64_t expirationTime = 0,
+        const CScript &payoutScript = UNSPENDABLE_ECREG_PAYOUT_SCRIPT) {
+        ProofBuilder pb(sequence, expirationTime, master, payoutScript);
+        for (const auto &[outpoint, amount, height] : outpoints) {
+            BOOST_CHECK(pb.addUTXO(outpoint, amount, height, is_coinbase, key));
+        }
+        return pb.build();
+    }
+
     template <typename... Args>
     static ProofRef
     buildProofWithOutpoints(const CKey &key,
@@ -1200,7 +1218,10 @@ BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
 
     auto immature10 = buildProofWithSequence(key, {conflictingOutpoint}, 10);
     auto immature20 =
-        buildProofWithSequence(key, {conflictingOutpoint, matureOutpoint}, 20);
+        buildProof(key,
+                   {{conflictingOutpoint, PROOF_DUST_THRESHOLD, uint32_t(100)},
+                    {matureOutpoint, PROOF_DUST_THRESHOLD, uint32_t(99)}},
+                   key, 20);
 
     BOOST_CHECK(!pm.registerProof(immature10));
     BOOST_CHECK(pm.isImmature(immature10->getId()));
@@ -1489,8 +1510,11 @@ BOOST_FIXTURE_TEST_CASE(reject_proof, NoCoolDownFixture) {
         key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 10, 99);
     auto proofSeq20 = buildProofWithOutpoints(
         key, {conflictingOutpoint}, PROOF_DUST_THRESHOLD, key, 20, 99);
-    auto immature30 = buildProofWithSequence(
-        key, {conflictingOutpoint, immatureOutpoint}, 30);
+    auto immature30 =
+        buildProof(key,
+                   {{conflictingOutpoint, PROOF_DUST_THRESHOLD, uint32_t(99)},
+                    {immatureOutpoint, PROOF_DUST_THRESHOLD, uint32_t(100)}},
+                   key, 30);
 
     BOOST_CHECK(pm.registerProof(proofSeq20));
     BOOST_CHECK(!pm.registerProof(proofSeq10));
@@ -1728,10 +1752,12 @@ BOOST_FIXTURE_TEST_CASE(known_score_tracking, NoCoolDownFixture) {
         buildProof(key, {{peer1ConflictingOutput, amount1}}, key, 20, 99);
 
     // Create a proof with an immature UTXO, so the proof will be immature
+    const COutPoint immatureOutpoint =
+        createUtxo(active_chainstate, key, amount1);
     auto peer1Proof3 =
         buildProof(key,
-                   {{peer1ConflictingOutput, amount1},
-                    {createUtxo(active_chainstate, key, amount1), amount1}},
+                   {{peer1ConflictingOutput, amount1, uint32_t(99)},
+                    {immatureOutpoint, amount1, uint32_t(100)}},
                    key, 30);
 
     const uint32_t peer1Score1 = Proof::amountToScore(amount1 + amount2);

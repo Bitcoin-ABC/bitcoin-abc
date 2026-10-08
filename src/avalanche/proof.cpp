@@ -211,14 +211,6 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
                                  "utxo-missing-or-spent");
         }
 
-        if ((s.getHeight() + stakeUtxoMinConfirmations - 1) > activeHeight) {
-            return state.Invalid(
-                ProofValidationResult::IMMATURE_UTXO, "immature-utxo",
-                strprintf("TxId: %s, block height: %d, chaintip height: %d",
-                          s.getUTXO().GetTxId().ToString(), s.getHeight(),
-                          activeHeight));
-        }
-
         if (s.isCoinbase() != coin->IsCoinBase()) {
             return state.Invalid(
                 ProofValidationResult::COINBASE_MISMATCH, "coinbase-mismatch",
@@ -264,6 +256,14 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
             // Wrong pubkey.
             return state.Invalid(ProofValidationResult::DESTINATION_MISMATCH,
                                  "destination-mismatch");
+        }
+
+        if ((s.getHeight() + stakeUtxoMinConfirmations - 1) > activeHeight) {
+            return state.Invalid(
+                ProofValidationResult::IMMATURE_UTXO, "immature-utxo",
+                strprintf("TxId: %s, block height: %d, chaintip height: %d",
+                          s.getUTXO().GetTxId().ToString(), s.getHeight(),
+                          activeHeight));
         }
     }
 
