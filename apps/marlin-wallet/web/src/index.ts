@@ -228,6 +228,8 @@ async function loadWalletFromMnemonic(mnemonic: string) {
             priceFetcher,
             syncWallet,
             applyBip21TokenAsset,
+            showError: (title, message, details) =>
+                errorModal!.show(title, message, details),
         });
     }
 
@@ -873,6 +875,8 @@ async function initializeApp() {
         priceFetcher,
         syncWallet,
         applyBip21TokenAsset,
+        showError: (title, message, details) =>
+            errorModal!.show(title, message, details),
     });
 
     // Update main screen display if wallet is already loaded

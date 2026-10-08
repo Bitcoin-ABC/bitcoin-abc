@@ -15,6 +15,7 @@ import { FIRMA_TOKEN, XEC_ASSET } from '../../src/supported-assets';
 import { createBip21Uri } from '../../src/bip21';
 import {
     runWithChronik,
+    stubChronikBroadcastsFailure,
     stubChronikBroadcastsSuccess,
     stubCoingeckoXecFiatPrices,
 } from '../fixture/stubs';
@@ -1087,6 +1088,36 @@ describe('Send', () => {
             });
 
             cy.get('#main-screen').should('be.visible');
+        });
+    });
+
+    it('keeps send screen and shows error when broadcast fails', () => {
+        runWithChronik(CHRONIK_STUB, () => {
+            stubChronikBroadcastsFailure();
+            visitWithWalletMnemonic(TEST_MNEMONIC, {
+                requireHoldToSend: false,
+            });
+            waitForMainLoaded();
+
+            openManualSendScreen();
+            fillRecipientAndMaxSlider();
+
+            cy.get('#confirm-send').should('not.be.disabled').click();
+
+            cy.wait('@chronikBroadcastsFailure');
+
+            // Must not present a successful payment confirmation
+            cy.get('#send-screen').should('not.have.class', 'hidden');
+            cy.get('#main-screen').should('have.class', 'hidden');
+            cy.get('#error-modal-overlay').should('be.visible');
+            cy.get('#error-modal-title').should(
+                'contain',
+                'Transaction failed',
+            );
+            cy.get('#error-modal-message').should(
+                'contain',
+                'Failed to send transaction',
+            );
         });
     });
 });

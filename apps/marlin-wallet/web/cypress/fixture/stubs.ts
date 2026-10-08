@@ -172,6 +172,22 @@ export function stubChronikBroadcastsSuccess(): void {
 }
 
 /**
+ * Stub `POST …/broadcast-txs` with a Chronik rejection (e.g. offline / mempool
+ * reject). Route alias: `chronikBroadcastsFailure`.
+ */
+export function stubChronikBroadcastsFailure(
+    errorMessage = 'Broadcast failed: Transaction rejected by mempool',
+): void {
+    cy.intercept({ method: 'POST', url: /\/broadcast-txs(\?|$)/ }, req => {
+        req.reply({
+            statusCode: 400,
+            headers: { 'content-type': 'text/plain' },
+            body: errorMessage,
+        });
+    }).as('chronikBroadcastsFailure');
+}
+
+/**
  * Load a Chronik stub JSON, intercept matching `history` and `/tx/*`, and run `body`.
  * `cy.readFile` parses `.json` into an object (Cypress default); see
  * `chronik-json-protobuf.ts`.

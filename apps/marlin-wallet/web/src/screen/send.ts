@@ -52,6 +52,11 @@ export interface SendScreenParams {
      * user pastes a token URI on the send screen.
      */
     applyBip21TokenAsset: (assetKey: string) => Promise<void>;
+    /**
+     * Show a user-visible error (e.g. global error modal). Used when broadcast
+     * fails so the payment is not presented as successful.
+     */
+    showError: (title: string, message: string, details?: string) => void;
 }
 
 export class SendScreen {
@@ -920,12 +925,10 @@ export class SendScreen {
                 triggerProgressiveHaptic();
             }, HAPTIC_INTERVAL);
 
-            // Set timer for successful hold
+            // Set timer for completed hold — success haptic only after broadcast
             holdTimer = window.setTimeout(async () => {
-                // Success haptic
-                sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationSuccess');
-                await this.validateAndSend();
                 cleanup();
+                await this.validateAndSend();
             }, HOLD_DURATION);
         };
 
@@ -970,19 +973,26 @@ export class SendScreen {
         button.addEventListener('touchcancel', cancelHold);
     }
 
-    private async validateAndSend(): Promise<void> {
+    /**
+     * Build and broadcast the payment. Success haptic, navigation away from
+     * send, and deep-link return only run after a confirmed successful
+     * broadcast — never on Chronik/network rejection.
+     *
+     * @returns true if the transaction was broadcast successfully
+     */
+    private async validateAndSend(): Promise<boolean> {
         const address = this.ui.recipientInput.value.trim();
 
         // Validate address
         if (!address || !isValidECashAddress(address)) {
             this.ui.recipientInput.focus();
-            return;
+            return false;
         }
 
         // Validate amount
         this.validateAmountField();
         if (this.ui.confirmSendBtn.disabled) {
-            return; // Amount validation failed
+            return false; // Amount validation failed
         }
 
         // All validations passed, proceed with sending
@@ -1000,10 +1010,10 @@ export class SendScreen {
                         unitToAtoms(amountPrimary, activeAssetDecimals()),
                     );
                 } catch {
-                    return;
+                    return false;
                 }
                 if (atoms <= 0n) {
-                    return;
+                    return false;
                 }
                 builtAction = buildTokenSendAction(
                     this.params.ecashWallet,
@@ -1043,17 +1053,33 @@ export class SendScreen {
                 }
             }
 
-            await builtAction.broadcast();
+            const broadcastResult = await builtAction.broadcast();
+            if (!broadcastResult.success) {
+                throw new Error(
+                    broadcastResult.errors?.join(', ') ||
+                        'Transaction broadcast failed',
+                );
+            }
+
+            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationSuccess');
             webViewLog(sendMessage);
-        } catch (error) {
-            webViewError('Failed to send transaction:', error);
-        } finally {
+
             this.params.navigation.showScreen(Screen.Main);
 
             if (this.returnToBrowser) {
-                // Send message to native app to return to the previous app (browser)
+                // Payment confirmed on-chain broadcast — return to the browser
                 sendMessageToBackend('RETURN_TO_PREVIOUS_APP', null);
             }
+            return true;
+        } catch (error) {
+            webViewError('Failed to send transaction:', error);
+            sendMessageToBackend('HAPTIC_FEEDBACK', 'notificationWarning');
+            this.params.showError(
+                t('errors.transactionFailed'),
+                t('errors.failedToSendTransaction'),
+                error instanceof Error ? error.message : `${error}`,
+            );
+            return false;
         }
     }
 }
