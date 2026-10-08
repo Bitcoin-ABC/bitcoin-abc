@@ -1834,6 +1834,7 @@ class Network(util.DaemonThread):
             not isinstance(header_dict, dict)
             or "hex" not in header_dict
             or "height" not in header_dict
+            or not isinstance(header_dict["height"], int)
         ):
             # bad and/or unexpected response from server.
             self.connection_down(interface.server)
