@@ -180,17 +180,25 @@ chronik_bridge::Block BridgeBlock(const CBlock &block,
 namespace chronik_bridge {
 
 void log_print(const rust::Str logging_function, const rust::Str source_file,
-               const uint32_t source_line, const rust::Str msg) {
+               const uint32_t source_line, const rust::Str msg,
+               bool should_ratelimit) {
+    // All Chronik Rust call sites share this C++ source_location, so rate
+    // limiting applies a single hourly quota to rate-limited Chronik logs.
+    // Pass should_ratelimit=false for high-volume expected paths (e.g. IBD /
+    // reindex progress).
     LogInstance().LogPrintStr(std::string(msg), std::source_location::current(),
                               BCLog::LogFlags::NONE, BCLog::Level::Info,
-                              /*should_ratelimit=*/false);
+                              should_ratelimit);
 }
 
 void log_print_chronik(const rust::Str logging_function,
                        const rust::Str source_file, const uint32_t source_line,
                        const rust::Str msg) {
+    // Never rate-limited: -debug=chronik is opt-in, like other debug
+    // categories.
     if (LogInstance().WillLogCategory(BCLog::CHRONIK)) {
-        log_print(logging_function, source_file, source_line, msg);
+        log_print(logging_function, source_file, source_line, msg,
+                  /*should_ratelimit=*/false);
     }
 }
 

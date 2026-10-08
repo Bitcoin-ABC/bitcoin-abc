@@ -6,7 +6,7 @@ use std::{collections::BTreeMap, marker::PhantomData, time::Instant};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::hash::{Hashed, Sha256};
-use chronik_util::log;
+use chronik_util::{log, log_no_ratelimit};
 use rocksdb::WriteBatch;
 use thiserror::Error;
 
@@ -521,7 +521,9 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
             );
 
             if db_idx % 1000000 == 0 {
-                log!("Upgraded {db_idx} of {estimated_num_keys} (estimated)\n");
+                log_no_ratelimit!(
+                    "Upgraded {db_idx} of {estimated_num_keys} (estimated)\n"
+                );
                 self.col.db.write_batch_without_wal(batch)?;
                 batch = WriteBatch::default();
             }

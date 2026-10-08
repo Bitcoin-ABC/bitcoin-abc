@@ -11,9 +11,10 @@ use std::sync::OnceLock;
 #[derive(Debug)]
 pub struct Loggers {
     /// Logging function to log to bitcoind's logging system.
-    pub log: fn(&str, &str, u32, &str),
+    pub log: fn(&str, &str, u32, &str, bool),
     /// Logging function to log to bitcoind's logging system under the
-    /// BCLog::Chronik category.
+    /// BCLog::Chronik category. Never rate-limited: `-debug=chronik` is
+    /// opt-in, like other debug categories.
     pub log_chronik: fn(&str, &str, u32, &str),
 }
 
@@ -29,11 +30,16 @@ pub fn log_node(
     source_file: &str,
     source_line: u32,
     msg: &str,
+    should_ratelimit: bool,
 ) {
     match MOUNTED_LOGGER.get() {
-        Some(Loggers { log, .. }) => {
-            log(logging_function, source_file, source_line, msg)
-        }
+        Some(Loggers { log, .. }) => log(
+            logging_function,
+            source_file,
+            source_line,
+            msg,
+            should_ratelimit,
+        ),
         None => println!("{}", msg),
     }
 }
@@ -60,12 +66,15 @@ pub fn mount_loggers(loggers: Loggers) {
     let _ = MOUNTED_LOGGER.set(loggers);
 }
 
-/// Logs the message to bitcoind's logging system:
+/// Logs the message to bitcoind's logging system with disk rate limiting.
 ///
 /// ```ignore
 /// let world = "world";
 /// log!("Hello {}!\n", world);
 /// ```
+///
+/// For high-volume expected paths (IBD / reindex progress), use
+/// [`log_no_ratelimit`] instead.
 #[macro_export]
 macro_rules! log {
     ($($arg:tt)*) => {
@@ -75,6 +84,27 @@ macro_rules! log {
             file!(),
             line!(),
             &format!($($arg)*),
+            true,
+        );
+        #[cfg(test)]
+        println!($($arg)*);
+    };
+}
+
+/// Logs the message to bitcoind's logging system without disk rate limiting.
+///
+/// Use only for high-volume expected paths such as IBD / reindex progress,
+/// matching `UpdateTip`'s opt-out from the global log rate limiter.
+#[macro_export]
+macro_rules! log_no_ratelimit {
+    ($($arg:tt)*) => {
+        #[cfg(not(test))]
+        chronik_util::log_node(
+            "<chronik unknown>",
+            file!(),
+            line!(),
+            &format!($($arg)*),
+            false,
         );
         #[cfg(test)]
         println!($($arg)*);
@@ -82,7 +112,7 @@ macro_rules! log {
 }
 
 /// Logs the message to bitcoind's logging system under the BCLog::Chronik
-/// category:
+/// category.
 ///
 /// ```ignore
 /// let world = "world";

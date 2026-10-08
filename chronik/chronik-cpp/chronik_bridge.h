@@ -50,7 +50,8 @@ public:
 };
 
 void log_print(const rust::Str logging_function, const rust::Str source_file,
-               const uint32_t source_line, const rust::Str msg);
+               const uint32_t source_line, const rust::Str msg,
+               bool should_ratelimit);
 
 void log_print_chronik(const rust::Str logging_function,
                        const rust::Str source_file, const uint32_t source_line,

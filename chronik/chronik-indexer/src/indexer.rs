@@ -37,7 +37,7 @@ use chronik_db::{
 use chronik_plugin::{
     context::PluginContext, data::PluginNameMap, plugin::Plugin,
 };
-use chronik_util::{log, log_chronik};
+use chronik_util::{log, log_chronik, log_no_ratelimit};
 use thiserror::Error;
 use tokio::sync::{Mutex, RwLock};
 
@@ -434,7 +434,7 @@ impl ChronikIndexer {
                 "Added block {hash}, height {height}/{tip_height} to Chronik\n"
             );
             if height % 100 == 0 {
-                log!(
+                log_no_ratelimit!(
                     "Synced Chronik up to block {hash} at height \
                      {height}/{tip_height}\n"
                 );
@@ -537,7 +537,7 @@ impl ChronikIndexer {
             )?;
             self.db.write_batch(batch)?;
             if height % 100 == 0 {
-                log!(
+                log_no_ratelimit!(
                     "Synced Chronik LOKAD ID index up to block {hash} at \
                      height {height}/{end_height} (-chroniklokadidindex=0 to \
                      disable)\n"

@@ -183,11 +183,17 @@ mod ffi_inner {
         type ChronikBridge;
 
         /// Print the message to bitcoind's logs.
+        ///
+        /// When `should_ratelimit` is true, disk logging is subject to the
+        /// global per-source-location rate limit. Chronik call sites share one
+        /// C++ source location in the bridge, so use `false` for high-volume
+        /// expected paths (IBD / reindex progress).
         fn log_print(
             logging_function: &str,
             source_file: &str,
             source_line: u32,
             msg: &str,
+            should_ratelimit: bool,
         );
 
         /// Print the message to bitcoind's logs under the BCLog::Chronik
