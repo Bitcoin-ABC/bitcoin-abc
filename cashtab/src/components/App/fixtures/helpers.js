@@ -256,10 +256,17 @@ export const prepareMockedChronikCallsForWallet = (
  * Remove all keys individually as localforage.clear() occasionally returns before all storage is clear
  * @param {object} localforage the localforage instance used in your test
  */
-import { SUPPORTED_CASHTAB_STORAGE_KEYS } from 'config/storage';
+import {
+    SUPPORTED_CASHTAB_STORAGE_KEYS,
+    WALLETS_MIGRATED_STORAGE_KEY,
+    isWalletRecordKey,
+} from 'config/storage';
 
 export const clearLocalForage = async localforage => {
-    for (const key of SUPPORTED_CASHTAB_STORAGE_KEYS) {
+    const dynamicKeys = (await localforage.keys()).filter(
+        key => isWalletRecordKey(key) || key === WALLETS_MIGRATED_STORAGE_KEY,
+    );
+    for (const key of [...SUPPORTED_CASHTAB_STORAGE_KEYS, ...dynamicKeys]) {
         await localforage.removeItem(key);
     }
 };

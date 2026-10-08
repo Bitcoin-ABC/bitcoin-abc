@@ -23,7 +23,9 @@ export function isWalletContextLoaded(
         'updateCashtabState' in context &&
         'processChronikWsMsg' in context &&
         'cashtabState' in context &&
-        'ecashWallet' in context
+        'ecashWallet' in context &&
+        'saveWallet' in context &&
+        'deleteWallet' in context
     );
 }
 
@@ -38,6 +40,8 @@ interface NullDefaultUseWalletReturnType {
     updateCashtabState: undefined;
     processChronikWsMsg: undefined;
     cashtabState: undefined;
+    saveWallet: undefined;
+    deleteWallet: undefined;
 }
 
 const nullDefaultUseWalletReturnType: NullDefaultUseWalletReturnType = {
@@ -51,6 +55,8 @@ const nullDefaultUseWalletReturnType: NullDefaultUseWalletReturnType = {
     updateCashtabState: undefined,
     processChronikWsMsg: undefined,
     cashtabState: undefined,
+    saveWallet: undefined,
+    deleteWallet: undefined,
 };
 
 export const WalletContext = React.createContext<

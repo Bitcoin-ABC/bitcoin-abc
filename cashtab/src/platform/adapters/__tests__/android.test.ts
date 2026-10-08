@@ -24,6 +24,7 @@ const mockSecureStorage = {
     internalSetItem: jest.fn().mockResolvedValue(undefined),
     internalGetItem: jest.fn().mockResolvedValue({ data: null }),
     internalRemoveItem: jest.fn().mockResolvedValue(undefined),
+    getPrefixedKeys: jest.fn().mockResolvedValue({ keys: [] }),
 };
 
 // Mock Capacitor
@@ -42,6 +43,7 @@ describe('AndroidStorageAdapter', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockSecureStorage.getPrefixedKeys.mockResolvedValue({ keys: [] });
 
         // Mock successful initialization
         mockSQLite.createConnection.mockResolvedValue({
@@ -129,6 +131,92 @@ describe('AndroidStorageAdapter', () => {
             expect(retrievedWallets![0].address).toBe(
                 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
             );
+        });
+
+        it('should store one wallet record in secure storage', async () => {
+            const recordKey = `wallet/${mockWallet.address}`;
+
+            await adapter.setItem(recordKey, mockWallet);
+
+            expect(mockSecureStorage.internalSetItem).toHaveBeenCalledWith({
+                prefixedKey: `cashtab_secure_${recordKey}`,
+                data: JSON.stringify(mockWallet),
+                sync: false,
+                access: 0,
+            });
+            expect(mockSQLite.run).not.toHaveBeenCalled();
+        });
+
+        it('lists wallet records from secure storage, not sqlite', async () => {
+            const recordKey = `wallet/${mockWallet.address}`;
+            mockSQLite.query.mockResolvedValue({
+                values: [{ key: recordKey }, { key: 'settings' }],
+            });
+            mockSecureStorage.getPrefixedKeys.mockResolvedValue({
+                keys: [`cashtab_secure_${recordKey}`],
+            });
+
+            const storedKeys = await adapter.keys();
+
+            expect(storedKeys.filter(key => key === recordKey)).toEqual([
+                recordKey,
+            ]);
+            expect(storedKeys).toContain('settings');
+        });
+        it('returns a wallet secret from entries', async () => {
+            const recordKey = `wallet/${mockWallet.address}`;
+            mockSQLite.query.mockResolvedValue({ values: [] });
+            mockSecureStorage.getPrefixedKeys.mockResolvedValue({
+                keys: [`cashtab_secure_${recordKey}`],
+            });
+            mockSecureStorage.internalGetItem.mockImplementation(
+                async ({ prefixedKey }: { prefixedKey: string }) => {
+                    if (prefixedKey === `cashtab_secure_${recordKey}`) {
+                        return { data: JSON.stringify(mockWallet) };
+                    }
+                    return { data: null };
+                },
+            );
+
+            await expect(adapter.entries()).resolves.toEqual([
+                [recordKey, mockWallet],
+            ]);
+        });
+
+        it('throws when a listed wallet secret cannot be read', async () => {
+            const recordKey = `wallet/${mockWallet.address}`;
+            mockSecureStorage.getPrefixedKeys.mockResolvedValue({
+                keys: [`cashtab_secure_${recordKey}`],
+            });
+            mockSecureStorage.internalGetItem.mockRejectedValue(
+                new Error('secure storage unavailable'),
+            );
+
+            await expect(adapter.entries()).rejects.toThrow(
+                'secure storage unavailable',
+            );
+        });
+
+        it('throws when a listed wallet secret is missing', async () => {
+            const recordKey = `wallet/${mockWallet.address}`;
+            mockSecureStorage.getPrefixedKeys.mockResolvedValue({
+                keys: [`cashtab_secure_${recordKey}`],
+            });
+            mockSecureStorage.internalGetItem.mockResolvedValue({ data: null });
+
+            await expect(adapter.entries()).rejects.toThrow(
+                `Missing wallet secret for ${recordKey}`,
+            );
+        });
+
+        it('rethrows when a wallet record cannot be read', async () => {
+            mockSecureStorage.internalGetItem.mockRejectedValue(
+                new Error('secure storage unavailable'),
+            );
+
+            await expect(
+                adapter.getItem(`wallet/${mockWallet.address}`),
+            ).rejects.toThrow('secure storage unavailable');
         });
 
         it('should return null when no wallet data exists', async () => {

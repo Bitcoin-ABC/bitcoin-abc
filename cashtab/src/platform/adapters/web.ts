@@ -69,6 +69,62 @@ export class WebStorageAdapter implements CashtabStorage {
         }
     }
 
+    /**
+     * One IndexedDB read of every pair.
+     */
+    async entries(): Promise<[string, unknown][]> {
+        await localforage.ready();
+        const dbInfo = (
+            localforage as unknown as {
+                _dbInfo?: { db?: IDBDatabase; storeName?: string };
+            }
+        )._dbInfo;
+        const db = dbInfo?.db;
+        const storeName = dbInfo?.storeName;
+        if (
+            db === undefined ||
+            storeName === undefined ||
+            typeof db.transaction !== 'function'
+        ) {
+            return this.entriesByKey();
+        }
+        // transaction() throws InvalidStateError when the connection is closing.
+        // The Promise executor would reject that, and boot would fail with no fallback.
+        let tx: IDBTransaction;
+        try {
+            tx = db.transaction(storeName, 'readonly');
+        } catch (error) {
+            console.error('Bulk storage read failed to open:', error);
+            return this.entriesByKey();
+        }
+        return new Promise((resolve, reject) => {
+            const objectStore = tx.objectStore(storeName);
+            const keysRequest = objectStore.getAllKeys();
+            const valuesRequest = objectStore.getAll();
+            tx.oncomplete = () => {
+                const keys = keysRequest.result;
+                const values = valuesRequest.result;
+                resolve(keys.map((key, index) => [String(key), values[index]]));
+            };
+            tx.onerror = () => {
+                reject(tx.error ?? new Error('Failed to read storage entries'));
+            };
+            // Abort can fire without onerror when the database closes.
+            tx.onabort = () => {
+                reject(tx.error ?? new Error('Storage entries read aborted'));
+            };
+        });
+    }
+
+    private async entriesByKey(): Promise<[string, unknown][]> {
+        const keys = await this.keys();
+        const pairs: [string, unknown][] = [];
+        for (const key of keys) {
+            pairs.push([key, await localforage.getItem(key)]);
+        }
+        return pairs;
+    }
+
     async isAvailable(): Promise<boolean> {
         try {
             // Test storage availability by trying to store and retrieve a test value

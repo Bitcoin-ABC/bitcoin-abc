@@ -216,7 +216,14 @@ describe('<Home />', () => {
             localforage,
             [
                 walletWithZeroBalanceZeroHistory,
-                { ...walletWithZeroBalanceZeroHistory, name: 'something else' },
+                {
+                    ...walletWithZeroBalanceZeroHistory,
+                    name: 'something else',
+                    // A second wallet must be a different address. Storage keeps
+                    // one record per address, so a renamed clone of the same
+                    // wallet collapses to a single record.
+                    address: 'ecash:qzj4u2pl2nv3kampdnnjc2c30f9lwl50uvvg4nfkfz',
+                },
             ],
             tokenMocks,
         );

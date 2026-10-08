@@ -16,6 +16,9 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { Ecc } from 'ecash-lib';
+import { asWalletStore, readWalletRecords } from 'wallet/storage';
+
+const storedWalletRecords = () => readWalletRecords(asWalletStore(localforage));
 
 /** Public test fixture only — do not use for real funds (see wallet/fixtures/vectors). */
 const BURNED_ONBOARDING_MNEMONIC =
@@ -90,7 +93,7 @@ describe('<OnBoarding />', () => {
 
         await userEvent.click(okBtn);
 
-        const walletsAfterImport = await localforage.getItem('wallets');
+        const walletsAfterImport = await storedWalletRecords();
         expect(walletsAfterImport).toHaveLength(1);
         expect(
             (walletsAfterImport as Array<{ name: string; address: string }>)[0]
@@ -160,7 +163,7 @@ describe('<OnBoarding />', () => {
         expect(screen.getByTitle('Raw QR Code')).toBeInTheDocument();
 
         // New wallet is added in localforage
-        const walletsAfterAdd = await localforage.getItem('wallets');
+        const walletsAfterAdd = await storedWalletRecords();
         expect(walletsAfterAdd).toHaveLength(1);
     });
     it('We can import a wallet', async () => {
@@ -239,7 +242,7 @@ describe('<OnBoarding />', () => {
         expect(importBtn).toBeDisabled();
 
         // The wallet is in localforage
-        const walletsAfterImport = await localforage.getItem('wallets');
+        const walletsAfterImport = await storedWalletRecords();
         expect(
             (walletsAfterImport as Array<{ name: string }>)[
                 (walletsAfterImport as Array<{ name: string }>).length - 1

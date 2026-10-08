@@ -47,6 +47,12 @@ export interface CashtabStorage {
     keys(): Promise<string[]>;
 
     /**
+     * Read every stored pair in one request.
+     * Boot uses this so a long key-by-key scan is not required.
+     */
+    entries(): Promise<[string, unknown][]>;
+
+    /**
      * Check if storage is available and working
      */
     isAvailable(): Promise<boolean>;

@@ -17,6 +17,7 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { token as tokenConfig } from 'config/token';
+import { asWalletStore, migrateLegacyWallets } from 'wallet/storage';
 
 const MOCKED_RECAPTCHA_V3_TOKEN = 'mocked-recaptcha-v3-token';
 
@@ -127,12 +128,14 @@ describe('<Rewards />', () => {
         expect(await screen.findByText('Rewards claimed!')).toBeInTheDocument();
     });
     it('An ineligible cashtab wallet sees a countdown to eligibility', async () => {
-        jest.useFakeTimers();
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
             localforage,
         );
+        // Migrate before fake timers so boot is one storage read.
+        await migrateLegacyWallets(asWalletStore(localforage));
+        jest.useFakeTimers();
         const address = walletWithXecAndTokensActive.address;
 
         // Mock eligibility call as ineligible

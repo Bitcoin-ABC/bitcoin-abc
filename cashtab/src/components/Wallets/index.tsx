@@ -79,8 +79,14 @@ const Wallets = () => {
         // Confirm we have all context required to load the page
         return null;
     }
-    const { cashtabState, setLoading, updateCashtabState, getWalletByAddress } =
-        ContextValue;
+    const {
+        cashtabState,
+        setLoading,
+        updateCashtabState,
+        getWalletByAddress,
+        saveWallet,
+        deleteWallet: deleteStoredWallet,
+    } = ContextValue;
     const { wallets, contactList } = cashtabState;
     const { ecashWallet } = ContextValue;
     if (!ecashWallet) {
@@ -267,35 +273,19 @@ const Wallets = () => {
         }
 
         const oldName = walletToUpdate.name;
+        const renamedWallet = {
+            ...walletToUpdate,
+            name: formData.renamedWalletName,
+        };
 
-        // if a match was found
-        if (typeof walletToUpdate !== 'undefined') {
-            // update the walllet name
-            walletToUpdate.name = formData.renamedWalletName;
-
-            // Update localforage and state
-            const updates: {
-                wallets: StoredCashtabWallet[];
-            } = { wallets };
-            if (
-                activeStoredWallet &&
-                activeStoredWallet.mnemonic === walletToBeRenamed.mnemonic
-            ) {
-                // Also update the active wallet name
-                activeStoredWallet.name = formData.renamedWalletName;
-                // Update the wallet in the wallets array
-                updates.wallets = cashtabState.wallets.map(wallet =>
-                    wallet.address === activeStoredWallet.address
-                        ? { ...wallet, name: formData.renamedWalletName }
-                        : wallet,
-                );
-            }
-            await updateCashtabState(updates);
+        try {
+            await saveWallet(renamedWallet);
             toast.success(
                 `“${oldName}” renamed to “${formData.renamedWalletName}”`,
             );
-        } else {
-            toast.error(`Unable to find wallet ${walletToBeRenamed.name}`);
+        } catch (error) {
+            console.error('Error renaming wallet', error);
+            toast.error(`Unable to rename wallet ${walletToBeRenamed.name}`);
         }
         // Clear walletToBeRenamed field to hide the modal
         setWalletToBeRenamed(null);
@@ -316,37 +306,13 @@ const Wallets = () => {
             return;
         }
 
-        const isDeletingActive =
-            walletToBeDeleted.address === activeStoredWallet.address;
-
-        // filter wallet from wallets
-        const updatedWallets = wallets.filter(
-            wallet => wallet.mnemonic !== walletToBeDeleted.mnemonic,
-        );
-
-        const updates: Parameters<typeof updateCashtabState>[0] = {
-            wallets: updatedWallets,
-        };
-
-        if (isDeletingActive) {
-            if (updatedWallets.length === 0) {
-                updates.activeWalletAddress = null;
-            } else {
-                // List order is active first, then A–Z — so the next row is the
-                // first remaining wallet by name. Sort updatedWallets directly
-                // (not displayOrder[1]): if active briefly mismatches wallets,
-                // sortWalletsForDisplay falls back to a full A–Z list and [1]
-                // is the wrong wallet.
-                const nextWallet = [...updatedWallets].sort((a, b) =>
-                    a.name.localeCompare(b.name),
-                )[0];
-                updates.activeWalletAddress = nextWallet.address;
-            }
+        try {
+            await deleteStoredWallet(walletToBeDeleted.address);
+            toast.success(`“${walletToBeDeleted.name}” deleted`);
+        } catch (error) {
+            console.error('Error deleting wallet', error);
+            toast.error(`Unable to delete wallet ${walletToBeDeleted.name}`);
         }
-
-        // Update localforage and state
-        await updateCashtabState(updates);
-        toast.success(`“${walletToBeDeleted.name}” deleted`);
 
         // Reset walletToBeDeleted to hide the modal
         setWalletToBeDeleted(null);
@@ -457,15 +423,18 @@ const Wallets = () => {
             'Create Wallet',
             createWalletAsHd ? 'New HD' : 'New',
         );
-        // Add it to the end of the wallets object; display sorts by name
-        updateCashtabState({ wallets: [...wallets, newAddedWallet] });
-
-        toast.success(
-            createWalletAsHd
-                ? `New HD wallet “${newAddedWallet.name}” added to wallets`
-                : `New wallet “${newAddedWallet.name}” added to wallets`,
-        );
-        closeNewWalletModal();
+        try {
+            await saveWallet(newAddedWallet);
+            toast.success(
+                createWalletAsHd
+                    ? `New HD wallet “${newAddedWallet.name}” added to wallets`
+                    : `New wallet “${newAddedWallet.name}” added to wallets`,
+            );
+            closeNewWalletModal();
+        } catch (error) {
+            console.error('Error adding wallet', error);
+            toast.error('Failed to add wallet. Please try again.');
+        }
     };
 
     /**
@@ -515,17 +484,18 @@ const Wallets = () => {
             createWalletAsHd ? 'Imported HD' : 'Imported',
         );
 
-        // Add it to the end of the wallets object; display sorts by name
-        updateCashtabState({ wallets: [...wallets, newImportedWallet] });
-
-        // Import success modal
-        toast.success(
-            createWalletAsHd
-                ? `New imported HD wallet “${newImportedWallet.name}” added to your saved wallets`
-                : `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
-        );
-
-        closeImportWalletModal();
+        try {
+            await saveWallet(newImportedWallet);
+            toast.success(
+                createWalletAsHd
+                    ? `New imported HD wallet “${newImportedWallet.name}” added to your saved wallets`
+                    : `New imported wallet “${newImportedWallet.name}” added to your saved wallets`,
+            );
+            closeImportWalletModal();
+        } catch (error) {
+            console.error('Error importing wallet', error);
+            toast.error('Failed to import wallet. Please try again.');
+        }
     }
 
     /**

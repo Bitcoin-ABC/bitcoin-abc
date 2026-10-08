@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import { WalletContext } from 'wallet/context';
+import { WalletContext, isWalletContextLoaded } from 'wallet/context';
 import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
@@ -16,14 +16,17 @@ import CashtabLogo from 'assets/cashtab_xec.png';
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { updateCashtabState } = ContextValue;
-
     const [importedMnemonic, setImportedMnemonic] = useState<string>('');
     const [showImportWalletModal, setShowImportWalletModal] =
         useState<boolean>(false);
     const [isImportingWallet, setIsImportingWallet] = useState<boolean>(false);
     // Initialize as true so that validation error only renders after user input
     const [isValidMnemonic, setIsValidMnemonic] = useState<boolean>(true);
+
+    if (!isWalletContextLoaded(ContextValue)) {
+        return null;
+    }
+    const { saveWallet } = ContextValue;
 
     async function importWallet(): Promise<void> {
         if (isImportingWallet) {
@@ -35,12 +38,7 @@ const OnBoarding = () => {
         Event('Onboarding.js', 'Create Wallet', 'Imported');
         try {
             const importedWallet = createCashtabWallet(importedMnemonic);
-            // Set activeWalletAddress in CashtabState (this also persists to storage)
-            // This will trigger initializeWallet() in useWallet
-            await updateCashtabState({
-                wallets: [importedWallet],
-                activeWalletAddress: importedWallet.address,
-            });
+            await saveWallet(importedWallet, importedWallet.address);
             // Close the modal
             setShowImportWalletModal(false);
         } catch (err) {
@@ -55,12 +53,11 @@ const OnBoarding = () => {
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'New');
         const newWallet = createCashtabWallet(generateMnemonic());
-        // Set activeWalletAddress in CashtabState (this also persists to storage)
-        // This will trigger initializeWallet() in useWallet
-        await updateCashtabState({
-            wallets: [newWallet],
-            activeWalletAddress: newWallet.address,
-        });
+        try {
+            await saveWallet(newWallet, newWallet.address);
+        } catch (err) {
+            console.error('Error creating wallet from onboarding', err);
+        }
     }
 
     const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -209,6 +209,13 @@ export const storage = {
     },
 
     /**
+     * Read every stored pair in one request.
+     */
+    entries: (): Promise<[string, unknown][]> => {
+        return getStorage().entries();
+    },
+
+    /**
      * Check if storage is available
      */
     isAvailable: (): Promise<boolean> => {

@@ -25,7 +25,10 @@ import {
 } from 'components/App/fixtures/mocks';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { generateMnemonic } from 'wallet';
+import { asWalletStore, readWalletRecords } from 'wallet/storage';
 import { Ecc } from 'ecash-lib';
+
+const storedWalletRecords = () => readWalletRecords(asWalletStore(localforage));
 
 // Mock wallet.generateMnemonic() only for this test file
 // This ensures a consistent mnemonic for the duplicate-seed edge case
@@ -227,7 +230,7 @@ describe('<Wallets />', () => {
         // HD badge is shown next to the new wallet name
         expect(screen.getByText('HD')).toBeInTheDocument();
 
-        const walletsAfterHdAdd = await localforage.getItem('wallets');
+        const walletsAfterHdAdd = await storedWalletRecords();
         const addedHdWallet = walletsAfterHdAdd.find(
             wallet => wallet.name === 'HD Savings',
         );
@@ -288,7 +291,7 @@ describe('<Wallets />', () => {
 
         expect(screen.getByText('HD')).toBeInTheDocument();
 
-        const walletsAfterHdImport = await localforage.getItem('wallets');
+        const walletsAfterHdImport = await storedWalletRecords();
         const importedHdWallet = walletsAfterHdImport.find(
             wallet => wallet.name === 'Imported HD',
         );
@@ -452,7 +455,7 @@ describe('<Wallets />', () => {
         );
 
         // nor is it in localforage
-        const walletsNow = await localforage.getItem('wallets');
+        const walletsNow = await storedWalletRecords();
 
         const activeWalletAddress = await localforage.getItem(
             'activeWalletAddress',
@@ -501,12 +504,16 @@ describe('<Wallets />', () => {
         expect((await screen.findAllByText('Savings'))[1]).toBeInTheDocument();
 
         // It is stored with the user-chosen name
-        const walletsAfterAdd = await localforage.getItem('wallets');
+        const walletsAfterAdd = await storedWalletRecords();
         expect(walletsAfterAdd.some(wallet => wallet.name === 'Savings')).toBe(
             true,
         );
         // Default new wallets are single-address (not HD)
-        expect(walletsAfterAdd[walletsAfterAdd.length - 1].hd).toBeUndefined();
+        const addedWallet = walletsAfterAdd.find(
+            wallet => wallet.name === 'Savings',
+        );
+        expect(addedWallet).toBeDefined();
+        expect(addedWallet.hd).toBeUndefined();
 
         // We can import a wallet by specifying a name and mnemonic
         await user.click(
@@ -586,7 +593,7 @@ describe('<Wallets />', () => {
         ).toBeInTheDocument();
 
         // It is stored with the user-chosen name
-        const walletsAfterImport = await localforage.getItem('wallets');
+        const walletsAfterImport = await storedWalletRecords();
         const importedWallet = walletsAfterImport.find(
             wallet => wallet.name === 'Imported Wallet',
         );
@@ -738,7 +745,7 @@ describe('<Wallets />', () => {
             );
         });
 
-        const walletsAfter = await localforage.getItem('wallets');
+        const walletsAfter = await storedWalletRecords();
         expect(walletsAfter).toHaveLength(validSavedWallets.length);
         expect(walletsAfter.some(w => w.name === 'Transaction Fixtures')).toBe(
             false,

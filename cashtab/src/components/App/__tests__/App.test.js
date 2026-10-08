@@ -28,6 +28,11 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { createCashtabWallet } from 'wallet';
+import {
+    asWalletStore,
+    migrateLegacyWallets,
+    readWalletRecords,
+} from 'wallet/storage';
 import CashtabSettings from 'config/CashtabSettings';
 import { Ecc, toHex } from 'ecash-lib';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
@@ -589,7 +594,7 @@ describe('<App />', () => {
         expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
 
         // The imported wallet is in localforage
-        const wallets = await localforage.getItem('wallets');
+        const wallets = await readWalletRecords(asWalletStore(localforage));
 
         expect(wallets).toEqual([
             { ...walletWithXecAndTokensStored, name: 'qqa...70g' },
@@ -600,7 +605,7 @@ describe('<App />', () => {
         const createdWallet = await createCashtabWallet(VALID_MNEMONIC);
         expect(wallets[0]).toEqual(createdWallet);
     });
-    it('A user with all valid wallets stored at wallets key does not have any wallets migrated', async () => {
+    it('Valid stored wallets keep their fields and leave the legacy wallets array', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             [walletWithXecAndTokensActive, ...validActiveWallets],
             localforage,
@@ -620,13 +625,24 @@ describe('<App />', () => {
             '9,513.12',
         );
 
-        const walletsAfterLoad = await localforage.getItem('wallets');
+        const walletsAfterLoad = await readWalletRecords(
+            asWalletStore(localforage),
+        );
 
-        // Wallets are in place as expected
-        expect(walletsAfterLoad).toEqual([
-            walletWithXecAndTokensStored,
-            ...validSavedWallets,
-        ]);
+        const legacyWallets = await localforage.getItem('wallets');
+        expect(legacyWallets.map(wallet => wallet.address).sort()).toEqual(
+            [walletWithXecAndTokensStored, ...validSavedWallets]
+                .map(wallet => wallet.address)
+                .sort(),
+        );
+        expect(await localforage.getItem('walletsMigrated')).toBe(true);
+
+        const byAddress = (a, b) => a.address.localeCompare(b.address);
+        expect([...walletsAfterLoad].sort(byAddress)).toEqual(
+            [walletWithXecAndTokensStored, ...validSavedWallets].sort(
+                byAddress,
+            ),
+        );
 
         // We have the active wallet address stored at the activeWalletAddress key
         const activeWalletAddress = await localforage.getItem(
@@ -637,12 +653,14 @@ describe('<App />', () => {
         );
     });
     it('We see a price notification if new price is at a new tens level in USD per 1,000,000 XEC, and a special notification if a zero is killed', async () => {
-        jest.useFakeTimers();
-
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
             localforage,
         );
+        // Migrate before fake timers. The price wait loop advances timers and
+        // does not finish a key-by-key IndexedDB migration.
+        await migrateLegacyWallets(asWalletStore(localforage));
+        jest.useFakeTimers();
 
         render(<CashtabTestWrapper ecc={ecc} chronik={mockedChronik} />);
 
@@ -684,12 +702,12 @@ describe('<App />', () => {
         jest.useRealTimers();
     });
     it('We do not see price notifications if new price is at a new tens level in JPY per 1,000,000 XEC, because user fiat currency does not support zero killed notifications for JPY', async () => {
-        jest.useFakeTimers();
-
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokensActive,
             localforage,
         );
+        await migrateLegacyWallets(asWalletStore(localforage));
+        jest.useFakeTimers();
 
         await localforage.setItem('settings', new CashtabSettings('jpy'));
 

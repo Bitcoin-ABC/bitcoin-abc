@@ -35,6 +35,16 @@ import {
     isStoredHdWallet,
 } from 'wallet';
 import {
+    LEGACY_WALLETS_STORAGE_KEY,
+    WALLET_RECORD_PREFIX,
+    deleteWalletRecord,
+    migrateLegacyWallets,
+    persistHdIndexes,
+    readWalletRecords,
+    resolveActiveWalletAddress,
+    saveWalletRecord,
+} from 'wallet/storage';
+import {
     getWalletAddressesForSubscription,
     getWalletHashesForParseTx,
 } from 'wallet/hd';
@@ -81,7 +91,6 @@ export type UpdateCashtabState = (updates: {
         | CashtabContact[]
         | CashtabSettings
         | CashtabCacheJson
-        | StoredCashtabWallet[]
         | Map<string, string>
         | string
         | null;
@@ -128,6 +137,19 @@ export interface UseWalletReturnType {
      * @returns The StoredCashtabWallet if found, null otherwise
      */
     getWalletByAddress: (address: string) => StoredCashtabWallet | null;
+    /**
+     * Persist one wallet record and refresh the in-memory list from storage.
+     * Pass activeAddress to also record which wallet is open.
+     */
+    saveWallet: (
+        wallet: StoredCashtabWallet,
+        activeAddress?: string,
+    ) => Promise<void>;
+    /**
+     * Remove one wallet record. If it was active, open the first remaining
+     * wallet by name.
+     */
+    deleteWallet: (address: string) => Promise<void>;
 }
 
 const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
@@ -209,6 +231,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const isAppActiveRef = useRef<boolean>(true);
     // Store Wallet instance from ecash-wallet (for internal use in hook)
     const ecashWalletRef = useRef<Wallet | null>(null);
+    // Serialize wallet record writes in this tab so a refresh cannot drop
+    // a wallet this tab just saved.
+    const walletWriteQueue = useRef<Promise<void>>(Promise.resolve());
+    const enqueueWalletWrite = <T>(job: () => Promise<T>): Promise<T> => {
+        const run = walletWriteQueue.current.then(job, job);
+        walletWriteQueue.current = run.then(
+            () => undefined,
+            () => undefined,
+        );
+        return run;
+    };
 
     // Update refs whenever state changes
     useEffect(() => {
@@ -671,47 +704,40 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     };
 
     /**
-     * Write HD receive/change indices back to stored wallets when they diverge
-     * from in-memory Wallet state (e.g. after a spend creates change).
-     * Avoids updateCashtabState loading lock — quiet storage write only.
+     * Write HD receive/change indices back to that wallet's record when they
+     * move forward. Does not rewrite the wallet list.
      */
+    const refreshWalletsFromStorage = async () => {
+        const wallets = await readWalletRecords(storage);
+        currentCashtabStateRef.current = {
+            ...currentCashtabStateRef.current,
+            wallets,
+        };
+        setCashtabState(prev => ({ ...prev, wallets }));
+    };
+
     const persistHdWalletIndices = async () => {
         const liveWallet = ecashWalletRef.current;
         if (!liveWallet || !liveWallet.isHD) {
             return;
         }
 
-        const stored = currentCashtabStateRef.current.wallets.find(
-            w => w.address === liveWallet.address,
-        );
-        if (!stored || !isStoredHdWallet(stored)) {
-            return;
+        try {
+            await enqueueWalletWrite(async () => {
+                const updated = await persistHdIndexes(
+                    storage,
+                    liveWallet.address,
+                    liveWallet.receiveIndex,
+                    liveWallet.changeIndex,
+                );
+                if (updated === null) {
+                    return;
+                }
+                await refreshWalletsFromStorage();
+            });
+        } catch (error) {
+            console.error('Failed to persist HD wallet indexes', error);
         }
-
-        if (
-            stored.receiveIndex === liveWallet.receiveIndex &&
-            stored.changeIndex === liveWallet.changeIndex
-        ) {
-            return;
-        }
-
-        const updatedWallets = currentCashtabStateRef.current.wallets.map(w =>
-            w.address === liveWallet.address
-                ? {
-                      ...w,
-                      receiveIndex: liveWallet.receiveIndex,
-                      changeIndex: liveWallet.changeIndex,
-                  }
-                : w,
-        );
-
-        // Update React state + ref without the loading spinner
-        setCashtabState(prev => ({ ...prev, wallets: updatedWallets }));
-        currentCashtabStateRef.current = {
-            ...currentCashtabStateRef.current,
-            wallets: updatedWallets,
-        };
-        await storage.set('wallets', updatedWallets);
     };
 
     /**
@@ -830,6 +856,17 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             | string
             | null;
     }) => {
+        for (const key of Object.keys(updates)) {
+            if (
+                key === LEGACY_WALLETS_STORAGE_KEY ||
+                key.startsWith(WALLET_RECORD_PREFIX)
+            ) {
+                throw new Error(
+                    'Wallet records must be saved with saveWallet or deleteWallet',
+                );
+            }
+        }
+
         // Update all keys in state atomically
         setCashtabState(prevState => ({ ...prevState, ...updates }));
 
@@ -877,9 +914,14 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
     const loadCashtabState = async () => {
         // cashtabState is initialized with defaults when this component loads
 
+        // One bulk read, instead of a key-by-key scan, on startup.
+        const snapshot = new Map(await storage.entries());
+        const stored = <T>(key: string): T | null =>
+            snapshot.has(key) ? (snapshot.get(key) as T) : null;
+
         // contactList
         let contactList: null | CashtabContact[] =
-            await storage.get<CashtabContact[]>('contactList');
+            stored<CashtabContact[]>('contactList');
         if (contactList !== null) {
             // If we find a contactList in storage
             if (!isValidContactList(contactList)) {
@@ -899,7 +941,7 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
 
         // settings
         let settings: null | CashtabSettings =
-            await storage.get<CashtabSettings>('settings');
+            stored<CashtabSettings>('settings');
         if (settings !== null) {
             // If we find settings in storage
             if (!isValidCashtabSettings(settings)) {
@@ -918,8 +960,9 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         }
 
         // cashtabCache
-        let cashtabCache: null | CashtabCacheJson | CashtabCache =
-            await storage.get<CashtabCacheJson | CashtabCache>('cashtabCache');
+        let cashtabCache: null | CashtabCacheJson | CashtabCache = stored<
+            CashtabCacheJson | CashtabCache
+        >('cashtabCache');
 
         if (cashtabCache !== null) {
             // If we find cashtabCache in storage
@@ -940,34 +983,35 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
             cashtabState.cashtabCache = cashtabCache;
         }
 
-        // Load wallets if present
+        // Load wallets if present. Legacy installs store one `wallets` array;
+        // migrate that into one record per address before reading.
 
-        const activeWalletAddress: null | string = await storage.get<string>(
-            'activeWalletAddress',
-        );
-        const wallets: null | StoredCashtabWallet[] =
-            await storage.get<StoredCashtabWallet[]>('wallets');
-
+        const wallets = await migrateLegacyWallets(storage, snapshot);
+        const activeWalletAddress = stored<string>('activeWalletAddress');
         // Load tokens from storage (if exists)
         const storedTokens: null | [string, string][] =
-            await storage.get<[string, string][]>('tokens');
+            stored<[string, string][]>('tokens');
         if (storedTokens !== null) {
             cashtabState.tokens = new Map(storedTokens);
         }
 
-        if (activeWalletAddress !== null && wallets !== null) {
-            // Returning user
-            const storedActiveWallet = wallets.find(
-                wallet => wallet.address === activeWalletAddress,
+        if (wallets.length > 0) {
+            // Returning user. A missing active wallet opens the first by name
+            // instead of leaving the app on the loading screen.
+            const resolvedActive = resolveActiveWalletAddress(
+                wallets,
+                activeWalletAddress,
             );
-            if (!storedActiveWallet) {
-                throw new Error(
-                    'Corrupted storage: Active wallet not found in wallets',
-                );
+            if (resolvedActive !== activeWalletAddress) {
+                try {
+                    await storage.set('activeWalletAddress', resolvedActive);
+                } catch (err) {
+                    console.error('Failed to persist active wallet', err);
+                }
             }
             cashtabState.wallets = wallets;
-            cashtabState.activeWalletAddress = activeWalletAddress;
-        } else if (wallets === null && activeWalletAddress === null) {
+            cashtabState.activeWalletAddress = resolvedActive;
+        } else if (activeWalletAddress === null) {
             // New user
             console.info(
                 `No wallets found in storage, initializing for new user`,
@@ -1521,6 +1565,76 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         );
     };
 
+    const saveWallet = async (
+        wallet: StoredCashtabWallet,
+        activeAddress?: string,
+    ): Promise<void> => {
+        setLoading(true);
+        try {
+            await enqueueWalletWrite(async () => {
+                await saveWalletRecord(storage, wallet);
+                if (typeof activeAddress === 'string') {
+                    await storage.set('activeWalletAddress', activeAddress);
+                }
+                const wallets = await readWalletRecords(storage);
+                const nextActive =
+                    typeof activeAddress === 'string'
+                        ? activeAddress
+                        : currentCashtabStateRef.current.activeWalletAddress;
+                currentCashtabStateRef.current = {
+                    ...currentCashtabStateRef.current,
+                    wallets,
+                    activeWalletAddress: nextActive,
+                };
+                setCashtabState(prev => ({
+                    ...prev,
+                    wallets,
+                    activeWalletAddress: nextActive,
+                }));
+            });
+        } catch (error) {
+            console.error('Failed to save wallet', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deleteWallet = async (address: string): Promise<void> => {
+        setLoading(true);
+        try {
+            await enqueueWalletWrite(async () => {
+                await deleteWalletRecord(storage, address);
+                const wallets = await readWalletRecords(storage);
+                const active = resolveActiveWalletAddress(
+                    wallets,
+                    currentCashtabStateRef.current.activeWalletAddress,
+                );
+                if (
+                    active !==
+                    currentCashtabStateRef.current.activeWalletAddress
+                ) {
+                    await storage.set('activeWalletAddress', active);
+                }
+                currentCashtabStateRef.current = {
+                    ...currentCashtabStateRef.current,
+                    wallets,
+                    activeWalletAddress: active,
+                };
+                setCashtabState(prev => ({
+                    ...prev,
+                    wallets,
+                    activeWalletAddress: active,
+                }));
+            });
+        } catch (error) {
+            console.error('Failed to delete wallet', error);
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return {
         chronik,
         agora,
@@ -1546,6 +1660,8 @@ const useWallet = (chronik: ChronikClient, agora: Agora, ecc: Ecc) => {
         setCashtabState,
         ecashWallet,
         getWalletByAddress,
+        saveWallet,
+        deleteWallet,
     } as UseWalletReturnType;
 };
 

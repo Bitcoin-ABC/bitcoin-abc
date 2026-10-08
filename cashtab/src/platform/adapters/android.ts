@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { CashtabStorage } from '../types';
+import { LEGACY_WALLETS_STORAGE_KEY, isWalletRecordKey } from 'config/storage';
 
 /**
  * android storage adaptor for Cashtab
@@ -11,13 +12,12 @@ import { CashtabStorage } from '../types';
  * based for web use (indexedDb for web and chrome.storage for extension)
  *
  * How it works
- * 1. We use android sqlite to store all data except the "wallets" key. This data can be of
+ * 1. We use android sqlite to store all data except wallet secrets. This data can be of
  *    arbitrary size, as it contains things like tx history and cached token information.
- * 2. We use hardware-encrypted android secure storage to store only the "wallets" key,
- *    which contains wallet mnemonics, private keys, and wif.
- *
- * This is a simplified approach that stores the entire "wallets" key in secure storage
- * and everything else in SQLite, without any data splitting or reconstruction.
+ * 2. We use hardware-encrypted android secure storage for wallet secrets.
+ *    The legacy `wallets` array is one secure item. After migration each wallet
+ *    is its own secure item at `wallet/<address>`. keys() asks secure storage
+ *    for those names. Mnemonics stay out of SQLite.
  */
 
 /**
@@ -197,19 +197,48 @@ export class AndroidStorageAdapter implements CashtabStorage {
     }
 
     /**
-     * Generate a secure storage key for wallet data
+     * Secure-storage key for a wallet secret.
+     * Legacy array: cashtab_secure_wallets
+     * One wallet: cashtab_secure_wallet/<address>
      */
-    private getSecureKey(): string {
-        return `${this.secureStoragePrefix}wallets`;
+    private secureStorageKey(key: string): string {
+        return `${this.secureStoragePrefix}${key}`;
+    }
+
+    private storesWalletSecret(key: string): boolean {
+        return key === LEGACY_WALLETS_STORAGE_KEY || isWalletRecordKey(key);
+    }
+
+    /**
+     * Read a wallet secret. Throws when secure storage fails.
+     * A missing value is null. Callers that already indexed the address
+     * must not treat that null as "no wallet".
+     */
+    private async readWalletSecret<T>(key: string): Promise<T | null> {
+        try {
+            const result = await this.secureStorage.internalGetItem({
+                prefixedKey: this.secureStorageKey(key),
+                sync: false,
+            });
+            if (result.data) {
+                return JSON.parse(result.data) as T;
+            }
+            return null;
+        } catch (error) {
+            console.error(
+                'Secure storage read failed for wallet secret:',
+                error,
+            );
+            throw error;
+        }
     }
 
     async setItem<T>(key: string, value: T): Promise<void> {
         await this.ensureInitialized();
 
-        if (key === 'wallets') {
-            // Store entire wallets data in secure storage
+        if (this.storesWalletSecret(key)) {
             const serializedValue = JSON.stringify(value);
-            const secureKey = this.getSecureKey();
+            const secureKey = this.secureStorageKey(key);
 
             try {
                 await this.secureStorage.internalSetItem({
@@ -225,35 +254,40 @@ export class AndroidStorageAdapter implements CashtabStorage {
                 );
                 throw error;
             }
-        } else {
-            // Store all other data in SQLite
-            const serializedValue =
-                typeof value === 'string' ? value : JSON.stringify(value);
-            try {
-                await this.runQuery(
-                    `INSERT OR REPLACE INTO ${this.tableName} (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)`,
-                    [key, serializedValue],
-                );
-            } catch (error) {
-                console.error('SQLite setItem error:', error);
-                throw new Error(
-                    `Failed to store item: ${
-                        error instanceof Error ? error.message : 'Unknown error'
-                    }`,
-                );
-            }
+
+            return;
+        }
+
+        // Store all other data in SQLite
+        const serializedValue =
+            typeof value === 'string' ? value : JSON.stringify(value);
+        try {
+            await this.runQuery(
+                `INSERT OR REPLACE INTO ${this.tableName} (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)`,
+                [key, serializedValue],
+            );
+        } catch (error) {
+            console.error('SQLite setItem error:', error);
+            throw new Error(
+                `Failed to store item: ${
+                    error instanceof Error ? error.message : 'Unknown error'
+                }`,
+            );
         }
     }
 
     async getItem<T>(key: string): Promise<T | null> {
         await this.ensureInitialized();
 
-        if (key === 'wallets') {
-            // Get wallets data from secure storage
+        if (isWalletRecordKey(key)) {
+            // A failed read must not look like a missing wallet.
+            return this.readWalletSecret<T>(key);
+        }
+
+        if (key === LEGACY_WALLETS_STORAGE_KEY) {
             try {
-                const secureKey = this.getSecureKey();
                 const result = await this.secureStorage.internalGetItem({
-                    prefixedKey: secureKey,
+                    prefixedKey: this.secureStorageKey(key),
                     sync: false,
                 });
 
@@ -268,56 +302,57 @@ export class AndroidStorageAdapter implements CashtabStorage {
                 );
                 return null;
             }
-        } else {
-            // Get all other data from SQLite
-            if (!this.db) {
-                console.error(
-                    `SQLite not available, returning null for key: ${key}`,
-                );
-                return null;
-            }
+        }
 
-            try {
-                const result = await this.queryData(
-                    `SELECT value FROM ${this.tableName} WHERE key = ?`,
-                    [key],
-                );
-                if (result.values && result.values.length > 0) {
-                    const value = result.values[0].value;
-                    try {
-                        return JSON.parse(value) as T;
-                    } catch {
-                        return value as T;
-                    }
+        // Get all other data from SQLite
+        if (!this.db) {
+            console.error(
+                `SQLite not available, returning null for key: ${key}`,
+            );
+            return null;
+        }
+
+        try {
+            const result = await this.queryData(
+                `SELECT value FROM ${this.tableName} WHERE key = ?`,
+                [key],
+            );
+            if (result.values && result.values.length > 0) {
+                const value = result.values[0].value;
+                try {
+                    return JSON.parse(value) as T;
+                } catch {
+                    return value as T;
                 }
-                return null;
-            } catch (error) {
-                console.error('SQLite getItem error:', error);
-                return null;
             }
+            return null;
+        } catch (error) {
+            console.error('SQLite getItem error:', error);
+            return null;
         }
     }
 
     async removeItem(key: string): Promise<void> {
         await this.ensureInitialized();
 
-        if (key === 'wallets') {
-            // Remove wallets data from secure storage
-            const secureKey = this.getSecureKey();
+        if (this.storesWalletSecret(key)) {
             try {
                 await this.secureStorage.internalRemoveItem({
-                    prefixedKey: secureKey,
+                    prefixedKey: this.secureStorageKey(key),
                     sync: false,
                 });
             } catch (error) {
-                console.warn(`Failed to remove secure data for wallets`, error);
+                console.warn(`Failed to remove secure data for ${key}`, error);
+                if (isWalletRecordKey(key)) {
+                    throw error;
+                }
             }
-        } else {
-            // Remove from SQLite
-            await this.runQuery(`DELETE FROM ${this.tableName} WHERE key = ?`, [
-                key,
-            ]);
+            return;
         }
+
+        await this.runQuery(`DELETE FROM ${this.tableName} WHERE key = ?`, [
+            key,
+        ]);
     }
 
     /**
@@ -327,11 +362,19 @@ export class AndroidStorageAdapter implements CashtabStorage {
     async clear(): Promise<void> {
         await this.ensureInitialized();
 
-        // Clear wallets from secure storage
-        const secureKey = this.getSecureKey();
         try {
+            const storedKeys = await this.keys();
+            for (const key of storedKeys) {
+                if (!isWalletRecordKey(key)) {
+                    continue;
+                }
+                await this.secureStorage.internalRemoveItem({
+                    prefixedKey: this.secureStorageKey(key),
+                    sync: false,
+                });
+            }
             await this.secureStorage.internalRemoveItem({
-                prefixedKey: secureKey,
+                prefixedKey: this.secureStorageKey(LEGACY_WALLETS_STORAGE_KEY),
                 sync: false,
             });
         } catch (error) {
@@ -343,15 +386,64 @@ export class AndroidStorageAdapter implements CashtabStorage {
     }
 
     /**
-     * NB we do not use this method in Cashtab, but we do use it in testing
-     * and it is part of the CashtabStorage interface.
+     * Bulk read for boot.
+     * An indexed wallet secret that is missing or unreadable throws.
+     * Boot must not treat that as an empty wallet list.
      */
+    async entries(): Promise<[string, unknown][]> {
+        const pairs: [string, unknown][] = [];
+        for (const key of await this.keys()) {
+            if (isWalletRecordKey(key)) {
+                const secret = await this.readWalletSecret(key);
+                if (secret === null) {
+                    throw new Error(`Missing wallet secret for ${key}`);
+                }
+                pairs.push([key, secret]);
+                continue;
+            }
+            pairs.push([key, await this.getItem(key)]);
+        }
+        // Read the legacy blob when the key listing did not include it.
+        if (!pairs.some(([key]) => key === LEGACY_WALLETS_STORAGE_KEY)) {
+            const legacy = await this.readWalletSecret(
+                LEGACY_WALLETS_STORAGE_KEY,
+            );
+            if (legacy !== null) {
+                pairs.push([LEGACY_WALLETS_STORAGE_KEY, legacy]);
+            }
+        }
+        return pairs;
+    }
+
+    /**
+     * Secure-storage key names, with the cashtab prefix removed.
+     * The plugin lists Android keystore aliases. Wallet records are not
+     * copied into SQLite.
+     */
+    private async secureStorageKeys(): Promise<string[]> {
+        const result = await this.secureStorage.getPrefixedKeys({
+            prefix: this.secureStoragePrefix,
+        });
+        const aliases: string[] = result?.keys ?? [];
+        return aliases.map(alias =>
+            alias.startsWith(this.secureStoragePrefix)
+                ? alias.slice(this.secureStoragePrefix.length)
+                : alias,
+        );
+    }
+
     async keys(): Promise<string[]> {
         await this.ensureInitialized();
         const result = await this.queryData(
             `SELECT key FROM ${this.tableName}`,
         );
-        return result.values ? result.values.map((row: any) => row.key) : [];
+        const sqliteKeys: string[] = result.values
+            ? result.values
+                  .map((row: { key: string }) => row.key)
+                  .filter(key => !isWalletRecordKey(key))
+            : [];
+        const secureKeys = await this.secureStorageKeys();
+        return [...new Set([...sqliteKeys, ...secureKeys])];
     }
 
     async isAvailable(): Promise<boolean> {

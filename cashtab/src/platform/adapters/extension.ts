@@ -5,6 +5,11 @@
 import { CashtabStorage } from '../types';
 import { migrateFromLocalforageIfNeeded } from './extensionMigration';
 import { getChromeAPI, isChromeExtensionContext } from '../types/chrome';
+import {
+    LEGACY_WALLETS_STORAGE_KEY,
+    WALLETS_MIGRATED_STORAGE_KEY,
+    isWalletRecordKey,
+} from 'config/storage';
 
 /**
  * Extension storage adapter using chrome.storage.local
@@ -48,7 +53,17 @@ export class ExtensionStorageAdapter implements CashtabStorage {
             // data or this is an existing user on an extension version before 4.32.0 where
             // data was stored in localforage
             if (value === undefined || value === null) {
-                if (key === 'wallets') {
+                if (key === LEGACY_WALLETS_STORAGE_KEY) {
+                    const marker = await chrome.storage.local.get([
+                        WALLETS_MIGRATED_STORAGE_KEY,
+                    ]);
+                    if (marker[WALLETS_MIGRATED_STORAGE_KEY] === true) {
+                        return null;
+                    }
+                    const allKeys = await chrome.storage.local.get(null);
+                    if (Object.keys(allKeys).some(isWalletRecordKey)) {
+                        return null;
+                    }
                     // It's only the wallets key check on startup where we would want to migrate
                     console.info(
                         'No Cashtab wallet data found in extension storage, checking localforage for migration',
@@ -112,6 +127,39 @@ export class ExtensionStorageAdapter implements CashtabStorage {
                     error instanceof Error ? error.message : 'Unknown error'
                 }`,
             );
+        }
+    }
+
+    async entries(): Promise<[string, unknown][]> {
+        if (!(await this.isAvailable())) {
+            return [];
+        }
+
+        try {
+            const chrome = getChromeAPI();
+            let result = await chrome.storage.local.get(null);
+            const keys = Object.keys(result);
+            const hasLegacy = result[LEGACY_WALLETS_STORAGE_KEY] != null;
+            const migrated = result[WALLETS_MIGRATED_STORAGE_KEY] === true;
+            if (
+                !hasLegacy &&
+                !migrated &&
+                !keys.some(key => isWalletRecordKey(key))
+            ) {
+                const migrationResult = await migrateFromLocalforageIfNeeded();
+                if (
+                    migrationResult.success &&
+                    migrationResult.migratedKeys.includes(
+                        LEGACY_WALLETS_STORAGE_KEY,
+                    )
+                ) {
+                    result = await chrome.storage.local.get(null);
+                }
+            }
+            return Object.entries(result);
+        } catch (error) {
+            console.error('Failed to read extension storage entries:', error);
+            throw error;
         }
     }
 
