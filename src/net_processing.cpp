@@ -6709,6 +6709,9 @@ void PeerManagerImpl::ProcessMessage(
                     }
                 }
 
+                max_elements = std::min(
+                    max_elements, uint32_t(m_avalanche->getMaxElementPoll()));
+
                 // Don't check the return value. If it fails we probably don't
                 // know about the proof yet.
                 m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {

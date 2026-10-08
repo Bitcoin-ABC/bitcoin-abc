@@ -276,6 +276,30 @@ class AvalancheMaxElementsTest(BitcoinTestFramework):
             0,
             extra_args=self.extra_args[0] + [f"-avamaxelementpoll={2**32 - 1}"],
         )
+        self.stop_node(0)
+
+        # Peers announcing more than our local max_elements are clamped to it
+        self.start_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [f"-avamaxelementpoll={MAX_ELEMENTS_POLL_LIMITED}"],
+        )
+
+        quorum = [get_ava_p2p_interface(self, node) for _ in range(QUORUM_NODE_COUNT)]
+        assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        for peer in quorum:
+            self.wait_until(lambda: has_finalized_proof(peer.proof.proofid))
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_tip(tip))
+
+        blocks = self.generate(node, MAX_ELEMENTS_POLL_LIMITED * 2)
+
+        all_hashes_present = [False] * len(quorum)
+        self.wait_until(
+            lambda: check_polled_blocks(quorum, blocks[-MAX_ELEMENTS_POLL_LIMITED:]),
+        )
 
 
 if __name__ == "__main__":
