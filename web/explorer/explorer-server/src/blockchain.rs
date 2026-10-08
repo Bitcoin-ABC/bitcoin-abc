@@ -37,18 +37,23 @@ pub fn destination_from_script<'a>(
     const OP_CHECKSIG: u8 = 172;
 
     match script {
-        [OP_DUP, OP_HASH160, 20, hash @ .., OP_EQUALVERIFY, OP_CHECKSIG] => {
+        // `20` is OP_PUSHBYTES_20; `hash @ ..` is still variable-length.
+        [OP_DUP, OP_HASH160, 20, hash @ .., OP_EQUALVERIFY, OP_CHECKSIG]
+            if hash.len() == ShaRmd160::SIZE =>
+        {
             Destination::Address(CashAddress::from_hash(
                 prefix,
                 AddressType::P2PKH,
-                ShaRmd160::from_le_slice(hash).expect("Invalid hash"),
+                ShaRmd160::from_le_slice(hash).unwrap(),
             ))
         }
-        [OP_HASH160, 20, hash @ .., OP_EQUAL] => {
+        [OP_HASH160, 20, hash @ .., OP_EQUAL]
+            if hash.len() == ShaRmd160::SIZE =>
+        {
             Destination::Address(CashAddress::from_hash(
                 prefix,
                 AddressType::P2SH,
-                ShaRmd160::from_le_slice(hash).expect("Invalid hash"),
+                ShaRmd160::from_le_slice(hash).unwrap(),
             ))
         }
         [33, pk @ .., OP_CHECKSIG] => Destination::P2PK(pk.to_vec()),
