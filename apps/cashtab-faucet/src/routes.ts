@@ -51,6 +51,7 @@ export const startExpressServer = (
     chronik: ChronikClient,
     limiter: RateLimitRequestHandler,
     tokenLimiter: RateLimitRequestHandler,
+    eligibilityLimiter: RateLimitRequestHandler,
     recaptchaV2Secret: string,
     recaptchaV3Secret: string,
     recaptchaV3MinScore: number,
@@ -87,6 +88,7 @@ export const startExpressServer = (
 
     app.get(
         '/is-eligible/:address',
+        eligibilityLimiter,
         async function (req: Request, res: Response) {
             // Get the requested address
             const address = req.params.address;

@@ -69,6 +69,7 @@ const server = startExpressServer(
     chronik,
     rateLimit(config.limiter),
     rateLimit(config.tokenLimiter),
+    rateLimit(config.eligibilityLimiter),
     process.env.RECAPTCHA_SK || '',
     process.env.RECAPTCHA_V3_SK || '',
     recaptchaV3MinScore,

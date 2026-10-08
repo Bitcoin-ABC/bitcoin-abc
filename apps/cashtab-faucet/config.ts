@@ -22,6 +22,7 @@ interface CashtabFaucetConfig {
     xecAirdropAmountSats: bigint;
     limiter: CashtabFaucetRateLimits;
     tokenLimiter: CashtabFaucetRateLimits;
+    eligibilityLimiter: CashtabFaucetRateLimits;
     recaptchaUrl: string;
     recaptchaEnterpriseUrl: string;
 }
@@ -74,6 +75,24 @@ const config: CashtabFaucetConfig = {
             return res.status(429).json({
                 error: 'Too many requests',
                 msg: 'To earn more eCash, set up a staking node, or submit a diff to reviews.bitcoinabc.org.',
+            });
+        },
+    },
+    // Rate limits for eligibility checks (read-only, but Chronik history walks are expensive)
+    eligibilityLimiter: {
+        windowMs: 60 * 1000, // 1 minute
+        limit: 1, // requests per IP per `window`
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        handler: (req: Request, res: Response) => {
+            // Log a rate limited request
+            const ip =
+                req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+            console.log(`${req.url} from ip="${ip}" blocked by rate limit`);
+            return res.status(429).json({
+                error: 'Too many requests',
+                msg: 'Please try again later.',
             });
         },
     },

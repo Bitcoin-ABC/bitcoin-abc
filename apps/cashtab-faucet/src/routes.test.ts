@@ -168,6 +168,7 @@ describe('routes.js', function () {
             mockedChronikClient as unknown as ChronikClient,
             getTestRateLimiter(),
             getTestRateLimiter(),
+            getTestRateLimiter(),
             'goodrecaptcha',
             'goodrecaptcha-v3',
             0.9,
