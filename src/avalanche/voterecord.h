@@ -6,6 +6,7 @@
 #define BITCOIN_AVALANCHE_VOTERECORD_H
 
 #include <nodeid.h>
+#include <random.h>
 
 #include <array>
 #include <atomic>
@@ -50,26 +51,30 @@ struct VoteRecord {
 private:
     // confidence's LSB bit is the result. Higher bits are actual confidence
     // score.
-    uint16_t confidence = 0;
+    uint16_t confidence{0};
 
     // Historical record of votes.
-    uint8_t votes = 0;
+    uint8_t votes{0};
     // Each bit indicate if the vote is to be considered.
-    uint8_t consider = 0;
+    uint8_t consider{0};
     // How many in flight requests exists for this element.
     mutable std::atomic<uint8_t> inflight{0};
 
     // Seed for pseudorandom operations.
-    const uint32_t seed = 0;
+    const uint32_t seed;
 
     // Track how many successful votes occured.
-    uint32_t successfulVotes = 0;
+    uint32_t successfulVotes{0};
 
     // Track the nodes which are part of the quorum.
     std::array<uint16_t, 8> nodeFilter{{0, 0, 0, 0, 0, 0, 0, 0}};
 
 public:
-    explicit VoteRecord(bool accepted) : confidence(accepted) {}
+    explicit VoteRecord(bool accepted)
+        : VoteRecord(accepted, FastRandomContext().rand<uint32_t>()) {}
+
+    VoteRecord(bool accepted, uint32_t seedIn)
+        : confidence(accepted), seed(seedIn) {}
 
     /**
      * Copy semantic
@@ -77,8 +82,8 @@ public:
     VoteRecord(const VoteRecord &other)
         : confidence(other.confidence), votes(other.votes),
           consider(other.consider), inflight(other.inflight.load()),
-          successfulVotes(other.successfulVotes), nodeFilter(other.nodeFilter) {
-    }
+          seed(other.seed), successfulVotes(other.successfulVotes),
+          nodeFilter(other.nodeFilter) {}
 
     /**
      * Vote accounting facilities.

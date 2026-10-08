@@ -35,7 +35,8 @@ BOOST_FIXTURE_TEST_SUITE(voterecord_tests, VoteRecordFixture)
     BOOST_CHECK_EQUAL(vr.getConfidence(), confidence);
 
 BOOST_AUTO_TEST_CASE(vote_record) {
-    VoteRecord vraccepted(true);
+    // Use a fixed seed so the 8-node cycling fixture has distinct hashes.
+    VoteRecord vraccepted(true, /*seedIn=*/0);
 
     // Check initial state.
     BOOST_CHECK_EQUAL(vraccepted.isAccepted(), true);
@@ -43,7 +44,7 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     BOOST_CHECK_EQUAL(vraccepted.isStale(), false);
     BOOST_CHECK_EQUAL(vraccepted.getConfidence(), 0);
 
-    VoteRecord vr(false);
+    VoteRecord vr(false, /*seedIn=*/0);
 
     // Check initial state.
     BOOST_CHECK_EQUAL(vr.isAccepted(), false);
@@ -115,7 +116,7 @@ BOOST_AUTO_TEST_CASE(vote_record) {
                             AVALANCHE_FINALIZATION_SCORE);
 
     // Check that inflight accounting work as expected.
-    VoteRecord vrinflight(false);
+    VoteRecord vrinflight(false, /*seedIn=*/0);
     for (int i = 0; i < 2 * AVALANCHE_MAX_INFLIGHT_POLL; i++) {
         bool shouldPoll = vrinflight.shouldPoll();
         BOOST_CHECK_EQUAL(shouldPoll, i < AVALANCHE_MAX_INFLIGHT_POLL);
@@ -138,7 +139,7 @@ BOOST_AUTO_TEST_CASE(vote_record) {
     }
 
     // Check for inflight underflow
-    VoteRecord vrunderflow(false);
+    VoteRecord vrunderflow(false, /*seedIn=*/0);
     BOOST_CHECK(vrunderflow.shouldPoll());
     vrunderflow.clearInflightRequest(AVALANCHE_MAX_INFLIGHT_POLL + 1);
     // If an underflow occurred, the inflight count would be >
@@ -149,7 +150,7 @@ BOOST_AUTO_TEST_CASE(vote_record) {
 // Test some cases where confidence never advances
 BOOST_AUTO_TEST_CASE(stale_vote_always_inconclusive) {
     // Setup a record that is inconclusive so far
-    VoteRecord vr(false);
+    VoteRecord vr(false, /*seedIn=*/0);
 
     for (uint32_t i = 0; i < AVALANCHE_VOTE_STALE_THRESHOLD / 8; i++) {
         // Vote randomly, but such that there's always enough neutral votes to
@@ -171,7 +172,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_at_all_confidence_levels) {
     for (uint32_t vote = 0; vote <= 1; vote++) {
         for (uint32_t confidence = 0; confidence < AVALANCHE_FINALIZATION_SCORE;
              confidence++) {
-            VoteRecord vr(!vote);
+            VoteRecord vr(!vote, /*seedIn=*/0);
 
             // Prepare to increase confidence with some votes
             for (auto i = 0; i < 5; i++) {
@@ -211,7 +212,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_at_all_confidence_levels) {
 
 // Test some cases where confidence may flip flop and then goes stale.
 BOOST_AUTO_TEST_CASE(stale_vote_random_then_inconclusive) {
-    VoteRecord vr(false);
+    VoteRecord vr(false, /*seedIn=*/0);
 
     for (uint32_t i = 0; i < AVALANCHE_FINALIZATION_SCORE - 14; i++) {
         // Vote randomly. Confidence changes are ok.
@@ -249,7 +250,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_with_confidence_flips) {
         // Test stalling at all confidence levels
         for (auto offset = 0; offset < AVALANCHE_FINALIZATION_SCORE; offset++) {
             uint32_t vote = voteInit;
-            VoteRecord vr(!vote);
+            VoteRecord vr(!vote, /*seedIn=*/0);
             uint32_t count = 0;
 
             // Offset with neutral votes
@@ -319,7 +320,7 @@ BOOST_AUTO_TEST_CASE(stale_vote_with_confidence_flips) {
 }
 
 BOOST_AUTO_TEST_CASE(duplicate_votes) {
-    VoteRecord vr(true);
+    VoteRecord vr(true, /*seedIn=*/0);
 
     // Register some votes, expecting confidence to increase
     for (auto i = 0; i < 7; i++) {
