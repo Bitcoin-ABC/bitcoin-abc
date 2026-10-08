@@ -106,3 +106,7 @@ function convertBitcoincashToEcash(bitcoincashAddress) {
 - Reject non-hex and odd-length hash strings in `encodeCashAddress` (no silent all-zero hashes)
 - `isValidCashAddress` only accepts 20-byte hash160 destinations (node / chronik parity)
 - `getOutputScriptFromAddress`, `getOutputScriptFromTypeAndHash`, and `getTypeAndHashFromOutputScript` require a 20-byte hex hash160
+
+    2.0.3
+
+- Remove `bchtest` and `bchreg` from `VALID_PREFIXES` (no longer used for prefixless decoding)

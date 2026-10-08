@@ -189,8 +189,6 @@ export const VALID_PREFIXES = [
     'etoken',
     'ectest',
     'ecregtest',
-    'bchtest',
-    'bchreg',
 ];
 
 /**
