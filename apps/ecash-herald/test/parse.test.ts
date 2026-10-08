@@ -505,6 +505,15 @@ describe('parse.js functions', function () {
             assert.strictEqual(parseSlpTwo(push.slice(8)), msg);
         }
     });
+    it('parseSlpTwo escapes HTML in the section type', function () {
+        const section = '<a href="https://evil.example">';
+        const sectionHex = Buffer.from(section, 'utf8').toString('hex');
+        const lenHex = section.length.toString(16).padStart(2, '0');
+        // token type 00 + varchar length + hostile section type
+        const msg = parseSlpTwo(`00${lenHex}${sectionHex}`);
+        assert.strictEqual(msg, '&lt;a href="https://evil.example"&gt;');
+        assert.ok(!msg.includes('<a href='));
+    });
     it('parseOpReturn recognizes legacy Cash Fusion prefix', function () {
         assert.deepEqual(
             parseOpReturn(
@@ -973,6 +982,43 @@ describe('parse.js functions', function () {
                     '<b>1</b> withdrawal, 456M XEC',
             ],
         );
+    });
+    it('summarizeTxHistory escapes HTML in token names and tickers', function () {
+        const mockUtcNewDayTimestampSeconds = 1728950400;
+        const tiberiumId =
+            '116e5bd33747cd23377fa220e7dc4812b6996d0cfe4776fc9c0cf8bf4cce933f';
+        const hostileTokenInfoMap = new Map(tokenInfoMap);
+        const existing = hostileTokenInfoMap.get(tiberiumId)!;
+        hostileTokenInfoMap.set(tiberiumId, {
+            ...existing,
+            tokenName: '</a><a href="https://evil.example">phish',
+            tokenTicker: '<b>TB</b>',
+        });
+        const text = summarizeTxHistory(
+            mockUtcNewDayTimestampSeconds,
+            dailyTxs,
+            hostileTokenInfoMap,
+            10,
+            10,
+            {
+                source: CryptoTicker.XEC,
+                quote: Fiat.USD,
+                currentPrice: 0.00003487,
+                marketCap: 689047177.8128564,
+                volume: 5957332.9687223025,
+                priceChangePercent: -0.003973642442197056,
+                priceChangeValue: -0.000000013856,
+            },
+            block.activeStakers,
+        ).join('\n');
+        assert.ok(
+            text.includes(
+                '&lt;/a&gt;&lt;a href="https://evil.example"&gt;phish',
+            ),
+        );
+        assert.ok(text.includes('(&lt;b&gt;TB&lt;/b&gt;)'));
+        assert.ok(!text.includes('<b>TB</b>'));
+        assert.ok(!text.includes('</a><a href="https://evil.example">'));
     });
     it('summarizeTxHistory ignores unconfirmed txs', function () {
         const mockUtcNewDayTimestampSeconds = 1728950400;

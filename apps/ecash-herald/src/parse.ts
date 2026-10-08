@@ -406,7 +406,8 @@ export const parseSlpTwo = (slpTwoPush: string): string => {
         consume(stack, sectionBytes),
         'hex',
     ).toString('utf8');
-    msg += sectionType;
+    // Attacker-controlled OP_RETURN bytes; escape before Telegram HTML.
+    msg += prepareStringForTelegramHTML(sectionType);
 
     // Parsing differs depending on section type
     // Note that SEND and MINT have same parsing
@@ -4110,12 +4111,14 @@ export const summarizeTxHistory = (
                 }/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
-                        : genesisInfo.tokenName
+                        : prepareStringForTelegramHTML(genesisInfo.tokenName)
                 }</a>${
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                          ? ` (${genesisInfo.tokenTicker})`
+                          ? ` (${prepareStringForTelegramHTML(
+                                genesisInfo.tokenTicker,
+                            )})`
                           : ''
                 }: ${
                     typeof buy !== 'undefined'
@@ -4211,12 +4214,14 @@ export const summarizeTxHistory = (
                 `<a href="${config.tokenLandingBase}/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
-                        : genesisInfo.tokenName
+                        : prepareStringForTelegramHTML(genesisInfo.tokenName)
                 }</a>${
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                          ? ` (${genesisInfo.tokenTicker})`
+                          ? ` (${prepareStringForTelegramHTML(
+                                genesisInfo.tokenTicker,
+                            )})`
                           : ''
                 }: ${
                     typeof buy !== 'undefined'
@@ -4305,12 +4310,14 @@ export const summarizeTxHistory = (
                 }/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
-                        : genesisInfo.tokenName
+                        : prepareStringForTelegramHTML(genesisInfo.tokenName)
                 }</a>${
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                          ? ` (${genesisInfo.tokenTicker})`
+                          ? ` (${prepareStringForTelegramHTML(
+                                genesisInfo.tokenTicker,
+                            )})`
                           : ''
                 }: ${
                     typeof genesis !== 'undefined'
@@ -4403,12 +4410,14 @@ export const summarizeTxHistory = (
                 `<a href="${config.tokenLandingBase}/${tokenId}">${
                     typeof genesisInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
-                        : genesisInfo.tokenName
+                        : prepareStringForTelegramHTML(genesisInfo.tokenName)
                 }</a>${
                     typeof genesisInfo === 'undefined'
                         ? ''
                         : genesisInfo.tokenTicker !== ''
-                          ? ` (${genesisInfo.tokenTicker})`
+                          ? ` (${prepareStringForTelegramHTML(
+                                genesisInfo.tokenTicker,
+                            )})`
                           : ''
                 }: ${
                     typeof genesis !== 'undefined'
