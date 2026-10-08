@@ -24,6 +24,19 @@ const { validate, ValidationError } = validation;
 const CHECKSUM_SIZE = 8;
 
 /**
+ * Hash160 size in bytes. Only size supported by the node and chronik for
+ * spendable p2pkh / p2sh destinations (cashaddr format allows larger hashes).
+ * @private
+ */
+const HASH160_SIZE = 20;
+
+/**
+ * Hex charset for hash strings (case-insensitive).
+ * @private
+ */
+const HEX_REGEX = /^[0-9a-fA-F]+$/;
+
+/**
  * Encodes a hash from a given type into an eCash address with the given prefix.
  *
  * @param prefix Cash address prefix. E.g.: 'ecash'.
@@ -144,6 +157,11 @@ export function decodeCashAddress(address: string): DecodedAddress {
     // Version-byte-only payloads are fine here; getHashSize catches those.
     validate(payloadData.length > 0, 'Invalid payload: ' + address + '.');
     const versionByte = payloadData[0];
+    // First bit is reserved (mirrors bitcoin-abc DecodeCashAddrContent).
+    validate(
+        (versionByte & 0x80) === 0,
+        'Invalid version byte: ' + address + '.',
+    );
     const hash = payloadData.subarray(1);
     validate(
         getHashSize(versionByte) === hash.length * 8,
@@ -422,9 +440,17 @@ function hasSingleCase(string: string): boolean {
  * Returns a uint8array for a given string input
  *
  * @private
- * @param string Input string.
+ * @param string Input hex string.
  */
 function stringToUint8Array(string: string): Uint8Array {
+    validate(
+        string.length % 2 === 0,
+        'Invalid hash: ' + string + '. Must be an even-length hex string.',
+    );
+    validate(
+        HEX_REGEX.test(string),
+        'Invalid hash: ' + string + '. Must be a valid hex string.',
+    );
     const array = new Uint8Array(string.length / 2);
     for (let i = 0; i < string.length; i += 2) {
         // Convert each pair of characters to an integer
@@ -504,11 +530,10 @@ export function getTypeAndHashFromOutputScript(
         throw new ValidationError('Unsupported outputScript: ' + outputScript);
     }
 
-    // Throw validation error if hash is of invalid size
-    // Per spec, valid hash sizes in bytes
-    const VALID_SIZES = [20, 24, 28, 32, 40, 48, 56, 64];
-
-    if (!VALID_SIZES.includes(hash.length / 2)) {
+    // Standard p2pkh / p2sh scripts push a 20-byte hash (OP_PUSH 0x14).
+    // Larger cashaddr hash sizes are not valid payment script templates at the
+    // moment.
+    if (hash.length !== HASH160_SIZE * 2 || !HEX_REGEX.test(hash)) {
         throw new ValidationError(
             'Invalid hash size in outputScript: ' + outputScript,
         );
@@ -523,6 +548,16 @@ export const getOutputScriptFromTypeAndHash = (
     validate(
         type === 'p2pkh' || type === 'p2sh',
         'Invalid type: ' + type + '.',
+    );
+    validate(
+        typeof hash === 'string' &&
+            hash.length === HASH160_SIZE * 2 &&
+            HEX_REGEX.test(hash),
+        'Invalid hash: ' +
+            hash +
+            '. Must be a ' +
+            HASH160_SIZE * 2 +
+            '-character hex string.',
     );
     let outputScript;
     if (type === 'p2pkh') {
@@ -566,7 +601,11 @@ export function isValidCashAddress(
     optionalPrefix: boolean | string = false,
 ): boolean {
     try {
-        const { prefix } = decodeCashAddress(cashaddress);
+        const { prefix, hash } = decodeCashAddress(cashaddress);
+        // Only 20-byte hashes are spendable destinations (node / chronik).
+        if (hash.length !== HASH160_SIZE * 2) {
+            return false;
+        }
         if (optionalPrefix) {
             return prefix === optionalPrefix;
         }
@@ -587,11 +626,5 @@ export function isValidCashAddress(
  */
 export function getOutputScriptFromAddress(address: string): string {
     const { type, hash } = decodeCashAddress(address);
-    let registrationOutputScript;
-    if (type === 'p2pkh') {
-        registrationOutputScript = `76a914${hash}88ac`;
-    } else {
-        registrationOutputScript = `a914${hash}87`;
-    }
-    return registrationOutputScript;
+    return getOutputScriptFromTypeAndHash(type, hash);
 }

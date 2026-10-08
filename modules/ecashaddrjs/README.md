@@ -99,3 +99,10 @@ function convertBitcoincashToEcash(bitcoincashAddress) {
 
 - Reject cashaddrs with a payload shorter than the 8-character checksum
 - Reject valid-checksum encodings with an empty 8-bit payload
+
+    2.0.2 [D20807](https://reviews.bitcoinabc.org/D20807)
+
+- Reject version bytes with the reserved bit set (parity with `DecodeCashAddrContent`)
+- Reject non-hex and odd-length hash strings in `encodeCashAddress` (no silent all-zero hashes)
+- `isValidCashAddress` only accepts 20-byte hash160 destinations (node / chronik parity)
+- `getOutputScriptFromAddress`, `getOutputScriptFromTypeAndHash`, and `getTypeAndHashFromOutputScript` require a 20-byte hex hash160

@@ -146,6 +146,19 @@ describe('cashaddr', () => {
             }
         });
 
+        it('should fail on non-hex or odd-length hash strings', () => {
+            assert.throws(() => {
+                encodeCashAddress('ecash', 'p2pkh', 'zz'.repeat(20));
+            }, ValidationError);
+            assert.throws(() => {
+                encodeCashAddress('ecash', 'p2pkh', '1g'.repeat(20));
+            }, ValidationError);
+            assert.throws(() => {
+                // Odd length: would previously truncate and coerce NaN to 0.
+                encodeCashAddress('ecash', 'p2pkh', '0'.repeat(39));
+            }, ValidationError);
+        });
+
         it('should encode test hashes on mainnet correctly with uint8Array hash input', () => {
             for (const index in TEST_HASHES) {
                 assert.equal(
@@ -267,10 +280,23 @@ describe('cashaddr', () => {
                 getTypeAndHashFromOutputScript('chronikWouldNeverReturnThis');
             }, ValidationError);
             assert.throws(() => {
-                // Invalid hash length of 21 bytes (20 and 24 are valid)
+                // Invalid hash length of 21 bytes (only 20 is valid for scripts)
                 getTypeAndHashFromOutputScript(
                     'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
                 );
+            }, ValidationError);
+            assert.throws(() => {
+                // 24-byte hash is valid cashaddr size but not a standard script
+                getTypeAndHashFromOutputScript('a914' + '11'.repeat(24) + '87');
+            }, ValidationError);
+            assert.throws(() => {
+                getOutputScriptFromTypeAndHash('p2pkh', '11'.repeat(24));
+            }, ValidationError);
+            assert.throws(() => {
+                getOutputScriptFromTypeAndHash('p2pkh', 'zz'.repeat(20));
+            }, ValidationError);
+            assert.throws(() => {
+                getOutputScriptFromTypeAndHash('p2pkh', 'nothex');
             }, ValidationError);
         });
     });
@@ -324,7 +350,7 @@ describe('cashaddr', () => {
                 encodeOutputScript('chronikWouldNeverReturnThis');
             }, ValidationError);
             assert.throws(() => {
-                // Invalid hash length of 21 bytes (20 and 24 are valid)
+                // Invalid hash length of 21 bytes (only 20 is valid for scripts)
                 encodeOutputScript(
                     'a91476a04053bda0a88bda5177b86a15c3b29f5598737387',
                 );
@@ -339,6 +365,26 @@ describe('cashaddr', () => {
                     'ecash:zpm2qsznhks23z7629mms6s4cwef74vcwv6ddac6re',
                 );
             }, ValidationError);
+        });
+
+        // Version bytes with bit 7 set (reserved). Same hash as the canonical
+        // p2pkh/p2sh vectors but with 0x80 / 0x88; DecodeCashAddrContent
+        // rejects these while getType/getHashSize alone would accept them.
+        it('should reject version bytes with the reserved bit set', () => {
+            const reservedBitCases = [
+                'ecash:spm2qsznhks23z7629mms6s4cwef74vcwvv9t9a9jl',
+                'ecash:3pm2qsznhks23z7629mms6s4cwef74vcwvmqk26xfz',
+            ];
+            for (const address of reservedBitCases) {
+                assert.throws(
+                    () => {
+                        decodeCashAddress(address);
+                    },
+                    ValidationError,
+                    'Invalid version byte: ' + address + '.',
+                );
+                assert.isFalse(isValidCashAddress(address));
+            }
         });
 
         it('should fail when given an address with mixed letter case', () => {
@@ -538,6 +584,24 @@ describe('cashaddr', () => {
                 false,
             );
         });
+        // Cashaddr format allows 24..64-byte hashes, but the node and chronik
+        // only accept 20-byte hash160 destinations at the moment.
+        it('returns false for cashaddrs with non-hash160 payloads', () => {
+            for (const size of VALID_SIZES) {
+                if (size === 20) {
+                    continue;
+                }
+                const address = encodeCashAddress(
+                    'ecash',
+                    'p2pkh',
+                    getRandomHash(size),
+                );
+                assert.isTrue(
+                    decodeCashAddress(address).hash.length === size * 2,
+                );
+                assert.isFalse(isValidCashAddress(address));
+            }
+        });
         it('returns true for mainnet and testnet p2pkh and p2sh cashaddresses', () => {
             for (const index in ALL_VALID_ADDRESSES) {
                 assert.equal(
@@ -661,6 +725,16 @@ describe('cashaddr', () => {
         it('should fail on invalid addresses', () => {
             assert.throws(() => {
                 getOutputScriptFromAddress('notAnAddress');
+            }, ValidationError);
+        });
+        it('should fail on cashaddrs with non-hash160 payloads', () => {
+            const address = encodeCashAddress(
+                'ecash',
+                'p2pkh',
+                getRandomHash(24),
+            );
+            assert.throws(() => {
+                getOutputScriptFromAddress(address);
             }, ValidationError);
         });
     });
