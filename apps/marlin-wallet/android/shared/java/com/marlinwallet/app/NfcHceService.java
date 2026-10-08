@@ -86,10 +86,13 @@ public class NfcHceService extends HostApduService {
             int length = commandApdu[4] & 0xFF;
             
             if (selectedFile == FILE_CC) {
-                byte[] response = new byte[Math.min(CC_FILE.length - offset, length) + 2];
-                System.arraycopy(CC_FILE, offset, response, 0, Math.min(CC_FILE.length - offset, length));
-                System.arraycopy(SUCCESS, 0, response, response.length - 2, 2);
-                return response;
+                int responseLength = Math.min(CC_FILE.length - offset, length);
+                if (responseLength > 0 && offset < CC_FILE.length) {
+                    byte[] response = new byte[responseLength + 2];
+                    System.arraycopy(CC_FILE, offset, response, 0, responseLength);
+                    System.arraycopy(SUCCESS, 0, response, responseLength, 2);
+                    return response;
+                }
             } else if (selectedFile == FILE_NDEF) {
                 byte[] ndefMessage = createNdefMessage(currentBip21Uri);
                 
