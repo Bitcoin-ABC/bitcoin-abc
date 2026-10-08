@@ -79,7 +79,7 @@ typedef enum ReadStatus_t {
 
 class CBlockHeaderAndShortTxIDs {
 private:
-    mutable uint64_t shorttxidk0, shorttxidk1;
+    mutable uint64_t shorttxidk0{0}, shorttxidk1{0};
     uint64_t nonce;
 
     void FillShortTxIDSelector() const;
@@ -121,25 +121,29 @@ public:
             Using<VectorFormatter<DifferentialIndexedItemFormatter>>(
                 obj.prefilledtxn));
 
-        if (ser_action.ForRead() && obj.prefilledtxn.size() > 0) {
-            // Thanks to the DifferenceFormatter, the index values in the
-            // deserialized prefilled txs are absolute and sorted, so the last
-            // vector item has the highest index value.
-            uint64_t highestPrefilledIndex = obj.prefilledtxn.back().index;
+        if (ser_action.ForRead()) {
+            if (obj.prefilledtxn.size() > 0) {
+                // Thanks to the DifferenceFormatter, the index values in the
+                // deserialized prefilled txs are absolute and sorted, so the
+                // last vector item has the highest index value.
+                uint64_t highestPrefilledIndex = obj.prefilledtxn.back().index;
 
-            // Make sure the indexes do not overflow 32 bits.
-            if (highestPrefilledIndex + obj.shorttxids.size() >
-                std::numeric_limits<uint32_t>::max()) {
-                throw std::ios_base::failure("indexes overflowed 32 bits");
+                // Make sure the indexes do not overflow 32 bits.
+                if (highestPrefilledIndex + obj.shorttxids.size() >
+                    std::numeric_limits<uint32_t>::max()) {
+                    throw std::ios_base::failure("indexes overflowed 32 bits");
+                }
+
+                // Make sure the indexes are contiguous. E.g. if there is no
+                // shortid but 2 prefilled txs with absolute indexes 0 and 2,
+                // then the tx at index 1 cannot be recovered.
+                if (highestPrefilledIndex >= obj.BlockTxCount()) {
+                    throw std::ios_base::failure("non contiguous indexes");
+                }
             }
 
-            // Make sure the indexes are contiguous. E.g. if there is no shortid
-            // but 2 prefilled txs with absolute indexes 0 and 2, then the tx at
-            // index 1 cannot be recovered.
-            if (highestPrefilledIndex >= obj.BlockTxCount()) {
-                throw std::ios_base::failure("non contiguous indexes");
-            }
-
+            // Always derive SipHash keys on the read path, including when
+            // prefilledtxn is empty (shorttxids-only compact blocks).
             obj.FillShortTxIDSelector();
         }
     }

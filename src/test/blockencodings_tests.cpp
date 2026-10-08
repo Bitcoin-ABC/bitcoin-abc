@@ -327,6 +327,48 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
     expectUseCount(pool, block_tx1, -1);
 }
 
+BOOST_AUTO_TEST_CASE(EmptyPrefilledRoundTripTest) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    TestMemPoolEntryHelper entry;
+    auto rand_ctx(FastRandomContext(uint256{42}));
+    CBlock block(BuildBlockTestCase(rand_ctx));
+
+    LOCK2(cs_main, pool.cs);
+    pool.addUnchecked(entry.FromTx(block.vtx[1]));
+    pool.addUnchecked(entry.FromTx(block.vtx[2]));
+
+    // Compact block with shorttxids only (no prefilled txs). Deserialization
+    // must still initialize SipHash keys so GetShortID / InitData work.
+    {
+        TestHeaderAndShortIDs shortIDs(block, rand_ctx);
+        shortIDs.prefilledtxn.clear();
+        shortIDs.shorttxids.resize(3);
+        shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[0]->GetHash());
+        shortIDs.shorttxids[1] = shortIDs.GetShortID(block.vtx[1]->GetHash());
+        shortIDs.shorttxids[2] = shortIDs.GetShortID(block.vtx[2]->GetHash());
+
+        DataStream stream{};
+        stream << shortIDs;
+
+        CBlockHeaderAndShortTxIDs shortIDs2;
+        stream >> shortIDs2;
+
+        BOOST_CHECK_EQUAL(shortIDs2.BlockTxCount(), 3U);
+        BOOST_CHECK_EQUAL(shortIDs2.GetShortID(block.vtx[1]->GetHash()),
+                          shortIDs.shorttxids[1]);
+        BOOST_CHECK_EQUAL(shortIDs2.GetShortID(block.vtx[2]->GetHash()),
+                          shortIDs.shorttxids[2]);
+
+        PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
+                                              &pool);
+        BOOST_CHECK(partialBlock.InitData(shortIDs2, empty_extra_txn) ==
+                    READ_STATUS_OK);
+        BOOST_CHECK(!partialBlock.IsTxAvailable(0));
+        BOOST_CHECK(partialBlock.IsTxAvailable(1));
+        BOOST_CHECK(partialBlock.IsTxAvailable(2));
+    }
+}
+
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
     CTxMemPool &pool = *Assert(m_node.mempool);
     CMutableTransaction coinbase = BuildTransactionTestCase();
