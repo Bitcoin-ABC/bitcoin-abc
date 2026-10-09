@@ -7,7 +7,7 @@
  */
 import { ChronikClient } from 'chronik-client';
 
-import type { FusionBroadcaster } from '../client/chronik.js';
+import type { FusionIndexer } from '../client/chronik.js';
 import { FusionCoordinator } from '../coordinator/wire.js';
 import {
     CoordinatorConfigError,
@@ -25,7 +25,7 @@ export {
 
 export interface StartCoordinatorDeps {
     /** Override Chronik construction (tests inject MockChronikClient). */
-    createChronik?: (urls: string[]) => FusionBroadcaster;
+    createChronik?: (urls: string[]) => FusionIndexer;
     log?: (line: string) => void;
 }
 
@@ -46,7 +46,7 @@ export async function startCoordinator(
     config: CoordinatorConfig,
     deps: StartCoordinatorDeps = {},
 ): Promise<StartedCoordinator> {
-    let chronik: FusionBroadcaster;
+    let chronik: FusionIndexer;
     try {
         chronik = (deps.createChronik ?? (urls => new ChronikClient(urls)))(
             config.chronikUrls,

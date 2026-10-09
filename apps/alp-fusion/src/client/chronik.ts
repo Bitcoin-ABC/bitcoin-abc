@@ -13,6 +13,7 @@ import type { ScriptUtxo } from 'chronik-client';
 import { Script, shaRmd160, toHex } from 'ecash-lib';
 
 import type { WireFuelInput, WireTokenInput } from '../protocol/components.js';
+import type { FusionChain } from '../tx/matchInputs.js';
 import type { FusionInputKey } from '../tx/sign.js';
 
 /** Chronik-shaped broadcast used by the coordinator and client. */
@@ -23,8 +24,17 @@ export interface FusionBroadcaster {
     ): Promise<{ txid: string }>;
 }
 
-/** Chronik-shaped script UTXO fetch (ChronikClient / MockChronikClient). */
-export interface FusionChronik extends FusionBroadcaster {
+/**
+ * Chronik-shaped script UTXO fetch plus `tx()` for input checks
+ * (ChronikClient / MockChronikClient).
+ */
+/**
+ * Broadcast plus `tx()`. A coordinator Chronik client must be this shape
+ * so the pre-sign atom check cannot be configured away.
+ */
+export type FusionIndexer = FusionBroadcaster & FusionChain;
+
+export interface FusionChronik extends FusionIndexer {
     script(
         type: 'p2pkh',
         hash: string,

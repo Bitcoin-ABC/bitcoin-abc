@@ -22,10 +22,7 @@ import {
     type Tx,
 } from 'ecash-lib';
 
-import {
-    broadcastFusionTx,
-    type FusionBroadcaster,
-} from '../client/chronik.js';
+import { broadcastFusionTx, type FusionIndexer } from '../client/chronik.js';
 import {
     DEFAULT_MIN_PLAYERS,
     NUM_COMPONENTS,
@@ -45,6 +42,10 @@ import {
     getTypes,
     initProto,
 } from '../protocol/messages.js';
+import {
+    assertFusionInputsMatchChain,
+    type FusionChain,
+} from '../tx/matchInputs.js';
 import { applyCovertSignature, assembleFromComponents } from '../tx/sign.js';
 
 import { PoolMatcher } from './pool.js';
@@ -76,10 +77,13 @@ export interface FusionCoordinatorOptions {
      */
     maxEarlyCovert?: number;
     /**
-     * Chronik (or MockChronikClient) used to broadcast the signed tx.
-     * When omitted, FusionResult still carries the signed rawTx + local txid.
+     * Chronik (or MockChronikClient) used to check input atoms before
+     * anyone signs, then to broadcast. `tx()` is required; a broadcaster
+     * without it is rejected. Any broadcast error fails the round and
+     * omits rawTx. When chronik is omitted, FusionResult still carries
+     * the signed rawTx + local txid.
      */
-    chronik?: FusionBroadcaster;
+    chronik?: FusionIndexer;
 }
 
 interface Session {
@@ -117,6 +121,8 @@ class ActiveRound {
     private signedFinished = false;
     private readonly feePerKb: bigint;
     private readonly maxPending: number;
+    private readonly chain: FusionChain | undefined;
+    private assembling = false;
     tx: Tx | undefined;
     unsigned: UnsignedTx | undefined;
     pubkeys: Uint8Array[] = [];
@@ -131,12 +137,14 @@ class ActiveRound {
         playerIds: PlayerId[],
         feePerKb: bigint,
         maxPending: number,
+        chain?: FusionChain,
     ) {
         this.tokenId = tokenId;
         this.atomTier = atomTier;
         this.playerIds = playerIds;
         this.feePerKb = feePerKb;
         this.maxPending = maxPending;
+        this.chain = chain;
         this.result = new Promise(resolve => {
             this.resolveResult = resolve;
         });
@@ -251,7 +259,7 @@ class ActiveRound {
     }
 
     tryAssemble(): void {
-        if (this.finished) {
+        if (this.finished || this.assembling) {
             return;
         }
         if (this.expected.size !== this.playerIds.length) {
@@ -265,36 +273,79 @@ class ActiveRound {
             }
         }
         const allComponents: Buffer[] = [];
+        for (const id of this.playerIds) {
+            allComponents.push(...(this.received.get(id) ?? []));
+        }
+        let assembled: ReturnType<typeof assembleFromComponents>['assembled'];
+        let pubkeys: Uint8Array[];
         try {
-            for (const id of this.playerIds) {
-                allComponents.push(...(this.received.get(id) ?? []));
-            }
-            const { assembled, pubkeys } = assembleFromComponents(
+            ({ assembled, pubkeys } = assembleFromComponents(
                 this.tokenId,
                 allComponents,
                 this.feePerKb,
-            );
-            this.finished = true;
-            this.tx = assembled.tx;
-            this.unsigned = UnsignedTx.fromTx(assembled.tx);
-            this.pubkeys = pubkeys;
-            this.sigs = pubkeys.map(() => undefined);
-            this.allComponents = allComponents;
-            this.resolveResult({
-                ok: true,
-                rawTx: assembled.tx.ser(),
-                txid: assembled.tx.txid(),
-                components: allComponents,
-            });
+            ));
         } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
             this.finished = true;
             this.resolveResult({
                 ok: false,
-                error: err instanceof Error ? err.message : String(err),
+                error: message,
                 components: allComponents,
             });
-            this.failSign(err instanceof Error ? err.message : String(err));
+            this.failSign(message);
+            return;
         }
+        this.assembling = true;
+        void this.confirmChain(assembled, pubkeys, allComponents);
+    }
+
+    /**
+     * Accept the unsigned tx only after claimed inputs match Chronik.
+     * A disconnect during the lookup must not also resolve `result`.
+     */
+    private async confirmChain(
+        assembled: ReturnType<typeof assembleFromComponents>['assembled'],
+        pubkeys: Uint8Array[],
+        allComponents: Buffer[],
+    ): Promise<void> {
+        if (this.chain) {
+            try {
+                await assertFusionInputsMatchChain(
+                    this.chain,
+                    this.tokenId,
+                    allComponents,
+                );
+            } catch (err) {
+                if (this.finished) {
+                    return;
+                }
+                const message =
+                    err instanceof Error ? err.message : String(err);
+                this.finished = true;
+                this.resolveResult({
+                    ok: false,
+                    error: message,
+                    components: allComponents,
+                });
+                this.failSign(message);
+                return;
+            }
+        }
+        if (this.finished) {
+            return;
+        }
+        this.finished = true;
+        this.tx = assembled.tx;
+        this.unsigned = UnsignedTx.fromTx(assembled.tx);
+        this.pubkeys = pubkeys;
+        this.sigs = pubkeys.map(() => undefined);
+        this.allComponents = allComponents;
+        this.resolveResult({
+            ok: true,
+            rawTx: assembled.tx.ser(),
+            txid: assembled.tx.txid(),
+            components: allComponents,
+        });
     }
 
     private assign(
@@ -335,6 +386,14 @@ export class FusionCoordinator {
     private closed = false;
 
     constructor(opts: FusionCoordinatorOptions = {}) {
+        if (
+            opts.chronik !== undefined &&
+            fusionChain(opts.chronik) === undefined
+        ) {
+            throw new Error(
+                'FusionCoordinator: chronik.tx() is required to check input atoms',
+            );
+        }
         this.opts = opts;
         this.matcher = new PoolMatcher(opts.minPlayers);
         this.maxEarlyCovert =
@@ -806,10 +865,16 @@ export class FusionCoordinator {
                         finalized.rawTx,
                     );
                     return { ...finalized, txid: broadcast.txid };
-                } catch {
-                    // Signed tx is still valid — "already known" and relay
-                    // errors must not drop rawTx or flip the round to failed.
-                    return finalized;
+                } catch (err) {
+                    // Any broadcast failure withholds the signed tx.
+                    // Participants must not be given bytes Chronik refused.
+                    const message =
+                        err instanceof Error ? err.message : String(err);
+                    return {
+                        ok: false,
+                        error: message,
+                        components: finalized.components,
+                    };
                 }
             });
             this.signedBroadcast.set(round, pending);
@@ -861,6 +926,7 @@ export class FusionCoordinator {
                     ready.playerIds,
                     this.opts.componentFeerate ?? DEFAULT_FEE_SATS_PER_KB,
                     this.maxEarlyCovert,
+                    fusionChain(this.opts.chronik),
                 );
                 this.activeRound = round;
                 for (const [hashHex, component] of this.earlyCovert) {
@@ -946,6 +1012,19 @@ export class FusionCoordinator {
             budget.clear();
         }
     }
+}
+
+function fusionChain(
+    chronik: FusionIndexer | undefined,
+): FusionChain | undefined {
+    if (
+        chronik !== undefined &&
+        'tx' in chronik &&
+        typeof (chronik as FusionChain).tx === 'function'
+    ) {
+        return chronik as FusionChain;
+    }
+    return undefined;
 }
 
 function delay(ms: number): { promise: Promise<void>; clear: () => void } {

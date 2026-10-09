@@ -67,6 +67,7 @@ export function createNodeFusionClient(
                     pools,
                     covertRandSpanMs,
                     covertTimeoutMs,
+                    chronik: clientOpts.chronik,
                 })),
     });
 }

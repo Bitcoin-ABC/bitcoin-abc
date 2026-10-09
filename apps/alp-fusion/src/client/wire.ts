@@ -33,6 +33,10 @@ import {
     initProto,
 } from '../protocol/messages.js';
 import {
+    assertFusionInputsMatchChain,
+    type FusionChain,
+} from '../tx/matchInputs.js';
+import {
     assembleFromComponents,
     assertOwnOutputsPresent,
     keysFromContribution,
@@ -58,6 +62,12 @@ export interface RunWireRoundOptions {
     pools?: { tokenId: string; atomTier: bigint }[];
     covertRandSpanMs?: number;
     covertTimeoutMs?: number;
+    /**
+     * When set, refuse to sign unless every shared input's sats and token
+     * atoms match this Chronik. Production callers must set it; a missing
+     * check lets a peer over-claim atoms and burn the round.
+     */
+    chronik?: FusionChain;
 }
 
 export interface WireRoundResult {
@@ -228,6 +238,13 @@ export async function runWireRound(
                         feerate,
                     );
                     assertOwnOutputsPresent(assembled, opts.contribution);
+                    if (opts.chronik) {
+                        await assertFusionInputsMatchChain(
+                            opts.chronik,
+                            beginToken,
+                            shared,
+                        );
+                    }
                     const owned = signOwnedInputs(
                         assembled.tx,
                         keysFromContribution(opts.contribution),

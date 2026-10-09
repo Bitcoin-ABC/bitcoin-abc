@@ -48,6 +48,10 @@ import {
     initProto,
 } from '../../src/protocol/messages.js';
 import { estimateAlpSendFeeSats } from '../../src/tx/assemble.js';
+import type {
+    FusionChain,
+    FusionChainOutput,
+} from '../../src/tx/matchInputs.js';
 import {
     assembleFromComponents,
     keysFromContribution,
@@ -122,6 +126,51 @@ function pairPlayers(
             tokenInputs: inputsB,
             tokenOutputs: outsB,
         },
+    };
+}
+
+function chainFor(
+    contribs: WireContribution[],
+    lie?: { txid: string; outIdx: number; atoms: bigint },
+): FusionChain {
+    const byTx = new Map<string, FusionChainOutput[]>();
+    const place = (txid: string, outIdx: number, output: FusionChainOutput) => {
+        const outputs = byTx.get(txid) ?? [];
+        outputs[outIdx] = output;
+        byTx.set(txid, outputs);
+    };
+    for (const contrib of contribs) {
+        for (const inp of contrib.tokenInputs) {
+            const txid =
+                typeof inp.prevOut.txid === 'string'
+                    ? inp.prevOut.txid
+                    : Buffer.from(inp.prevOut.txid).toString('hex');
+            place(txid, inp.prevOut.outIdx, {
+                sats: inp.sats,
+                token: {
+                    tokenId: TOKEN_ID,
+                    tokenType: { protocol: 'ALP' },
+                    atoms: inp.atoms,
+                    isMintBaton: false,
+                },
+            });
+        }
+        for (const inp of contrib.fuelInputs ?? []) {
+            const txid =
+                typeof inp.prevOut.txid === 'string'
+                    ? inp.prevOut.txid
+                    : Buffer.from(inp.prevOut.txid).toString('hex');
+            place(txid, inp.prevOut.outIdx, { sats: inp.sats });
+        }
+    }
+    if (lie) {
+        const output = byTx.get(lie.txid)?.[lie.outIdx];
+        if (output?.token) {
+            output.token = { ...output.token, atoms: lie.atoms };
+        }
+    }
+    return {
+        tx: async (txid: string) => ({ outputs: byTx.get(txid) ?? [] }),
     };
 }
 
@@ -225,6 +274,28 @@ describe('FusionCoordinator wire round', function () {
 
     it('hello → join → covert reveal → signed ALP SEND', async () => {
         const broadcasts: string[] = [];
+        const inputsA = [tokenIn(0, 40n, 0xa1)];
+        const outsA = [tokenOut(40n, 0xb1)];
+        const inputsB = [tokenIn(1, 60n, 0xa2)];
+        const outsB = [tokenOut(25n, 0xb2), tokenOut(35n, 0xb3)];
+        const fuelB = dustFuel(0xcd, 9);
+        const fuel = fundFuel(
+            [...inputsA, ...inputsB],
+            [...outsA, ...outsB],
+            0xcc,
+            0,
+            fuelB,
+        );
+        const contribA: WireContribution = {
+            tokenInputs: inputsA,
+            tokenOutputs: outsA,
+            fuelInputs: fuel,
+        };
+        const contribB: WireContribution = {
+            tokenInputs: inputsB,
+            tokenOutputs: outsB,
+            fuelInputs: fuelB,
+        };
         const coord = new FusionCoordinator({
             minPlayers: 2,
             atomTiers: [100n],
@@ -232,6 +303,7 @@ describe('FusionCoordinator wire round', function () {
             recvTimeoutMs: 5_000,
             roundTimeoutMs: 8_000,
             chronik: {
+                ...chainFor([contribA, contribB]),
                 broadcastTx: async raw => {
                     const hex =
                         typeof raw === 'string'
@@ -244,30 +316,13 @@ describe('FusionCoordinator wire round', function () {
         });
         await coord.start('127.0.0.1');
         try {
-            const inputsA = [tokenIn(0, 40n, 0xa1)];
-            const outsA = [tokenOut(40n, 0xb1)];
-            const inputsB = [tokenIn(1, 60n, 0xa2)];
-            const outsB = [tokenOut(25n, 0xb2), tokenOut(35n, 0xb3)];
-            const fuelB = dustFuel(0xcd, 9);
-            const fuel = fundFuel(
-                [...inputsA, ...inputsB],
-                [...outsA, ...outsB],
-                0xcc,
-                0,
-                fuelB,
-            );
-
             const [a, b] = await Promise.all([
                 runWireRound({
                     host: '127.0.0.1',
                     port: coord.controlPort,
                     tokenId: TOKEN_ID,
                     atomTier: 100n,
-                    contribution: {
-                        tokenInputs: inputsA,
-                        tokenOutputs: outsA,
-                        fuelInputs: fuel,
-                    },
+                    contribution: contribA,
                     recvTimeoutMs: 5_000,
                     covertTimeoutMs: 5_000,
                 }),
@@ -276,11 +331,7 @@ describe('FusionCoordinator wire round', function () {
                     port: coord.controlPort,
                     tokenId: TOKEN_ID,
                     atomTier: 100n,
-                    contribution: {
-                        tokenInputs: inputsB,
-                        tokenOutputs: outsB,
-                        fuelInputs: fuelB,
-                    },
+                    contribution: contribB,
                     recvTimeoutMs: 5_000,
                     covertTimeoutMs: 5_000,
                 }),
@@ -1061,6 +1112,188 @@ describe('FusionCoordinator wire round', function () {
                 joinRound(coord, next.b),
             ]);
             expect(a.txid).to.equal(b.txid);
+        } finally {
+            await coord.close();
+        }
+    });
+
+    it('rejects an over-claimed input before anyone signs', async () => {
+        const broadcasts: string[] = [];
+        const pair = pairPlayers(40, 41);
+        const lied = chainFor([pair.a, pair.b], {
+            txid: '11'.repeat(32),
+            outIdx: 41,
+            atoms: 1n,
+        });
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            recvTimeoutMs: 3_000,
+            roundTimeoutMs: 4_000,
+            chronik: {
+                ...lied,
+                broadcastTx: async raw => {
+                    broadcasts.push(
+                        typeof raw === 'string'
+                            ? raw
+                            : Buffer.from(raw).toString('hex'),
+                    );
+                    return { txid: 'ab'.repeat(32) };
+                },
+            },
+        });
+        await coord.start('127.0.0.1');
+        try {
+            const [a, b] = await Promise.allSettled([
+                joinRound(coord, pair.a, {
+                    recvTimeoutMs: 3_000,
+                    covertTimeoutMs: 2_000,
+                }),
+                joinRound(coord, pair.b, {
+                    recvTimeoutMs: 3_000,
+                    covertTimeoutMs: 2_000,
+                }),
+            ]);
+            expect(a.status).to.equal('rejected');
+            expect(b.status).to.equal('rejected');
+            const reason = (settled: PromiseSettledResult<unknown>) =>
+                settled.status === 'rejected' ? String(settled.reason) : '';
+            expect(`${reason(a)} ${reason(b)}`).to.match(
+                /claimed 50 atoms, chain has ALP .* 1 atoms/,
+            );
+            expect(broadcasts).to.have.length(0);
+        } finally {
+            await coord.close();
+        }
+    });
+
+    it('does not return a signed tx when Chronik rejects a token burn', async () => {
+        const pair = pairPlayers(42, 43);
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            recvTimeoutMs: 3_000,
+            roundTimeoutMs: 4_000,
+            chronik: {
+                ...chainFor([pair.a, pair.b]),
+                broadcastTx: async () => {
+                    throw new Error(
+                        'Failed getting /broadcast-tx: 400: Tx ab failed token checks: Burns 50 atoms',
+                    );
+                },
+            },
+        });
+        await coord.start('127.0.0.1');
+        try {
+            const [a, b] = await Promise.allSettled([
+                joinRound(coord, pair.a),
+                joinRound(coord, pair.b),
+            ]);
+            expect(a.status).to.equal('rejected');
+            expect(b.status).to.equal('rejected');
+            const reason = (settled: PromiseSettledResult<unknown>) =>
+                settled.status === 'rejected' ? String(settled.reason) : '';
+            expect(reason(a)).to.match(/failed token checks/);
+            expect(reason(b)).to.match(/failed token checks/);
+            expect(reason(a)).to.not.match(/rawTx/);
+        } finally {
+            await coord.close();
+        }
+    });
+
+    it('does not return a signed tx when broadcast fails for any reason', async () => {
+        const pair = pairPlayers(44, 45);
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            recvTimeoutMs: 3_000,
+            roundTimeoutMs: 4_000,
+            chronik: {
+                ...chainFor([pair.a, pair.b]),
+                broadcastTx: async () => {
+                    throw new Error('txn-already-in-mempool');
+                },
+            },
+        });
+        await coord.start('127.0.0.1');
+        try {
+            const [a, b] = await Promise.allSettled([
+                joinRound(coord, pair.a),
+                joinRound(coord, pair.b),
+            ]);
+            expect(a.status).to.equal('rejected');
+            expect(b.status).to.equal('rejected');
+            const reason = (settled: PromiseSettledResult<unknown>) =>
+                settled.status === 'rejected' ? String(settled.reason) : '';
+            expect(reason(a)).to.match(/txn-already-in-mempool/);
+            expect(reason(b)).to.match(/txn-already-in-mempool/);
+        } finally {
+            await coord.close();
+        }
+    });
+
+    it('rejects chronik that cannot look up inputs', () => {
+        expect(
+            () =>
+                new FusionCoordinator({
+                    chronik: {
+                        broadcastTx: async () => ({ txid: 'ab'.repeat(32) }),
+                    } as never,
+                }),
+        ).to.throw(/chronik\.tx\(\) is required/);
+    });
+
+    it('a client with Chronik refuses to sign a mismatched input', async () => {
+        const broadcasts: string[] = [];
+        const pair = pairPlayers(46, 47);
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            recvTimeoutMs: 2_000,
+            roundTimeoutMs: 2_000,
+            chronik: {
+                ...chainFor([pair.a, pair.b]),
+                broadcastTx: async raw => {
+                    broadcasts.push(
+                        typeof raw === 'string'
+                            ? raw
+                            : Buffer.from(raw).toString('hex'),
+                    );
+                    return { txid: 'ab'.repeat(32) };
+                },
+            },
+        });
+        await coord.start('127.0.0.1');
+        const lied = chainFor([pair.a, pair.b], {
+            txid: '11'.repeat(32),
+            outIdx: 47,
+            atoms: 0n,
+        });
+        try {
+            const [victim, attacker] = await Promise.allSettled([
+                runWireRound({
+                    host: '127.0.0.1',
+                    port: coord.controlPort,
+                    tokenId: TOKEN_ID,
+                    atomTier: 100n,
+                    contribution: pair.a,
+                    chronik: lied,
+                    recvTimeoutMs: 3_000,
+                    covertTimeoutMs: 2_000,
+                }),
+                joinRound(coord, pair.b, {
+                    recvTimeoutMs: 3_000,
+                    covertTimeoutMs: 2_000,
+                }),
+            ]);
+            expect(victim.status).to.equal('rejected');
+            if (victim.status === 'rejected') {
+                expect(String(victim.reason)).to.match(
+                    /claimed 50 atoms, chain has ALP .* 0 atoms/,
+                );
+            }
+            expect(broadcasts).to.have.length(0);
+            expect(attacker.status).to.equal('rejected');
         } finally {
             await coord.close();
         }
