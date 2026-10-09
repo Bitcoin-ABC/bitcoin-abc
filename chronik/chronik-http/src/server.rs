@@ -432,20 +432,23 @@ async fn handle_broadcast_tx(
 ) -> Result<Protobuf<proto::BroadcastTxResponse>, ReportError> {
     let timeout_finalization =
         verify_timeout_finalization(request.finalization_timeout_secs)?;
-    let indexer = indexer.read().await;
-    let broadcast_result = indexer
-        .broadcast(node.as_ref())
-        .broadcast_txs(
-            &[request.raw_tx.into()],
-            request.skip_token_checks,
-            !timeout_finalization.is_zero(),
-        )
-        .await;
-    // Drop indexer before syncing otherwise we get a deadlock
-    drop(indexer);
+    // Drop indexer lock before syncing/waiting otherwise we get a deadlock
+    let broadcast_result = {
+        let indexer = indexer.read().await;
+        indexer
+            .broadcast(node.as_ref())
+            .broadcast_txs(
+                &[request.raw_tx.into()],
+                request.skip_token_checks,
+                !timeout_finalization.is_zero(),
+            )
+            .await
+    };
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
     node.bridge.sync_with_validation_interface_queue();
+    // BroadcastResult Drop unsubscribes txid SubsGroup entries (also if this
+    // handler future is cancelled mid-wait by a client disconnect).
     let mut broadcast_result = broadcast_result?;
     broadcast_result
         .wait_for_finalization(timeout_finalization)
@@ -462,24 +465,27 @@ async fn handle_broadcast_txs(
 ) -> Result<Protobuf<proto::BroadcastTxsResponse>, ReportError> {
     let timeout_finalization =
         verify_timeout_finalization(request.finalization_timeout_secs)?;
-    let indexer = indexer.read().await;
-    let broadcast_result = indexer
-        .broadcast(node.as_ref())
-        .broadcast_txs(
-            &request
-                .raw_txs
-                .into_iter()
-                .map(Into::into)
-                .collect::<Vec<_>>(),
-            request.skip_token_checks,
-            !timeout_finalization.is_zero(),
-        )
-        .await;
-    // Drop indexer before syncing otherwise we get a deadlock
-    drop(indexer);
+    // Drop indexer lock before syncing/waiting otherwise we get a deadlock
+    let broadcast_result = {
+        let indexer = indexer.read().await;
+        indexer
+            .broadcast(node.as_ref())
+            .broadcast_txs(
+                &request
+                    .raw_txs
+                    .into_iter()
+                    .map(Into::into)
+                    .collect::<Vec<_>>(),
+                request.skip_token_checks,
+                !timeout_finalization.is_zero(),
+            )
+            .await
+    };
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
     node.bridge.sync_with_validation_interface_queue();
+    // BroadcastResult Drop unsubscribes txid SubsGroup entries (also if this
+    // handler future is cancelled mid-wait by a client disconnect).
     let mut broadcast_result = broadcast_result?;
     broadcast_result
         .wait_for_finalization(timeout_finalization)
@@ -487,7 +493,7 @@ async fn handle_broadcast_txs(
     Ok(Protobuf(proto::BroadcastTxsResponse {
         txids: broadcast_result
             .txids
-            .into_iter()
+            .iter()
             .map(|txid| txid.to_vec())
             .collect(),
     }))

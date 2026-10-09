@@ -3,7 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use std::{
-    collections::BTreeSet, collections::HashMap, mem::take, time::Duration,
+    collections::BTreeSet, collections::HashMap, mem::take, sync::Arc,
+    time::Duration,
 };
 
 use abc_rust_error::Result;
@@ -53,16 +54,21 @@ pub struct QueryBroadcast<'a> {
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
     /// Subscriptions (to receive updates about broadcasts)
-    pub subs: &'a RwLock<Subs>,
+    pub subs: Arc<RwLock<Subs>>,
 }
 
 /// Struct returned after broadcast. Allows accessing the txs' TxIds, and
 /// waiting for finalization.
+///
+/// When subscribed for finalization, Drop unsubscribes from the txid
+/// SubsGroup entries — including if the HTTP handler future is cancelled.
 #[derive(Debug)]
 pub struct BroadcastResult {
     /// TxIds of the broadcast transactions.
     pub txids: Vec<TxId>,
     tx_msg_receivers: Vec<broadcast::Receiver<TxMsg>>,
+    /// If set, Drop will unsubscribe `txids` from this Subs lock.
+    subs_cleanup: Option<Arc<RwLock<Subs>>>,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -119,16 +125,19 @@ impl QueryBroadcast<'_> {
             ));
         }
         let mut tx_msg_receivers = Vec::new();
+        let mut subs_cleanup = None;
         if should_subscribe {
             let mut subs = self.subs.write().await;
             tx_msg_receivers = txids
                 .iter()
                 .map(|txid| subs.subs_txid_mut().subscribe_to_member(txid))
                 .collect::<Vec<_>>();
+            subs_cleanup = Some(Arc::clone(&self.subs));
         }
         Ok(BroadcastResult {
             txids,
             tx_msg_receivers,
+            subs_cleanup,
         })
     }
 
@@ -249,6 +258,9 @@ impl BroadcastResult {
     /// Wait for the txids to finalize via Avalanche.
     /// Returns immediately if result is not configured to wait for
     /// finalization, or if the timeout is zero.
+    ///
+    /// Subscriptions are released when this [`BroadcastResult`] is dropped
+    /// (success, error, timeout, or handler cancellation).
     pub async fn wait_for_finalization(
         &mut self,
         timeout_finalization: Duration,
@@ -274,6 +286,44 @@ impl BroadcastResult {
         results.into_iter().collect::<Result<Vec<_>>>()?;
         Ok(())
     }
+}
+
+impl Drop for BroadcastResult {
+    fn drop(&mut self) {
+        // Drop receivers first so unsubscribe_from_member can reclaim senders
+        // (it only removes when receiver_count == 0).
+        self.tx_msg_receivers.clear();
+        let Some(subs) = self.subs_cleanup.take() else {
+            return;
+        };
+        let txids = self.txids.clone();
+        unsubscribe_broadcast_txids(subs, txids);
+    }
+}
+
+/// Remove SubsGroup sender entries for `txids`. Tries a non-blocking write;
+/// if the lock is held, spawns a task to finish cleanup.
+fn unsubscribe_broadcast_txids(subs: Arc<RwLock<Subs>>, txids: Vec<TxId>) {
+    if txids.is_empty() {
+        return;
+    }
+    if let Ok(mut subs) = subs.try_write() {
+        for txid in &txids {
+            subs.subs_txid_mut().unsubscribe_from_member(txid);
+        }
+        return;
+    }
+    // `tokio::spawn` panics without a runtime; a panic in Drop during unwind
+    // aborts the process.
+    let Ok(handle) = tokio::runtime::Handle::try_current() else {
+        return;
+    };
+    handle.spawn(async move {
+        let mut subs = subs.write().await;
+        for txid in &txids {
+            subs.subs_txid_mut().unsubscribe_from_member(txid);
+        }
+    });
 }
 
 /// Verify the finalization timeout is within the bounds we allow, and return a

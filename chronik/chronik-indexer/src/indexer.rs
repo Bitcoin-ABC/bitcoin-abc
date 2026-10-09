@@ -93,7 +93,8 @@ pub struct ChronikIndexer {
     mempool: Mempool,
     script_group: ScriptGroup,
     avalanche: Avalanche,
-    subs: RwLock<Subs>,
+    /// Shared so broadcast finalization waits can unsubscribe on Drop/cancel.
+    subs: Arc<RwLock<Subs>>,
     perf_path: Option<PathBuf>,
     is_token_index_enabled: bool,
     is_lokad_id_index_enabled: bool,
@@ -359,7 +360,7 @@ impl ChronikIndexer {
             mem_data,
             script_group: ScriptGroup,
             avalanche: Avalanche::default(),
-            subs: RwLock::new(Subs::new(ScriptGroup)),
+            subs: Arc::new(RwLock::new(Subs::new(ScriptGroup))),
             perf_path: params.enable_perf_stats.then_some(path_info.perf_path),
             is_token_index_enabled: params.enable_token_index,
             is_lokad_id_index_enabled: params.enable_lokad_id_index,
@@ -597,12 +598,14 @@ impl ChronikIndexer {
             &self.plugin_ctx,
             &self.plugin_name_map,
         )?;
-        self.subs.get_mut().handle_tx_event(
-            &result.mempool_tx.tx,
-            TxMsgType::AddedToMempool,
-            &result.token_id_aux,
-            &result.plugin_outputs,
-        );
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.handle_tx_event(
+                &result.mempool_tx.tx,
+                TxMsgType::AddedToMempool,
+                &result.token_id_aux,
+                &result.plugin_outputs,
+            );
+        });
         Ok(())
     }
 
@@ -611,12 +614,14 @@ impl ChronikIndexer {
     /// also removed from the mempool).
     pub fn handle_tx_removed_from_mempool(&mut self, txid: TxId) -> Result<()> {
         let result = self.mempool.remove(txid)?;
-        self.subs.get_mut().handle_tx_event(
-            &result.mempool_tx.tx,
-            TxMsgType::RemovedFromMempool,
-            &result.token_id_aux,
-            &result.plugin_outputs,
-        );
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.handle_tx_event(
+                &result.mempool_tx.tx,
+                TxMsgType::RemovedFromMempool,
+                &result.token_id_aux,
+                &result.plugin_outputs,
+            );
+        });
         Ok(())
     }
 
@@ -722,20 +727,21 @@ impl ChronikIndexer {
             self.mempool.remove_mined(&tx.txid)?;
         }
         merge::check_for_errors()?;
-        let subs = self.subs.get_mut();
-        subs.broadcast_block_msg(BlockMsg {
-            msg_type: BlockMsgType::Connected,
-            hash: block.db_block.hash,
-            height: block.db_block.height,
-            timestamp: block.db_block.timestamp,
-            coinbase_tx: None,
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.broadcast_block_msg(BlockMsg {
+                msg_type: BlockMsgType::Connected,
+                hash: block.db_block.hash,
+                height: block.db_block.height,
+                timestamp: block.db_block.timestamp,
+                coinbase_tx: None,
+            });
+            subs.handle_block_tx_events(
+                &block.txs,
+                TxMsgType::Confirmed,
+                &token_id_aux,
+                &plugin_outputs,
+            );
         });
-        subs.handle_block_tx_events(
-            &block.txs,
-            TxMsgType::Confirmed,
-            &token_id_aux,
-            &plugin_outputs,
-        );
         Ok(())
     }
 
@@ -827,16 +833,17 @@ impl ChronikIndexer {
         )?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
-        let subs = self.subs.get_mut();
-        subs.broadcast_block_msg(BlockMsg {
-            msg_type: BlockMsgType::Disconnected,
-            hash: block.db_block.hash,
-            height: block.db_block.height,
-            timestamp: block.db_block.timestamp,
-            coinbase_tx: Some({
-                let mut block_txs = block.txs;
-                block_txs.remove(0)
-            }),
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.broadcast_block_msg(BlockMsg {
+                msg_type: BlockMsgType::Disconnected,
+                hash: block.db_block.hash,
+                height: block.db_block.height,
+                timestamp: block.db_block.timestamp,
+                coinbase_tx: Some({
+                    let mut block_txs = block.txs;
+                    block_txs.remove(0)
+                }),
+            });
         });
         // Remaining hashes are heights 0..height-1 after disconnecting
         // `height`.
@@ -852,14 +859,6 @@ impl ChronikIndexer {
         block: ChronikBlock,
     ) -> Result<()> {
         self.avalanche.finalize_block(block.db_block.height)?;
-        let subs = self.subs.get_mut();
-        subs.broadcast_block_msg(BlockMsg {
-            msg_type: BlockMsgType::Finalized,
-            hash: block.db_block.hash,
-            height: block.db_block.height,
-            timestamp: block.db_block.timestamp,
-            coinbase_tx: None,
-        });
         let tx_reader = TxReader::new(&self.db)?;
         let first_tx_num = tx_reader
             .first_tx_num_by_block(block.db_block.height)?
@@ -882,12 +881,21 @@ impl ChronikIndexer {
         } else {
             BTreeMap::new()
         };
-        subs.handle_block_tx_events(
-            &block.txs,
-            TxMsgType::Finalized(TxFinalizationReason::PostConsensus),
-            &token_id_aux,
-            &plugin_outputs,
-        );
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.broadcast_block_msg(BlockMsg {
+                msg_type: BlockMsgType::Finalized,
+                hash: block.db_block.hash,
+                height: block.db_block.height,
+                timestamp: block.db_block.timestamp,
+                coinbase_tx: None,
+            });
+            subs.handle_block_tx_events(
+                &block.txs,
+                TxMsgType::Finalized(TxFinalizationReason::PostConsensus),
+                &token_id_aux,
+                &plugin_outputs,
+            );
+        });
         Ok(())
     }
 
@@ -896,16 +904,17 @@ impl ChronikIndexer {
         &mut self,
         block: ChronikBlock,
     ) -> Result<()> {
-        let subs = self.subs.get_mut();
-        subs.broadcast_block_msg(BlockMsg {
-            msg_type: BlockMsgType::Invalidated,
-            hash: block.db_block.hash,
-            height: block.db_block.height,
-            timestamp: block.db_block.timestamp,
-            coinbase_tx: Some({
-                let mut block_txs = block.txs;
-                block_txs.remove(0)
-            }),
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.broadcast_block_msg(BlockMsg {
+                msg_type: BlockMsgType::Invalidated,
+                hash: block.db_block.hash,
+                height: block.db_block.height,
+                timestamp: block.db_block.timestamp,
+                coinbase_tx: Some({
+                    let mut block_txs = block.txs;
+                    block_txs.remove(0)
+                }),
+            });
         });
         Ok(())
     }
@@ -976,13 +985,14 @@ impl ChronikIndexer {
             }
         };
 
-        let subs = self.subs.get_mut();
-        subs.handle_tx_event(
-            &tx,
-            TxMsgType::Finalized(TxFinalizationReason::PreConsensus),
-            &token_id_aux,
-            &plugin_outputs,
-        );
+        Self::with_subs_mut(&self.subs, |subs| {
+            subs.handle_tx_event(
+                &tx,
+                TxMsgType::Finalized(TxFinalizationReason::PreConsensus),
+                &token_id_aux,
+                &plugin_outputs,
+            );
+        });
         Ok(())
     }
 
@@ -1005,12 +1015,14 @@ impl ChronikIndexer {
                     !self.plugin_name_map.is_empty(),
                 )?;
 
-                self.subs.get_mut().handle_tx_event(
-                    &tx.tx,
-                    TxMsgType::Invalidated,
-                    &token_id_aux,
-                    &plugin_outputs,
-                );
+                Self::with_subs_mut(&self.subs, |subs| {
+                    subs.handle_tx_event(
+                        &tx.tx,
+                        TxMsgType::Invalidated,
+                        &token_id_aux,
+                        &plugin_outputs,
+                    );
+                });
             }
             None => {
                 // If the tx is no longer in the mempool we need to parse it
@@ -1025,12 +1037,14 @@ impl ChronikIndexer {
                     &self.plugin_name_map,
                 )?;
 
-                self.subs.get_mut().handle_tx_event(
-                    &result.mempool_tx.tx,
-                    TxMsgType::Invalidated,
-                    &result.token_id_aux,
-                    &result.plugin_outputs,
-                );
+                Self::with_subs_mut(&self.subs, |subs| {
+                    subs.handle_tx_event(
+                        &result.mempool_tx.tx,
+                        TxMsgType::Invalidated,
+                        &result.token_id_aux,
+                        &result.plugin_outputs,
+                    );
+                });
             }
         }
 
@@ -1046,8 +1060,17 @@ impl ChronikIndexer {
             node,
             is_token_index_enabled: self.is_token_index_enabled,
             plugin_name_map: &self.plugin_name_map,
-            subs: &self.subs,
+            subs: Arc::clone(&self.subs),
         }
+    }
+
+    /// Access Subs mutably via blocking write. Takes the Arc so callers can
+    /// keep disjoint borrows of other `self` fields (e.g. mempool results).
+    fn with_subs_mut<R>(
+        subs: &RwLock<Subs>,
+        f: impl FnOnce(&mut Subs) -> R,
+    ) -> R {
+        f(&mut subs.blocking_write())
     }
 
     /// Return [`QueryBlocks`] to read blocks from the DB.
@@ -1201,7 +1224,7 @@ impl ChronikIndexer {
 
     /// Subscribers, behind read/write lock
     pub fn subs(&self) -> &RwLock<Subs> {
-        &self.subs
+        self.subs.as_ref()
     }
 
     /// Map plugin names and plugin idx
