@@ -27,3 +27,6 @@ This release includes the following features and fixes:
   limit the size of scripts and plugin groups that can be registered on
   WebSocket subscriptions (defaults: 201 and 100 bytes). Oversized payloads are
   still indexed and remain available via HTTP and txid lookup.
+- The Chronik Electrum peer discovery feature is now disabled by default. To
+  enable it, set the desired peer check interval with the
+  `-chronikelectrumpeersvalidationinterval` node option.

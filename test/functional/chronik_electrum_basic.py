@@ -151,9 +151,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
     def test_server_peers(self):
         self.log.info("Testing the server.peers endpoints")
 
-        # For now peers.subscribe always returns an empty array. This is so
-        # while peer validation is not implemented. After this is completed the
-        # below calls to subscribe can be uncommented.
+        # No peers have been added yet, so peers.subscribe returns an empty list
         assert_equal(
             self.client.server.peers.subscribe().result,
             [],
@@ -281,7 +279,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
         self.stop_node(1)
         with self.nodes[1].assert_debug_log(
             [
-                "Electrum peers validation is disabled, server.peers.subscribe will not share any peer"
+                "Electrum peers validation is disabled, server.add_peer will reject peers and server.peers.subscribe will not share any peer"
             ]
         ):
             self.start_node(
@@ -289,6 +287,25 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                 extra_args=self.extra_args[1]
                 + ["-chronikelectrumpeersvalidationinterval=0"],
             )
+
+        # With validation disabled, add_peer rejects peers without storing them
+        disabled_client = self.nodes[1].get_chronik_electrum_client()
+        features = {
+            "protocol_max": "1.4.5",
+            "hosts": {
+                "127.0.0.1": {
+                    "tcp_port": self.chronik_port[1],
+                },
+            },
+        }
+        assert_equal(
+            disabled_client.server.add_peer(features).result,
+            False,
+        )
+        assert_equal(
+            disabled_client.server.peers.subscribe().result,
+            [],
+        )
 
     def test_server_features(self):
         version = f"{self.config['environment']['PACKAGE_NAME']} {get_cli_version(self, self.node)}"
@@ -417,7 +434,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                 "-chronikelectrumpeersvalidationinterval=-1",
             ],
             "Error: The -chronikelectrumpeersvalidationinterval value should be "
-            "within the range [1, 4294967295]",
+            "within the range [0, 4294967295]",
         )
         self.node.assert_start_raises_init_error(
             [
@@ -426,7 +443,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                 "-chronikelectrumpeersvalidationinterval=4294967296",
             ],
             "Error: The -chronikelectrumpeersvalidationinterval value should be "
-            "within the range [1, 4294967295]",
+            "within the range [0, 4294967295]",
         )
 
         # The idle timeout must be within range

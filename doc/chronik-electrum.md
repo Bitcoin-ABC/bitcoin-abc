@@ -144,7 +144,7 @@ The Electrum protocol is not designed for performance. As a result it is much le
 
 An Electrum server will return a donation address via the `server.donation_address` endpoint. You can set the donation address to your eCash wallet address via the `chronikelectrumdonationaddress` option in your `bitcoin.conf` configuration file.
 
-The Electrum protocol includes a peer discovery mechanism in order to share other servers addresses. Chronik will run a periodic sanity check of all the registered peers to avoid sharing disconnected or misconfigured peers. This sanity check interval defaults to 10 minutes and can be overridden via the `chronikelectrumpeersvalidationinterval` option in your `bitcoin.conf` configuration file. Set the value to the desired interval in seconds, or to `0` to disable the feature entirely.
+The Electrum protocol includes a peer discovery mechanism in order to share other servers addresses. Chronik can run a periodic sanity check of all the registered peers to avoid sharing disconnected or misconfigured peers. This is disabled by default (`chronikelectrumpeersvalidationinterval=0`): the validation loop is not started, `server.add_peer` rejects peers without storing them, and `server.peers.subscribe` shares no peers. Set the option to a positive interval in seconds in your `bitcoin.conf` configuration file to enable validation and advertise peers that pass.
 
 Chronik Electrum drops clients that send no data for 10 minutes by default.
 This can be overridden via the `-chronikelectrumidletimeout` option (value in

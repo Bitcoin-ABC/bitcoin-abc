@@ -219,6 +219,7 @@ impl ChronikElectrumServer {
             hosts: self.hosts.clone(),
             genesis_hash,
             peers: Mutex::new(Vec::new()),
+            peers_validation_interval: self.peers_validation_interval,
         });
 
         // Validate peers periodically in the background unless validation is
@@ -242,8 +243,9 @@ impl ChronikElectrumServer {
             });
         } else {
             log_chronik!(
-                "Electrum peers validation is disabled, \
-                 server.peers.subscribe will not share any peer\n"
+                "Electrum peers validation is disabled, server.add_peer will \
+                 reject peers and server.peers.subscribe will not share any \
+                 peer\n"
             );
         }
 
@@ -523,6 +525,9 @@ struct ChronikElectrumRPCServerEndpoint {
     url: String,
     genesis_hash: String,
     peers: Mutex<Vec<ElectrumPeer>>,
+    /// Interval in seconds between peer validation passes; 0 disables
+    /// validation and causes server.add_peer to reject peers.
+    peers_validation_interval: u32,
 }
 
 struct ChronikElectrumRPCBlockchainEndpoint {
@@ -944,6 +949,12 @@ impl ChronikElectrumRPCServerEndpoint {
     }
 
     async fn add_peer(&self, params: Value) -> Result<Value, RPCError> {
+        // Peer discovery is inactive when validation is disabled: do not
+        // process peers that could never be advertised via peers.subscribe.
+        if self.peers_validation_interval == 0 {
+            return Ok(json!(false));
+        }
+
         let mut peers = self.peers.lock().await;
 
         // Limit the number of peers we can store. If the peers list is full

@@ -107,7 +107,7 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
         electrum_peers_validation_interval >
             std::numeric_limits<uint32_t>::max()) {
         return {{_(strprintf("The -chronikelectrumpeersvalidationinterval "
-                             "value should be within the range [1, %d]",
+                             "value should be within the range [0, %d]",
                              std::numeric_limits<uint32_t>::max())
                        .c_str())}};
     }

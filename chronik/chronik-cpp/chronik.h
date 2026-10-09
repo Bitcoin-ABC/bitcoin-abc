@@ -43,7 +43,9 @@ static constexpr uint64_t DEFAULT_SUBSCRIPTION_MAX_PLUGIN_SIZE{100};
 
 static constexpr size_t MAX_LENGTH_DONATION_ADDRESS{80};
 
-static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{10min};
+// 0 disables Electrum peer validation; server.add_peer rejects peers and
+// server.peers.subscribe advertises none.
+static constexpr auto DEFAULT_ELECTRUM_PEER_VALIDATION_INTERVAL{0s};
 
 /**
  * Drop Electrum clients that send no data for this long; 0 disables the
