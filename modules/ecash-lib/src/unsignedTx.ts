@@ -215,17 +215,21 @@ export class UnsignedTxInput {
                 ? redeemScript
                 : redeemScript.cutOutCodesep(nCodesep);
 
+        // If an input is signed with SIGHASH_SINGLE but there is no output at
+        // the same index, the signature commits to no output at all. Which
+        // means such a signature stays valid if the output is swapped, which is
+        // a footgun. So don't produce it.
+        if (
+            sigHashType.outputType == SigHashTypeOutputs.SINGLE &&
+            this.inputIdx >= tx.outputs.length
+        ) {
+            throw new Error(
+                'Invalid usage of SINGLE, input has no corresponding output',
+            );
+        }
+
         // Sign LEGACY signatures that don't use SIGHASH_FORKID
         if (sigHashType.variant === SigHashTypeVariant.LEGACY) {
-            if (
-                sigHashType.outputType == SigHashTypeOutputs.SINGLE &&
-                this.inputIdx >= tx.outputs.length
-            ) {
-                throw new Error(
-                    'Invalid usage of SINGLE, input has no corresponding output',
-                );
-            }
-
             const writePreimage = (writer: Writer) => {
                 writeLegacyPreimage(
                     writer,
@@ -255,20 +259,15 @@ export class UnsignedTxInput {
             case SigHashTypeOutputs.NONE:
                 hashOutputs = new Uint8Array(32);
                 break;
-            case SigHashTypeOutputs.SINGLE:
-                if (this.inputIdx < tx.outputs.length) {
-                    const output = tx.outputs[this.inputIdx];
-                    const writerOutputLength = new WriterLength();
-                    writeTxOutput(output, writerOutputLength);
-                    const writerOutput = new WriterBytes(
-                        writerOutputLength.length,
-                    );
-                    writeTxOutput(output, writerOutput);
-                    hashOutputs = sha256d(writerOutput.data);
-                } else {
-                    hashOutputs = new Uint8Array(32);
-                }
+            case SigHashTypeOutputs.SINGLE: {
+                const output = tx.outputs[this.inputIdx];
+                const writerOutputLength = new WriterLength();
+                writeTxOutput(output, writerOutputLength);
+                const writerOutput = new WriterBytes(writerOutputLength.length);
+                writeTxOutput(output, writerOutput);
+                hashOutputs = sha256d(writerOutput.data);
                 break;
+            }
         }
 
         const writePreimage = (writer: Writer) => {

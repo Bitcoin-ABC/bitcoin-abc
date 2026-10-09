@@ -480,31 +480,18 @@ describe('UnsignedTx', () => {
             redeemScript: TX.inputs[1].signData!.redeemScript,
         } as SighashPreimage);
 
-        // If there's no corresponding output, hashOutputs will be 000...000
+        // If there's no corresponding output, we get an error
         const unsignedTooFewOutputs = UnsignedTx.fromTx(
             new Tx({
                 ...TX,
                 outputs: [],
             }),
         );
-        expect(
+        expect(() =>
             unsignedTooFewOutputs.inputAt(0).sigHashPreimage(SINGLE_BIP143),
-        ).to.deep.equal({
-            bytes: fromHex(
-                VERSION_HEX +
-                    toHex(sha256d(fromHex(PREVOUT0_HEX + PREVOUT1_HEX))) +
-                    '00'.repeat(32) +
-                    PREVOUT0_HEX +
-                    '08abacadaeafb0abac' +
-                    VALUE0_HEX +
-                    SEQUENCE0_HEX +
-                    '00'.repeat(32) +
-                    LOCKTIME_HEX +
-                    '43000000',
-            ),
-            scriptCode: TX.inputs[0].signData!.outputScript,
-            redeemScript: TX.inputs[0].signData!.outputScript,
-        } as SighashPreimage);
+        ).to.throw(
+            'Invalid usage of SINGLE, input has no corresponding output',
+        );
     });
 
     it('UnsignedTxInput.sigHashPreimage SINGLE_LEGACY', () => {
