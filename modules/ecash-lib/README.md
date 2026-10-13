@@ -121,3 +121,4 @@ console.log(toHex(rawTx));
 - 4.14.1 - Bound `parseMultisigRedeemScript` so `m` must be a safe integer in `1..=n` and `n <= MAX_PUBKEYS_PER_MULTISIG`, preventing `Psbt.toTx()` from allocating `Array(m)` for a crafted redeem script. [D20580](https://reviews.bitcoinabc.org/D20580)
 - 4.14.2 - Patch bump to catch the latest `b58-ts` [D20768](https://reviews.bitcoinabc.org/D20768)
 - 4.14.3 - Refuse to create `SIGHASH_SINGLE` signatures when the input has no corresponding output, matching node signing behavior and avoiding signatures that commit to no outputs. [D20813](https://reviews.bitcoinabc.org/D20813)
+- 4.14.4 - Patch bump to catch the latest `ecashaddrjs` [D20822](https://reviews.bitcoinabc.org/D20822)

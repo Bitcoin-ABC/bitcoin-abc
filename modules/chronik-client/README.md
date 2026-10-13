@@ -145,3 +145,4 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 - 4.3.0 - Add new method `batchSummary` to fetch a summary of the history/utxos for several scripts in a single request [D19983](https://reviews.bitcoinabc.org/D19983)
 - 4.3.1 - Fix reconnect re-subscription doubling every subscription and never restoring plugin subscriptions. Restore is send-only and automatic on socket open (including `pause()`/`resume()`). [D20536](https://reviews.bitcoinabc.org/D20536)
 - 4.3.2 - Close the websocket and reconnect when a frame fails to decode, instead of crashing Node on an unhandled rejection. [D20775](https://reviews.bitcoinabc.org/D20775)
+- 4.3.3 - Patch bump to catch the latest `ecashaddrjs` [D20822](https://reviews.bitcoinabc.org/D20822)
