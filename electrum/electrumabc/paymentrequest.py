@@ -435,11 +435,9 @@ def verify_cert_chain(chain):
     for i in range(cert_num):
         x = x509.X509(bytearray(chain[i]))
         x509_chain.append(x)
-        if i == 0:
-            x.check_date()
-        else:
-            if not x.check_ca():
-                raise RuntimeError("ERROR: Supplied CA Certificate Error")
+        x.check_date()
+        if i > 0 and not x.check_ca():
+            raise RuntimeError("ERROR: Supplied CA Certificate Error")
     if not cert_num > 1:
         raise RuntimeError(
             "ERROR: CA Certificate Chain Not Provided by Payment Processor"
@@ -452,6 +450,7 @@ def verify_cert_chain(chain):
         if f:
             root = ca_list[f]
             x509_chain.append(root)
+            root.check_date()
         else:
             raise RuntimeError("Supplied CA Not Found in Trusted CA Store.")
     # verify the chain of signatures

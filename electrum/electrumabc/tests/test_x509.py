@@ -11,16 +11,23 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
-from ..x509 import X509
+from .. import paymentrequest
+from ..paymentrequest import verify_cert_chain
+from ..x509 import X509, CertificateError
 
 now = datetime.now(timezone.utc)
 
+root_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
 
 def _make_cert(
+    issuer_key=root_key,
     not_before_date: datetime = now - timedelta(days=1),
     not_after_date: datetime = now + timedelta(days=1),
     ca: bool | None = None,
     critical: bool = False,
+    subject_name: str = "test-ca-check.example",
+    issuer_name: str = "test-ca-check.example",
 ) -> bytes:
     """
     Build a minimal self-signed certificate.
@@ -28,17 +35,14 @@ def _make_cert(
     ca=False → explicit cA=FALSE (DER 30 03 01 01 00)
     ca=True  → cA=TRUE
     """
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name(
-        [
-            x509.NameAttribute(NameOID.COMMON_NAME, "test-ca-check.example"),
-        ]
-    )
+    subject_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     builder = (
         x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(key.public_key())
+        .subject_name(
+            x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, subject_name)])
+        )
+        .issuer_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, issuer_name)]))
+        .public_key(subject_key.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(not_before_date)
         .not_valid_after(not_after_date)
@@ -48,8 +52,8 @@ def _make_cert(
             x509.BasicConstraints(ca=ca, path_length=None),
             critical=critical,
         )
-    cert = builder.sign(key, hashes.SHA256())
-    return cert.public_bytes(serialization.Encoding.DER)
+    cert = builder.sign(issuer_key, hashes.SHA256())
+    return cert.public_bytes(serialization.Encoding.DER), subject_key
 
 
 class TestX509(unittest.TestCase):
@@ -75,7 +79,7 @@ class TestX509(unittest.TestCase):
         cert.check_date()
 
         # cert valid today
-        cert = X509(_make_cert())
+        cert = X509(_make_cert()[0])
         cert.check_date()
 
         dt1968 = datetime(1968, 1, 1, tzinfo=timezone.utc)
@@ -93,19 +97,19 @@ class TestX509(unittest.TestCase):
         )
 
         # both dates before 2050, encoded as UTCTime as per RFC 5280
-        cert = X509(_make_cert(not_before_date=dt2026, not_after_date=dt2049))
+        cert = X509(_make_cert(not_before_date=dt2026, not_after_date=dt2049)[0])
         cert.check_date()
 
         # notBefore encoded as UTCTime, notAfter encoded as GeneralizedTime
-        cert = X509(_make_cert(not_before_date=now, not_after_date=dt2050))
+        cert = X509(_make_cert(not_before_date=now, not_after_date=dt2050)[0])
         cert.check_date()
 
         # a notAfter in the 22nd century
-        cert = X509(_make_cert(not_before_date=now, not_after_date=dt2118))
+        cert = X509(_make_cert(not_before_date=now, not_after_date=dt2118)[0])
         cert.check_date()
 
         # UTCTime with YY (>=50) must be interpreted as 19YY.
-        cert = X509(_make_cert(not_before_date=dt1968, not_after_date=dt2050))
+        cert = X509(_make_cert(not_before_date=dt1968, not_after_date=dt2050)[0])
         cert.check_date()
 
     def test_basic_constraints_ca_flag(self):
@@ -114,29 +118,157 @@ class TestX509(unittest.TestCase):
         Constraints extension is present *and* its cA BOOLEAN is TRUE.
         """
         # Extension completely absent → not a CA
-        cert_absent = X509(_make_cert(ca=None))
+        cert_absent = X509(_make_cert(ca=None)[0])
         self.assertFalse(
             cert_absent.check_ca(),
             "certificate without Basic Constraints must not be a CA",
         )
 
         # cA=FALSE, non-critical
-        cert_false = X509(_make_cert(ca=False, critical=False))
+        cert_false = X509(_make_cert(ca=False, critical=False)[0])
         self.assertFalse(cert_false.check_ca(), "cA=FALSE must not be treated as a CA")
 
         # cA=FALSE, critical
-        cert_false_crit = X509(_make_cert(ca=False, critical=True))
+        cert_false_crit = X509(_make_cert(ca=False, critical=True)[0])
         self.assertFalse(
             cert_false_crit.check_ca(), "critical cA=FALSE must not be treated as a CA"
         )
 
         # cA=TRUE
-        cert_true = X509(_make_cert(ca=True, critical=False))
+        cert_true = X509(_make_cert(ca=True, critical=False)[0])
         self.assertTrue(cert_true.check_ca(), "cA=TRUE must be recognised as a CA")
 
         # cA=TRUE, critical
-        cert_true = X509(_make_cert(ca=True, critical=True))
+        cert_true = X509(_make_cert(ca=True, critical=True)[0])
         self.assertTrue(cert_true.check_ca(), "cA=TRUE must be recognised as a CA")
+
+
+class TestVerifyCertChainDates(unittest.TestCase):
+    def setUp(self):
+        # Build a tiny PKI: Root → Intermediate → Leaf
+        self.root_der, self.root_key = _make_cert(ca=True)
+
+        root_x509 = X509(bytearray(self.root_der))
+        self.root_fp = root_x509.getFingerprint()
+
+        # Intermediate (CA) – valid by default
+        self.inter_der, self.inter_key = _make_cert(
+            self.root_key,
+            subject_name="test-intermediate",
+            issuer_name="test-ca-check.example",
+            not_before_date=now - timedelta(days=1),
+            not_after_date=now + timedelta(days=30),
+            ca=True,
+        )
+
+        # Leaf – valid by default
+        self.leaf_der, _ = _make_cert(
+            self.inter_key,
+            subject_name="test-leaf",
+            issuer_name="test-intermediate",
+            not_before_date=now - timedelta(days=1),
+            not_after_date=now + timedelta(days=10),
+            ca=False,
+        )
+
+        # inject the root certificate so we can test it
+        self._orig_ca_list = paymentrequest.ca_list
+        self._orig_ca_keyid = paymentrequest.ca_keyID
+        paymentrequest.ca_list = {self.root_fp: root_x509}
+        paymentrequest.ca_keyID = {root_x509.get_keyID(): self.root_fp}
+
+    def tearDown(self):
+        paymentrequest.ca_list = self._orig_ca_list
+        paymentrequest.ca_keyID = self._orig_ca_keyid
+
+    def test_valid_chain_accepted(self):
+        chain = [self.leaf_der, self.inter_der, self.root_der]
+        leaf, ca = verify_cert_chain(chain)
+        self.assertIsNotNone(leaf)
+        self.assertIsNotNone(ca)
+
+    def test_expired_intermediate_rejected(self):
+        expired_inter_der, expired_inter_key = _make_cert(
+            self.root_key,
+            subject_name="expired-intermediate",
+            issuer_name="test-ca-check.example",
+            not_before_date=now - timedelta(days=100),
+            not_after_date=now - timedelta(days=1),  # already expired
+            ca=True,
+        )
+        # leaf signed by the *expired* intermediate
+        leaf_der, _ = _make_cert(
+            expired_inter_key,
+            subject_name="leaf-under-expired",
+            issuer_name="expired-intermediate",
+            not_before_date=now - timedelta(days=1),
+            not_after_date=now + timedelta(days=10),
+            ca=False,
+        )
+        chain = [leaf_der, expired_inter_der, self.root_der]
+
+        with self.assertRaises(CertificateError) as cm:
+            verify_cert_chain(chain)
+        self.assertIn(
+            "Certificate for expired-intermediate has expired", str(cm.exception)
+        )
+
+    def test_not_yet_valid_intermediate_rejected(self):
+        future_inter_der, future_inter_key = _make_cert(
+            self.root_key,
+            subject_name="future-intermediate",
+            issuer_name="test-ca-check.example",
+            not_before_date=now + timedelta(days=1),
+            not_after_date=now + timedelta(days=30),
+            ca=True,
+        )
+        leaf_der, _ = _make_cert(
+            future_inter_key,
+            subject_name="leaf-under-future",
+            issuer_name="future-intermediate",
+            not_before_date=now - timedelta(days=1),
+            not_after_date=now + timedelta(days=10),
+            ca=False,
+        )
+        chain = [leaf_der, future_inter_der, self.root_der]
+
+        with self.assertRaises(CertificateError) as cm:
+            verify_cert_chain(chain)
+        self.assertIn(
+            "Certificate for future-intermediate has not yet entered its valid date range",
+            str(cm.exception),
+        )
+
+    def test_expired_leaf_rejected(self):
+        expired_leaf_der, _ = _make_cert(
+            self.inter_key,
+            subject_name="expired-leaf",
+            issuer_name="test-intermediate",
+            not_before_date=now - timedelta(days=100),
+            not_after_date=now - timedelta(days=1),
+            ca=False,
+        )
+        chain = [expired_leaf_der, self.inter_der, self.root_der]
+        with self.assertRaises(CertificateError) as cm:
+            verify_cert_chain(chain)
+        self.assertIn("Certificate for expired-leaf has expired", str(cm.exception))
+
+    def test_expired_root_from_store_rejected(self):
+        expired_root_der, _ = _make_cert(
+            subject_name="expired-root",
+            not_before_date=now - timedelta(days=400),
+            not_after_date=now - timedelta(days=1),
+            ca=True,
+        )
+        expired_root = X509(bytearray(expired_root_der))
+        paymentrequest.ca_list[self.root_fp] = expired_root
+        paymentrequest.ca_keyID[expired_root.get_keyID()] = self.root_fp
+
+        # Supply only leaf + intermediate; root is found in ca_list
+        chain = [self.leaf_der, self.inter_der]
+        with self.assertRaises(CertificateError) as cm:
+            verify_cert_chain(chain)
+        self.assertIn("Certificate for expired-root has expired", str(cm.exception))
 
 
 if __name__ == "__main__":
