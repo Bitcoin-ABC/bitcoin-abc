@@ -162,11 +162,11 @@ class PaymentRequest:
         try:
             self.data = pb2.PaymentRequest()
             self.data.ParseFromString(r)
+            self.details = pb2.PaymentDetails()
+            self.details.ParseFromString(self.data.serialized_payment_details)
         except Exception:
             self.error = "cannot parse payment request"
             return
-        self.details = pb2.PaymentDetails()
-        self.details.ParseFromString(self.data.serialized_payment_details)
         self.outputs = []
         for o in self.details.outputs:
             addr = transaction.get_address_from_output_script(o.script)[1]
@@ -207,9 +207,9 @@ class PaymentRequest:
             self.error = "Trusted certificate authorities list not found"
             return False
         cert = pb2.X509Certificates()
-        cert.ParseFromString(paymntreq.pki_data)
         # verify the chain of certificates
         try:
+            cert.ParseFromString(paymntreq.pki_data)
             x, ca = verify_cert_chain(cert.certificate)
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
