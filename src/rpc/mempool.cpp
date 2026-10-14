@@ -736,7 +736,7 @@ static RPCHelpMan getmempoolinfo() {
                  "Maximum memory usage for the mempool"},
                 {RPCResult::Type::STR_AMOUNT, "total_fee",
                  "Total fees for the mempool in " + ticker +
-                     ", ignoring modified fees through prioritizetransaction"},
+                     ", ignoring modified fees through prioritisetransaction"},
                 {RPCResult::Type::STR_AMOUNT, "mempoolminfee",
                  "Minimum fee rate in " + ticker +
                      "/kB for tx to be accepted. Is the maximum of "
