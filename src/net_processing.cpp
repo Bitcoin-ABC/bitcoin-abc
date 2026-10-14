@@ -6892,14 +6892,14 @@ void PeerManagerImpl::ProcessMessage(
                 }
                 return;
             }
+        } else {
+            pfrom.invsVoted(response.GetVotes().size());
         }
 
         // If no fault occurred within the last hour, reset the fault counter
         if (now > (pfrom.m_avalanche_last_message_fault.load() + 1h)) {
             pfrom.m_avalanche_message_fault_counter = 0;
         }
-
-        pfrom.invsVoted(response.GetVotes().size());
 
         auto logVoteUpdate = [](const auto &voteUpdate,
                                 const std::string &voteItemTypeStr,
