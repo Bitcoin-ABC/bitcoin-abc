@@ -1376,6 +1376,8 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             return
 
         invoice = load_invoice_from_file_and_show_error_message(filename, self)
+        if invoice is None:
+            return
         try:
             xec_amount = invoice.get_xec_amount()
         except ExchangeRateApiError as e:
@@ -1391,8 +1393,6 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             int(xec_amount * 100), self.get_decimal_point()
         )
         computed_rate = invoice.amount / xec_amount
-        if invoice is None:
-            return
         self.show_tab_signal.emit()
         self.payto_e.setText(invoice.address.to_ui_string())
         self.amount_e.setText(amount_str)

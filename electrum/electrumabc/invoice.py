@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Dict, List, Optional, Sequence, Union
@@ -143,7 +144,8 @@ class Invoice:
             return self.amount
 
         rate = self.exchange_rate.get_exchange_rate()
-        assert rate != 0
+        if rate == 0:
+            raise ExchangeRateApiError("Exchange rate API returned 0 rate")
         return self.amount / rate
 
 
@@ -186,8 +188,14 @@ class ExchangeRateApi:
 
         next_node = json_data
         for k in self.keys:
+            if not isinstance(next_node, Mapping) or k not in next_node:
+                raise ExchangeRateApiError("Malformed exchange rate data")
             next_node = next_node[k]
-        return Decimal(next_node)
+        try:
+            rate = Decimal(next_node)
+        except Exception as e:
+            raise ExchangeRateApiError(f"Malformed exchange rate data: {e}")
+        return rate
 
 
 @dataclass

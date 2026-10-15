@@ -36,6 +36,7 @@ from electrumabc.i18n import _
 from electrumabc.invoice import (
     APIS,
     ExchangeRateApi,
+    ExchangeRateApiError,
     FixedExchangeRate,
     Invoice,
     InvoiceDataError,
@@ -483,7 +484,7 @@ def load_invoice_from_file_and_show_error_message(
 ) -> Optional[Invoice]:
     try:
         invoice = Invoice.from_file(filename)
-    except (json.JSONDecodeError, InvoiceDataError) as e:
+    except (json.JSONDecodeError, InvoiceDataError, ExchangeRateApiError) as e:
         QtWidgets.QMessageBox.critical(
             parent,
             _("Failed to load invoice"),
