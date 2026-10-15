@@ -296,6 +296,11 @@ class PeerManager {
     CRollingBloomFilter invalidProofs{100000, 0.000001};
 
     std::unordered_set<ProofId, SaltedProofIdHasher> manualFlakyProofids;
+    // Proofs whose stake contender was rejected for
+    // rejectedContenderPrevBlockHash. selectStakingRewardWinner keeps
+    // collecting alternatives past these for that prevblock only.
+    std::unordered_set<ProofId, SaltedProofIdHasher> rejectedContenderProofids;
+    BlockHash rejectedContenderPrevBlockHash;
 
     StakeContenderCache stakeContenderCache;
 
@@ -463,6 +468,13 @@ public:
         }
     }
 
+    /**
+     * Record a rejected stake contender for prevblockhash. Cleared
+     * automatically when selecting winners for a different block.
+     */
+    bool addRejectedContender(const ProofId &proofid,
+                              const BlockHash &prevblockhash);
+
     /** Make some of the contender cache API available */
     void cleanupStakeContenders(const int requestedMinHeight);
     void addStakeContender(const ProofRef &proof);
@@ -473,6 +485,12 @@ public:
         const StakeContenderId &contenderId, BlockHash &prevblockhash,
         std::vector<std::pair<ProofId, CScript>> &newWinners);
     void rejectStakeContender(const StakeContenderId &contenderId);
+    std::optional<StakeContenderCacheInfo>
+    getStakeContenderInfo(const StakeContenderId &contenderId) const;
+    bool hasAcceptedStakeWinner(const BlockHash &prevblockhash) const;
+    bool getStakeContenderWinners(
+        const BlockHash &prevblockhash,
+        std::vector<std::pair<ProofId, CScript>> &winners) const;
     void promoteStakeContendersToBlock(const CBlockIndex *pindex);
     bool setContenderStatusForLocalWinners(
         const CBlockIndex *prevblock,
@@ -549,6 +567,8 @@ public:
         std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs);
 
 private:
+    void clearRejectedContenders();
+
     template <typename ProofContainer>
     void moveToConflictingPool(const ProofContainer &proofs);
 

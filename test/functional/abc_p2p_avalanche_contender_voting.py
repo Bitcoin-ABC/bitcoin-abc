@@ -502,7 +502,7 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             check_stake_winners(
                 tip, [], winners, [(local_winner_proofid, local_winner_payout_script)]
             )
-        self.log.info("Vote on contenders: zero winners")
+        self.log.info("Reject local winner widens staking reward set")
 
         tip = self.generate(node, 1)[0]
         finalize_tip(tip)
@@ -515,13 +515,19 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
             tip, [], [(local_winner_proofid, local_winner_payout_script)], []
         )
 
-        # Invalidate all contenders
+        # Avalanche rejects all polled contenders, including the local winner
         finalize_contenders(tip, [])
 
-        # Local winner did not change
-        check_stake_winners(
-            tip, [], [], [(local_winner_proofid, local_winner_payout_script)]
-        )
+        # Rejecting the primary widens to one substitute; local stays first
+        reward = node.getstakingreward(tip)
+        assert_equal(len(reward), 2)
+        assert_equal(int(reward[0]["proofid"], 16), local_winner_proofid)
+        assert_equal(reward[0]["hex"], local_winner_payout_script)
+        assert int(reward[1]["proofid"], 16) != local_winner_proofid
+
+        gbt = node.getblocktemplate()
+        assert "stakingrewards" in gbt
+        assert_equal(gbt["stakingrewards"]["script"], local_winner_payout_script)
 
         self.log.info("Vote on contenders: stale contenders")
 
@@ -660,31 +666,48 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         avakey.set(bytes.fromhex(node.getavalanchekey()))
 
         def assert_contender_polls(tip, contender_ids):
-            local_winner_cid = None
+            staking_ready = False
             # It is possible staking rewards are not ready depending if they were computed
             # before or after proofs were finalized.
             try:
-                staking_reward = node.getstakingreward(tip)
-                local_winner_proofid = int(staking_reward[0]["proofid"], 16)
-                local_winner_cid = make_contender_id(tip, local_winner_proofid)
+                node.getstakingreward(tip)
+                staking_ready = True
             except JSONRPCException:
                 # An exception is thrown if staking rewards cannot be computed
                 pass
 
             for contender_id in contender_ids:
                 poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
-                expected_response = AvalancheContenderVoteError.PENDING
-                if local_winner_cid:
-                    # If staking rewards are ready, all contenders should be invalidated for simplicity
-                    expected_response = AvalancheContenderVoteError.INVALID
-                assert_response(
-                    poll_node,
-                    avakey,
-                    [AvalancheVote(expected_response, contender_id)],
+                if not staking_ready:
+                    assert_response(
+                        poll_node,
+                        avakey,
+                        [
+                            AvalancheVote(
+                                AvalancheContenderVoteError.PENDING, contender_id
+                            )
+                        ],
+                    )
+                    continue
+
+                # After invalidate-all, contenders are typically INVALID. Promote
+                # may re-apply local-winner acceptance on the current staking
+                # reward set, so ACCEPTED is also allowed here.
+                response = poll_node.wait_for_avaresponse()
+                assert avakey.verify_schnorr(response.sig, response.response.get_hash())
+                assert_equal(len(response.response.votes), 1)
+                assert_equal(response.response.votes[0].hash, contender_id)
+                assert response.response.votes[0].error in (
+                    AvalancheContenderVoteError.INVALID,
+                    AvalancheContenderVoteError.ACCEPTED,
                 )
 
         # Finalize contenders so we don't need to keep track which are invalidated (all of them are)
-        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum])
+        restart_proofs = [peer.proof for peer in quorum + old_quorum]
+        finalize_contenders(tip, [], restart_proofs)
+
+        # Only the first 12 contenders are polled/invalidated
+        assert_contender_polls(tip, get_all_contender_ids(tip, restart_proofs)[:12])
 
         # Sanity check that new quorum contenders can be polled even though we have not mined a block yet
         assert_contender_polls(tip, get_all_contender_ids(tip))
@@ -718,9 +741,13 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         )
 
         # Invalidate contenders
-        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum[:-1]])
+        promoted_proofs = [peer.proof for peer in quorum + old_quorum[:-1]]
+        finalize_contenders(tip, [], promoted_proofs)
 
-        # Sanity check
+        # Only the first 12 contenders are polled/invalidated
+        assert_contender_polls(tip, get_all_contender_ids(tip, promoted_proofs)[:12])
+
+        # Sanity check new quorum contenders remain known
         assert_contender_polls(tip, get_all_contender_ids(tip))
 
         # All proofs from the prior quorum were promoted except the last
@@ -733,9 +760,12 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         finalize_tip(tip)
 
         # Finalize contenders so we don't need to keep track which are invalidated (all of them are)
-        finalize_contenders(tip, [], [peer.proof for peer in quorum + old_quorum[:-1]])
+        finalize_contenders(tip, [], promoted_proofs)
 
-        # Sanity check
+        # Only the first 12 contenders are polled/invalidated
+        assert_contender_polls(tip, get_all_contender_ids(tip, promoted_proofs)[:12])
+
+        # Sanity check new quorum contenders remain known
         assert_contender_polls(tip, get_all_contender_ids(tip))
 
         # All proofs from the prior quorum were promoted except the last

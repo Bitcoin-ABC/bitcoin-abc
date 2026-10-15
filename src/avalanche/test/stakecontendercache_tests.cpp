@@ -40,6 +40,11 @@ static void CheckWinners(StakeContenderCache &cache,
     std::vector<std::pair<ProofId, CScript>> winners;
     size_t expectedSize =
         manualWinners.size() + acceptedWinners.size() + rejectedWinners.size();
+
+    // Manual winners alone do not count as an avalanche-accepted stake winner.
+    BOOST_CHECK_EQUAL(cache.hasAcceptedWinner(prevblockhash),
+                      !acceptedWinners.empty());
+
     if (expectedSize == 0) {
         BOOST_CHECK(!cache.getWinners(prevblockhash, winners));
         return;
@@ -144,6 +149,54 @@ BOOST_AUTO_TEST_CASE(vote_status_tests) {
         BOOST_CHECK(cache.setWinners(pindex, {proof->getPayoutScript()}));
         CheckVoteStatus(cache, blockhash, proof, 0);
     }
+}
+
+BOOST_AUTO_TEST_CASE(has_accepted_winner_tests) {
+    Chainstate &active_chainstate = Assert(m_node.chainman)->ActiveChainstate();
+    StakeContenderCache cache;
+
+    CBlockIndex *pindex = active_chainstate.m_chain.Tip();
+    const BlockHash &blockhash = pindex->GetBlockHash();
+
+    BOOST_CHECK(!cache.hasAcceptedWinner(blockhash));
+
+    // Manual winners alone are not avalanche-accepted stake winners
+    BOOST_CHECK(cache.setWinners(pindex, {CScript() << OP_TRUE}));
+    BOOST_CHECK(!cache.hasAcceptedWinner(blockhash));
+
+    auto proofWinnerOnly =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    auto proofAcceptedOnly =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    auto proofAcceptedWinner =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+
+    // IN_WINNER_SET without ACCEPTED
+    BOOST_CHECK(cache.add(pindex, proofWinnerOnly,
+                          StakeContenderStatus::IN_WINNER_SET));
+    BOOST_CHECK(!cache.hasAcceptedWinner(blockhash));
+
+    // ACCEPTED without IN_WINNER_SET
+    BOOST_CHECK(
+        cache.add(pindex, proofAcceptedOnly, StakeContenderStatus::ACCEPTED));
+    BOOST_CHECK(!cache.hasAcceptedWinner(blockhash));
+
+    // Both flags set
+    BOOST_CHECK(cache.add(pindex, proofAcceptedWinner,
+                          StakeContenderStatus::ACCEPTED |
+                              StakeContenderStatus::IN_WINNER_SET));
+    BOOST_CHECK(cache.hasAcceptedWinner(blockhash));
+
+    // Reject clears ACCEPTED; remaining entries still lack both flags
+    cache.reject(StakeContenderId(blockhash, proofAcceptedWinner->getId()));
+    BOOST_CHECK(!cache.hasAcceptedWinner(blockhash));
+
+    // Finalize restores ACCEPTED | IN_WINNER_SET
+    cache.finalize(StakeContenderId(blockhash, proofAcceptedWinner->getId()));
+    BOOST_CHECK(cache.hasAcceptedWinner(blockhash));
+
+    // Unrelated block has no accepted winner
+    BOOST_CHECK(!cache.hasAcceptedWinner(pindex->pprev->GetBlockHash()));
 }
 
 BOOST_AUTO_TEST_CASE(winners_tests) {
@@ -522,7 +575,7 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
     }
     CheckWinners(cache, blockhashes[0], {}, {}, {});
     CheckWinners(cache, blockhashes[1], {}, {}, {});
-    CheckWinners(cache, blockhashes[2], {}, {}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, proofs, {});
 
     // Attempting to promote to the same block again is a no-op and statuses
     // remain unchanged.
@@ -537,7 +590,7 @@ BOOST_FIXTURE_TEST_CASE(promote_tests, PeerManagerFixture) {
     }
     CheckWinners(cache, blockhashes[0], {}, {}, {});
     CheckWinners(cache, blockhashes[1], {}, {}, {});
-    CheckWinners(cache, blockhashes[2], {}, {}, proofs);
+    CheckWinners(cache, blockhashes[2], {}, proofs, {});
 
     // Now advance the tip and invalidate a proof
     cache.promoteToBlock(tip->pprev, [&](const ProofId &proofid) {

@@ -2781,6 +2781,89 @@ BOOST_FIXTURE_TEST_CASE(stake_contender_vote, NoCoolDownFixture) {
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(stake_contender_winners, NoCoolDownFixture) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman,
+                              /*stakingPreConsensus=*/true);
+
+    CBlockIndex *tip = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    BOOST_CHECK(tip != nullptr);
+    const BlockHash tipHash = tip->GetBlockHash();
+
+    std::vector<std::pair<ProofId, CScript>> winners;
+
+    // Empty cache
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(!pm.getStakeContenderWinners(tipHash, winners));
+
+    const ProofRef proofA =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    const ProofRef proofB =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proofA));
+    BOOST_CHECK(pm.registerProof(proofB));
+
+    const StakeContenderId contenderA(tipHash, proofA->getId());
+    const StakeContenderId contenderB(tipHash, proofB->getId());
+
+    // Contenders exist but are not in the winner set yet
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(!pm.getStakeContenderWinners(tipHash, winners));
+
+    // Accept alone does not put the contender in the winner set
+    pm.acceptStakeContender(contenderA);
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(!pm.getStakeContenderWinners(tipHash, winners));
+
+    // Finalize marks ACCEPTED | IN_WINNER_SET and refreshes winners
+    BlockHash finalizedHash;
+    std::vector<std::pair<ProofId, CScript>> finalizedWinners;
+    pm.finalizeStakeContender(contenderA, finalizedHash, finalizedWinners);
+    BOOST_CHECK_EQUAL(finalizedHash, tipHash);
+    BOOST_CHECK_EQUAL(finalizedWinners.size(), 1);
+    BOOST_CHECK_EQUAL(finalizedWinners[0].first, proofA->getId());
+    BOOST_CHECK(finalizedWinners[0].second == proofA->getPayoutScript());
+
+    BOOST_CHECK(pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(pm.getStakeContenderWinners(tipHash, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 1);
+    BOOST_CHECK_EQUAL(winners[0].first, proofA->getId());
+    BOOST_CHECK(winners[0].second == proofA->getPayoutScript());
+
+    // Reject clears ACCEPTED but leaves IN_WINNER_SET, so winners remain
+    pm.rejectStakeContender(contenderA);
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(pm.getStakeContenderWinners(tipHash, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 1);
+    BOOST_CHECK_EQUAL(winners[0].first, proofA->getId());
+
+    // Manual winners are returned first and do not count as accepted winners
+    const CScript manualScript = CScript() << OP_TRUE;
+    BOOST_CHECK(pm.setStakeContenderWinners(tip, {manualScript}));
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(pm.getStakeContenderWinners(tipHash, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 2);
+    BOOST_CHECK(winners[0].second == manualScript);
+    BOOST_CHECK_EQUAL(winners[0].first, ProofId());
+    BOOST_CHECK_EQUAL(winners[1].first, proofA->getId());
+
+    // Finalize a second contender restores hasAcceptedStakeWinner
+    pm.finalizeStakeContender(contenderB, finalizedHash, finalizedWinners);
+    BOOST_CHECK(pm.hasAcceptedStakeWinner(tipHash));
+    BOOST_CHECK(pm.getStakeContenderWinners(tipHash, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 3);
+    BOOST_CHECK(winners[0].second == manualScript);
+    // Accepted winner sorts before rejected-in-winner-set
+    BOOST_CHECK_EQUAL(winners[1].first, proofB->getId());
+    BOOST_CHECK_EQUAL(winners[2].first, proofA->getId());
+
+    // Unrelated block remains empty
+    const BlockHash otherHash = tip->pprev->GetBlockHash();
+    BOOST_CHECK(!pm.hasAcceptedStakeWinner(otherHash));
+    BOOST_CHECK(!pm.getStakeContenderWinners(otherHash, winners));
+}
+
 BOOST_AUTO_TEST_CASE(remote_proof) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);

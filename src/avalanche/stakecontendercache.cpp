@@ -300,4 +300,16 @@ bool StakeContenderCache::getWinners(
     return winners.size() > 0;
 }
 
+bool StakeContenderCache::hasAcceptedWinner(
+    const BlockHash &prevblockhash) const {
+    auto &view = contenders.get<by_prevblockhash>();
+    auto [begin, end] = view.equal_range(prevblockhash);
+    for (auto it = begin; it != end; it++) {
+        if (it->isInWinnerSet() && it->isAccepted()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace avalanche

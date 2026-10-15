@@ -199,6 +199,11 @@ public:
 
     bool getWinners(const BlockHash &prevblockhash,
                     std::vector<std::pair<ProofId, CScript>> &winners) const;
+
+    /**
+     * True if any accepted contender is in the winner set for prevblockhash.
+     */
+    bool hasAcceptedWinner(const BlockHash &prevblockhash) const;
 };
 
 } // namespace avalanche

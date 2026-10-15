@@ -409,7 +409,7 @@ public:
     void finalizeStakeContender(const StakeContenderId &contenderId)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
     void rejectStakeContender(const StakeContenderId &contenderId)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
 
     /** Promote stake contender cache entries to a given block and then poll */
     void promoteAndPollStakeContenders(const CBlockIndex *pprev)

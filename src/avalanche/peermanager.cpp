@@ -1082,6 +1082,14 @@ bool PeerManager::selectStakingRewardWinner(
         return false;
     }
 
+    const BlockHash prevblockhash = pprev->GetBlockHash();
+
+    // Rejected contenders only affect winner selection for their prevblock.
+    if (rejectedContenderPrevBlockHash != BlockHash() &&
+        rejectedContenderPrevBlockHash != prevblockhash) {
+        clearRejectedContenders();
+    }
+
     // Don't select proofs that have not been known for long enough, i.e. at
     // least since twice the dangling proof cleanup timeout before the last
     // block time, so we're sure to not account for proofs more recent than the
@@ -1102,8 +1110,6 @@ bool PeerManager::selectStakingRewardWinner(
     const int64_t targetRegistrationTime = refTime - registrationDelay.count();
     const int64_t maxRegistrationTime = refTime - minRegistrationDelay.count();
     const int64_t minRegistrationTime = refTime - maxRegistrationDelay.count();
-
-    const BlockHash prevblockhash = pprev->GetBlockHash();
 
     std::vector<ProofRef> selectedProofs;
     ProofRef firstCompliantProof = ProofRef();
@@ -1173,7 +1179,8 @@ bool PeerManager::selectStakingRewardWinner(
         selectedProofs.push_back(selectedProof);
 
         if (selectedProofRegistrationTime < minRegistrationTime &&
-            !isFlaky(selectedProof->getId())) {
+            !isFlaky(selectedProof->getId()) &&
+            rejectedContenderProofids.count(selectedProof->getId()) == 0) {
             break;
         }
     }
@@ -1208,6 +1215,20 @@ bool PeerManager::setFlaky(const ProofId &proofid) {
 
 bool PeerManager::unsetFlaky(const ProofId &proofid) {
     return manualFlakyProofids.erase(proofid) > 0;
+}
+
+bool PeerManager::addRejectedContender(const ProofId &proofid,
+                                       const BlockHash &prevblockhash) {
+    if (rejectedContenderPrevBlockHash != prevblockhash) {
+        rejectedContenderProofids.clear();
+        rejectedContenderPrevBlockHash = prevblockhash;
+    }
+    return rejectedContenderProofids.insert(proofid).second;
+}
+
+void PeerManager::clearRejectedContenders() {
+    rejectedContenderProofids.clear();
+    rejectedContenderPrevBlockHash = BlockHash();
 }
 
 bool PeerManager::isFlaky(const ProofId &proofid) const {
@@ -1557,6 +1578,21 @@ void PeerManager::finalizeStakeContender(
 
 void PeerManager::rejectStakeContender(const StakeContenderId &contenderId) {
     stakeContenderCache.reject(contenderId);
+}
+
+std::optional<StakeContenderCacheInfo>
+PeerManager::getStakeContenderInfo(const StakeContenderId &contenderId) const {
+    return stakeContenderCache.getContenderInfo(contenderId);
+}
+
+bool PeerManager::hasAcceptedStakeWinner(const BlockHash &prevblockhash) const {
+    return stakeContenderCache.hasAcceptedWinner(prevblockhash);
+}
+
+bool PeerManager::getStakeContenderWinners(
+    const BlockHash &prevblockhash,
+    std::vector<std::pair<ProofId, CScript>> &winners) const {
+    return stakeContenderCache.getWinners(prevblockhash, winners);
 }
 
 void PeerManager::promoteStakeContendersToBlock(const CBlockIndex *pindex) {

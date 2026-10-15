@@ -25,6 +25,7 @@
 #include <util/translation.h>
 #include <validation.h>
 
+#include <algorithm>
 #include <chrono>
 #include <limits>
 #include <tuple>
@@ -1128,8 +1129,76 @@ void Processor::finalizeStakeContender(const StakeContenderId &contenderId) {
 }
 
 void Processor::rejectStakeContender(const StakeContenderId &contenderId) {
-    LOCK(cs_peerManager);
-    peerManager->rejectStakeContender(contenderId);
+    AssertLockNotHeld(cs_main);
+    AssertLockNotHeld(cs_peerManager);
+    AssertLockNotHeld(cs_stakingRewards);
+
+    // Snapshot contender metadata, then mark it rejected in the cache.
+    std::optional<StakeContenderCacheInfo> info;
+    {
+        LOCK(cs_peerManager);
+        info = peerManager->getStakeContenderInfo(contenderId);
+        peerManager->rejectStakeContender(contenderId);
+    }
+    if (!info) {
+        return;
+    }
+
+    const BlockHash &prevblockhash = info->prevblockhash;
+    const ProofId &rejectedProofid = info->proofid;
+
+    // Check if the rejected proof is a current staking winner, and whether it
+    // is the primary (first) winner.
+    bool rejectedIsPrimaryWinner = false;
+    {
+        LOCK(cs_stakingRewards);
+        auto it = stakingRewards.find(prevblockhash);
+        if (it == stakingRewards.end()) {
+            return;
+        }
+        if (std::none_of(it->second.winners.begin(), it->second.winners.end(),
+                         [&](const auto &winner) {
+                             return winner.first == rejectedProofid;
+                         })) {
+            return;
+        }
+        rejectedIsPrimaryWinner =
+            it->second.winners[0].first == rejectedProofid;
+    }
+
+    // The rejected contender is not the primary winner: leave the list
+    // unchanged.
+    if (!rejectedIsPrimaryWinner) {
+        return;
+    }
+
+    const CBlockIndex *pprev = WITH_LOCK(
+        cs_main, return chainman.m_blockman.LookupBlockIndex(prevblockhash));
+    if (!pprev) {
+        return;
+    }
+
+    std::vector<std::pair<ProofId, CScript>> newWinners;
+    {
+        LOCK(cs_peerManager);
+        if (peerManager->hasAcceptedStakeWinner(prevblockhash)) {
+            // Other contenders were already avalanche-finalized into the
+            // winner set: refresh from the cache (accepted first).
+            if (!peerManager->getStakeContenderWinners(prevblockhash,
+                                                       newWinners)) {
+                return;
+            }
+        } else {
+            // Widen payouts for this prevblock only. Avoid computeStakingReward
+            // so we do not re-apply local-winner status on rejected contenders.
+            peerManager->addRejectedContender(rejectedProofid, prevblockhash);
+            if (!peerManager->selectStakingRewardWinner(pprev, newWinners)) {
+                return;
+            }
+        }
+    }
+
+    setStakingRewardWinners(pprev, newWinners);
 }
 
 void Processor::promoteAndPollStakeContenders(const CBlockIndex *pprev) {
