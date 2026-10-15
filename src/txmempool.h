@@ -336,12 +336,15 @@ private:
 
     /**
      * Helper function to calculate all in-mempool ancestors of staged_ancestors
-     * param@[in]   staged_ancestors    Should contain entries in the mempool.
-     * param@[out]  setAncestors        Will be populated with all mempool
+     * @param[in]   staged_ancestors    Should contain entries in the mempool.
+     * @param[out]  setAncestors        Will be populated with all mempool
      *                                  ancestors.
+     * @param[in]   unfinalizedOnly     When true, stop at already
+     *                                  avalanche-finalized ancestors.
      */
     void CalculateAncestors(setEntries &setAncestors,
-                            CTxMemPoolEntry::Parents &staged_ancestors) const
+                            CTxMemPoolEntry::Parents &staged_ancestors,
+                            bool unfinalizedOnly = false) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 public:
@@ -433,9 +436,13 @@ public:
      * Calculate all in-mempool ancestors of entry.
      * The entry must already be in the mempool: direct parents are read from
      * its m_parents, which addUnchecked populates.
+     *
+     * unfinalizedOnly = when true, stop at already avalanche-finalized
+     * ancestors. Defaults to false, which includes them.
      */
     void CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
-                                   setEntries &setAncestors) const
+                                   setEntries &setAncestors,
+                                   bool unfinalizedOnly = false) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**

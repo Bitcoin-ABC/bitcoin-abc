@@ -778,4 +778,86 @@ BOOST_AUTO_TEST_CASE(setAvalancheFinalized_ContextualCheckTransactionFailures) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(setAvalancheFinalized_chained_txs) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const Consensus::Params &params = chainman.GetConsensus();
+    TestMemPoolEntryHelper entry;
+
+    LOCK2(cs_main, pool.cs);
+    const CBlockIndex &tip = *Assert(chainman.ActiveTip());
+
+    CScript scriptSig;
+    for (int i = 0; i < 100; ++i) {
+        scriptSig << OP_1;
+    }
+
+    std::vector<CTxMemPoolEntryRef> entries;
+    entries.reserve(100);
+    TxId prevId{FastRandomContext().rand256()};
+    for (size_t i = 0; i < 100; ++i) {
+        CMutableTransaction mtx;
+        mtx.nVersion = 2;
+        mtx.vin.resize(1);
+        mtx.vin[0].prevout = COutPoint(prevId, 0);
+        mtx.vin[0].scriptSig = scriptSig;
+        mtx.vout.emplace_back((100000 - int64_t(i) * 1000) * SATOSHI,
+                              CScript() << OP_TRUE);
+        CTransactionRef tx = MakeTransactionRef(mtx);
+        prevId = tx->GetId();
+
+        auto mempoolEntry = entry.Fee(1000 * SATOSHI).FromTx(tx);
+        pool.addUnchecked(mempoolEntry);
+        entries.push_back(mempoolEntry);
+    }
+
+    // Finalize the 50th transaction in the chain: all 50 ancestors (0..49)
+    // should finalize together.
+    std::vector<TxId> finalizedTxIds;
+    BOOST_CHECK(pool.setAvalancheFinalized(
+        entries[49], params, tip, chainman.ActiveChainstate(), finalizedTxIds));
+    BOOST_CHECK_EQUAL(finalizedTxIds.size(), 50U);
+    BOOST_CHECK_EQUAL(pool.GetFinalizedTxCount(), 50U);
+    for (size_t i = 0; i < 50; ++i) {
+        BOOST_CHECK(
+            pool.isAvalancheFinalizedPreConsensus(entries[i]->GetTx().GetId()));
+    }
+    for (size_t i = 50; i < 100; ++i) {
+        BOOST_CHECK(!pool.isAvalancheFinalizedPreConsensus(
+            entries[i]->GetTx().GetId()));
+    }
+
+    // Verify CalculateMemPoolAncestors stops at already-finalized ancestors
+    // when unfinalizedOnly is true.
+    CTxMemPool::setEntries unfinalizedAncestors;
+    pool.CalculateMemPoolAncestors(entries[52], unfinalizedAncestors,
+                                   /*unfinalizedOnly=*/true);
+    BOOST_CHECK_EQUAL(unfinalizedAncestors.size(), 2U);
+
+    CTxMemPool::setEntries allAncestors;
+    pool.CalculateMemPoolAncestors(entries[52], allAncestors,
+                                   /*unfinalizedOnly=*/false);
+    BOOST_CHECK_EQUAL(allAncestors.size(), 52U);
+
+    // Re-finalizing an already-finalized transaction is a no-op that succeeds
+    // with an empty newly-finalized list.
+    BOOST_CHECK(pool.setAvalancheFinalized(
+        entries[25], params, tip, chainman.ActiveChainstate(), finalizedTxIds));
+    BOOST_CHECK(finalizedTxIds.empty());
+    BOOST_CHECK_EQUAL(pool.GetFinalizedTxCount(), 50U);
+
+    // Finalizing the remaining descendants one by one should only finalize the
+    // new child each time without re-walking or re-reporting finalized parents.
+    for (size_t i = 50; i < 100; ++i) {
+        BOOST_CHECK(pool.setAvalancheFinalized(entries[i], params, tip,
+                                               chainman.ActiveChainstate(),
+                                               finalizedTxIds));
+        BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1U);
+        BOOST_CHECK_EQUAL(finalizedTxIds[0], entries[i]->GetTx().GetId());
+        BOOST_CHECK_EQUAL(pool.GetFinalizedTxCount(), i + 1);
+        BOOST_CHECK(
+            pool.isAvalancheFinalizedPreConsensus(entries[i]->GetTx().GetId()));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

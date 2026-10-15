@@ -29,9 +29,9 @@
 #include <limits>
 #include <vector>
 
-void CTxMemPool::CalculateAncestors(
-    setEntries &setAncestors,
-    CTxMemPoolEntry::Parents &staged_ancestors) const {
+void CTxMemPool::CalculateAncestors(setEntries &setAncestors,
+                                    CTxMemPoolEntry::Parents &staged_ancestors,
+                                    bool unfinalizedOnly /* = false */) const {
     while (!staged_ancestors.empty()) {
         const auto stage = staged_ancestors.begin()->get();
 
@@ -43,6 +43,10 @@ void CTxMemPool::CalculateAncestors(
         const CTxMemPoolEntry::Parents &parents =
             (*stageit)->GetMemPoolParentsConst();
         for (const auto &parent : parents) {
+            if (unfinalizedOnly && isAvalancheFinalizedPreConsensus(
+                                       parent.get()->GetTx().GetId())) {
+                continue;
+            }
             txiter parent_it = mapTx.find(parent.get()->GetTx().GetId());
             assert(parent_it != mapTx.end());
 
@@ -54,13 +58,24 @@ void CTxMemPool::CalculateAncestors(
     }
 }
 
-void CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
-                                           setEntries &setAncestors) const {
+void CTxMemPool::CalculateMemPoolAncestors(
+    const CTxMemPoolEntryRef &entry, setEntries &setAncestors,
+    bool unfinalizedOnly /* = false */) const {
+    CTxMemPoolEntry::Parents staged_ancestors;
     // The entry must already be in the mempool, so its parent links are
     // populated.
-    CTxMemPoolEntry::Parents staged_ancestors = entry->GetMemPoolParentsConst();
+    if (unfinalizedOnly) {
+        for (const auto &parent : entry->GetMemPoolParentsConst()) {
+            if (!isAvalancheFinalizedPreConsensus(
+                    parent.get()->GetTx().GetId())) {
+                staged_ancestors.insert(parent);
+            }
+        }
+    } else {
+        staged_ancestors = entry->GetMemPoolParentsConst();
+    }
 
-    CalculateAncestors(setAncestors, staged_ancestors);
+    CalculateAncestors(setAncestors, staged_ancestors, unfinalizedOnly);
 }
 
 void CTxMemPool::UpdateParentsOf(bool add, txiter it) {
@@ -539,16 +554,21 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
         return false;
     }
 
+    if (isAvalancheFinalizedPreConsensus(tx->GetTx().GetId())) {
+        finalizedTxIds.clear();
+        return true;
+    }
+
     setEntries setAncestors;
     setAncestors.insert(it);
-    CalculateMemPoolAncestors(tx, setAncestors);
+    CalculateMemPoolAncestors(tx, setAncestors, /*unfinalizedOnly=*/true);
 
-    // Make sure the tx chain would fit the block before adding them.
+    // Make sure the unfinalized tx chain would fit the block before adding
+    // them.
     uint64_t sumOfTxSize{0};
     uint64_t sumOfTxSigChecks{0};
-    for (auto iter_it = setAncestors.begin(); iter_it != setAncestors.end();) {
-        // iter_it is an iterator of mapTx iterator (aka txiter)
-        CTxMemPoolEntryRef entry = **iter_it;
+    for (txiter ancestor_it : setAncestors) {
+        const CTxMemPoolEntryRef &entry = *ancestor_it;
 
         TxValidationState state;
         if (!ContextualCheckTransactionForCurrentBlock(active_chain_tip, params,
@@ -610,16 +630,8 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
             }
         }
 
-        // It is possible (and normal) that an ancestor is already finalized.
-        // Beware to not account for it in this case.
-        if (isAvalancheFinalizedPreConsensus(entry->GetTx().GetId())) {
-            iter_it = setAncestors.erase(iter_it);
-            continue;
-        }
-
         sumOfTxSize += entry->GetTxSize();
         sumOfTxSigChecks += entry->GetSigChecks();
-        ++iter_it;
     }
 
     if (!m_finalizedTxsFitter.testTxFits(sumOfTxSize, sumOfTxSigChecks)) {
