@@ -329,7 +329,11 @@ class PaymentRequest:
         payurl = urllib.parse.urlparse(pay_det.payment_url)
         try:
             r = requests.post(
-                payurl.geturl(), data=pm, headers=ACK_HEADERS, verify=ca_path
+                payurl.geturl(),
+                data=pm,
+                headers=ACK_HEADERS,
+                verify=ca_path,
+                timeout=30,
             )
         except requests.exceptions.RequestException as e:
             return False, str(e)
