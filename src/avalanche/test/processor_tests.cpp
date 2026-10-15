@@ -2984,7 +2984,6 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
                           bestproof->getPayoutScript()) == winners.end());
 
     // Best contender is still polled but we vote no while it is dangling
-    // locally
     {
         const StakeContenderId bestcontender =
             StakeContenderId(chaintip->GetBlockHash(), bestproof->getId());

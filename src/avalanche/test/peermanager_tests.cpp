@@ -2738,8 +2738,8 @@ BOOST_FIXTURE_TEST_CASE(stake_contender_vote, NoCoolDownFixture) {
         BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 3);
     }
 
-    // Dangling -> 4 (even if remotely present; quorum peers with the proof
-    // bound can still vote yes and finalize)
+    // Dangling -> 4 unless stake-weighted remote presence is majority-true
+    // (same bar as dangling pullback).
     {
         auto [proof, contenderId, peerid] =
             makeEligibleContender({.attachNode = false});
@@ -2748,8 +2748,21 @@ BOOST_FIXTURE_TEST_CASE(stake_contender_vote, NoCoolDownFixture) {
         tip->nTime = now.count();
         TestPeerManager::cleanupDanglingProofs(pm);
         BOOST_CHECK(pm.isDangling(proof->getId()));
+        // No remote presence status yet -> reject
         BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 4);
+
+        // A single present claim from one connected node is majority-true when
+        // it is the only remote reporter, so the dangling contender is votable.
         BOOST_CHECK(pm.saveRemoteProof(proof->getId(), 0, true));
+        BOOST_CHECK(TestPeerManager::getRemotePresenceStatus(pm, proof->getId())
+                        .value());
+        BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 0);
+
+        // Majority-absent remote presence keeps the dangling reject
+        BOOST_CHECK(pm.saveRemoteProof(proof->getId(), 0, false));
+        BOOST_CHECK(
+            !TestPeerManager::getRemotePresenceStatus(pm, proof->getId())
+                 .value());
         BOOST_CHECK_EQUAL(pm.getStakeContenderStatus(contenderId, outHash), 4);
     }
 

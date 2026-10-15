@@ -1510,7 +1510,8 @@ int PeerManager::getStakeContenderStatus(const StakeContenderId &contenderId,
     if (isInConflictingPool(proofid)) {
         return 3;
     }
-    if (isDangling(proofid)) {
+    if (isDangling(proofid) &&
+        !getRemotePresenceStatus(proofid).value_or(false)) {
         return 4;
     }
 
