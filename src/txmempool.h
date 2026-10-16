@@ -340,7 +340,7 @@ private:
      * param@[out]  setAncestors        Will be populated with all mempool
      *                                  ancestors.
      */
-    bool CalculateAncestors(setEntries &setAncestors,
+    void CalculateAncestors(setEntries &setAncestors,
                             CTxMemPoolEntry::Parents &staged_ancestors) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
@@ -436,7 +436,7 @@ public:
      * or look up parents from m_parents. Must be true for entries not in the
      * mempool
      */
-    bool CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
+    void CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
                                    setEntries &setAncestors,
                                    bool fSearchForParents = true) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);

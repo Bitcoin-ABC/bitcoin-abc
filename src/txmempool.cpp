@@ -29,7 +29,7 @@
 #include <limits>
 #include <vector>
 
-bool CTxMemPool::CalculateAncestors(
+void CTxMemPool::CalculateAncestors(
     setEntries &setAncestors,
     CTxMemPoolEntry::Parents &staged_ancestors) const {
     while (!staged_ancestors.empty()) {
@@ -52,11 +52,9 @@ bool CTxMemPool::CalculateAncestors(
             }
         }
     }
-
-    return true;
 }
 
-bool CTxMemPool::CalculateMemPoolAncestors(
+void CTxMemPool::CalculateMemPoolAncestors(
     const CTxMemPoolEntryRef &entry, setEntries &setAncestors,
     bool fSearchForParents /* = true */) const {
     CTxMemPoolEntry::Parents staged_ancestors;
@@ -79,7 +77,7 @@ bool CTxMemPool::CalculateMemPoolAncestors(
         staged_ancestors = entry->GetMemPoolParentsConst();
     }
 
-    return CalculateAncestors(setAncestors, staged_ancestors);
+    CalculateAncestors(setAncestors, staged_ancestors);
 }
 
 void CTxMemPool::UpdateParentsOf(bool add, txiter it) {
@@ -452,8 +450,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         setEntries setAncestors;
         std::string dummy;
 
-        const bool ok = CalculateMemPoolAncestors(entry, setAncestors);
-        assert(ok);
+        CalculateMemPoolAncestors(entry, setAncestors);
 
         // all ancestors should have entryId < this tx's entryId
         for (const auto &ancestor : setAncestors) {
@@ -563,14 +560,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
     setEntries setAncestors;
     setAncestors.insert(it);
-    if (!CalculateMemPoolAncestors(tx, setAncestors,
-                                   /*fSearchForParents=*/false)) {
-        // Failed to get a list of parents for this tx. If we finalize it we
-        // might be missing a parent and generate an invalid block.
-        LogPrintf("Failed to calculate ancestors for tx %s\n",
-                  tx->GetTx().GetId().ToString());
-        return false;
-    }
+    CalculateMemPoolAncestors(tx, setAncestors, /*fSearchForParents=*/false);
 
     // Make sure the tx chain would fit the block before adding them.
     uint64_t sumOfTxSize{0};
