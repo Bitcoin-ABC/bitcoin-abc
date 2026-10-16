@@ -253,10 +253,10 @@ impl<'a> TokenWriter<'a> {
             {
                 if let Some(info) = self.col.fetch_genesis_info(tx_num)? {
                     genesis_infos.insert(*meta, info);
+                    // Also add their token_tx_nums to all_token_tx_nums to
+                    // ensure their metas are loaded.
+                    all_token_tx_nums.insert(tx_num);
                 }
-                // Also add their token_tx_nums to all_token_tx_nums to ensure
-                // their metas are loaded.
-                all_token_tx_nums.insert(tx_num);
             }
         }
 

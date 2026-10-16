@@ -20,6 +20,7 @@ from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_12, OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
+from test_framework.util import assert_equal
 
 
 class ChronikTokenSlpMintVault(BitcoinTestFramework):
@@ -383,6 +384,56 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
         node.invalidateblock(block_hashes[-1])
         mint.test(chronik)
         send.test(chronik)
+
+        # MINT VAULT whose token_id names a confirmed non-token tx (the
+        # coinbase of block 1).
+        assert_equal(chronik.tx(cointx).ok().token_status, pb.TOKEN_STATUS_NON_TOKEN)
+        tx = CTransaction()
+        tx.vin = [CTxIn(COutPoint(int(fan_txid, 16), 2), SCRIPTSIG_OP_TRUE)]
+        tx.vout = [
+            CTxOut(
+                0,
+                slp_mint_vault(
+                    token_id=cointx,
+                    mint_amounts=[1],
+                ),
+            ),
+            CTxOut(90000, P2SH_OP_TRUE),
+        ]
+        non_token_mint = TokenTx(
+            tx=tx,
+            status=pb.TOKEN_STATUS_NOT_NORMAL,
+            entries=[
+                pb.TokenEntry(
+                    token_id=cointx,
+                    token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
+                    tx_type=pb.MINT,
+                    is_invalid=True,
+                    burn_summary="Validation error: Missing MINT vault",
+                    actual_burn_atoms="0",
+                ),
+            ],
+            inputs=[pb.Token()],
+            outputs=[
+                pb.Token(),
+                pb.Token(),
+            ],
+        )
+        non_token_mint.send(
+            chronik,
+            error=(
+                f"400: Tx {non_token_mint.txid} failed token checks: "
+                "Validation error: Missing MINT vault."
+            ),
+        )
+        non_token_mint.test(chronik)
+        non_token_block = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
+        node.syncwithvalidationinterfacequeue()
+        non_token_mint.test(chronik, non_token_block)
+
+        self.restart_node(0)
+        non_token_mint.test(chronik, non_token_block)
+        genesis.test(chronik, block.hash_hex)
 
 
 if __name__ == "__main__":
