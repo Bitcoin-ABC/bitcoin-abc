@@ -2,7 +2,12 @@ from functools import partial
 from os import urandom
 
 # pysatochip
-from pysatochip.CardConnector import CardError, CardNotPresentError, UnexpectedSW12Error
+from pysatochip.CardConnector import (
+    CardError,
+    CardNotPresentError,
+    PinRequiredError,
+    UnexpectedSW12Error,
+)
 from pysatochip.Satochip2FA import Satochip2FA
 from pysatochip.version import (
     SATOCHIP_PROTOCOL_MAJOR_VERSION,
@@ -261,7 +266,17 @@ class SatochipSettingsDialog(WindowModalDialog):
                 self.needs_SC.setText("<tt>%s" % "no")
 
             # card label
-            (response, sw1, sw2, label) = client.cc.card_get_label()
+            try:
+                (response, sw1, sw2, label) = client.cc.card_get_label()
+            except PinRequiredError:
+                # reading the label requires PIN authentication but no PIN is cached:
+                # ask the user for the PIN (interactive variant) and retry once
+                try:
+                    client.cc.card_verify_PIN()
+                    (response, sw1, sw2, label) = client.cc.card_get_label()
+                except Exception as e:
+                    print_error("show_values: could not read card label:", repr(e))
+                    label = "(unknown)"
             if label == "":
                 label = "(none)"
             self.card_label.setText("<tt>%s" % label)
@@ -571,7 +586,22 @@ class SatochipSettingsDialog(WindowModalDialog):
         if label is None:
             client.handler.show_message(_("Operation aborted by user!"))
             return
-        (response, sw1, sw2) = client.cc.card_set_label(label)
+        try:
+            (response, sw1, sw2) = client.cc.card_set_label(label)
+        except PinRequiredError:
+            # setting the label requires PIN authentication but no PIN is cached:
+            # ask the user for the PIN (interactive variant) and retry once
+            try:
+                client.cc.card_verify_PIN()
+                (response, sw1, sw2) = client.cc.card_set_label(label)
+            except Exception as e:
+                print_error("change_card_label: could not set card label:", repr(e))
+                client.handler.show_error(
+                    _(
+                        "Error while changing label: the card could not be unlocked with your PIN!"
+                    )
+                )
+                return
         if sw1 == 0x90 and sw2 == 0x00:
             client.handler.show_message(_("Card label changed successfully!"))
         elif sw1 == 0x6D and sw2 == 0x00:

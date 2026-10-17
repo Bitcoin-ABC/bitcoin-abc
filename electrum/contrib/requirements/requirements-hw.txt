@@ -10,5 +10,5 @@ btchip-python @ git+https://github.com/EchterAgo/btchip-python.git@f65cca5dea1ca
 hidapi
 protobuf>=3.20
 pyopenssl>=20.0.0
-pyscard>=2.0.0
-pysatochip>=0.12.4
+pyscard>=2.3.0
+pysatochip>=0.18.6

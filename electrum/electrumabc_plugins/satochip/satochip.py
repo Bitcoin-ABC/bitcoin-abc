@@ -32,10 +32,13 @@ from ..hw_wallet.plugin import HardwareClientBase, HWPluginBase
 
 try:
     # pysatochip
-    from pysatochip.CardConnector import CardConnector, UninitializedSeedError, logger
+    from pysatochip.CardConnector import (
+        CardConnector,
+        PinRequiredError,
+        UninitializedSeedError,
+    )
     from pysatochip.ecc import (
         CURVE_ORDER,
-        ECPubkey,
         der_sig_from_r_and_s,
         get_r_and_s_from_der_sig,
     )
@@ -59,9 +62,26 @@ except ImportError:
     print_error("[satochip] satochip will not not be available")
     raise
 
-logging.basicConfig(
-    level=logging.DEBUG, format="%(levelname)s [%(module)s] %(funcName)s | %(message)s"
-)
+# pysatochip logging is configured here, on the application side, as intended by
+# pysatochip's logging model (its module loggers stay at NOTSET; the importing
+# application owns levels and handlers): a single handler on the 'pysatochip'
+# package logger, and a level aligned with Electrum ABC's --verbose flag.
+# Do NOT use logging.basicConfig(): it installs a handler and a level on the
+# root logger for the whole process, which leaked DEBUG traces from every
+# library (including pysatochip) regardless of --verbose.
+_psc_logger = logging.getLogger("pysatochip")
+if all(isinstance(h, logging.NullHandler) for h in _psc_logger.handlers):
+    # the library itself installs at most a NullHandler; add a real one, once
+    _psc_handler = logging.StreamHandler()
+    _psc_handler.setFormatter(
+        logging.Formatter("%(levelname)s [%(module)s] %(funcName)s | %(message)s")
+    )
+    _psc_logger.addHandler(_psc_handler)
+    _psc_logger.propagate = False
+# pysatochip >= 0.18.5 keeps its module loggers at NOTSET, so this package level
+# cascades to all of them (what pysatochip.set_log_level() also does); on older
+# versions, constructors set their own module levels, which take precedence.
+_psc_logger.setLevel(logging.DEBUG if is_verbose else logging.INFO)
 
 # debug: smartcard reader ids
 SATOCHIP_VID = 0x096E
@@ -104,13 +124,7 @@ class SatochipClient(HardwareClientBase, PrintError):
         self.print_error("__init__()")
         self.device = plugin.device
         self.handler = handler
-        # self.parser= CardDataParser()
-        # self.cc= CardConnector(self, _logger.getEffectiveLevel())
         self.cc = CardConnector(self)
-        if is_verbose:
-            logger.setLevel(logging.DEBUG)
-        else:
-            logger.setLevel(logging.INFO)
 
     def __repr__(self):
         return "<SatochipClient TODO>"
@@ -143,23 +157,6 @@ class SatochipClient(HardwareClientBase, PrintError):
 
     def get_xpub(self, bip32_path, xtype):
         assert xtype in SatochipPlugin.SUPPORTED_XTYPES
-
-        try:
-            hex_authentikey = self.handler.win.wallet.storage.get("authentikey")
-            self.print_error(
-                "get_xpub(): self.handler.win.wallet.storage.authentikey:",
-                hex_authentikey,
-            )
-            if hex_authentikey is not None:
-                self.cc.parser.authentikey_from_storage = ECPubkey(
-                    bytes.fromhex(hex_authentikey)
-                )
-        except Exception as e:  # attributeError?
-            self.print_error(
-                "get_xpub(): exception when getting authentikey from"
-                " self.handler.win.wallet.storage:",
-                str(e),
-            )
 
         try:
             # needs PIN
@@ -398,18 +395,22 @@ class SatochipKeyStore(HardwareKeyStore):
             # path= self.get_derivation() + ("/%d/%d" % sequence)
             keynbr = 0xFF  # for extended key
             (depth, bytepath) = bip32path2bytes(address_path)
-            (pubkey, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
-            # (response2, sw1, sw2) = client.cc.card_sign_message(keynbr, message_byte, hmac)
-            # if (sw1!=0x90 or sw2!=0x00):
-            # _logger.info("[satochip] SatochipPlugin: error during sign_message(): sw12="+hex(sw1)+" "+hex(sw2))#debugSatochip
-            # compsig=b''
-            # self.handler.show_error(_("Wrong signature!\nThe 2FA device may have rejected the action."))
-            # else:
-            # compsig=client.parser.parse_message_signature(response2, message_byte, pubkey)
             altcoin = "eCash" if sigtype == SignatureType.ECASH else None
-            (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
-                keynbr, pubkey, message_byte, hmac, altcoin=altcoin
-            )
+            try:
+                (pubkey, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
+                (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
+                    keynbr, pubkey, message_byte, hmac, altcoin=altcoin
+                )
+            except PinRequiredError:
+                # PIN-protected operation but no PIN is cached (e.g. the card was
+                # removed and re-inserted): prompt the user for the PIN
+                # (interactive variant) and retry once
+                client.cc.card_verify_PIN()
+                (pubkey, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
+                (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
+                    keynbr, pubkey, message_byte, hmac, altcoin=altcoin
+                )
+
             if compsig == b"":
                 self.handler.show_error(
                     _("Wrong signature!\nThe 2FA device may have rejected the action.")
@@ -426,6 +427,8 @@ class SatochipKeyStore(HardwareKeyStore):
         self.print_error("sign_transaction(): tx: " + str(tx))
 
         client = self.get_client()
+        if client.cc.needs_2FA is None:
+            (response, sw1, sw2, d) = client.cc.card_get_status()
 
         # outputs
         txOutputs = serialize_sequence(tx.outputs()).hex()
@@ -452,50 +455,50 @@ class SatochipKeyStore(HardwareKeyStore):
 
                     # get corresponing extended key
                     (depth, bytepath) = bip32path2bytes(address_path)
-                    (key, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
+                    try:
+                        (key, chaincode) = client.cc.card_bip32_get_extendedkey(
+                            bytepath
+                        )
+                    except PinRequiredError:
+                        # PIN-protected operation but no PIN is cached (e.g. the card was
+                        # removed and re-inserted): prompt the user for the PIN
+                        # (interactive variant) and retry once
+                        client.cc.card_verify_PIN()
+                        (key, chaincode) = client.cc.card_bip32_get_extendedkey(
+                            bytepath
+                        )
 
-                    # parse tx
+                    # compute the sighash locally: double-sha256 of the BIP143 preimage.
+                    # The card simply signs this hash via card_sign_transaction_hash();
+                    # the card-side parsing commands are deprecated (removed since applet v0.16)
                     pre_tx = tx.serialize_preimage(i)
                     pre_tx_hex = pre_tx.hex()
                     pre_hash = Hash(pre_tx)
                     pre_hash_hex = pre_hash.hex()
                     self.print_error("sign_transaction(): pre_tx_hex=", pre_tx_hex)
                     self.print_error("sign_transaction(): pre_hash=", pre_hash_hex)
-                    # (response, sw1, sw2) = client.cc.card_parse_transaction(pre_tx, True) # use 'True' since BCH use BIP143 as in Segwit...
-                    # print_error('[satochip] sign_transaction(): response= '+str(response)) #debugSatochip
-                    # (tx_hash, needs_2fa) = client.parser.parse_parse_transaction(response)
-                    (
-                        response,
-                        sw1,
-                        sw2,
-                        tx_hash,
-                        needs_2fa,
-                    ) = client.cc.card_parse_transaction(
-                        pre_tx, True
-                    )  # use 'True' since BCH use BIP143 as in Segwit...
-                    tx_hash_hex = bytearray(tx_hash).hex()
-                    if pre_hash_hex != tx_hash_hex:
-                        raise RuntimeError(
-                            "[Satochip_KeyStore] Tx preimage mismatch:"
-                            f" {pre_hash_hex} vs {tx_hash_hex}"
-                        )
 
                     # sign tx
                     keynbr = 0xFF  # for extended key
-                    if needs_2fa:
+                    if client.cc.needs_2FA:
                         # format & encrypt msg
                         import json
 
                         coin_type = 145  # see https://github.com/satoshilabs/slips/blob/master/slip-0044.md
                         test_net = networks.net.TESTNET
+
+                        # 'sign_tx_hash' (with the sighash) makes the 2FA app compute the
+                        # challenge-response over [hash | 0xCC-padding], as required by the
+                        # card's SignTransactionHash command ('sign_tx' uses 0x00-padding)
                         msg = {
-                            "action": "sign_tx",
+                            "action": "sign_tx_hash",
                             "tx": pre_tx_hex,
                             "ct": coin_type,
                             "sw": True,
                             "tn": test_net,
                             "txo": txOutputs,
                             "ty": txin.type.name,
+                            "hash": pre_hash_hex,
                         }
                         msg = json.dumps(msg)
                         (id_2FA, msg_out) = client.cc.card_crypt_transaction_2FA(
@@ -552,11 +555,22 @@ class SatochipKeyStore(HardwareKeyStore):
                         chalresponse = list(bytes.fromhex(chalresponse))
                     else:
                         chalresponse = None
-                    (tx_sig, sw1, sw2) = client.cc.card_sign_transaction(
-                        keynbr, tx_hash, chalresponse
-                    )
-                    # self.print_error('sign_transaction(): sig=', bytes(tx_sig).hex()) #debugSatochip
-                    # todo: check sw1sw2 for error (0x9c0b if wrong challenge-response)
+                    try:
+                        (tx_sig, sw1, sw2) = client.cc.card_sign_transaction_hash(
+                            keynbr, list(pre_hash), chalresponse
+                        )
+                    except PinRequiredError:
+                        # prompt for the PIN and retry once (see above)
+                        client.cc.card_verify_PIN()
+                        (tx_sig, sw1, sw2) = client.cc.card_sign_transaction_hash(
+                            keynbr, list(pre_hash), chalresponse
+                        )
+
+                    # check sw1sw2 for error (0x9c0b if wrong challenge-response)
+                    if sw1 != 0x90 or sw2 != 0x00:
+                        self.give_error(
+                            f"Satochip failed to sign transaction with code {hex(256 * sw1 + sw2)}"
+                        )
                     # enforce low-S signature (BIP 62)
                     tx_sig = bytearray(tx_sig)
                     r, s = get_r_and_s_from_der_sig(tx_sig)
@@ -656,7 +670,6 @@ class SatochipPlugin(HWPluginBase):
         client = self.scan_and_create_client_for_device(
             device_id=device_id, wizard=wizard
         )
-        client.cc.parser.authentikey_from_storage = None  # https://github.com/simpleledger/Electron-Cash-SLP/pull/101#issuecomment-561238614
 
         # check setup
         while client.cc.card_present:
@@ -814,10 +827,10 @@ class SatochipPlugin(HWPluginBase):
 
             hex_authentikey = authentikey.get_public_key_hex(compressed=True)
             self.print_error("setup_device(): authentikey=", hex_authentikey)
-            wizard.data["authentikey"] = hex_authentikey
-            self.print_error(
-                "setup_device(): authentikey from storage=", wizard.data["authentikey"]
-            )
+            # the authentikey is deliberately not persisted to the wallet file:
+            # it is a per-card identity key (not seed-derived), and pinning the
+            # wallet to it would reject a replacement/backup card holding the
+            # same seed. Pairing relies on the xpub comparison alone.
             break
         return client
 
