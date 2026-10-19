@@ -448,8 +448,6 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
 
         // Verify ancestor state is correct.
         setEntries setAncestors;
-        std::string dummy;
-
         CalculateMemPoolAncestors(entry, setAncestors);
 
         // all ancestors should have entryId < this tx's entryId
