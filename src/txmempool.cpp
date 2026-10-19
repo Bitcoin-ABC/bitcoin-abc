@@ -652,7 +652,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
     finalizedTxIds.clear();
 
     // Now let's add the txs !
-    // At this stage the set of ancestors is free if already finalized txs
+    // At this stage the set of ancestors is free of already finalized txs
     for (txiter ancestor_it : setAncestors) {
         if (finalizedTxs.insert(*ancestor_it)) {
             m_finalizedTxsFitter.addTx((*ancestor_it)->GetTxSize(),
