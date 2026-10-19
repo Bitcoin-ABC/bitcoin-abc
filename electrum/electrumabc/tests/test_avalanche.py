@@ -448,6 +448,21 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             )
         )
 
+        # Sanity checks about memory sharing
+        # The proof var was not updated since test_initial_proof
+        self.assertEqual(len(proof.signed_stakes), 1)
+
+        def assign_proof(_proof):
+            nonlocal proof
+            proof = _proof
+
+        proofbuilder_add_stakes.build(on_completion=assign_proof)
+        self.assertEqual(len(proof.signed_stakes), 4)
+
+        # The signed_stakes references/lists don't point to the same memory.
+        self.assertIsNot(proofbuilder.signed_stakes, proof.signed_stakes)
+        self.assertIsNot(proof.signed_stakes, proofbuilder_add_stakes.signed_stakes)
+
     def test_without_master_private_key(self):
         key_wif = "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
         wallet = wallet_from_wif_keys(key_wif)

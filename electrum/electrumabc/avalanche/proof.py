@@ -35,7 +35,7 @@ import struct
 from dataclasses import dataclass
 from functools import partial
 from io import BytesIO
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -139,7 +139,7 @@ class LimitedProofId(UInt256):
         cls,
         sequence: int,
         expiration_time: int,
-        stakes: List[Stake],
+        stakes: list[Stake],
         payout_script_pubkey: bytes,
     ) -> LimitedProofId:
         """Build a limited proofid from the Proof parameters"""
@@ -187,7 +187,7 @@ class Proof(SerializableObject):
         sequence: int,
         expiration_time: int,
         master_pub: PublicKey,
-        signed_stakes: List[SignedStake],
+        signed_stakes: list[SignedStake],
         payout_script_pubkey: bytes,
         signature: bytes,
     ):
@@ -197,7 +197,7 @@ class Proof(SerializableObject):
         """int64"""
         self.master_pub: PublicKey = master_pub
         """Master public key"""
-        self.signed_stakes: List[SignedStake] = signed_stakes
+        self.signed_stakes: list[SignedStake] = signed_stakes
         """List of signed stakes sorted by their stake ID."""
         self.payout_script_pubkey: bytes = payout_script_pubkey
         self.signature: bytes = signature
@@ -286,7 +286,7 @@ class ProofBuilder:
         self.payout_address = payout_address
         self.payout_script_pubkey = payout_address.to_script()
 
-        self.signed_stakes: List[SignedStake] = []
+        self.signed_stakes: list[SignedStake] = []
         """List of signed stakes sorted by stake ID.
         Adding stakes through :meth:`add_signed_stake` takes care of the sorting.
         """
@@ -320,7 +320,7 @@ class ProofBuilder:
             master,
             proof.master_pub,
         )
-        builder.signed_stakes = proof.signed_stakes
+        builder.signed_stakes = proof.signed_stakes.copy()
         return builder
 
     def sign_and_add_stake(self, stake: StakeAndSigningData):
@@ -382,7 +382,7 @@ class ProofBuilder:
                     self.sequence,
                     self.expiration_time,
                     self.master_pub,
-                    self.signed_stakes,
+                    self.signed_stakes.copy(),
                     self.payout_script_pubkey,
                     signature,
                 )
