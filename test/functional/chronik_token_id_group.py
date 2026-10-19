@@ -21,6 +21,9 @@ from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, chronik_sub_token_id
 
+ZERO_TOKEN_ID = "00" * 32
+ZERO_TOKEN_ID_ERR = f"400: Invalid Token ID {ZERO_TOKEN_ID}"
+
 
 class ChronikTokenBurn(BitcoinTestFramework):
     def set_test_params(self):
@@ -58,6 +61,27 @@ class ChronikTokenBurn(BitcoinTestFramework):
         chronik = node.get_chronik_client()
         ws1 = chronik.ws()
         ws2 = chronik.ws()
+
+        # All-zero token ID is the unknown-type sentinel, not a queryable ID.
+        assert_equal(
+            chronik.token_id(ZERO_TOKEN_ID).utxos().err(400).msg, ZERO_TOKEN_ID_ERR
+        )
+        assert_equal(
+            chronik.token_id(ZERO_TOKEN_ID).history().err(400).msg, ZERO_TOKEN_ID_ERR
+        )
+        assert_equal(
+            chronik.token_id(ZERO_TOKEN_ID).confirmed_txs().err(400).msg,
+            ZERO_TOKEN_ID_ERR,
+        )
+        assert_equal(
+            chronik.token_id(ZERO_TOKEN_ID).unconfirmed_txs().err(400).msg,
+            ZERO_TOKEN_ID_ERR,
+        )
+        ws1.sub_token_id(ZERO_TOKEN_ID)
+        assert_equal(
+            ws1.recv(),
+            pb.WsMsg(error=pb.Error(msg=ZERO_TOKEN_ID_ERR)),
+        )
 
         mocktime = 1300000000
         node.setmocktime(mocktime)

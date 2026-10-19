@@ -9,7 +9,7 @@ use bitcoinsuite_core::{
     error::DataError,
     script::{ScriptType, ScriptTypeError, ScriptVariant},
 };
-use bitcoinsuite_slp::lokad_id::LokadId;
+use bitcoinsuite_slp::{lokad_id::LokadId, token_id::TokenId};
 use thiserror::Error;
 
 /// Errors indicating parsing failed.
@@ -30,6 +30,10 @@ pub enum ChronikParseError {
     /// LOKAD ID must be 4 bytes
     #[error("400: Invalid LOKAD ID length: expected 4 but got {0}")]
     InvalidLokadIdLength(usize),
+
+    /// Not a queryable token ID.
+    #[error("400: Invalid Token ID {0}")]
+    InvalidTokenId(TokenId),
 }
 
 use self::ChronikParseError::*;
@@ -69,4 +73,14 @@ pub fn parse_lokad_id_hex(lokad_id_hex: &str) -> Result<LokadId> {
 pub fn parse_lokad_id(lokad_id: &[u8]) -> Result<LokadId> {
     Ok(LokadId::try_from(lokad_id)
         .map_err(|_| InvalidLokadIdLength(lokad_id.len()))?)
+}
+
+/// Parse a token ID hex string, rejecting the all-zero sentinel used for
+/// unknown SLP/ALP token types.
+pub fn parse_token_id(token_id_hex: &str) -> Result<TokenId> {
+    let token_id = token_id_hex.parse::<TokenId>()?;
+    if token_id == TokenId::default() {
+        return Err(InvalidTokenId(token_id).into());
+    }
+    Ok(token_id)
 }

@@ -25,7 +25,7 @@ use tokio::sync::broadcast;
 
 use crate::{
     error::report_status_error,
-    parse::{parse_lokad_id, parse_script_variant},
+    parse::{parse_lokad_id, parse_script_variant, parse_token_id},
     server::{ChronikIndexerRef, ChronikSettings},
     subscription_limits::{
         SubscriptionClientKey, SubscriptionGuard, SubscriptionLimiterRef,
@@ -470,9 +470,9 @@ fn sub_client_msg_action(
                             &script.payload,
                         )?)
                     }
-                    Some(SubType::TokenId(token_id)) => WsSubType::TokenId(
-                        token_id.token_id.parse::<TokenId>()?,
-                    ),
+                    Some(SubType::TokenId(token_id)) => {
+                        WsSubType::TokenId(parse_token_id(&token_id.token_id)?)
+                    }
                     Some(SubType::LokadId(lokad_id)) => {
                         WsSubType::LokadId(parse_lokad_id(&lokad_id.lokad_id)?)
                     }

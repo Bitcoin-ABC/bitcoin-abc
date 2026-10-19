@@ -7,7 +7,6 @@ use bitcoinsuite_core::{
     hash::{Hashed, Sha256},
     script::Script,
 };
-use bitcoinsuite_slp::token_id::TokenId;
 use chronik_db::{group::GroupMember, plugins::PluginMember};
 use chronik_indexer::indexer::{ChronikIndexer, Node};
 use chronik_plugin::data::{PluginIdx, PluginNameMap};
@@ -17,7 +16,9 @@ use thiserror::Error;
 
 use crate::{
     error::ReportError,
-    parse::{parse_hex, parse_lokad_id_hex, parse_script_variant_hex},
+    parse::{
+        parse_hex, parse_lokad_id_hex, parse_script_variant_hex, parse_token_id,
+    },
 };
 
 /// Max scripts per batch request.
@@ -340,7 +341,7 @@ pub async fn handle_token_id_confirmed_txs(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id = parse_token_id(token_id_hex)?;
     let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 =
@@ -361,7 +362,7 @@ pub async fn handle_token_id_history(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id = parse_token_id(token_id_hex)?;
     let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 =
@@ -379,7 +380,7 @@ pub async fn handle_token_id_unconfirmed_txs(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id = parse_token_id(token_id_hex)?;
     let token_id_history = indexer.token_id_history(node);
     token_id_history.unconfirmed_txs(GroupMember::Member(token_id))
 }
@@ -390,7 +391,7 @@ pub async fn handle_token_id_utxos(
     indexer: &ChronikIndexer,
     node: &Node,
 ) -> Result<proto::Utxos> {
-    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id = parse_token_id(token_id_hex)?;
     let token_id_utxos = indexer.token_id_utxos(node);
     let utxos = token_id_utxos.utxos(token_id)?;
     Ok(proto::Utxos { utxos })

@@ -7,7 +7,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use bitcoinsuite_slp::{
-    token_id::TokenId, token_tx::TokenTx, verify::SpentToken,
+    structs::{Token, TokenVariant},
+    token_id::TokenId,
+    token_tx::TokenTx,
+    verify::SpentToken,
 };
 
 use crate::{
@@ -129,6 +132,16 @@ impl Group for TokenIdGroup {
     }
 }
 
+/// Token ID used for [`TokenIdGroup`] indexing.
+fn group_token_id(token: &Token) -> Option<TokenId> {
+    match token.variant {
+        TokenVariant::Unknown(_) => None,
+        TokenVariant::Atoms(_) | TokenVariant::MintBaton => {
+            Some(token.meta.token_id)
+        }
+    }
+}
+
 impl TokenIdGroupAux {
     /// Build aux data from a processed token batch
     pub fn from_batch(
@@ -146,7 +159,7 @@ impl TokenIdGroupAux {
                 (
                     spent_tokens
                         .iter()
-                        .map(|token| Some(token.as_ref()?.token.meta.token_id))
+                        .map(|token| group_token_id(&token.as_ref()?.token))
                         .collect::<Vec<_>>(),
                     token_tx
                         .map(|token_tx| {
@@ -154,11 +167,8 @@ impl TokenIdGroupAux {
                                 .outputs
                                 .iter()
                                 .map(|output| {
-                                    Some(
-                                        token_tx
-                                            .token(output.as_ref()?)
-                                            .meta
-                                            .token_id,
+                                    group_token_id(
+                                        &token_tx.token(output.as_ref()?),
                                     )
                                 })
                                 .collect::<Vec<_>>()
@@ -219,12 +229,12 @@ impl TokenIdGroupAux {
         let output_token_ids = token_tx
             .outputs
             .iter()
-            .map(|output| Some(token_tx.token(output.as_ref()?).meta.token_id))
+            .map(|output| group_token_id(&token_tx.token(output.as_ref()?)))
             .collect::<Vec<_>>();
         let input_token_ids = match mempool.tx_token_inputs(tx.txid_ref()) {
             Some(spent_tokens) => spent_tokens
                 .iter()
-                .map(|token| Some(token.as_ref()?.token.meta.token_id))
+                .map(|token| group_token_id(&token.as_ref()?.token))
                 .collect::<Vec<_>>(),
             None => vec![None; tx.inputs.len()],
         };
@@ -241,11 +251,11 @@ impl TokenIdGroupAux {
         let output_token_ids = token_tx
             .outputs
             .iter()
-            .map(|output| Some(token_tx.token(output.as_ref()?).meta.token_id))
+            .map(|output| group_token_id(&token_tx.token(output.as_ref()?)))
             .collect::<Vec<_>>();
         let input_token_ids = spent_tokens
             .iter()
-            .map(|token| Some(token.as_ref()?.token.meta.token_id))
+            .map(|token| group_token_id(&token.as_ref()?.token))
             .collect::<Vec<_>>();
         let mut aux = HashMap::new();
         aux.insert(txid, (input_token_ids, output_token_ids));
