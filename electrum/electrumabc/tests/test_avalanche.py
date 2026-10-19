@@ -310,6 +310,9 @@ class TestAvalancheProofBuilder(unittest.TestCase):
 
     def test_adding_stakes_to_proof(self):
         key_wif = "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"
+        pubkey = PublicKey.from_hex(
+            "02449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680"
+        )
 
         wallet = wallet_from_wif_keys(key_wif)
 
@@ -357,17 +360,25 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         txid = UInt256.from_hex(
             "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
         )
-        proofbuilder_add_stakes.sign_and_add_stake(
-            StakeAndSigningData(
-                Stake(
-                    OutPoint(txid, 1),
-                    amount=2866370216,
-                    height=700001,
-                    is_coinbase=False,
-                ),
-                Address.from_string("ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"),
+
+        with mock.patch.object(
+            wallet, "sign_stake", wraps=wallet.sign_stake
+        ) as mock_sign_stake:
+            proofbuilder_add_stakes.sign_and_add_stake(
+                StakeAndSigningData(
+                    Stake(
+                        OutPoint(txid, 1),
+                        amount=2866370216,
+                        height=700001,
+                        is_coinbase=False,
+                    ),
+                    Address.from_string(
+                        "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+                    ),
+                )
             )
-        )
+            # The wallet actually signed the stake
+            mock_sign_stake.assert_called()
 
         def test_proof_with_added_stake(_proof):
             self.assertEqual(
@@ -376,6 +387,66 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             )
 
         proofbuilder_add_stakes.build(on_completion=test_proof_with_added_stake)
+
+        # If the pubkey and correct stake signature are provided,
+        # the wallet does not need to sign the stake again.
+        expected_sig_stake3 = bytes.fromhex(
+            "0ae6220d2d4c96563f6a8eb23292c8a40b99a733a6ea542798fe09f2dc06e05654d76ea87cb175af196a0a08e38d9d032e6535ea7b274e85100d5332bddb50fd"
+        )
+        with mock.patch.object(
+            wallet, "sign_stake", wraps=wallet.sign_stake
+        ) as mock_sign_stake:
+            proofbuilder_add_stakes.sign_and_add_stake(
+                StakeAndSigningData(
+                    Stake(
+                        OutPoint(txid, 2),
+                        amount=1337,
+                        height=42,
+                        is_coinbase=False,
+                        pubkey=pubkey,
+                    ),
+                    Address.from_string(
+                        "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+                    ),
+                    expected_sig_stake3,
+                )
+            )
+            # The wallet didn't need to sign the stake
+            mock_sign_stake.assert_not_called()
+
+        # If the provided signature is no longer valid (stake commitment changed),
+        # the wallet signs it.
+        outpoint4 = OutPoint(txid, 3)
+        expected_sig_stake4 = bytes.fromhex(
+            "3a90adf1ebfb268915d1a75248dedfb1f784363f21d205ef90d429f022f7ea4368f6c86df3ea2efae47b721d747a242923412d0c709b591a7fa9a6085f1cc478"
+        )
+        with mock.patch.object(
+            wallet, "sign_stake", wraps=wallet.sign_stake
+        ) as mock_sign_stake:
+            proofbuilder_add_stakes.sign_and_add_stake(
+                StakeAndSigningData(
+                    Stake(
+                        outpoint4,
+                        amount=1337,
+                        height=42,
+                        is_coinbase=False,
+                        pubkey=pubkey,
+                    ),
+                    Address.from_string(
+                        "ecash:qrl3p3j0vda2p6t7aepzc3c3fshefz0uhveex0udjh"
+                    ),
+                    # wrong sig
+                    expected_sig_stake3,
+                )
+            )
+            # The wallet had to update the signature
+            mock_sign_stake.assert_called()
+        self.assertTrue(
+            any(
+                ss.sig == expected_sig_stake4
+                for ss in proofbuilder_add_stakes.signed_stakes
+            )
+        )
 
     def test_without_master_private_key(self):
         key_wif = "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"

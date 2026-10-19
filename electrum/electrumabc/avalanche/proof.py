@@ -61,10 +61,18 @@ NO_SIGNATURE = b"\0" * 64
 
 @dataclass
 class StakeAndSigningData:
-    """Class storing a stake waiting to be signed (waiting for the stake commitment)"""
+    """Class storing a stake waiting to be signed (waiting for the stake commitment).
+    An optional existing signature can be provided
+    """
 
     stake: Stake
     address: Address
+    sig: Optional[bytes] = None
+
+    def verify_signature(self, commitment: bytes) -> bool:
+        return self.sig is not None and self.stake.pubkey.verify_schnorr(
+            self.sig, self.stake.get_hash(commitment)
+        )
 
 
 class Stake(SerializableObject):
@@ -167,6 +175,12 @@ class SignedStake(SerializableObject):
         )
 
 
+def compute_stake_commitment(expiration_time: int, master_pub: PublicKey) -> bytes:
+    return sha256d(
+        expiration_time.to_bytes(8, "little", signed=True) + master_pub.serialize()
+    )
+
+
 class Proof(SerializableObject):
     def __init__(
         self,
@@ -197,8 +211,8 @@ class Proof(SerializableObject):
         )
         self.proofid = self.limitedid.compute_proof_id(master_pub)
 
-        self.stake_commitment: bytes = sha256d(
-            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
+        self.stake_commitment = compute_stake_commitment(
+            self.expiration_time, self.master_pub
         )
 
     def serialize(self) -> bytes:
@@ -310,6 +324,21 @@ class ProofBuilder:
         return builder
 
     def sign_and_add_stake(self, stake: StakeAndSigningData):
+        def add_signed_stake(signature):
+            if not signature:
+                return
+
+            self.add_signed_stake(SignedStake(stake.stake, signature))
+
+        # Shortcut in case the stake was loaded from a hex proof with an
+        # already valid signature. This is the expected situation when
+        # adding stakes to an existing proof.
+        if stake.verify_signature(
+            compute_stake_commitment(self.expiration_time, self.master_pub)
+        ):
+            add_signed_stake(stake.sig)
+            return
+
         task = partial(
             self.wallet.sign_stake,
             stake,
@@ -317,13 +346,6 @@ class ProofBuilder:
             self.master_pub,
             self.pwd,
         )
-
-        def add_signed_stake(signature):
-            if not signature:
-                return
-
-            self.add_signed_stake(SignedStake(stake.stake, signature))
-
         self.wallet.thread.add(task, on_success=add_signed_stake)
 
     def add_signed_stake(self, ss: SignedStake):

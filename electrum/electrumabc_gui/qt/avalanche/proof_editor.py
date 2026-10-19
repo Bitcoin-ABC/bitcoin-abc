@@ -840,7 +840,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
                 if stake_wallet_addr is not None:
                     proofbuilder.sign_and_add_stake(
-                        StakeAndSigningData(ss.stake, stake_wallet_addr)
+                        StakeAndSigningData(ss.stake, stake_wallet_addr, ss.sig)
                     )
                 else:
                     # No luck. This must be an offline wallet, or else the stake
