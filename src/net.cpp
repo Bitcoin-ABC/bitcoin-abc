@@ -1327,6 +1327,16 @@ bool CConnman::InactivityCheck(const CNode &node,
         return true;
     }
 
+    if (node.fPauseSend) {
+        const auto last_pause{node.m_pause_send_since.load()};
+        if (now > last_pause + TIMEOUT_INTERVAL) {
+            LogDebug(BCLog::NET, "send buffer full for %is, peer=%d\n",
+                     Ticks<std::chrono::seconds>(now - last_pause),
+                     node.GetId());
+            return true;
+        }
+    }
+
     uint64_t inflight_bytes = node.nInflightBytes.load();
     if (inflight_bytes > 0 && !node.fPauseRecv) {
         // First check if the peer started sending us a message, but then
@@ -3187,7 +3197,8 @@ void CConnman::PushMessage(CNode *pnode, CSerializedNetMsg &&msg) {
         pnode->AccountForSentBytes(msg.m_type, nTotalSize);
         pnode->nSendSize += nTotalSize;
 
-        if (pnode->nSendSize > nSendBufferMaxSize) {
+        if (pnode->nSendSize > nSendBufferMaxSize && !pnode->fPauseSend) {
+            pnode->m_pause_send_since = NodeClock::now();
             pnode->fPauseSend = true;
         }
         pnode->vSendMsg.push_back(std::move(serializedHeader));
