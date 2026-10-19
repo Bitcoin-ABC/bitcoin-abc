@@ -312,7 +312,7 @@ const datatable = () => {
                 render: renderTxTimestamp,
                 orderSequence: ['desc', 'asc'],
                 // See the above comment about the column sorting
-                orderData: [0, 2],
+                orderData: [0, 3],
             },
             {
                 name: 'txHash',

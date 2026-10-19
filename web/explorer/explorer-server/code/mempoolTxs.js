@@ -84,7 +84,7 @@ const datatable = () => {
                 // but this causes the sorting icons to be highlighted correctly
                 // in the sorted column (and not only the hidden one). See
                 // https://datatables.net/forums/discussion/comment/236616
-                orderData: [1, 2],
+                orderData: [2, 3],
             },
             {
                 data: 'size',
