@@ -60,11 +60,6 @@ export const navbarLinks: NavbarLink[] = [
     category: "more",
   },
   { title: "eCash Supply", href: "https://ecash.supply", category: "more" },
-  {
-    title: "eCash Community",
-    href: "https://ecash.community",
-    category: "more",
-  },
 
   // Actions
   { title: "Create wallet", href: "https://cashtab.com", category: "actions" },
