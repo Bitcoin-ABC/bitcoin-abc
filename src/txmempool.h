@@ -430,15 +430,12 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
-     * Try to calculate all in-mempool ancestors of entry.
-     *  (these are all calculated including the tx itself)
-     * fSearchForParents = whether to search a tx's vin for in-mempool parents,
-     * or look up parents from m_parents. Must be true for entries not in the
-     * mempool
+     * Calculate all in-mempool ancestors of entry.
+     * The entry must already be in the mempool: direct parents are read from
+     * its m_parents, which addUnchecked populates.
      */
     void CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
-                                   setEntries &setAncestors,
-                                   bool fSearchForParents = true) const
+                                   setEntries &setAncestors) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**

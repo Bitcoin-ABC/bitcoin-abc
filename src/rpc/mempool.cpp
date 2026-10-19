@@ -558,7 +558,7 @@ static RPCHelpMan getmempoolancestors() {
             }
 
             CTxMemPool::setEntries setAncestors;
-            mempool.CalculateMemPoolAncestors(*it, setAncestors, false);
+            mempool.CalculateMemPoolAncestors(*it, setAncestors);
 
             if (!fVerbose) {
                 UniValue o(UniValue::VARR);

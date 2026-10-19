@@ -54,28 +54,11 @@ void CTxMemPool::CalculateAncestors(
     }
 }
 
-void CTxMemPool::CalculateMemPoolAncestors(
-    const CTxMemPoolEntryRef &entry, setEntries &setAncestors,
-    bool fSearchForParents /* = true */) const {
-    CTxMemPoolEntry::Parents staged_ancestors;
-    const CTransaction &tx = entry->GetTx();
-
-    if (fSearchForParents) {
-        // Get parents of this transaction that are in the mempool
-        // GetMemPoolParents() is only valid for entries in the mempool, so we
-        // iterate mapTx to find parents.
-        for (const CTxIn &in : tx.vin) {
-            std::optional<txiter> piter = GetIter(in.prevout.GetTxId());
-            if (!piter) {
-                continue;
-            }
-            staged_ancestors.insert(**piter);
-        }
-    } else {
-        // If we're not searching for parents, we require this to be an entry in
-        // the mempool already.
-        staged_ancestors = entry->GetMemPoolParentsConst();
-    }
+void CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntryRef &entry,
+                                           setEntries &setAncestors) const {
+    // The entry must already be in the mempool, so its parent links are
+    // populated.
+    CTxMemPoolEntry::Parents staged_ancestors = entry->GetMemPoolParentsConst();
 
     CalculateAncestors(setAncestors, staged_ancestors);
 }
@@ -558,7 +541,7 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
     setEntries setAncestors;
     setAncestors.insert(it);
-    CalculateMemPoolAncestors(tx, setAncestors, /*fSearchForParents=*/false);
+    CalculateMemPoolAncestors(tx, setAncestors);
 
     // Make sure the tx chain would fit the block before adding them.
     uint64_t sumOfTxSize{0};
