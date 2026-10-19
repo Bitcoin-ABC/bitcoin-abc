@@ -69,6 +69,7 @@ from chronik_plugin.script import (
     OP_TUCK,
     OP_VERIFY,
     CScript,
+    CScriptInvalidError,
 )
 from chronik_plugin.slp import slp_send
 
@@ -278,7 +279,14 @@ class AgoraOneshot:
             # Only SLP implemented
             return None
 
-        ops = list(redeem_script)
+        # An unparseable script, or one too short to be an oneshot, is not an
+        # offer. None is the index result.
+        try:
+            ops = list(redeem_script)
+        except CScriptInvalidError:
+            return None
+        if len(ops) < 7:
+            return None
 
         extra_outputs_ser = ops[0]
         if not isinstance(extra_outputs_ser, bytes):
@@ -394,14 +402,29 @@ class AgoraPartial:
 
     @classmethod
     def parse_redeem_script(cls, redeem_script, token):
-        consts = next(iter(redeem_script))
-        len_slp_intro = len(
-            slp_send(
-                token_type=token.token_type,
-                token_id=token.token_id,
-                amounts=[0],
+        # A redeem script that is not a partial offer does not belong in the
+        # Agora index. None is a complete result, the same as any other
+        # non-offer.
+        try:
+            consts = next(iter(redeem_script), b"")
+        except CScriptInvalidError:
+            return None
+        if not isinstance(consts, bytes):
+            # The consts prefix has to be a push.
+            return None
+        try:
+            # The intro length is the boundary of the ad payload. amounts is
+            # [0], so this fails only when the token cannot be encoded as an
+            # SLP intro. There is then no partial payload to index.
+            len_slp_intro = len(
+                slp_send(
+                    token_type=token.token_type,
+                    token_id=token.token_id,
+                    amounts=[0],
+                )
             )
-        )
+        except (OverflowError, ValueError):
+            return None
         ad_pushdata = consts[len_slp_intro:]
         return parse_partial(ad_pushdata, token)
 
@@ -747,8 +770,15 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
     if token.atoms % token_trunc_factor != 0:
         return None
 
+    trunc_tokens = token.atoms // token_trunc_factor
+    # The covenant pushes trunc_tokens * token_scale_factor as 8 bytes. A
+    # product that does not fit is not an offer.
+    scaled_trunc_tokens = trunc_tokens * token_scale_factor
+    if scaled_trunc_tokens < 0 or scaled_trunc_tokens >= 1 << 64:
+        return None
+
     partial_alp = AgoraPartial(
-        trunc_tokens=token.atoms // token_trunc_factor,
+        trunc_tokens=trunc_tokens,
         num_token_trunc_bytes=num_token_trunc_bytes,
         token_scale_factor=token_scale_factor,
         scaled_trunc_tokens_per_trunc_sat=scaled_trunc_tokens_per_trunc_sat,
@@ -762,11 +792,16 @@ def parse_partial(pushdata: bytes, token) -> Optional[AgoraPartial]:
         enforced_locktime=enforced_locktime,
         dust_amount=546,
     )
-    measured_len = len(cut_out_codesep(partial_alp.script()))
-    if measured_len > 0x80:
-        partial_alp.script_len = measured_len
+    try:
         measured_len = len(cut_out_codesep(partial_alp.script()))
-    partial_alp.script_len = measured_len
+        if measured_len > 0x80:
+            partial_alp.script_len = measured_len
+            measured_len = len(cut_out_codesep(partial_alp.script()))
+        partial_alp.script_len = measured_len
+    except (OverflowError, ValueError):
+        # A field that cannot be encoded into the covenant is not an offer.
+        # NotImplementedError still propagates for an unknown token protocol.
+        return None
     return partial_alp
 
 

@@ -1,5 +1,7 @@
 # ecash-agora: Non-interactive XEC -> token swaps using Script
 
+The Chronik indexer plugin is [`agora.py`](agora.py). How a node loads it is in [Chronik plugin (`agora.py`)](#chronik-plugin-agorapy).
+
 ## What's an "Agora"?
 
 The agora (ἀγορά) was a central public space in ancient Greek city-states, and means "market" in modern Greek. The eCash Agora is similar in that sense, it's a protocol on eCash that allows anyone to offer their tokens in exchange for XEC.
@@ -115,6 +117,20 @@ const txBuilder = new TxBuilder({
 const acceptTx = txBuilder.sign();
 await chronik.broadcastTx(acceptTx.ser());
 ```
+
+## Chronik plugin (`agora.py`)
+
+`agora.py` indexes Agora offers for a node built with `BUILD_CHRONIK_PLUGINS=ON`. Chronik loads `<datadir>/plugins/agora.py` at startup when `plugins.toml` enables the `agora` module (`plugin.agora = {}` on mainnet). The default datadir is `~/.bitcoin`. In the Chronik plugins Docker image the datadir is the `BITCOIN_DATA` volume (`/data`).
+
+`AgoraPlugin.version` is `0.1.0`. Chronik requires that string to match the version already stored in its database.
+
+### Upgrading an existing node
+
+Replace `<datadir>/plugins/agora.py` with this `agora.py` and restart `bitcoind`. Leave `plugins.toml` and the Chronik database in place. Do not change `AgoraPlugin.version`. A different version makes Chronik refuse to start until `-chronikreindex`.
+
+The plugins Docker image does not refresh an existing copy. `contrib/docker/chronik-plugins/copy_plugin_files.sh` copies `agora.py` only when `<datadir>/plugins/` is missing, so a new image leaves the old file on the volume. Copy the image's `/bitcoin-abc/modules/ecash-agora/agora.py` over `<datadir>/plugins/agora.py` and restart the container.
+
+After restart, `debug.log` includes `Loaded plugin agora.AgoraPlugin (version 0.1.0)`.
 
 ## Development
 
