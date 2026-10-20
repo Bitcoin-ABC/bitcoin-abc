@@ -514,6 +514,7 @@ add_network_sources(NETWORK_SOURCES
 # More completely unrelated features shared by all executables.
 # Because nothing says this is different from util than "common"
 add_library(common
+	addresstype.cpp
 	base58.cpp
 	chainparamsbase.cpp
 	common/args.cpp
@@ -924,6 +925,7 @@ if(BUILD_CHAINSTATE)
 
 		# Bitcoin ABC specific dependencies that will not go away with Core backports
 		addrdb.cpp   # via banman.cpp
+		addresstype.cpp  # via avalanche/proof.cpp
 		addrman.cpp  # via net.cpp
 		banman.cpp   # via net.cpp
 		base58.cpp   # via key_io.cpp

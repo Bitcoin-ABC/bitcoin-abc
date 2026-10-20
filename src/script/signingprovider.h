@@ -6,10 +6,10 @@
 #ifndef BITCOIN_SCRIPT_SIGNINGPROVIDER_H
 #define BITCOIN_SCRIPT_SIGNINGPROVIDER_H
 
+#include <addresstype.h>
 #include <key.h>
 #include <pubkey.h>
 #include <script/script.h>
-#include <script/standard.h>
 #include <sync.h>
 
 struct KeyOriginInfo;

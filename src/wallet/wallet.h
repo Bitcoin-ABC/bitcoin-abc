@@ -7,6 +7,7 @@
 #ifndef BITCOIN_WALLET_WALLET_H
 #define BITCOIN_WALLET_WALLET_H
 
+#include <addresstype.h>
 #include <common/signmessage.h>
 #include <common/system.h>
 #include <consensus/amount.h>

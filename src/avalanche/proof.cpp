@@ -4,6 +4,7 @@
 
 #include <avalanche/proof.h>
 
+#include <addresstype.h>
 #include <avalanche/validation.h>
 #include <coins.h>
 #include <common/args.h>

@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <addresstype.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
@@ -10,6 +11,7 @@
 #include <node/context.h>
 #include <policy/policy.h>
 #include <rpc/server.h>
+#include <script/standard.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>

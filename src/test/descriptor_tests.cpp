@@ -4,7 +4,6 @@
 
 #include <script/descriptor.h>
 #include <script/sign.h>
-#include <script/standard.h>
 #include <util/strencodings.h>
 
 #include <test/util/setup_common.h>

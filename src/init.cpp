@@ -67,7 +67,6 @@
 #include <scheduler.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
-#include <script/standard.h>
 #include <shutdown.h>
 #include <sync.h>
 #include <timedata.h>

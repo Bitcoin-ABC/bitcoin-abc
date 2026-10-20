@@ -4,8 +4,8 @@
 
 #include <coins.h>
 
+#include <addresstype.h>
 #include <clientversion.h>
-#include <script/standard.h>
 #include <streams.h>
 #include <test/util/poolresourcetester.h>
 #include <txdb.h>

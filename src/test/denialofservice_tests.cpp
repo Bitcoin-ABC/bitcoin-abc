@@ -13,7 +13,6 @@
 #include <net_processing.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
 #include <serialize.h>
 #include <timedata.h>
 #include <util/time.h>

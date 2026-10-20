@@ -5,6 +5,7 @@
 #ifndef BITCOIN_UTIL_HASHER_H
 #define BITCOIN_UTIL_HASHER_H
 
+#include <addresstype.h>
 #include <crypto/siphash.h>
 #include <primitives/blockhash.h>
 #include <primitives/transaction.h>

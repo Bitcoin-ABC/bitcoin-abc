@@ -5,13 +5,13 @@
 #ifndef BITCOIN_TEST_FUZZ_UTIL_H
 #define BITCOIN_TEST_FUZZ_UTIL_H
 
+#include <addresstype.h>
 #include <arith_uint256.h>
 #include <coins.h>
 #include <consensus/amount.h>
 #include <net.h>
 #include <netbase.h>
 #include <script/script.h>
-#include <script/standard.h>
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>

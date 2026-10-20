@@ -14,7 +14,6 @@
 #include <node/context.h>
 #include <pow/pow.h>
 #include <primitives/block.h>
-#include <script/standard.h>
 #include <util/check.h>
 #include <validation.h>
 

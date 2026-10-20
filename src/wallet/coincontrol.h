@@ -7,7 +7,6 @@
 
 #include <outputtype.h>
 #include <primitives/transaction.h>
-#include <script/standard.h>
 
 #include <optional>
 

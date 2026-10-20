@@ -8,7 +8,6 @@
 #include <policy/policy.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
-#include <script/standard.h>
 #include <streams.h>
 #include <txmempool.h>
 #include <util/strencodings.h>

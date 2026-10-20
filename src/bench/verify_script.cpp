@@ -10,7 +10,6 @@
 #include <script/interpreter.h>
 #include <script/script.h>
 #include <script/script_error.h>
-#include <script/standard.h>
 #include <streams.h>
 #include <test/util/transaction_utils.h>
 

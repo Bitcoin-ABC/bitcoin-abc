@@ -9,7 +9,6 @@
 
 #include <key.h>
 #include <script/sign.h>
-#include <script/standard.h> // for CTxDestination
 #include <wallet/bdb.h>
 #include <wallet/walletutil.h>
 

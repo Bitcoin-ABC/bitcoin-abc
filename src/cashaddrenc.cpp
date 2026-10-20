@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #include <cashaddrenc.h>
 
+#include <addresstype.h>
 #include <cashaddr.h>
 #include <chainparams.h>
 #include <pubkey.h>

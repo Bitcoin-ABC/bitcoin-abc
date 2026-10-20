@@ -9,7 +9,6 @@
 #include <key.h>             // For CKey
 #include <key_io.h>          // For DecodeDestination()
 #include <pubkey.h>          // For CPubKey
-#include <script/standard.h> // For CTxDestination, IsValidDestination(), PKHash
 #include <serialize.h>       // For SER_GETHASH
 #include <util/strencodings.h> // For DecodeBase64()
 

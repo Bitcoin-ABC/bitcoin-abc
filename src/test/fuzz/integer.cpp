@@ -26,7 +26,6 @@
 #include <rpc/util.h>
 #include <script/script.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
 #include <serialize.h>
 #include <streams.h>
 #include <uint256.h>

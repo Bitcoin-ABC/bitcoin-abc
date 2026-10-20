@@ -4,7 +4,7 @@
 #ifndef BITCOIN_CASHADDRENC_H
 #define BITCOIN_CASHADDRENC_H
 
-#include <script/standard.h>
+#include <addresstype.h>
 
 #include <string>
 #include <vector>

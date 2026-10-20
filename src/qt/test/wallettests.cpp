@@ -24,6 +24,7 @@
 #include <qt/sendcoinsentry.h>
 #include <qt/transactiontablemodel.h>
 #include <qt/walletmodel.h>
+#include <script/standard.h>
 #include <validation.h>
 #include <wallet/wallet.h>
 

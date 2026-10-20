@@ -5,6 +5,7 @@
 #ifndef BITCOIN_RPC_UTIL_H
 #define BITCOIN_RPC_UTIL_H
 
+#include <addresstype.h>
 #include <consensus/amount.h>
 #include <node/transaction.h>
 #include <outputtype.h>
@@ -13,7 +14,6 @@
 #include <rpc/request.h>
 #include <script/script.h>
 #include <script/sign.h>
-#include <script/standard.h> // For CTxDestination
 #include <uint256.h>
 #include <univalue.h>
 #include <util/check.h>

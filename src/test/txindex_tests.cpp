@@ -4,9 +4,9 @@
 
 #include <index/txindex.h>
 
+#include <addresstype.h>
 #include <chainparams.h>
 #include <interfaces/chain.h>
-#include <script/standard.h>
 #include <util/time.h>
 #include <validation.h>
 

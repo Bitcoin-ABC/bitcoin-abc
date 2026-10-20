@@ -8,6 +8,7 @@
 #include <node/context.h>
 #include <node/kernel_notifications.h>
 #include <primitives/block.h>
+#include <script/standard.h>
 #include <util/chaintype.h>
 #include <validation.h>
 

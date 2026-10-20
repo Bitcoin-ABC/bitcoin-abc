@@ -5,6 +5,7 @@
 
 #include <node/miner.h>
 
+#include <addresstype.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
@@ -17,7 +18,6 @@
 #include <consensus/validation.h>
 #include <node/blockfitter.h>
 #include <policy/policy.h>
-#include <script/standard.h>
 #include <timedata.h>
 #include <txmempool.h>
 #include <uint256.h>

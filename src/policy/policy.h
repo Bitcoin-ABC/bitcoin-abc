@@ -8,15 +8,17 @@
 
 #include <consensus/consensus.h>
 #include <feerate.h>
-#include <script/standard.h>
+#include <script/script_flags.h>
 
 #include <optional>
 #include <string>
 
 class CCoinsViewCache;
+class CScript;
 class CTransaction;
 class CTxIn;
 class CTxOut;
+enum class TxoutType;
 
 /**
  * Default for -blockmaxsize, which controls the maximum size of block the
