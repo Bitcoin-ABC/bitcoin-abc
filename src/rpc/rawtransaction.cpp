@@ -81,6 +81,64 @@ static void TxToJSON(const CTransaction &tx, const BlockHash &hashBlock,
     }
 }
 
+// Update PSBT with information from the mempool, the UTXO set, and the provided
+// descriptors
+PartiallySignedTransaction ProcessPSBT(const std::string &psbt_string,
+                                       const std::any &context,
+                                       const HidingSigningProvider &provider) {
+    // Unserialize the transactions
+    PartiallySignedTransaction psbtx;
+    std::string error;
+    if (!DecodeBase64PSBT(psbtx, psbt_string, error)) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
+                           strprintf("TX decode failed %s", error));
+    }
+
+    // Fetch previous transactions (inputs):
+    CCoinsView viewDummy;
+    CCoinsViewCache view(&viewDummy);
+    {
+        NodeContext &node = EnsureAnyNodeContext(context);
+        const CTxMemPool &mempool = EnsureMemPool(node);
+        ChainstateManager &chainman = EnsureChainman(node);
+        LOCK2(cs_main, mempool.cs);
+        CCoinsViewCache &viewChain = chainman.ActiveChainstate().CoinsTip();
+        CCoinsViewMemPool viewMempool(&viewChain, mempool);
+        // temporarily switch cache backend to db+mempool view
+        view.SetBackend(viewMempool);
+
+        for (const CTxIn &txin : psbtx.tx->vin) {
+            // Load entries from viewChain into view; can fail.
+            view.AccessCoin(txin.prevout);
+        }
+
+        // switch back to avoid locking mempool for too long
+        view.SetBackend(viewDummy);
+    }
+
+    // Fill the inputs
+    for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
+        PSBTInput &input = psbtx.inputs.at(i);
+
+        if (!input.utxo.IsNull()) {
+            continue;
+        }
+
+        // Update script/keypath information using descriptor data.
+        // Note that SignPSBTInput does a lot more than just
+        // constructing ECDSA signatures we don't actually care about
+        // those here, in fact.
+        SignPSBTInput(provider, psbtx, i,
+                      /* sighash_type */ SigHashType().withForkId());
+    }
+
+    // Update script/keypath information using descriptor data.
+    for (unsigned int i = 0; i < psbtx.tx->vout.size(); ++i) {
+        UpdatePSBTOutput(provider, psbtx, i);
+    }
+    return psbtx;
+}
+
 static RPCHelpMan getrawtransaction() {
     return RPCHelpMan{
         "getrawtransaction",
@@ -1330,14 +1388,6 @@ RPCHelpMan utxoupdatepsbt() {
         RPCExamples{HelpExampleCli("utxoupdatepsbt", "\"psbt\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            // Unserialize the transactions
-            PartiallySignedTransaction psbtx;
-            std::string error;
-            if (!DecodeBase64PSBT(psbtx, request.params[0].get_str(), error)) {
-                throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
-                                   strprintf("TX decode failed %s", error));
-            }
-
             // Parse descriptors, if any.
             FlatSigningProvider provider;
             if (!request.params[1].isNull()) {
@@ -1348,52 +1398,10 @@ RPCHelpMan utxoupdatepsbt() {
             }
             // We don't actually need private keys further on; hide them as a
             // precaution.
-            HidingSigningProvider public_provider(&provider, /* nosign */ true,
-                                                  /* nobip32derivs */ false);
-
-            // Fetch previous transactions (inputs):
-            CCoinsView viewDummy;
-            CCoinsViewCache view(&viewDummy);
-            {
-                NodeContext &node = EnsureAnyNodeContext(request.context);
-                const CTxMemPool &mempool = EnsureMemPool(node);
-                ChainstateManager &chainman = EnsureChainman(node);
-                LOCK2(cs_main, mempool.cs);
-                CCoinsViewCache &viewChain =
-                    chainman.ActiveChainstate().CoinsTip();
-                CCoinsViewMemPool viewMempool(&viewChain, mempool);
-                // temporarily switch cache backend to db+mempool view
-                view.SetBackend(viewMempool);
-
-                for (const CTxIn &txin : psbtx.tx->vin) {
-                    // Load entries from viewChain into view; can fail.
-                    view.AccessCoin(txin.prevout);
-                }
-
-                // switch back to avoid locking mempool for too long
-                view.SetBackend(viewDummy);
-            }
-
-            // Fill the inputs
-            for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
-                PSBTInput &input = psbtx.inputs.at(i);
-
-                if (!input.utxo.IsNull()) {
-                    continue;
-                }
-
-                // Update script/keypath information using descriptor data.
-                // Note that SignPSBTInput does a lot more than just
-                // constructing ECDSA signatures we don't actually care about
-                // those here, in fact.
-                SignPSBTInput(public_provider, psbtx, i,
-                              /* sighash_type */ SigHashType().withForkId());
-            }
-
-            // Update script/keypath information using descriptor data.
-            for (unsigned int i = 0; i < psbtx.tx->vout.size(); ++i) {
-                UpdatePSBTOutput(public_provider, psbtx, i);
-            }
+            const PartiallySignedTransaction &psbtx = ProcessPSBT(
+                request.params[0].get_str(), request.context,
+                HidingSigningProvider(&provider, /*hide_secret=*/true,
+                                      /*hide_origin=*/false));
 
             DataStream ssTx{};
             ssTx << psbtx;
