@@ -11,7 +11,7 @@
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <uint256.h>
 
 typedef std::vector<uint8_t> valtype;

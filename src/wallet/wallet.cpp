@@ -26,7 +26,7 @@
 #include <script/sighashtype.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <support/cleanse.h>
 #include <txmempool.h>
 #include <univalue.h>

@@ -11,7 +11,7 @@
 #include <node/context.h>
 #include <policy/policy.h>
 #include <rpc/server.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <wallet/coincontrol.h>

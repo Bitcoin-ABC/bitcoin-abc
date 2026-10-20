@@ -4,7 +4,7 @@
 
 #include <chainparams.h>
 #include <key.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <test/util/setup_common.h>
 #include <wallet/scriptpubkeyman.h>
 #include <wallet/wallet.h>

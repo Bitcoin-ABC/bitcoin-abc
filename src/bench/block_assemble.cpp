@@ -7,7 +7,7 @@
 #include <config.h>
 #include <consensus/validation.h>
 #include <node/miner.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <txmempool.h>
 #include <validation.h>
 

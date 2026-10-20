@@ -8,7 +8,7 @@
 #include <script/sighashtype.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 
 #include <common/system.h>
 #include <core_io.h>

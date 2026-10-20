@@ -10,7 +10,7 @@
 #include <common/args.h>
 #include <hash.h>
 #include <policy/policy.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/translation.h>

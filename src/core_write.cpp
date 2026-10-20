@@ -13,7 +13,7 @@
 #include <script/script.h>
 #include <script/script_flags.h>
 #include <script/sigencoding.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <serialize.h>
 #include <streams.h>
 #include <undo.h>

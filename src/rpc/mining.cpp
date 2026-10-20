@@ -34,7 +34,7 @@
 #include <rpc/util.h>
 #include <script/descriptor.h>
 #include <script/script.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <shutdown.h>
 #include <timedata.h>
 #include <txmempool.h>

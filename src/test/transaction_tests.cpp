@@ -21,7 +21,7 @@
 #include <script/sigcache.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/string.h>

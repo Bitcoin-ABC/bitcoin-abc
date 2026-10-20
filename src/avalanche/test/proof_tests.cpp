@@ -8,7 +8,7 @@
 #include <avalanche/test/util.h>
 #include <avalanche/validation.h>
 #include <coins.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
 #include <validation.h>

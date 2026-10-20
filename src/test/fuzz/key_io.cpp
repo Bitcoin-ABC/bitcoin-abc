@@ -7,7 +7,7 @@
 #include <key_io.h>
 #include <rpc/util.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 
 #include <test/fuzz/fuzz.h>
 #include <util/chaintype.h>

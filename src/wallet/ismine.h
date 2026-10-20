@@ -6,7 +6,7 @@
 #ifndef BITCOIN_WALLET_ISMINE_H
 #define BITCOIN_WALLET_ISMINE_H
 
-#include <script/standard.h>
+#include <script/solver.h>
 
 #include <bitset>
 #include <cstdint>

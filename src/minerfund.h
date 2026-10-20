@@ -5,7 +5,7 @@
 #ifndef BITCOIN_MINERFUND_H
 #define BITCOIN_MINERFUND_H
 
-#include <script/standard.h>
+#include <script/solver.h>
 #include <util/hasher.h>
 
 #include <unordered_set>

@@ -572,7 +572,7 @@ add_library(script
 	script/sigencoding.cpp
 	script/sign.cpp
 	script/signingprovider.cpp
-	script/standard.cpp
+	script/solver.cpp
 )
 
 target_link_libraries(script common)
@@ -893,7 +893,7 @@ if(BUILD_CHAINSTATE)
 		script/script_error.cpp
 		script/sigcache.cpp
 		script/sigencoding.cpp
-		script/standard.cpp
+		script/solver.cpp
 		streams.cpp
 		support/lockedpool.cpp
 		sync.cpp

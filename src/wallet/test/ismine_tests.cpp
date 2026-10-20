@@ -7,7 +7,7 @@
 #include <node/context.h>
 #include <script/script.h>
 #include <script/script_error.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <wallet/ismine.h>
 #include <wallet/wallet.h>
 

@@ -10,7 +10,7 @@
 #include <qt/test/paymentrequestdata.h>
 #include <random.h>
 #include <script/script.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <util/chaintype.h>
 #include <util/strencodings.h>
 

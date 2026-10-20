@@ -6,7 +6,7 @@
 #define BITCOIN_TEST_UTIL_SCRIPT_H
 
 #include <script/script.h>
-#include <script/standard.h>
+#include <script/solver.h>
 
 static const CScript P2SH_OP_TRUE{
     CScript{} << OP_HASH160 << ToByteVector(CScriptID(CScript() << OP_TRUE))

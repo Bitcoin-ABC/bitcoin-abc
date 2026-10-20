@@ -13,7 +13,7 @@
 #include <consensus/activation.h>
 #include <core_io.h>
 #include <key_io.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <uint256.h>
 #include <util/fs_helpers.h>
 #include <util/time.h>

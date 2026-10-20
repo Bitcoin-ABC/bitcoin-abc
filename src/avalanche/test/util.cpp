@@ -8,7 +8,7 @@
 #include <key.h>
 #include <primitives/transaction.h>
 #include <random.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <validation.h>
 
 #include <boost/test/unit_test.hpp>

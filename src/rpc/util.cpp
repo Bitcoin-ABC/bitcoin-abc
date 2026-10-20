@@ -13,7 +13,7 @@
 #include <node/types.h>
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
-#include <script/standard.h>
+#include <script/solver.h>
 #include <tinyformat.h>
 #include <util/check.h>
 #include <util/strencodings.h>
