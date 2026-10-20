@@ -1,6 +1,7 @@
 # alp-fusion
 
-Protocol detail: [SPEC.md](./SPEC.md).
+Protocol detail: [SPEC.md](./SPEC.md). Source-count estimates:
+[PRIVACY.md](./PRIVACY.md).
 
 ## Why ALP needs fusion
 
@@ -115,6 +116,11 @@ fuses ALP without burning tokens.
 12. **Shared client library [D20638](https://reviews.bitcoinabc.org/D20638)** —
     `FusionClient` so wallets inject Chronik / keys / outputs / `runRound`.
     Node TCP is `createNodeFusionClient` in `src/node.ts`.
+
+**Aside:** [PRIVACY.md](./PRIVACY.md) concludes that alp-fusion is worth
+building. One round of 16 inputs has the same source count as a Monero ring.
+Thousands of distinct inputs across rounds reach the Zcash count for a small
+common amount. The token supply stays auditable.
 
 ### Remaining (Cashtab launch punchlist)
 

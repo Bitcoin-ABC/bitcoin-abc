@@ -130,6 +130,11 @@ why ALP should either (a) autofuse **longer** than Electrum’s XEC defaults in
 the single-tx era, or (b) invest in **chained rounds** so one session can grow
 to arbitrary size.
 
+PRIVACY.md concludes that alp-fusion is worth building. A round of 16
+inputs has the same source count as a Monero ring. Enough distinct inputs
+across rounds reach the Zcash count for a small common amount. The token
+supply stays auditable.
+
 ## Privacy properties (claims)
 
 | Property                                             | When claimed                                          |
