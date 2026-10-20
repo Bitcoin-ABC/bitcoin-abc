@@ -174,6 +174,13 @@ rustup component add rustfmt --toolchain nightly-2023-12-29
 rustup toolchain link abc-nightly "$(rustc +nightly-2023-12-29 --print sysroot)"
 ```
 
+When running functional tests with Chronik enabled, the third-party python package `websocket-client`
+is an additional dependency.
+```
+pip3 install websocket-client
+```
+
+
 Contributing to the web projects
 --------------------------------
 
