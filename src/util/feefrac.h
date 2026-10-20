@@ -235,4 +235,22 @@ public:
     }
 };
 
+/**
+ * Tagged wrapper around FeeFrac to avoid unit confusion.
+ * We currently use it only for a single unit, FeePerVSize.
+ */
+template <typename Tag> struct FeePerUnit : public FeeFrac {
+    // Inherit FeeFrac constructors.
+    using FeeFrac::FeeFrac;
+
+    /** Convert a FeeFrac to a FeePerUnit. */
+    static FeePerUnit FromFeeFrac(const FeeFrac &feefrac) noexcept {
+        return {feefrac.fee, feefrac.size};
+    }
+};
+
+// FeePerUnit instance for satoshi / vbyte.
+struct VSizeTag {};
+using FeePerVSize = FeePerUnit<VSizeTag>;
+
 #endif // BITCOIN_UTIL_FEEFRAC_H

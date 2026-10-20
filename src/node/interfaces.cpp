@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <common/args.h>
 #include <config.h>
+#include <feerate.h>
 #include <init.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
@@ -701,7 +702,7 @@ namespace {
         }
         CFeeRate estimateFee() const override {
             if (!m_node.mempool) {
-                return {};
+                return CFeeRate{Amount::zero()};
             }
             return m_node.mempool->estimateFee();
         }

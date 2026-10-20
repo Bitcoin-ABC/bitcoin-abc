@@ -19,8 +19,9 @@ FUZZ_TARGET(fee_rate) {
     const CFeeRate fee_rate{satoshis_per_k};
 
     (void)fee_rate.GetFeePerK();
-    const size_t bytes = fuzzed_data_provider.ConsumeIntegral<size_t>();
-    if (bytes <= uint64_t(std::numeric_limits<int64_t>::max())) {
+    const auto bytes = fuzzed_data_provider.ConsumeIntegralInRange<int32_t>(
+        0, std::numeric_limits<int32_t>::max());
+    if (!MultiplicationOverflow(int64_t{bytes}, satoshis_per_k / SATOSHI)) {
         (void)fee_rate.GetFee(bytes);
     }
     (void)fee_rate.ToString();

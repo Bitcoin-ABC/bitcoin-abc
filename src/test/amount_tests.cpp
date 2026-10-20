@@ -144,9 +144,7 @@ BOOST_AUTO_TEST_CASE(CheckedAddTest) {
 }
 
 BOOST_AUTO_TEST_CASE(BinaryOperatorTest) {
-    CFeeRate a, b;
-    a = CFeeRate(1 * SATOSHI);
-    b = CFeeRate(2 * SATOSHI);
+    CFeeRate a{1 * SATOSHI}, b{2 * SATOSHI};
     BOOST_CHECK(a < b);
     BOOST_CHECK(b > a);
     BOOST_CHECK(a == a);
@@ -160,8 +158,7 @@ BOOST_AUTO_TEST_CASE(BinaryOperatorTest) {
 }
 
 BOOST_AUTO_TEST_CASE(ToStringTest) {
-    CFeeRate feeRate;
-    feeRate = CFeeRate(1 * SATOSHI);
+    CFeeRate feeRate{1 * SATOSHI};
     BOOST_CHECK_EQUAL(feeRate.ToString(),
                       "0.01 " + Currency::getTicker() + "/kB");
 }

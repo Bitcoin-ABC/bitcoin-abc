@@ -925,7 +925,7 @@ bool MemPoolAccept::SubmitPackage(
             args.m_package_feerates
                 ? ws.m_package_feerate
                 : CFeeRate{ws.m_modified_fees,
-                           static_cast<uint32_t>(ws.m_vsize)};
+                           static_cast<int32_t>(ws.m_vsize)};
         const auto effective_feerate_txids =
             args.m_package_feerates ? all_package_txids
                                     : std::vector<TxId>({ws.m_ptx->GetId()});
@@ -993,7 +993,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     }
 
     const CFeeRate effective_feerate{ws.m_modified_fees,
-                                     static_cast<uint32_t>(ws.m_vsize)};
+                                     static_cast<int32_t>(ws.m_vsize)};
     // Tx was accepted, but not added
     if (args.m_test_accept) {
         return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
@@ -1109,7 +1109,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
                 args.m_package_feerates
                     ? ws.m_package_feerate
                     : CFeeRate{ws.m_modified_fees,
-                               static_cast<uint32_t>(ws.m_vsize)};
+                               static_cast<int32_t>(ws.m_vsize)};
             const auto effective_feerate_txids =
                 args.m_package_feerates ? all_package_txids
                                         : std::vector<TxId>{ws.m_ptx->GetId()};

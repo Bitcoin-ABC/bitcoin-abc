@@ -1,4 +1,4 @@
-// Copyright (c) 2016 The Bitcoin Core developers
+// Copyright (c) 2016-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -13,7 +13,7 @@
 BOOST_FIXTURE_TEST_SUITE(feerate_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(GetFeeTest) {
-    CFeeRate feeRate, altFeeRate;
+    CFeeRate feeRate{Amount::zero()};
 
     feeRate = CFeeRate(Amount::zero());
     // Must always return 0
@@ -74,25 +74,47 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
 
     // Check alternate constructor
     feeRate = CFeeRate(1000 * SATOSHI);
-    altFeeRate = CFeeRate(feeRate);
+    auto altFeeRate = CFeeRate(feeRate);
     BOOST_CHECK_EQUAL(feeRate.GetFee(100), altFeeRate.GetFee(100));
 
     // Check full constructor
     BOOST_CHECK(CFeeRate(-SATOSHI, 0) == CFeeRate(Amount::zero()));
     BOOST_CHECK(CFeeRate(Amount::zero(), 0) == CFeeRate(Amount::zero()));
     BOOST_CHECK(CFeeRate(SATOSHI, 0) == CFeeRate(Amount::zero()));
+    BOOST_CHECK(CFeeRate(SATOSHI, -1000) == CFeeRate(Amount::zero()));
     // default value
     BOOST_CHECK(CFeeRate(-SATOSHI, 1000) == CFeeRate(-SATOSHI));
     BOOST_CHECK(CFeeRate(Amount::zero(), 1000) == CFeeRate(Amount::zero()));
     BOOST_CHECK(CFeeRate(SATOSHI, 1000) == CFeeRate(SATOSHI));
-    // lost precision (can only resolve satoshis per kB)
-    BOOST_CHECK(CFeeRate(SATOSHI, 1001) == CFeeRate(Amount::zero()));
-    BOOST_CHECK(CFeeRate(2 * SATOSHI, 1001) == CFeeRate(SATOSHI));
+    // Previously, precision was limited to three decimal digits
+    // due to only supporting satoshis per kB, so CFeeRate(SATOSHI, 1001) was
+    // equal to CFeeRate(0).
+    // Since CFeeRate uses FeeFrac internally, higher precision is maintained.
+    BOOST_CHECK(CFeeRate(SATOSHI, 1001) > CFeeRate(Amount::zero()) &&
+                CFeeRate(SATOSHI, 1001) < CFeeRate(SATOSHI));
+    BOOST_CHECK(CFeeRate(2 * SATOSHI, 1001) > CFeeRate(SATOSHI) &&
+                CFeeRate(2 * SATOSHI, 1001) < CFeeRate(2 * SATOSHI));
     // some more integer checks
-    BOOST_CHECK(CFeeRate(26 * SATOSHI, 789) == CFeeRate(32 * SATOSHI));
-    BOOST_CHECK(CFeeRate(27 * SATOSHI, 789) == CFeeRate(34 * SATOSHI));
+    BOOST_CHECK(CFeeRate(26 * SATOSHI, 789) > CFeeRate(32 * SATOSHI) &&
+                CFeeRate(26 * SATOSHI, 789) < CFeeRate(33 * SATOSHI));
+    BOOST_CHECK(CFeeRate(27 * SATOSHI, 789) > CFeeRate(34 * SATOSHI) &&
+                CFeeRate(27 * SATOSHI, 789) < CFeeRate(35 * SATOSHI));
     // Maximum size in bytes, should not crash
-    CFeeRate(MAX_MONEY, std::numeric_limits<size_t>::max() >> 1).GetFeePerK();
+    CFeeRate(MAX_MONEY, std::numeric_limits<int32_t>::max()).GetFeePerK();
+}
+
+BOOST_AUTO_TEST_CASE(FeeAddTests) {
+    auto zero = CFeeRate(Amount::zero());
+    auto a = CFeeRate(SATOSHI);
+    a += zero;
+    BOOST_CHECK(a == CFeeRate(SATOSHI));
+    a += a;
+    BOOST_CHECK(a == CFeeRate(2000 * SATOSHI, 1'000'000));
+
+    // Below 1 sat / 1000 bytes, we run into rounding issues when adding
+    auto b = CFeeRate(SATOSHI, 1001);
+    b += zero;
+    BOOST_CHECK(b == zero);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

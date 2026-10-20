@@ -6,44 +6,45 @@
 
 #include <feerate.h>
 
+#include <consensus/amount.h>
 #include <tinyformat.h>
+#include <util/feefrac.h>
 
-CFeeRate::CFeeRate(const Amount nFeePaid, size_t nBytes_) {
-    assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
-    int64_t nSize = int64_t(nBytes_);
+#include <cstdint>
 
-    if (nSize > 0) {
-        nSatoshisPerK = 1000 * nFeePaid / nSize;
+CFeeRate::CFeeRate(const Amount nFeePaid, int32_t virtual_bytes) {
+    if (virtual_bytes > 0) {
+        m_feerate = FeePerVSize(nFeePaid / SATOSHI, virtual_bytes);
     } else {
-        nSatoshisPerK = Amount::zero();
+        m_feerate = FeePerVSize();
     }
 }
 
-Amount CFeeRate::GetFee(size_t nBytes_) const {
-    assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
-    int64_t nSize = int64_t(nBytes_);
+Amount CFeeRate::GetFee(int32_t virtual_bytes) const {
+    Assume(virtual_bytes >= 0);
+    if (m_feerate.IsEmpty()) {
+        return Amount::zero();
+    }
 
     // Ensure fee is rounded up
-    Amount nFee = Amount(nSize * nSatoshisPerK % 1000 > Amount::zero()
-                             ? nSize * nSatoshisPerK / 1000 + SATOSHI
-                             : nSize * nSatoshisPerK / 1000);
+    auto nFee = Amount(m_feerate.EvaluateFeeUp(virtual_bytes) * SATOSHI);
 
     // Special case introduced in core#7796 for symetry around 0.
     // A fee had to be at least + or -1 satoshi for any non-zero transaction
     // size. The symetry was broken when the code was switched to always round
     // up fees (core#22949), but the special case was kept. We keep it to
     // make later backports easier.
-    if (nFee == Amount::zero() && nSize != 0 &&
-        nSatoshisPerK < Amount::zero()) {
-        nFee = -SATOSHI;
+    if (nFee == Amount::zero() && virtual_bytes != 0 && m_feerate.fee < 0) {
+        return -SATOSHI;
     }
     return nFee;
 }
 
 std::string CFeeRate::ToString() const {
+    const Amount feerate_per_kvb = GetFeePerK();
     const auto &currency = Currency::get();
-    return strprintf("%d.%0*d %s/kB", nSatoshisPerK / currency.baseunit,
+    return strprintf("%d.%0*d %s/kB", feerate_per_kvb / currency.baseunit,
                      currency.decimals,
-                     (nSatoshisPerK % currency.baseunit) / currency.subunit,
+                     (feerate_per_kvb % currency.baseunit) / currency.subunit,
                      Currency::getTicker());
 }

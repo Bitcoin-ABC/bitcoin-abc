@@ -2087,7 +2087,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         )?);
 
         let max_fee = ffi::calc_fee(
-            raw_tx.len(),
+            raw_tx.len() as i32,
             ffi::default_max_raw_tx_fee_rate_per_kb(),
         );
         let txid = match self.node.bridge.broadcast_tx(&raw_tx, max_fee) {

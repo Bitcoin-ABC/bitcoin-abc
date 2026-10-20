@@ -374,8 +374,8 @@ BOOST_FIXTURE_TEST_CASE(test_calc_fee, BasicTestingSetup) {
                       1000'000'000);
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(123456789, 100), 12345679);
     BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(2, 1), 1);
-    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(0xdeadbeef, 0xcafe),
-                      std::ceil(0xdeadbeefll * 0xcafell / 1000.));
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(0x0eadbeef, 0xcafe),
+                      std::ceil(0x0eadbeefll * 0xcafell / 1000.));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

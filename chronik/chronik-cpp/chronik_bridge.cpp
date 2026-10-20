@@ -547,7 +547,7 @@ rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed) {
     return chronik::util::ToRustVec<uint8_t>(script);
 }
 
-int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb) {
+int64_t calc_fee(int32_t num_bytes, int64_t sats_fee_per_kb) {
     return CFeeRate(sats_fee_per_kb * SATOSHI).GetFee(num_bytes) / SATOSHI;
 }
 

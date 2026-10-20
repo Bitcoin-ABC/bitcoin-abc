@@ -134,7 +134,7 @@ rust::Vec<uint8_t> compress_script(rust::Slice<const uint8_t> script);
 
 rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed);
 
-int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb);
+int64_t calc_fee(int32_t num_bytes, int64_t sats_fee_per_kb);
 
 int64_t default_max_raw_tx_fee_rate_per_kb();
 

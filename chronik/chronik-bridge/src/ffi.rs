@@ -373,7 +373,7 @@ mod ffi_inner {
         fn decompress_script(compressed: &[u8]) -> Result<Vec<u8>>;
 
         /// Calc the fee in satoshis for the given tx size in bytes.
-        fn calc_fee(num_bytes: usize, sats_fee_per_kb: i64) -> i64;
+        fn calc_fee(num_bytes: i32, sats_fee_per_kb: i64) -> i64;
 
         /// Default maximum fee rate when broadcasting txs.
         fn default_max_raw_tx_fee_rate_per_kb() -> i64;

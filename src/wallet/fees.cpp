@@ -11,12 +11,13 @@
 #include <wallet/wallet.h>
 
 Amount GetRequiredFee(const CWallet &wallet, unsigned int nTxBytes) {
-    return GetRequiredFeeRate(wallet).GetFee(nTxBytes);
+    return GetRequiredFeeRate(wallet).GetFee(static_cast<int32_t>(nTxBytes));
 }
 
 Amount GetMinimumFee(const CWallet &wallet, unsigned int nTxBytes,
                      const CCoinControl &coin_control) {
-    return GetMinimumFeeRate(wallet, coin_control).GetFee(nTxBytes);
+    return GetMinimumFeeRate(wallet, coin_control)
+        .GetFee(static_cast<int32_t>(nTxBytes));
 }
 
 CFeeRate GetRequiredFeeRate(const CWallet &wallet) {
@@ -30,11 +31,11 @@ CFeeRate GetMinimumFeeRate(const CWallet &wallet,
             ? *coin_control.m_feerate
             : wallet.m_pay_tx_fee;
 
-    if (neededFeeRate == CFeeRate()) {
+    if (neededFeeRate == CFeeRate(Amount::zero())) {
         neededFeeRate = wallet.chain().estimateFee();
         // ... unless we don't have enough mempool data for estimatefee, then
         // use fallback fee.
-        if (neededFeeRate == CFeeRate()) {
+        if (neededFeeRate == CFeeRate(Amount::zero())) {
             neededFeeRate = wallet.m_fallback_fee;
         }
     }

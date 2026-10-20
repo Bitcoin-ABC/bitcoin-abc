@@ -114,7 +114,8 @@ impl QueryBroadcast<'_> {
         let mut txids = Vec::with_capacity(raw_txs.len());
         let default_max_fee_rate = ffi::default_max_raw_tx_fee_rate_per_kb();
         for raw_tx in raw_txs.iter() {
-            let max_fee = ffi::calc_fee(raw_tx.len(), default_max_fee_rate);
+            let max_fee =
+                ffi::calc_fee(raw_tx.len() as i32, default_max_fee_rate);
             txids.push(TxId::from(
                 self.node.bridge.broadcast_tx(raw_tx, max_fee).or_else(
                     |err| -> Result<_> {

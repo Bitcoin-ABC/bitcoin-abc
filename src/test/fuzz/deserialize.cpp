@@ -126,9 +126,15 @@ FUZZ_TARGET_DESERIALIZE(block_header_and_short_txids_deserialize, {
     DeserializeFromFuzzingInput(buffer, block_header_and_short_txids);
 })
 FUZZ_TARGET_DESERIALIZE(fee_rate_deserialize, {
-    CFeeRate fee_rate;
+    CFeeRate fee_rate{Amount::zero()};
     DeserializeFromFuzzingInput(buffer, fee_rate);
-    AssertEqualAfterSerializeDeserialize(fee_rate);
+
+    // Manual round-trip to avoid default ctor used in
+    // AssertEqualAfterSerializeDeserialize
+    DataStream ds = Serialize(fee_rate);
+    CFeeRate fee_rate2{Amount::zero()};
+    ds >> fee_rate2;
+    assert(fee_rate2 == fee_rate);
 })
 FUZZ_TARGET_DESERIALIZE(merkle_block_deserialize, {
     CMerkleBlock merkle_block;

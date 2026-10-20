@@ -19,7 +19,7 @@ class BlockFitter {
     // Configuration parameters for the block size
     uint64_t nMaxGeneratedBlockSize;
     uint64_t nMaxGeneratedBlockSigChecks;
-    CFeeRate blockMinFeeRate;
+    CFeeRate blockMinFeeRate{Amount::zero()};
 
 public:
     static constexpr uint64_t COINBASE_RESERVED_SIZE{1000};
@@ -35,7 +35,7 @@ public:
         Options();
         uint64_t nExcessiveBlockSize;
         uint64_t nMaxGeneratedBlockSize;
-        CFeeRate blockMinFeeRate;
+        CFeeRate blockMinFeeRate{Amount::zero()};
     };
 
     BlockFitter(const Options &options);

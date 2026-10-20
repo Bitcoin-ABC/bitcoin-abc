@@ -253,7 +253,7 @@ FUZZ_TARGET(feefrac_mul_div) {
             mul64 > std::numeric_limits<int64_t>::min() / 1000 &&
             quot_abs <
                 arith_uint256{std::numeric_limits<int64_t>::max() / 1000}) {
-            CFeeRate feerate(mul64 * SATOSHI, uint32_t(div));
+            CFeeRate feerate(mul64 * SATOSHI, div);
             Amount feerate_fee{feerate.GetFee(mul32)};
             auto allowed_gap =
                 static_cast<int64_t>(mul32 / 1000 + 3 + round_down);

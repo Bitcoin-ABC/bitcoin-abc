@@ -47,7 +47,7 @@ static constexpr unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE{1650};
  * Default for -incrementalrelayfee, which sets the minimum feerate increase for
  * mempool limiting or BIP 125 replacement.
  */
-static constexpr CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
+static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
  * Default for -bytespersigcheck .
  */
