@@ -15,7 +15,7 @@ target_link_libraries(seeder-base server)
 add_executable(bitcoin-seeder
 	main.cpp
 )
-target_link_libraries(bitcoin-seeder seeder-base)
+target_link_libraries(bitcoin-seeder seeder-base common util)
 
 include(BinaryTest)
 add_to_symbols_check(bitcoin-seeder)
