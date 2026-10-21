@@ -124,6 +124,11 @@ class AgoraPlugin(Plugin):
             return []
 
         covenant_variant, *pushdata, ad_redeem_bytecode = pushdata
+        # The redeem script is the last push. OP_0 decodes to b''. OP_1..OP_16
+        # decode to int, and any other opcode is a CScriptOp. CScript() expects
+        # a push op; a non-push is not an offer.
+        if not isinstance(ad_redeem_bytecode, (bytes, bytearray)):
+            return []
         ad_redeem_script = CScript(ad_redeem_bytecode)
 
         if covenant_variant == b"ONESHOT":
