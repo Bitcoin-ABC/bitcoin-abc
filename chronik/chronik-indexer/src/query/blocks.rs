@@ -441,7 +441,7 @@ impl<'a> QueryBlocks<'a> {
         let last_header = headers.last();
         let mut headers: Vec<_> = headers
             .iter()
-            .take(headers.len() - 1)
+            .take(headers.len().saturating_sub(1))
             .map(|h| proto::BlockHeader {
                 raw_header: h.data.to_vec(),
                 root: Vec::<u8>::new(),

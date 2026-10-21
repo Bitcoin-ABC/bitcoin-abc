@@ -110,12 +110,11 @@ static void CheckMatchesDisk(const BlockManager &blockman, const CBlock &block,
 }
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
-    LOCK(cs_main);
-
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const chronik_bridge::ChronikBridge bridge(m_node);
 
-    CBlockIndex *pgenesis = chainman.ActiveTip()->GetAncestor(0);
+    CBlockIndex *pgenesis =
+        WITH_LOCK(cs_main, return chainman.ActiveTip()->GetAncestor(0));
     const CBlock &genesisBlock = chainman.GetParams().GenesisBlock();
 
     // Loading genesis unblock data returns an empty undo
@@ -182,8 +181,6 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
-    LOCK(cs_main);
-
     const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
@@ -214,13 +211,15 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
 
     CBlock testBlock = CreateAndProcessBlock({tx1, tx2}, CScript() << OP_2,
                                              &chainman.ActiveChainstate());
-    std::unique_ptr<CBlockUndo> testBlockUndo =
-        bridge.load_block_undo(*chainman.ActiveTip());
+    std::unique_ptr<CBlockUndo> testBlockUndo = bridge.load_block_undo(
+        WITH_LOCK(cs_main, return *chainman.ActiveTip()));
 
-    BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetBlockHash(),
-                      testBlock.GetHash());
+    BOOST_CHECK_EQUAL(
+        WITH_LOCK(cs_main, return chainman.ActiveTip()->GetBlockHash()),
+        testBlock.GetHash());
     chronik_bridge::Block bridgedTestBlock = chronik_bridge::bridge_block(
-        testBlock, *testBlockUndo, *chainman.ActiveTip());
+        testBlock, *testBlockUndo,
+        WITH_LOCK(cs_main, return *chainman.ActiveTip()));
 
     chronik_bridge::Tx expectedTestTx0 = {
         .txid = HashToArray(testBlock.vtx[0]->GetId()),
@@ -343,8 +342,6 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
-    LOCK(cs_main);
-
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const chronik_bridge::ChronikBridge bridge(m_node);
 
@@ -352,9 +349,11 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
     // CBlock has a tx that the CBlockUndo doesn't have.
     CBlock badBlock1 = CreateBlock({CMutableTransaction()}, CScript() << OP_1,
                                    chainman.ActiveChainstate());
+
     CBlockUndo badBlockUndo1;
-    BOOST_CHECK_EXCEPTION(chronik_bridge::bridge_block(badBlock1, badBlockUndo1,
-                                                       *chainman.ActiveTip()),
+    BOOST_CHECK_EXCEPTION(chronik_bridge::bridge_block(
+                              badBlock1, badBlockUndo1,
+                              WITH_LOCK(cs_main, return *chainman.ActiveTip())),
                           std::runtime_error, [](const std::runtime_error &ex) {
                               BOOST_CHECK_EQUAL(ex.what(),
                                                 "Missing undo data for tx");
@@ -373,16 +372,17 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
                       CScript() << OP_RETURN << std::vector<uint8_t>(100))};
     CreateAndProcessBlock({tx}, CScript() << OP_1,
                           &chainman.ActiveChainstate());
-    std::unique_ptr<CBlockUndo> blockUndo =
-        bridge.load_block_undo(*chainman.ActiveTip());
+    std::unique_ptr<CBlockUndo> blockUndo = bridge.load_block_undo(
+        WITH_LOCK(cs_main, return *chainman.ActiveTip()));
 
     // This time, bad CBlock has two inputs whereas the disk has only one.
     CMutableTransaction badTx;
     badTx.vin.resize(2);
     CBlock badBlock2 =
         CreateBlock({badTx}, CScript() << OP_1, chainman.ActiveChainstate());
-    BOOST_CHECK_EXCEPTION(chronik_bridge::bridge_block(badBlock2, *blockUndo,
-                                                       *chainman.ActiveTip()),
+    BOOST_CHECK_EXCEPTION(chronik_bridge::bridge_block(
+                              badBlock2, *blockUndo,
+                              WITH_LOCK(cs_main, return *chainman.ActiveTip())),
                           std::runtime_error, [](const std::runtime_error &ex) {
                               BOOST_CHECK_EQUAL(ex.what(),
                                                 "Missing coin for input");
@@ -394,8 +394,6 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
 // GetSizeOfCompactSize, therefore we test blocks with "dangerous" number of
 // txs, which cover the cases where GetSizeOfCompactSize goes from 1 -> 3 -> 5.
 BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
-    LOCK(cs_main);
-
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const chronik_bridge::ChronikBridge bridge(m_node);
 
@@ -408,8 +406,10 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
         CBlock coinblock = CreateAndProcessBlock({}, CScript() << OP_1,
                                                  &chainman.ActiveChainstate());
         coinblocks.push_back(coinblock);
-        BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetBlockHash(),
-                          coinblock.GetHash());
+
+        BOOST_CHECK_EQUAL(
+            WITH_LOCK(cs_main, return chainman.ActiveTip()->GetBlockHash()),
+            coinblock.GetHash());
     }
     mineBlocks(100);
 
@@ -436,15 +436,17 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
         }
         CBlock testBlock = CreateAndProcessBlock(txs, CScript() << OP_1,
                                                  &chainman.ActiveChainstate());
-        BOOST_CHECK_EQUAL(chainman.ActiveTip()->GetBlockHash(),
-                          testBlock.GetHash());
+        BOOST_CHECK_EQUAL(
+            WITH_LOCK(cs_main, return chainman.ActiveTip()->GetBlockHash()),
+            testBlock.GetHash());
 
-        std::unique_ptr<CBlockUndo> testBlockUndo =
-            bridge.load_block_undo(*chainman.ActiveTip());
+        std::unique_ptr<CBlockUndo> testBlockUndo = bridge.load_block_undo(
+            WITH_LOCK(cs_main, return *chainman.ActiveTip()));
 
         // test matches disk
         chronik_bridge::Block bridgedBlock = chronik_bridge::bridge_block(
-            testBlock, *testBlockUndo, *chainman.ActiveTip());
+            testBlock, *testBlockUndo,
+            WITH_LOCK(cs_main, return *chainman.ActiveTip()));
         CheckMatchesDisk(chainman.m_blockman, testBlock, bridgedBlock);
 
         for (const chronik_bridge::BlockTx &bridgedTx : bridgedBlock.txs) {

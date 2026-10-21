@@ -288,6 +288,23 @@ builds:
             - - check
               - check-functional
 
+    build-chronik-debug:
+        clang: true
+        runOnDiffRegex:
+            - chronik/
+            - Cargo.toml
+            - Cargo.lock
+        cmake_flags:
+            - '-DCMAKE_BUILD_TYPE=Debug'
+            - '-DBUILD_CHRONIK=ON'
+            - '-DBUILD_CHRONIK_PLUGINS=ON'
+        targets:
+            - - check-crates
+            - - all
+              - install
+            - - check
+              - check-functional
+
     build-clang:
         Werror: true
         clang: true

@@ -123,12 +123,6 @@ foreach(LANGUAGE C CXX)
 	add_compile_options_to_configuration_for_language(Debug ${LANGUAGE} ${COMPILER_DEBUG_LEVEL})
 endforeach()
 
-# Define some debugging symbols when the Debug build type is selected.
-add_compile_definitions_to_configuration(Debug DEBUG DEBUG_LOCKORDER ABORT_ON_FAILED_ASSUME)
-
-# Add -ftrapv when building in Debug
-add_compile_options_to_configuration(Debug -ftrapv)
-
 # All versions of gcc that we commonly use for building are subject to bug
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90348. To work around that, set
 # -fstack-reuse=none for all gcc builds. (Only gcc understands this flag)

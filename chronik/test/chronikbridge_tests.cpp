@@ -100,9 +100,9 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
 
 BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    LOCK(cs_main);
     const chronik_bridge::ChronikBridge bridge(m_node);
-    CCoinsViewCache &coins_cache = chainman.ActiveChainstate().CoinsTip();
+    CCoinsViewCache &coins_cache =
+        WITH_LOCK(cs_main, return chainman.ActiveChainstate().CoinsTip());
 
     CScript anyoneScript = CScript() << OP_1;
     CScript anyoneP2sh = GetScriptForDestination(ScriptHash(anyoneScript));
@@ -121,8 +121,9 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
         CTxOut(1000 * SATOSHI, anyoneP2sh),
         CTxOut(coinTx->vout[0].nValue - 10000 * SATOSHI, anyoneP2sh),
     };
-    const MempoolAcceptResult result =
-        m_node.chainman->ProcessTransaction(MakeTransactionRef(tx));
+    const MempoolAcceptResult result = WITH_LOCK(
+        cs_main,
+        return m_node.chainman->ProcessTransaction(MakeTransactionRef(tx)));
     BOOST_CHECK_EQUAL(result.m_result_type,
                       MempoolAcceptResult::ResultType::VALID);
     TxId txid = tx.GetId();

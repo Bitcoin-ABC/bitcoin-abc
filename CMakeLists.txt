@@ -138,6 +138,11 @@ if(ENABLE_COVERAGE)
 	add_custom_target_coverage(check-upgrade-activated-extended)
 endif()
 
+include(AddCompilerFlags)
+# Define some debugging symbols when the Debug build type is selected.
+add_compile_definitions_to_configuration(Debug DEBUG DEBUG_LOCKORDER ABORT_ON_FAILED_ASSUME)
+# Add -ftrapv when building in Debug
+add_compile_options_to_configuration(Debug -ftrapv)
 
 include(Deprecation)
 deprecate_build_flag(BUILD_BITCOIN_CHRONIK BUILD_CHRONIK)
