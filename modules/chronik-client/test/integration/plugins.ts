@@ -64,7 +64,12 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         testRunner.send('next');
     });
 
+    let ws1: WsEndpoint;
+    let ws2: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws1?.close();
+        ws2?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -84,9 +89,6 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
 
         testRunner.send('next');
     });
-
-    let ws1: WsEndpoint;
-    let ws2: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',

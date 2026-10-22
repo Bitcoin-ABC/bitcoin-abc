@@ -86,7 +86,10 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -151,8 +154,6 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
     let slpMint: Tx;
     let slpSend: Tx;
     let slpChildGenesis: Tx;
-
-    let ws: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',

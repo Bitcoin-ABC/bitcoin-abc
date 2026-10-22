@@ -122,7 +122,10 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -215,8 +218,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     };
 
     let confirmedTxsForAlpGenesisTxid: TxHistoryPage;
-
-    let ws: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',

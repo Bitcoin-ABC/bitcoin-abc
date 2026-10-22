@@ -848,7 +848,10 @@ export interface WsConfig {
      */
     onReconnect?: (e: ws.Event) => void;
 
-    /** Fired when an error with the WebSocket occurs. */
+    /**
+     * Fired when the WebSocket emits an error, and when a reconnect attempt
+     * cannot reach any Chronik endpoint.
+     */
     onError?: (e: ws.ErrorEvent) => void;
 
     /**
@@ -876,7 +879,10 @@ export class WsEndpoint {
      */
     public onReconnect?: (e: ws.Event) => void;
 
-    /** Fired when an error with the WebSocket occurs. */
+    /**
+     * Fired when the WebSocket emits an error, and when a reconnect attempt
+     * cannot reach any Chronik endpoint.
+     */
     public onError?: (e: ws.ErrorEvent) => void;
 
     /**
@@ -892,15 +898,25 @@ export class WsEndpoint {
     public connected: Promise<ws.Event> | undefined;
     public manuallyClosed: boolean;
     public subs: WsSubscriptions;
+    /** @internal Pending reconnect timer. Cleared by close() and pause(). */
+    public _reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    /**
+     * @internal Reconnect attempts since the socket last opened.
+     * Reset on open, close, and pause.
+     */
+    public _reconnectAttempt: number;
 
     constructor(proxyInterface: FailoverProxy, config: WsConfig) {
         this.onMessage = config.onMessage;
         this.onConnect = config.onConnect;
         this.onReconnect = config.onReconnect;
+        this.onError = config.onError;
         this.onEnd = config.onEnd;
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
         this.manuallyClosed = false;
+        this._reconnectTimer = undefined;
+        this._reconnectAttempt = 0;
         this.subs = {
             scripts: [],
             tokens: [],
@@ -1179,13 +1195,23 @@ export class WsEndpoint {
         }
     }
 
+    /** @internal Cancel a pending reconnect without changing attempt state. */
+    public _clearReconnectTimer(): void {
+        if (this._reconnectTimer !== undefined) {
+            clearTimeout(this._reconnectTimer);
+            this._reconnectTimer = undefined;
+        }
+    }
+
     /**
      * Close the WebSocket connection and prevent any future reconnection
      * attempts.
      */
     public close() {
         this.manuallyClosed = true;
-        this.ws?.close();
+        this._reconnectAttempt = 0;
+        this._clearReconnectTimer();
+        this._dropSocket();
     }
 
     /**
@@ -1199,12 +1225,22 @@ export class WsEndpoint {
      */
     public pause() {
         this.autoReconnect = false;
-        if (this.ws) {
-            // Note we DO NOT set manuallyClosed to true here, unlike the
-            // public close() method, because we plan to re-open the websocket,
-            // and we do not want to cycle through the failover proxy servers.
-            this.ws.close();
-        }
+        this._reconnectAttempt = 0;
+        // Drop a backoff timer so pause during the wait cannot reconnect.
+        this._clearReconnectTimer();
+        // Note we DO NOT set manuallyClosed to true here, unlike the
+        // public close() method, because we plan to re-open the websocket,
+        // and we do not want to cycle through the failover proxy servers.
+        this._dropSocket();
+    }
+
+    /**
+     * Destroy the live socket and any liveness probe. A graceful close waits
+     * on a peer that may already be gone, which pins the process.
+     */
+    private _dropSocket(): void {
+        this._proxyInterface.discardProbes(this);
+        this._proxyInterface.terminateSocket(this.ws);
     }
 
     /**

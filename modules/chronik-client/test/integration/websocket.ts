@@ -240,7 +240,10 @@ describe('Test expected websocket behavior of chronik-client', () => {
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -294,8 +297,6 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let miscTxid3 = '';
     let miscTxid4 = '';
     let miscTxid5 = '';
-
-    let ws: WsEndpoint;
 
     let subscriptions: Array<WsSubScriptClient> = [];
 

@@ -4,6 +4,7 @@
 
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as net from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
 import * as proto from '../proto/chronik';
 import { ChronikClient, WsEndpoint } from '../src/ChronikClient';
@@ -193,7 +194,7 @@ describe('FailoverProxy.connectWs failover', () => {
             return Promise.resolve();
         };
 
-        proxy['_websocketUrlConnects'] = async (_wsUrl: string) => {
+        proxy['_websocketUrlConnects'] = async () => {
             return true;
         };
 
@@ -220,6 +221,10 @@ describe('FailoverProxy.connectWs failover', () => {
         wsEndpoint.ws.onclose({} as any);
         expect(proxy['deriveEndpointIndex'](0)).to.equal(0);
 
+        wsEndpoint.manuallyClosed = true;
+        if (wsEndpoint._reconnectTimer !== undefined) {
+            clearTimeout(wsEndpoint._reconnectTimer);
+        }
         if (wsEndpoint.ws) {
             wsEndpoint.ws.close();
             wsEndpoint.ws = null;
@@ -248,7 +253,7 @@ describe('FailoverProxy.connectWs with manuallyClosed', () => {
             return Promise.resolve();
         };
 
-        proxy['_websocketUrlConnects'] = async (_wsUrl: string) => {
+        proxy['_websocketUrlConnects'] = async () => {
             return true;
         };
 
@@ -273,6 +278,10 @@ describe('FailoverProxy.connectWs with manuallyClosed', () => {
         wsEndpoint.ws.onclose({} as any);
         expect(proxy['deriveEndpointIndex'](0)).to.equal(1);
 
+        wsEndpoint.manuallyClosed = true;
+        if (wsEndpoint._reconnectTimer !== undefined) {
+            clearTimeout(wsEndpoint._reconnectTimer);
+        }
         if (wsEndpoint.ws) {
             wsEndpoint.ws.close();
             wsEndpoint.ws = null;
@@ -397,7 +406,7 @@ describe('WsEndpoint malformed frame', () => {
     const waitFor = async (predicate: () => boolean) => {
         const started = Date.now();
         while (!predicate()) {
-            if (Date.now() - started > 1000) {
+            if (Date.now() - started > 3000) {
                 throw new Error('timed out');
             }
             await new Promise(resolve => setTimeout(resolve, 10));
@@ -617,6 +626,354 @@ describe('WsEndpoint malformed frame', () => {
             } else {
                 globalWithWindow.window = previousWindow;
             }
+        }
+    });
+});
+
+describe('Chronik websocket reconnect', () => {
+    const delay = (ms: number) =>
+        new Promise(resolve => setTimeout(resolve, ms));
+
+    const waitFor = async (predicate: () => boolean) => {
+        const started = Date.now();
+        while (!predicate()) {
+            if (Date.now() - started > 4000) {
+                throw new Error('timed out');
+            }
+            await delay(10);
+        }
+    };
+
+    const closeWss = (wss: WebSocketServer) =>
+        new Promise<void>((resolve, reject) => {
+            wss.close(err => (err ? reject(err) : resolve()));
+        });
+
+    const listenWss = async () => {
+        const wss = new WebSocketServer({ port: 0, host: '127.0.0.1' });
+        await new Promise<void>((resolve, reject) => {
+            wss.once('error', reject);
+            wss.once('listening', () => resolve());
+        });
+        const address = wss.address();
+        if (address === null || typeof address === 'string') {
+            throw new Error('expected a TCP listen address');
+        }
+        return { wss, url: `http://127.0.0.1:${address.port}` };
+    };
+
+    const listenTcp = async (onConnection: (socket: net.Socket) => void) => {
+        const sockets = new Set<net.Socket>();
+        const server = net.createServer(socket => {
+            sockets.add(socket);
+            socket.on('close', () => {
+                sockets.delete(socket);
+            });
+            onConnection(socket);
+        });
+        await new Promise<void>((resolve, reject) => {
+            server.once('error', reject);
+            server.listen(0, '127.0.0.1', () => resolve());
+        });
+        const address = server.address();
+        if (address === null || typeof address === 'string') {
+            throw new Error('expected a TCP listen address');
+        }
+        return {
+            url: `http://127.0.0.1:${address.port}`,
+            close: async () => {
+                for (const socket of sockets) {
+                    socket.destroy();
+                }
+                await new Promise<void>((resolve, reject) => {
+                    server.close(err => (err ? reject(err) : resolve()));
+                });
+            },
+        };
+    };
+
+    const trackRejections = () => {
+        const rejections: unknown[] = [];
+        const onRejection = (reason: unknown) => {
+            rejections.push(reason);
+        };
+        process.on('unhandledRejection', onRejection);
+        return {
+            rejections,
+            stop: async () => {
+                await delay(30);
+                process.off('unhandledRejection', onRejection);
+            },
+        };
+    };
+
+    /** Record backoff start times and when each reconnect connectWs begins. */
+    const instrumentReconnect = (proxy: FailoverProxy, delays: number[]) => {
+        const scheduledAt: number[] = [];
+        const reconnectStartedAt: number[] = [];
+        proxy.reconnectDelayMs = attempt => {
+            scheduledAt.push(Date.now());
+            return delays[Math.min(attempt, delays.length - 1)];
+        };
+        const original = proxy.connectWs.bind(proxy);
+        proxy.connectWs = async (endpoint, isReconnect) => {
+            if (isReconnect) {
+                reconnectStartedAt.push(Date.now());
+            }
+            return original(endpoint, isReconnect ?? false);
+        };
+        return { scheduledAt, reconnectStartedAt };
+    };
+
+    it('backs off, calls onError, and does not reject unhandled when every endpoint fails', async () => {
+        const { wss, url } = await listenWss();
+        const messages: string[] = [];
+        const chronik = new ChronikClient([url]);
+        const onError = (event: { message: string }) => {
+            messages.push(event.message);
+        };
+        const endpoint = chronik.ws({ onError });
+        const proxy = chronik.proxyInterface();
+        let allowConnect = true;
+        proxy['_websocketUrlConnects'] = async () => allowConnect;
+        const { scheduledAt, reconnectStartedAt } = instrumentReconnect(
+            proxy,
+            [40, 120],
+        );
+        const tracked = trackRejections();
+        try {
+            expect(endpoint.onError).to.equal(onError);
+            await endpoint.waitForOpen();
+            allowConnect = false;
+            endpoint.ws?.close();
+            await waitFor(() => reconnectStartedAt.length >= 2);
+            expect(messages).to.include(
+                'Error connecting to known Chronik websockets',
+            );
+            expect(reconnectStartedAt[0] - scheduledAt[0]).to.be.at.least(25);
+            expect(reconnectStartedAt[0] - scheduledAt[0]).to.be.below(500);
+            expect(reconnectStartedAt[1] - scheduledAt[1]).to.be.at.least(90);
+            expect(reconnectStartedAt[1] - scheduledAt[1]).to.be.below(700);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            endpoint.close();
+            await tracked.stop();
+            expect(tracked.rejections).to.eql([]);
+            await closeWss(wss);
+        }
+    });
+
+    it('does not reject unhandled when reconnect fails and onError is unset', async () => {
+        const { wss, url } = await listenWss();
+        const chronik = new ChronikClient([url]);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        let allowConnect = true;
+        proxy['_websocketUrlConnects'] = async () => allowConnect;
+        const { reconnectStartedAt } = instrumentReconnect(proxy, [20]);
+        const tracked = trackRejections();
+        const originalConsoleError = console.error;
+        console.error = () => {};
+        try {
+            await endpoint.waitForOpen();
+            allowConnect = false;
+            endpoint.ws?.close();
+            await waitFor(() => reconnectStartedAt.length >= 2);
+            expect(endpoint.onError).to.equal(undefined);
+        } finally {
+            console.error = originalConsoleError;
+            endpoint.close();
+            await tracked.stop();
+            expect(tracked.rejections).to.eql([]);
+            await closeWss(wss);
+        }
+    });
+
+    it('calls onError for a socket error and does not disable reconnect', async () => {
+        const tcp = await listenTcp(socket => {
+            socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
+        });
+        const seen: string[] = [];
+        const onError = (event: { message: string }) => {
+            seen.push(event.message);
+        };
+        const chronik = new ChronikClient([tcp.url]);
+        const endpoint = chronik.ws({ onError });
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        proxy.reconnectDelayMs = () => 60_000;
+        const tracked = trackRejections();
+        try {
+            expect(endpoint.onError).to.equal(onError);
+            await proxy.connectWs(endpoint);
+            await waitFor(() => seen.length >= 1);
+            expect(endpoint.manuallyClosed).to.equal(false);
+            expect(endpoint.autoReconnect).to.equal(true);
+        } finally {
+            endpoint.close();
+            await tracked.stop();
+            expect(tracked.rejections).to.eql([]);
+            await tcp.close();
+        }
+    });
+
+    it('waitForOpen rejects when the handshake stalls', async () => {
+        const tcp = await listenTcp(() => {});
+        const chronik = new ChronikClient([tcp.url]);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        proxy['_wsOpenTimeoutMs'] = 50;
+        proxy.reconnectDelayMs = () => 60_000;
+        const tracked = trackRejections();
+        try {
+            await expect(endpoint.waitForOpen()).to.be.rejectedWith(
+                'Timed out connecting to Chronik websocket',
+            );
+        } finally {
+            endpoint.close();
+            await tracked.stop();
+            expect(tracked.rejections).to.eql([]);
+            await tcp.close();
+        }
+    });
+
+    it('rejects the promise from a socket that closes before open', async () => {
+        const tcp = await listenTcp(socket => {
+            socket.destroy();
+        });
+        const chronik = new ChronikClient([tcp.url]);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        proxy['_wsOpenTimeoutMs'] = 2000;
+        proxy.reconnectDelayMs = () => 20;
+        const tracked = trackRejections();
+        try {
+            await proxy.connectWs(endpoint);
+            const firstConnected = endpoint.connected;
+            await expect(firstConnected).to.be.rejectedWith(
+                'Chronik websocket closed before it opened',
+            );
+            await waitFor(() => endpoint.connected !== firstConnected);
+        } finally {
+            endpoint.close();
+            await tracked.stop();
+            expect(tracked.rejections).to.eql([]);
+            await tcp.close();
+        }
+    });
+
+    it('does not reconnect when pause runs during backoff', async () => {
+        const { wss, url } = await listenWss();
+        const chronik = new ChronikClient([url]);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        const { reconnectStartedAt } = instrumentReconnect(proxy, [250]);
+        try {
+            await endpoint.waitForOpen();
+            endpoint.ws?.close();
+            await waitFor(() => endpoint._reconnectTimer !== undefined);
+            endpoint.pause();
+            await delay(400);
+            expect(reconnectStartedAt).to.eql([]);
+            expect(endpoint.autoReconnect).to.equal(false);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            endpoint.close();
+            await closeWss(wss);
+        }
+    });
+
+    it('does not reconnect when close runs during backoff', async () => {
+        const { wss, url } = await listenWss();
+        const chronik = new ChronikClient([url]);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        const { reconnectStartedAt } = instrumentReconnect(proxy, [250]);
+        try {
+            await endpoint.waitForOpen();
+            endpoint.ws?.close();
+            await waitFor(() => endpoint._reconnectTimer !== undefined);
+            endpoint.close();
+            await delay(400);
+            expect(reconnectStartedAt).to.eql([]);
+            expect(endpoint.manuallyClosed).to.equal(true);
+        } finally {
+            endpoint.close();
+            await closeWss(wss);
+        }
+    });
+
+    it('re-arms backoff when an explicit connect fails during a pending retry', async () => {
+        const { wss, url } = await listenWss();
+        const messages: string[] = [];
+        const chronik = new ChronikClient([url]);
+        const endpoint = chronik.ws({
+            onError: event => {
+                messages.push(event.message);
+            },
+        });
+        const proxy = chronik.proxyInterface();
+        let allowConnect = true;
+        proxy['_websocketUrlConnects'] = async () => allowConnect;
+        proxy.reconnectDelayMs = () => 60_000;
+        try {
+            await endpoint.waitForOpen();
+            allowConnect = false;
+            endpoint.ws?.close();
+            await waitFor(() => endpoint._reconnectTimer !== undefined);
+            await expect(proxy.connectWs(endpoint)).to.be.rejectedWith(
+                'Error connecting to known Chronik websockets',
+            );
+            expect(messages).to.include(
+                'Error connecting to known Chronik websockets',
+            );
+            expect(endpoint._reconnectTimer).to.not.equal(undefined);
+            expect(endpoint.autoReconnect).to.equal(true);
+            expect(endpoint.manuallyClosed).to.equal(false);
+        } finally {
+            endpoint.close();
+            await closeWss(wss);
+        }
+    });
+
+    it('does not arm backoff when the first connect fails', async () => {
+        const chronik = new ChronikClient(['https://chronik.example.com']);
+        const endpoint = chronik.ws({});
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => false;
+        await expect(proxy.connectWs(endpoint)).to.be.rejectedWith(
+            'Error connecting to known Chronik websockets',
+        );
+        expect(endpoint._reconnectTimer).to.equal(undefined);
+    });
+
+    it('does not reconnect when onReconnect pauses or closes', async () => {
+        const { wss, url } = await listenWss();
+        const chronik = new ChronikClient([url]);
+        const endpoint = chronik.ws({});
+        endpoint.onReconnect = () => {
+            endpoint.pause();
+        };
+        const proxy = chronik.proxyInterface();
+        proxy['_websocketUrlConnects'] = async () => true;
+        const { reconnectStartedAt, scheduledAt } = instrumentReconnect(
+            proxy,
+            [30],
+        );
+        try {
+            await endpoint.waitForOpen();
+            endpoint.ws?.close();
+            await delay(80);
+            expect(scheduledAt).to.eql([]);
+            expect(reconnectStartedAt).to.eql([]);
+            expect(endpoint.autoReconnect).to.equal(false);
+        } finally {
+            endpoint.close();
+            await closeWss(wss);
         }
     });
 });

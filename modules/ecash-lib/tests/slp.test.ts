@@ -67,7 +67,12 @@ describe('SLP Integration Test', () => {
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
+    const openSockets: { close: () => void }[] = [];
+
     after(() => {
+        for (const socket of openSockets) {
+            socket.close();
+        }
         runner.stop();
     });
 
@@ -449,6 +454,7 @@ describe('SLP Integration Test', () => {
             },
         });
         await ws.waitForOpen();
+        openSockets.push(ws);
         ws.subscribeToBlocks();
 
         await runner.sendToScript(50000n, p2pkh1);

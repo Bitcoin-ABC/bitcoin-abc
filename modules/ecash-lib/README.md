@@ -122,3 +122,4 @@ console.log(toHex(rawTx));
 - 4.14.2 - Patch bump to catch the latest `b58-ts` [D20768](https://reviews.bitcoinabc.org/D20768)
 - 4.14.3 - Refuse to create `SIGHASH_SINGLE` signatures when the input has no corresponding output, matching node signing behavior and avoiding signatures that commit to no outputs. [D20813](https://reviews.bitcoinabc.org/D20813)
 - 4.14.4 - Patch bump to catch the latest `ecashaddrjs` [D20822](https://reviews.bitcoinabc.org/D20822)
+- 4.14.5 - Patch bump to catch the latest `chronik-client` [D20878](https://reviews.bitcoinabc.org/D20878)

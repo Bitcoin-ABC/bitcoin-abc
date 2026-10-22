@@ -71,7 +71,10 @@ describe('Test expected websocket behavior of chronik-client when subscribing to
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -99,8 +102,6 @@ describe('Test expected websocket behavior of chronik-client when subscribing to
         'f80dfe71a17292307725ce108aae92dcc30d8096792dc5f5c7053ba02581ed44';
     const TXID_THREE =
         '163a4c095b117d5523bd7b6fc2c1fa310e33e2ab3a698d0480279cd3bb140814';
-
-    let ws: WsEndpoint;
 
     it('New clean chain', async () => {
         // Initialize a new instance of ChronikClient

@@ -53,7 +53,12 @@ describe('SLP', () => {
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
+    const openSockets: { close: () => void }[] = [];
+
     after(() => {
+        for (const socket of openSockets) {
+            socket.close();
+        }
         runner.stop();
     });
 
@@ -196,6 +201,7 @@ describe('SLP', () => {
             },
         });
         await ws.waitForOpen();
+        openSockets.push(ws);
         agora.subscribeWs(ws, {
             type: 'TOKEN_ID',
             tokenId: childTokenId,
@@ -829,6 +835,7 @@ describe('SLP', () => {
             },
         });
         await ws.waitForOpen();
+        openSockets.push(ws);
         agora.subscribeWs(ws, {
             type: 'TOKEN_ID',
             tokenId: childTokenId,

@@ -64,7 +64,12 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
+    let ws2: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
+        ws2?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -90,9 +95,6 @@ describe('History endpoints and websocket for LOKAD ID', () => {
     const LOKAD2 = Buffer.from('lok2').toString('hex');
     const LOKAD3 = Buffer.from('lok3').toString('hex');
     const LOKAD4 = Buffer.from('lok4').toString('hex');
-    let ws: WsEndpoint;
-    let ws2: WsEndpoint;
-
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',
         msgType: 'TX_ADDED_TO_MEMPOOL',

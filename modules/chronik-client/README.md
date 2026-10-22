@@ -144,5 +144,6 @@ ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 - 4.2.0 - Add new method `batchUtxos` to fetch utxos for several scripts in a single request [D19909](https://reviews.bitcoinabc.org/D19909)
 - 4.3.0 - Add new method `batchSummary` to fetch a summary of the history/utxos for several scripts in a single request [D19983](https://reviews.bitcoinabc.org/D19983)
 - 4.3.1 - Fix reconnect re-subscription doubling every subscription and never restoring plugin subscriptions. Restore is send-only and automatic on socket open (including `pause()`/`resume()`). [D20536](https://reviews.bitcoinabc.org/D20536)
-- 4.3.2 - Close the websocket and reconnect when a frame fails to decode, instead of crashing Node on an unhandled rejection. [D20775](https://reviews.bitcoinabc.org/D20775)
+- 4.3.2 - Close the websocket and reconnect when a frame fails to decode. An undecodable frame is no longer an unhandled rejection. [D20775](https://reviews.bitcoinabc.org/D20775)
 - 4.3.3 - Patch bump to catch the latest `ecashaddrjs` [D20822](https://reviews.bitcoinabc.org/D20822)
+- 4.3.4 - Retry websocket reconnects with exponential backoff when every Chronik endpoint is down. Call `onError` for socket errors and failed reconnects. `waitForOpen` rejects if the handshake times out or the socket closes before it opens. [D20878](https://reviews.bitcoinabc.org/D20878)

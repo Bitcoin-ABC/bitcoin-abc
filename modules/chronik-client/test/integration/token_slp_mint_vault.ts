@@ -86,7 +86,10 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         testRunner.send('next');
     });
 
+    let ws: WsEndpoint;
     after(async () => {
+        // Close before the nodes stop so onclose cannot arm a reconnect timer.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
@@ -150,8 +153,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     let vaultSetup: Tx;
     let slpVaultGenesis: Tx;
     let slpVaultMint: Tx;
-
-    let ws: WsEndpoint;
 
     const BASE_CONFIRMED_WSMSG: WsMsgClient = {
         type: 'Tx',

@@ -1,6 +1,6 @@
 {
     "name": "chronik-client",
-    "version": "4.3.3",
+    "version": "4.3.4",
     "description": "A client for accessing the Chronik Indexer API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
         "build": "tsc",
         "build-docs": "typedoc --out docs index.ts",
         "test": "mocha -r ts-node/register test/test.ts",
-        "integration-tests": "mocha -j1 -r ts-node/register test/integration/*.ts",
+        "integration-tests": "mocha --exit -r ts-node/register test/integration/*.ts",
         "test-long": "mocha -r ts-node/register test/test.ts --timeout 1000000000",
         "format": "prettier --write .",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check .",

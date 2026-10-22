@@ -154,3 +154,7 @@ If you have any implementation questions regarding this mock tool please check t
     3.4.3 [D20822](https://reviews.bitcoinabc.org/D20822)
 
 - Patch bump to catch the latest `ecashaddrjs` and `chronik-client`
+
+    3.4.4 [D20878](https://reviews.bitcoinabc.org/D20878)
+
+- Patch bump to catch the latest `chronik-client`

@@ -66,6 +66,9 @@ describe('Test failover functionality', () => {
     });
 
     after(async () => {
+        // Stop reconnects before the regtest nodes shut down. A live timer
+        // keeps the mocha process running after the suite finishes.
+        ws?.close();
         await cleanupMochaRegtest(
             testName,
             testRunner,
