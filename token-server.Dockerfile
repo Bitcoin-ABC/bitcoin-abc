@@ -56,7 +56,7 @@ RUN CC=clang ./build-wasm.sh
 
 # 2) Node image for prod deployment of token-server
 
-FROM node:22-bookworm-slim
+FROM node:22.23.4-bookworm-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

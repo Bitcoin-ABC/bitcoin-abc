@@ -43,7 +43,7 @@ COPY modules/ecash-lib-wasm .
 
 RUN CC=clang ./build-wasm.sh
 
-FROM node:22-bookworm-slim
+FROM node:22.23.4-bookworm-slim
 
 RUN npm install -g pnpm@12.3.4
 

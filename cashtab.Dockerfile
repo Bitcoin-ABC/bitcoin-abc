@@ -52,7 +52,7 @@ COPY modules/ecash-lib-wasm .
 RUN CC=clang ./build-wasm.sh
 
 # Stage 2
-FROM node:22-bookworm-slim AS builder
+FROM node:22.23.4-bookworm-slim AS builder
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

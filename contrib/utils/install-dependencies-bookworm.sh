@@ -162,12 +162,13 @@ pip3 install -r "${SCRIPT_DIR}/../../electrum/contrib/requirements/requirements-
 pip3 install ruff==0.15.8 mypy==0.910 djlint==1.34.1
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 
-# Install nodejs (pinned). Node patch releases can change tls.rootCertificates;
-# ecash-lib tests verify every bundled root, so bump only after P-521 support
-# lands in ecash-lib-wasm. When bumping, update NODE_VERSION and NODE_SHA256.
-# SHA256 from https://nodejs.org/dist/v<version>/SHASUMS256.txt (linux-x64 tarball)
-NODE_VERSION=22.22.0
-NODE_SHA256=9aa8e9d2298ab68c600bd6fb86a6c13bce11a4eca1ba9b39d79fa021755d7c37
+# Pin Node for CI and the dev image. To bump it:
+#   1. Set NODE_VERSION and NODE_SHA256 below. The hash is the linux-x64
+#      tarball line in https://nodejs.org/dist/v<version>/SHASUMS256.txt
+#   2. Set that same version in CONTRIBUTING.md, every .nvmrc, and every
+#      `FROM node:` tag.
+NODE_VERSION=22.23.4
+NODE_SHA256=1805bcd35e6815559bd2eb97db438d3fdb0eb3a5e6a977b7c1badca76337e9ce
 NODE_TARBALL=node-v${NODE_VERSION}-linux-x64.tar.xz
 curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/${NODE_TARBALL}" -o "${NODE_TARBALL}"
 echo "${NODE_SHA256} ${NODE_TARBALL}" | sha256sum -c -

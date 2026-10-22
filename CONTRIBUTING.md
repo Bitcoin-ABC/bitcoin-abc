@@ -192,21 +192,14 @@ Then:
 
 ```
 cd bitcoin-abc
-[sudo] nvm install 22
+[sudo] nvm install 22.23.4
 npm install -g pnpm@12.3.4
 pnpm install --frozen-lockfile
 ```
 
-CI and the development Docker image pin Node in
-`contrib/utils/install-dependencies-bookworm.sh` (`NODE_VERSION` / `NODE_SHA256`).
-Use that version locally, for example:
-
-```
-nvm install 22.22.0
-```
-
-Some app directories (e.g. `cashtab/`) still have their own `.nvmrc` for historical
-reasons; prefer the version in `install-dependencies-bookworm.sh` when they differ.
+CI, the dev image, the `.nvmrc` files, and the `FROM node:` tags all use that
+version. To bump Node, follow the comment above `NODE_VERSION` in
+`contrib/utils/install-dependencies-bookworm.sh`.
 
 Contributing to Electrum ABC
 ----------------------------

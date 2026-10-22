@@ -58,7 +58,7 @@ RUN CC=clang ./build-wasm.sh
 
 # Node image for prod deployment of ecash-herald
 
-FROM node:22-bookworm-slim
+FROM node:22.23.4-bookworm-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

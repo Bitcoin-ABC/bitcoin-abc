@@ -55,7 +55,7 @@ COPY modules/ecash-lib-wasm .
 RUN CC=clang ./build-wasm.sh
 
 # Stage 2 - Node image for building and publishing ecash-agora
-FROM node:22-trixie-slim
+FROM node:22.23.4-trixie-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

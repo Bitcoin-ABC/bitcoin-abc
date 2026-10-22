@@ -2,7 +2,7 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-FROM node:22-trixie-slim
+FROM node:22.23.4-trixie-slim
 WORKDIR /app
 
 # Install pnpm

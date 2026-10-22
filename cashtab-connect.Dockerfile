@@ -2,7 +2,7 @@
 # NB cashtab-connect has no other local dependencies
 
 # Stage 1
-FROM node:22-bookworm-slim
+FROM node:22.23.4-bookworm-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

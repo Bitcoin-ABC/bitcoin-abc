@@ -4,7 +4,7 @@
 #
 # Next.js documentation hub at web/docs.e.cash (same pattern as e.cash.Dockerfile).
 
-FROM node:22-trixie-slim
+FROM node:22.23.4-trixie-slim
 WORKDIR /app
 
 RUN npm install -g pnpm@12.3.4

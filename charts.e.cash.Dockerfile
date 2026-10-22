@@ -4,7 +4,7 @@
 
 # Dockerfile for deploying charts.e.cash with Vercel in CI/CD
 
-FROM node:22-trixie-slim
+FROM node:22.23.4-trixie-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4

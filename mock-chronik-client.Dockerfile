@@ -4,7 +4,7 @@
 
 # Node image for running npm publish
 
-FROM node:22-trixie-slim
+FROM node:22.23.4-trixie-slim
 
 # Install pnpm
 RUN npm install -g pnpm@12.3.4
