@@ -6,6 +6,7 @@ import { Address } from 'ecash-lib';
 import { Wallet } from 'ecash-wallet';
 import { webViewError } from './common';
 import { config } from './config';
+import { loadHdIndices, saveHdIndices } from './hd-indices-storage';
 
 /**
  * Return the eCash address string for this wallet with the configured prefix.
@@ -35,13 +36,66 @@ export function isValidECashAddress(address: string): boolean {
  */
 export class AddressManager {
     private ecashWallet: Wallet | null;
+    private receiveIndex: number;
+    private changeIndex: number;
 
     constructor(wallet: Wallet | null = null) {
         this.ecashWallet = wallet;
+        const indices = loadHdIndices();
+        this.receiveIndex = indices.receiveIndex;
+        this.changeIndex = indices.changeIndex;
     }
 
     get wallet(): Wallet | null {
         return this.ecashWallet;
+    }
+
+    /** Last used receive address index (next index to derive on receive). */
+    getReceiveIndex(): number {
+        return this.receiveIndex;
+    }
+
+    /** Last used change address index (next index to derive on change). */
+    getChangeIndex(): number {
+        return this.changeIndex;
+    }
+
+    /**
+     * Persist the receive address index. Updates memory only after a successful
+     * save.
+     *
+     * The non-negative integer check is defensive only: callers should pass
+     * indices from ecash-wallet / discovery, which are always valid. Invalid
+     * values must never occur in normal operation.
+     */
+    setReceiveIndex(receiveIndex: number): void {
+        if (!Number.isInteger(receiveIndex) || receiveIndex < 0) {
+            throw new Error('HD indices must be non-negative integers');
+        }
+        saveHdIndices({
+            receiveIndex,
+            changeIndex: this.changeIndex,
+        });
+        this.receiveIndex = receiveIndex;
+    }
+
+    /**
+     * Persist the change address index. Updates memory only after a successful
+     * save.
+     *
+     * The non-negative integer check is defensive only: callers should pass
+     * indices from ecash-wallet / discovery, which are always valid. Invalid
+     * values must never occur in normal operation.
+     */
+    setChangeIndex(changeIndex: number): void {
+        if (!Number.isInteger(changeIndex) || changeIndex < 0) {
+            throw new Error('HD indices must be non-negative integers');
+        }
+        saveHdIndices({
+            receiveIndex: this.receiveIndex,
+            changeIndex,
+        });
+        this.changeIndex = changeIndex;
     }
 
     updateWallet(wallet: Wallet | null): void {
