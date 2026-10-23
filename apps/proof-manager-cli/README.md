@@ -79,6 +79,7 @@ Private keys are never stored in JSON files. Instead, the CLI uses a secure sign
 - Unsigned configurations contain only public data
 - Private keys are provided securely via stdin or command-line argument (hex or WIF format)
 - WIF private keys are validated with their checksum on decode so typos are rejected
+- Use `--testnet` with `generate-keypair` for testnet WIF (`0xef`); default is mainnet (`0x80`)
 - The wrapped JSON format (`{"proof": {...}}`, `{"stakes": [...]}`) makes type detection unambiguous and prevents type confusion
 - Stakes are signed individually first, then unsigned proofs contain already-signed stakes
 - All cryptographic operations use the `avalanche-lib-wasm` library's public API (ProofBuilder, DelegationBuilder) for consistency with other applications
@@ -272,9 +273,12 @@ proof-manager sign --input unsigned_proof.json --format both --private-key <mast
 
 # Disable automatic history cleanup (not recommended for security)
 proof-manager sign --input unsigned_config.json --commitment proof_config.json --private-key <hex_key> --no-history-cleanup
+
+# Sign with a testnet WIF private key (network detected from WIF version byte)
+proof-manager sign --input unsigned_proof.json --private-key <testnet_wif>
 ```
 
-**Important**: When signing stakes, the `--commitment` parameter is required and must contain a proof JSON configuration with the `expiration` and `master` that the stakes will be committed to.
+**Important**: When signing stakes, the `--commitment` parameter is required and must contain a proof JSON configuration with the `expiration` and `master` that the stakes will be committed to. Hex and both mainnet/testnet WIF private keys are accepted.
 
 **Output Formats**: The `--format` option supports:
 
@@ -347,6 +351,9 @@ Generate a secure random keypair using avalanche-lib-wasm crypto:
 # Generate keypair and output to stdout
 proof-manager generate-keypair
 
+# Generate a testnet keypair (WIF version byte 0xef)
+proof-manager generate-keypair --testnet
+
 # Save keypair to file (created with mode 0600)
 proof-manager generate-keypair --output keypair.json
 ```
@@ -356,7 +363,7 @@ When `--output` is used, the keypair file is created with restrictive permission
 The output includes:
 
 - `private_key_hex`: Private key in hexadecimal format
-- `private_key_wif`: Private key in WIF (Wallet Import Format)
+- `private_key_wif`: Private key in WIF (Wallet Import Format); use `--testnet` for testnet WIF
 - `public_key`: Public key in hexadecimal format
 
 ## Commitment Parameter for Stakes Signing
@@ -617,6 +624,9 @@ proof-manager get-id --hex <delegation_hex_string>
 
 # Generate a new keypair
 proof-manager generate-keypair
+
+# Generate a testnet keypair
+proof-manager generate-keypair --testnet
 
 # Generate keypair and save to file
 proof-manager generate-keypair --output my_keypair.json

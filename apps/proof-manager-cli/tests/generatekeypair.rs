@@ -26,6 +26,40 @@ fn test_generate_keypair_stdout() {
     assert!(keypair.get("private_key_hex").is_some());
     assert!(keypair.get("private_key_wif").is_some());
     assert!(keypair.get("public_key").is_some());
+
+    // Mainnet compressed WIF starts with K or L
+    let wif = keypair["private_key_wif"].as_str().unwrap();
+    assert!(
+        wif.starts_with('K') || wif.starts_with('L'),
+        "mainnet compressed WIF should start with K or L, got {}",
+        wif
+    );
+}
+
+#[test]
+fn test_generate_keypair_testnet() {
+    let output = proof_manager_cmd()
+        .arg("generate-keypair")
+        .arg("--testnet")
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+
+    let keypair: Value =
+        serde_json::from_slice(&output).expect("Valid keypair JSON");
+    assert!(keypair.get("private_key_hex").is_some());
+    assert!(keypair.get("private_key_wif").is_some());
+    assert!(keypair.get("public_key").is_some());
+
+    // Testnet compressed WIF starts with c
+    let wif = keypair["private_key_wif"].as_str().unwrap();
+    assert!(
+        wif.starts_with('c'),
+        "testnet compressed WIF should start with c, got {}",
+        wif
+    );
 }
 
 #[cfg(unix)]

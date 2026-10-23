@@ -11,7 +11,10 @@ use serde_json::json;
 use crate::io::write_secret_output;
 use crate::wif::encode_private_key_to_wif;
 
-pub fn generate_keypair_command(output: Option<PathBuf>) -> Result<()> {
+pub fn generate_keypair_command(
+    output: Option<PathBuf>,
+    testnet: bool,
+) -> Result<()> {
     // Generate a secure random private key
     let private_key_bytes = generate_private_key().map_err(|e| {
         anyhow::anyhow!("Failed to generate private key: {}", e)
@@ -26,10 +29,10 @@ pub fn generate_keypair_command(output: Option<PathBuf>) -> Result<()> {
     let public_key_hex = hex::encode(&public_key_bytes);
 
     // Generate WIF format for private key (compressed)
-    let private_key_wif = encode_private_key_to_wif(&private_key_bytes, true)
-        .map_err(|e| {
-        anyhow::anyhow!("Failed to encode private key to WIF: {}", e)
-    })?;
+    let private_key_wif =
+        encode_private_key_to_wif(&private_key_bytes, true, testnet).map_err(
+            |e| anyhow::anyhow!("Failed to encode private key to WIF: {}", e),
+        )?;
 
     // Generate JSON output
     let keypair_json = json!({

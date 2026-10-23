@@ -141,6 +141,9 @@ enum Commands {
         /// Output file (optional, defaults to stdout)
         #[arg(short, long)]
         output: Option<PathBuf>,
+        /// Encode private key with testnet WIF version byte (0xef)
+        #[arg(long)]
+        testnet: bool,
     },
 }
 
@@ -192,8 +195,8 @@ fn main() -> Result<()> {
             input_file,
             output,
         } => getid_command(r#type, input, input_file, output),
-        Commands::GenerateKeypair { output } => {
-            generate_keypair_command(output)
+        Commands::GenerateKeypair { output, testnet } => {
+            generate_keypair_command(output, testnet)
         }
     }
 }

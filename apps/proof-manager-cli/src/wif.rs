@@ -4,6 +4,11 @@
 
 use anyhow::{Context, Result};
 
+/// Mainnet WIF version byte
+pub const MAINNET_WIF_VERSION: u8 = 0x80;
+/// Testnet WIF version byte
+pub const TESTNET_WIF_VERSION: u8 = 0xef;
+
 /// Private key format enumeration
 #[derive(Debug, PartialEq)]
 pub enum PrivateKeyFormat {
@@ -25,7 +30,20 @@ pub fn detect_private_key_format(key: &str) -> PrivateKeyFormat {
     }
 }
 
-/// Decode a private key from either hex or WIF format
+/// Expected WIF version byte for the given network
+fn wif_version(testnet: bool) -> u8 {
+    if testnet {
+        TESTNET_WIF_VERSION
+    } else {
+        MAINNET_WIF_VERSION
+    }
+}
+
+/// Decode a private key from either hex or WIF format.
+///
+/// Hex keys are network-agnostic. WIF keys are accepted for both mainnet
+/// (`0x80`) and testnet (`0xef`); the network is inferred from the version
+/// byte.
 pub fn decode_private_key(key: &str) -> Result<Vec<u8>> {
     match detect_private_key_format(key) {
         PrivateKeyFormat::Hex => {
@@ -70,6 +88,18 @@ pub fn decode_private_key(key: &str) -> Result<Vec<u8>> {
                 anyhow::bail!("Invalid WIF checksum");
             }
 
+            let version = decoded[0];
+            if version != MAINNET_WIF_VERSION && version != TESTNET_WIF_VERSION
+            {
+                anyhow::bail!(
+                    "Invalid WIF version byte: expected 0x{:02x} (mainnet) or \
+                     0x{:02x} (testnet), got 0x{:02x}",
+                    MAINNET_WIF_VERSION,
+                    TESTNET_WIF_VERSION,
+                    version
+                );
+            }
+
             // Extract private key (skip version byte, take 32 bytes)
             let private_key = &decoded[1..33];
 
@@ -81,10 +111,13 @@ pub fn decode_private_key(key: &str) -> Result<Vec<u8>> {
     }
 }
 
-/// Encode a private key from raw bytes to WIF format
+/// Encode a private key from raw bytes to WIF format.
+///
+/// Uses version byte `0x80` for mainnet or `0xef` when `testnet` is true.
 pub fn encode_private_key_to_wif(
     private_key: &[u8],
     compressed: bool,
+    testnet: bool,
 ) -> Result<String> {
     // Validate private key length
     if private_key.len() != 32 {
@@ -96,7 +129,7 @@ pub fn encode_private_key_to_wif(
 
     // Build WIF payload: [version_byte][32_byte_private_key][compression_flag?]
     let mut payload = Vec::with_capacity(if compressed { 34 } else { 33 });
-    payload.push(0x80); // Mainnet version byte
+    payload.push(wif_version(testnet));
     payload.extend_from_slice(private_key);
 
     if compressed {
@@ -178,7 +211,7 @@ mod tests {
         )
         .unwrap();
         let mut payload = Vec::with_capacity(38);
-        payload.push(0x80);
+        payload.push(MAINNET_WIF_VERSION);
         payload.extend_from_slice(&private_key);
         payload.push(0x01);
         let hash = avalanche_lib_wasm::hash::sha256d(&payload);
@@ -193,6 +226,57 @@ mod tests {
             .unwrap_err()
             .to_string()
             .contains("Invalid WIF checksum"));
+    }
+
+    #[test]
+    fn test_decode_wif_rejects_unknown_version() {
+        let private_key = hex::decode(
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747",
+        )
+        .unwrap();
+        let mut payload = Vec::with_capacity(38);
+        payload.push(0x00); // Invalid version byte
+        payload.extend_from_slice(&private_key);
+        payload.push(0x01);
+        let hash = avalanche_lib_wasm::hash::sha256d(&payload);
+        payload.extend_from_slice(&hash[..4]);
+        let bad_wif = bs58::encode(&payload).into_string();
+
+        let result = decode_private_key(&bad_wif);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Invalid WIF version byte"));
+    }
+
+    #[test]
+    fn test_decode_accepts_mainnet_and_testnet_wif() {
+        let hex_key =
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747";
+        let private_key = hex::decode(hex_key).unwrap();
+        let mainnet_wif =
+            encode_private_key_to_wif(&private_key, true, false).unwrap();
+        let testnet_wif =
+            encode_private_key_to_wif(&private_key, true, true).unwrap();
+
+        assert_eq!(decode_private_key(&mainnet_wif).unwrap(), private_key);
+        assert_eq!(decode_private_key(&testnet_wif).unwrap(), private_key);
+    }
+
+    #[test]
+    fn test_testnet_wif_roundtrip() {
+        let hex_key =
+            "12b004fff7f4b69ef8650e767f18f11ede158148b425660723b9f9a66e61f747";
+        let private_key = hex::decode(hex_key).unwrap();
+
+        let testnet_wif =
+            encode_private_key_to_wif(&private_key, true, true).unwrap();
+        let decoded = decode_private_key(&testnet_wif).unwrap();
+        assert_eq!(decoded, private_key);
+
+        // Testnet compressed WIF starts with 'c'
+        assert!(testnet_wif.starts_with('c'));
     }
 
     #[test]
@@ -213,7 +297,7 @@ mod tests {
 
         // Test hex to WIF encoding (uncompressed)
         let encoded_wif1 =
-            encode_private_key_to_wif(&hex_result1, false).unwrap();
+            encode_private_key_to_wif(&hex_result1, false, false).unwrap();
         assert_eq!(encoded_wif1, wif1);
 
         // Test case 2: WIF Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw
@@ -228,7 +312,7 @@ mod tests {
 
         // Test hex to WIF encoding (compressed)
         let encoded_wif2 =
-            encode_private_key_to_wif(&hex_result2, true).unwrap();
+            encode_private_key_to_wif(&hex_result2, true, false).unwrap();
         assert_eq!(encoded_wif2, wif2);
 
         // Test case 3: WIF L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW
@@ -243,7 +327,7 @@ mod tests {
 
         // Test hex to WIF encoding (compressed)
         let encoded_wif3 =
-            encode_private_key_to_wif(&hex_result3, true).unwrap();
+            encode_private_key_to_wif(&hex_result3, true, false).unwrap();
         assert_eq!(encoded_wif3, wif3);
 
         // Test case 4: WIF KzzLLtiYiyFcTXPWUzywt2yEKk5FxkGbMfKhWgBd4oZdt8t8kk77
@@ -258,7 +342,7 @@ mod tests {
 
         // Test hex to WIF encoding (compressed)
         let encoded_wif4 =
-            encode_private_key_to_wif(&hex_result4, true).unwrap();
+            encode_private_key_to_wif(&hex_result4, true, false).unwrap();
         assert_eq!(encoded_wif4, wif4);
     }
 }
