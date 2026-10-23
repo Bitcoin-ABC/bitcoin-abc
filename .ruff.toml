@@ -13,6 +13,8 @@ exclude = [
     "src/secp256k1",
 ]
 
+target-version = "py310"
+
 [lint]
 select = [
     "E",
