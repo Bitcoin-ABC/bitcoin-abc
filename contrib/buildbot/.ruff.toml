@@ -1,2 +1,4 @@
+extend = "../../.ruff.toml"
+
 [lint.isort]
 known-first-party = ["build", "server"]
