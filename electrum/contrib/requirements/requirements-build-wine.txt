@@ -1,4 +1,4 @@
-pip
+pip>=26.2.2
 setuptools
 wheel
 packaging
