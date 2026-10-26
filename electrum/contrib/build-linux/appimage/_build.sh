@@ -73,8 +73,11 @@ appdir_python() {
 python='appdir_python'
 
 info "Installing pip"
+# ensurepip installs the pip wheel bundled with the above CPython tar.xz (no network access requireed)
 "$python" -m ensurepip
-
+# Workaround for CVE-2026-111943 (eMudhra CA Key Compromise).
+# See https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576
+"$python" -m pip install "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
 
 info "Preparing electrum-locale"
 (
