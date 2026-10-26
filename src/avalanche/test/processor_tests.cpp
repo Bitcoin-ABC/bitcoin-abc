@@ -108,6 +108,10 @@ namespace {
             p.m_stakingPreConsensus = enabled;
         }
 
+        static void setVoteRecordSeed(Processor &p, uint32_t seed) {
+            p.m_voteRecordSeed = seed;
+        }
+
         static void clearInvsNotWorthPolling(Processor &p) {
             p.clearInvsNotWorthPolling();
         }
@@ -121,7 +125,8 @@ namespace {
 } // namespace
 
 struct TestVoteRecord : public VoteRecord {
-    explicit TestVoteRecord(uint16_t conf) : VoteRecord(true) {
+    // Use a fixed seed so the 8-node cycling fixture has distinct hashes.
+    explicit TestVoteRecord(uint16_t conf) : VoteRecord(true, /*seedIn=*/0) {
         confidence |= conf << 1;
     }
 };
@@ -137,6 +142,9 @@ CService ip(uint32_t i) {
 struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
     AvalancheProcessorTestingSetup() : AvalancheTestChain100Setup() {
         AvalancheTest::setStakingPreconsensus(*m_node.avalanche, false);
+        // Use a fixed seed so the 8-node cycling fixture has distinct hashes
+        // (same rationale as voterecord_tests).
+        AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
     }
 
     CNode *ConnectNode(ServiceFlags nServices) {
@@ -1158,6 +1166,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
         m_node.mempool.get(), *m_node.scheduler, error);
+    AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
 
     const auto item = provider.buildVoteItem();
     const auto itemid = provider.getVoteItemId(item);
@@ -1708,6 +1717,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
         m_node.mempool.get(), *m_node.scheduler, error);
+    AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
 
     BOOST_CHECK(m_node.avalanche != nullptr);
     BOOST_CHECK(m_node.avalanche->getLocalProof() != nullptr);
@@ -2003,6 +2013,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         *m_node.args, *m_node.chain, m_node.connman.get(),
         *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
         error);
+    AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
 
     BOOST_CHECK(m_node.avalanche != nullptr);
     BOOST_CHECK(error.empty());
@@ -2533,6 +2544,7 @@ BOOST_AUTO_TEST_CASE(local_proof_status) {
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
         m_node.mempool.get(), *m_node.scheduler, error);
+    AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
 
     BOOST_CHECK_EQUAL(m_node.avalanche->getLocalProof()->getId(),
                       localProof->getId());
@@ -2681,6 +2693,7 @@ BOOST_AUTO_TEST_CASE(stake_contenders) {
     SetMockTime(now);
 
     AvalancheTest::setStakingPreconsensus(*m_node.avalanche, true);
+    AvalancheTest::setVoteRecordSeed(*m_node.avalanche, 0);
 
     ChainstateManager &chainman = *Assert(m_node.chainman);
     Chainstate &active_chainstate = chainman.ActiveChainstate();

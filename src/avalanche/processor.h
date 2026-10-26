@@ -36,6 +36,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -277,6 +278,8 @@ class Processor final : public NetEventsInterface {
     const bool m_preConsensus{false};
     // Not const for testing purpose
     std::atomic_bool m_stakingPreConsensus{false};
+    // When set, VoteRecords use this seed instead of a random one (tests only).
+    std::optional<uint32_t> m_voteRecordSeed;
 
     const size_t m_maxElementPoll{DEFAULT_AVALANCHE_MAX_ELEMENT_POLL};
 

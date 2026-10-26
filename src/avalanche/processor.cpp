@@ -454,7 +454,9 @@ bool Processor::addToReconcile(const AnyVoteItem &item) {
     const bool accepted = getLocalAcceptance(item);
 
     return voteRecords.getWriteView()
-        ->insert(std::make_pair(item, VoteRecord(accepted)))
+        ->insert(std::make_pair(
+            item, m_voteRecordSeed ? VoteRecord(accepted, *m_voteRecordSeed)
+                                   : VoteRecord(accepted)))
         .second;
 }
 
