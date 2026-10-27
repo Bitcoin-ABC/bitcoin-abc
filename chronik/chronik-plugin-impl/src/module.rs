@@ -67,7 +67,7 @@ pub fn load_plugin_module() {
 pub fn add_test_framework_to_pythonpath(py: Python<'_>) -> PyResult<()> {
     let sys = PyModule::import(py, "sys")?;
     let path = sys.getattr("path")?;
-    let sys_path = path.downcast::<PyList>()?;
+    let sys_path = path.cast::<PyList>()?;
     let functional_path =
         concat!(env!("CARGO_MANIFEST_DIR"), "/../../test/functional");
 

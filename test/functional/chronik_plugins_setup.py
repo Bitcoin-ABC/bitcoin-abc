@@ -123,7 +123,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             print("  def run(self, tx):", file=f)
             print("    return []", file=f)
         assert_start_raises(
-            "Error: Invalid version, must be str: TypeError: 'int' object cannot be converted to 'PyString'",
+            "Error: Invalid version, must be str: TypeError: 'int' object cannot be cast as 'str'",
         )
 
         # Version must follow semantic versioning

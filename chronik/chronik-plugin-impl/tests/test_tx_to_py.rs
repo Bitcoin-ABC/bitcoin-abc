@@ -36,7 +36,7 @@ use chronik_plugin_impl::{
 };
 use pyo3::{
     types::{PyAnyMethods, PyModule},
-    PyErr, PyObject, PyResult, Python,
+    Py, PyAny, PyErr, PyResult, Python,
 };
 
 #[derive(Clone, Debug, Default)]
@@ -53,7 +53,7 @@ fn make_py_tx(
     py: Python<'_>,
     tx_module: &TxModule,
     params: MakePyTxParams<'_>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let tx = Tx::with_txid(
         TxId::from([params.txid_num; 32]),
         TxMut {
@@ -154,8 +154,8 @@ fn test_tx_to_py() -> Result<()> {
     );
 
     load_plugin_module();
-    pyo3::prepare_freethreaded_python();
-    Python::with_gil(|py| -> Result<_> {
+    Python::initialize();
+    Python::attach(|py| -> Result<_> {
         add_test_framework_to_pythonpath(py)?;
 
         let handle_exc = |py_err: PyErr| {

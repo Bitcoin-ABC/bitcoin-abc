@@ -17,9 +17,9 @@ use crate::util::to_bytes;
 /// `etoken.py` module handles.
 #[derive(Debug)]
 pub struct TokenModule {
-    cls_genesis_info: PyObject,
-    cls_token_tx_entry: PyObject,
-    cls_token: PyObject,
+    cls_genesis_info: Py<PyAny>,
+    cls_token_tx_entry: Py<PyAny>,
+    cls_token: Py<PyAny>,
 }
 
 impl TokenModule {
@@ -38,7 +38,7 @@ impl TokenModule {
         &self,
         py: Python<'_>,
         info: &GenesisInfo,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("token_ticker", to_bytes(py, &info.token_ticker))?;
         kwargs.set_item("token_name", to_bytes(py, &info.token_name))?;
@@ -71,7 +71,7 @@ impl TokenModule {
         &self,
         py: Python<'_>,
         entry: &TokenTxEntry,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("token_id", entry.meta.token_id.to_string())?;
         kwargs.set_item(
@@ -121,10 +121,10 @@ impl TokenModule {
     pub fn bridge_token(
         &self,
         py: Python<'_>,
-        entry: &PyObject,
+        entry: &Py<PyAny>,
         entry_idx: usize,
         token_variant: TokenVariant,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("token_id", entry.getattr(py, "token_id")?)?;
         kwargs

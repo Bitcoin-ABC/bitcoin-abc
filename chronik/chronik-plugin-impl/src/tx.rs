@@ -27,12 +27,12 @@ use crate::{etoken::TokenModule, util::to_bytes};
 /// `tx.py` module handles
 #[derive(Debug)]
 pub struct TxModule {
-    cls_tx: PyObject,
-    cls_out_point: PyObject,
-    cls_tx_input: PyObject,
-    cls_tx_output: PyObject,
-    cls_plugin_output_entry: PyObject,
-    cls_script: PyObject,
+    cls_tx: Py<PyAny>,
+    cls_out_point: Py<PyAny>,
+    cls_tx_input: Py<PyAny>,
+    cls_tx_output: Py<PyAny>,
+    cls_plugin_output_entry: Py<PyAny>,
+    cls_script: Py<PyAny>,
     token_module: TokenModule,
 }
 
@@ -62,7 +62,7 @@ impl TxModule {
         token_data: Option<(&TokenTx, &[Option<SpentToken>])>,
         plugin_outputs: &BTreeMap<OutPoint, PluginOutput>,
         plugin_name_map: &PluginNameMap,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let py_empp_data = PyList::empty(py);
         if let Some(first_output) = tx.outputs.first() {
             let empp_data = empp::parse(&first_output.script)
@@ -136,7 +136,7 @@ impl TxModule {
         &self,
         py: Python<'_>,
         outpoint: &OutPoint,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.cls_out_point
             .call1(py, (outpoint.txid.as_bytes().as_ref(), outpoint.out_idx))
     }
@@ -147,8 +147,8 @@ impl TxModule {
         py: Python<'_>,
         output: &TxOutput,
         token_output: Option<&TokenOutput>,
-        py_token_entries: &[PyObject],
-    ) -> PyResult<PyObject> {
+        py_token_entries: &[Py<PyAny>],
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("sats", output.sats)?;
@@ -175,11 +175,11 @@ impl TxModule {
         py: Python<'_>,
         input: &TxInput,
         spent_token: Option<&SpentToken>,
-        py_token_entries: &[PyObject],
+        py_token_entries: &[Py<PyAny>],
         entries: &[TokenTxEntry],
         plugin_output: Option<&PluginOutput>,
         plugin_name_map: &PluginNameMap,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item(
             "prev_out",
@@ -215,9 +215,9 @@ impl TxModule {
         py: Python<'_>,
         output: &TxOutput,
         spent_token: Option<&SpentToken>,
-        py_token_entries: &[PyObject],
+        py_token_entries: &[Py<PyAny>],
         entries: &[TokenTxEntry],
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let kwargs = PyDict::new(py);
         kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("sats", output.sats)?;
@@ -279,7 +279,7 @@ impl TxModule {
         &self,
         py: Python<'_>,
         script: &Script,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let bytes = PyBytes::new(py, script.bytecode().as_ref());
         self.cls_script.call1(py, (bytes,))
     }

@@ -31,7 +31,7 @@ use pyo3::{
     types::{
         PyAnyMethods, PyBytes, PyBytesMethods, PyList, PyListMethods, PyModule,
     },
-    Bound, PyAny, PyObject, Python,
+    Bound, Py, PyAny, Python,
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -47,9 +47,9 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct PluginContext {
     plugins: Vec<Plugin>,
-    instances: Vec<PyObject>,
+    instances: Vec<Py<PyAny>>,
     tx_module: Option<TxModule>,
-    plugin_output_cls: Option<PyObject>,
+    plugin_output_cls: Option<Py<PyAny>>,
     lokad_ids: BTreeSet<LokadId>,
 }
 
@@ -222,8 +222,8 @@ impl PluginContext {
         };
 
         load_plugin_module();
-        pyo3::prepare_freethreaded_python();
-        Python::with_gil(|py| -> Result<_> {
+        Python::initialize();
+        Python::attach(|py| -> Result<_> {
             // Extract the Python version
             let version = PyModule::import(py, "platform")?
                 .getattr("python_version")?
@@ -236,9 +236,9 @@ impl PluginContext {
             // Add <datadir>/plugins to sys.path
             PyModule::import(py, "sys")?
                 .getattr("path")?
-                .downcast::<PyList>()
+                .cast::<PyList>()
                 .unwrap()
-                .append(params.plugins_dir)?;
+                .append(params.plugins_dir.as_os_str())?;
 
             // Load the chronik Plugin class
             let plugin_module =
@@ -360,8 +360,8 @@ impl PluginContext {
     fn run_plugin(
         &self,
         py: Python<'_>,
-        instance: &PyObject,
-        py_tx: &PyObject,
+        instance: &Py<PyAny>,
+        py_tx: &Py<PyAny>,
         num_outputs: usize,
     ) -> Result<BTreeMap<u32, PluginOutputEntry>, PluginRunError> {
         let plugin_output_cls = self.plugin_output_cls.as_ref().unwrap();
@@ -374,7 +374,7 @@ impl PluginContext {
             .map_err(|err| ThrewException(err.to_string()))?;
 
         let outputs = outputs
-            .downcast::<PyList>()
+            .cast::<PyList>()
             .map_err(|_| MustReturnList(repr(&outputs)))?;
 
         let mut output_entries = BTreeMap::new();
@@ -447,7 +447,7 @@ impl PluginContext {
         if self.tx_module.is_none() || self.plugins.is_empty() {
             return Ok(R::default());
         }
-        Python::with_gil(f)
+        Python::attach(f)
     }
 }
 
@@ -455,14 +455,14 @@ fn extract_bytes_or_list(
     py_any: &Bound<'_, PyAny>,
 ) -> Result<Vec<Vec<u8>>, ()> {
     py_any
-        .downcast::<PyBytes>()
+        .cast::<PyBytes>()
         .map(|bytes| vec![bytes.as_bytes().to_vec()])
         .or_else(|_| {
-            let list = py_any.downcast::<PyList>().map_err(|_| ())?;
+            let list = py_any.cast::<PyList>().map_err(|_| ())?;
             list.iter()
                 .map(|item| {
                     Ok(item
-                        .downcast::<PyBytes>()
+                        .cast::<PyBytes>()
                         .map_err(|_| ())?
                         .as_bytes()
                         .to_vec())
@@ -579,7 +579,7 @@ class Plg2Plugin(Plugin):
             (1, "plg2".to_string()),
         ]);
 
-        Python::with_gil(|py| -> Result<_> {
+        Python::attach(|py| -> Result<_> {
             let make_plg_tx_with_script = |version, script, num_outputs| {
                 Tx::with_txid(
                     TXID,
