@@ -83,7 +83,7 @@ class Stake(SerializableObject):
         height: int,
         is_coinbase: bool,
         pubkey: Optional[PublicKey] = None,
-    ):
+    ) -> None:
         self.outpoint = outpoint
         self.amount = amount
         """Amount in satoshis (int64)"""
@@ -98,7 +98,7 @@ class Stake(SerializableObject):
         self.stake_id = None
         """Stake id used for sorting stakes in a proof"""
 
-    def compute_stake_id(self):
+    def compute_stake_id(self) -> None:
         self.stake_id = UInt256(sha256d(self.serialize()))
 
     def serialize(self) -> bytes:
@@ -125,7 +125,7 @@ class Stake(SerializableObject):
         pubkey = PublicKey.deserialize(stream)
         return Stake(utxo, amount, height_ser >> 1, height_ser & 1, pubkey)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Stake({self.outpoint}, {self.amount} sats)"
 
 
@@ -155,7 +155,7 @@ class LimitedProofId(UInt256):
 
 
 class SignedStake(SerializableObject):
-    def __init__(self, stake, sig):
+    def __init__(self, stake, sig) -> None:
         self.stake: Stake = stake
         self.sig: bytes = sig
         """Signature for this stake, bytes of length 64"""
@@ -169,7 +169,7 @@ class SignedStake(SerializableObject):
         sig = stream.read(64)
         return SignedStake(stake, sig)
 
-    def verify_signature(self, commitment: bytes):
+    def verify_signature(self, commitment: bytes) -> bool:
         return self.stake.pubkey.verify_schnorr(
             self.sig, self.stake.get_hash(commitment)
         )
@@ -190,7 +190,7 @@ class Proof(SerializableObject):
         signed_stakes: list[SignedStake],
         payout_script_pubkey: bytes,
         signature: bytes,
-    ):
+    ) -> None:
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
@@ -254,7 +254,7 @@ class Proof(SerializableObject):
         _txout_type, addr = get_address_from_output_script(self.payout_script_pubkey)
         return addr
 
-    def is_signed(self):
+    def is_signed(self) -> bool:
         return self.signature != NO_SIGNATURE
 
 
@@ -268,7 +268,7 @@ class ProofBuilder:
         master: Optional[Key] = None,
         master_pub: Optional[PublicKey] = None,
         pwd: Optional[str] = None,
-    ):
+    ) -> None:
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
@@ -323,8 +323,8 @@ class ProofBuilder:
         builder.signed_stakes = proof.signed_stakes.copy()
         return builder
 
-    def sign_and_add_stake(self, stake: StakeAndSigningData):
-        def add_signed_stake(signature):
+    def sign_and_add_stake(self, stake: StakeAndSigningData) -> None:
+        def add_signed_stake(signature) -> None:
             if not signature:
                 return
 
@@ -348,7 +348,7 @@ class ProofBuilder:
         )
         self.wallet.thread.add(task, on_success=add_signed_stake)
 
-    def add_signed_stake(self, ss: SignedStake):
+    def add_signed_stake(self, ss: SignedStake) -> None:
         # At this stage the stake pubkey should be set, so we can compute the
         # stake id. This has to be delayed because the pubkey is returned by the
         # hardware wallet so we can't determine it in advance in this case.
@@ -359,11 +359,11 @@ class ProofBuilder:
         # See UInt256.compare for the specifics about sorting these objects.
         self.signed_stakes.sort(key=lambda ss: ss.stake.stake_id)
 
-    def build(self, on_completion):
+    def build(self, on_completion) -> None:
         # Make sure all the stakes are signed by the time we compute the proof.
         # We achieve this by queuing a dummy task in the wallet thread and only
         # build the proof when it completed so we end up serializing the calls.
-        def build_proof(_):
+        def build_proof(_) -> None:
             ltd_id = LimitedProofId.build(
                 self.sequence,
                 self.expiration_time,

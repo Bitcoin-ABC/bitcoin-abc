@@ -48,7 +48,7 @@ class WrongDelegatorKeyError(Exception):
 
 class DelegationId(UInt256):
     @classmethod
-    def from_proof_id(cls, proof_id: ProofId):
+    def from_proof_id(cls, proof_id: ProofId) -> "DelegationId":
         return cls(proof_id.data)
 
 
@@ -57,7 +57,7 @@ class Level(SerializableObject):
         self,
         pubkey: PublicKey,
         signature: bytes,
-    ):
+    ) -> None:
         self.pubkey = pubkey
         """Public key for this new level"""
         self.sig = signature
@@ -80,11 +80,11 @@ class Level(SerializableObject):
 
         return Level(pubkey, sig)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         sig = base64.b64encode(self.sig).decode("ascii")
         return f"Level(pubkey={self.pubkey}, sig={sig})"
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.pubkey == other.pubkey and self.sig == other.sig
 
 
@@ -113,7 +113,7 @@ class Delegation(SerializableObject):
         proof_master: PublicKey,
         levels: Sequence[Level],
         dgid: Optional[DelegationId] = None,
-    ):
+    ) -> None:
         self.limited_proofid = limited_proofid
         self.proof_master = proof_master
         """Master public key of the proof."""
@@ -182,7 +182,7 @@ class DelegationBuilder:
         limited_proofid: LimitedProofId,
         proof_master: PublicKey,
         delegation_id: Optional[DelegationId] = None,
-    ):
+    ) -> None:
         self.limited_proofid = limited_proofid
         self.proof_master = proof_master
         self.dgid = delegation_id or DelegationId.from_proof_id(
@@ -203,7 +203,7 @@ class DelegationBuilder:
             dg_builder.levels.append(Level(level.pubkey, b""))
         return dg_builder
 
-    def add_level(self, delegator_key: Key, delegated_pubkey: PublicKey):
+    def add_level(self, delegator_key: Key, delegated_pubkey: PublicKey) -> None:
         if self.levels[-1].pubkey != delegator_key.get_pubkey():
             raise WrongDelegatorKeyError(
                 "Delegator private key does not match most recently added public key."

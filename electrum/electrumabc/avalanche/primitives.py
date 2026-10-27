@@ -45,7 +45,7 @@ from ..serialize import (
 
 class PublicKey(SerializableObject):
     # fixme: merge with address.PublicKey or us a different name for one of the classes
-    def __init__(self, keydata):
+    def __init__(self, keydata) -> None:
         self.keydata: bytes = keydata
 
     def serialize(self) -> bytes:
@@ -56,7 +56,7 @@ class PublicKey(SerializableObject):
         keydata = deserialize_blob(stream)
         return PublicKey(keydata)
 
-    def verify_schnorr(self, signature: bytes, message_hash: bytes):
+    def verify_schnorr(self, signature: bytes, message_hash: bytes) -> bool:
         return schnorr.verify(self.keydata, signature, message_hash)
 
     @classmethod
@@ -83,17 +83,17 @@ class PublicKey(SerializableObject):
     def to_hex(self) -> str:
         return self.keydata.hex()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"PublicKey({self.to_hex()})"
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.keydata == other.keydata
 
 
 class Key:
     """A private key"""
 
-    def __init__(self, keydata, compressed):
+    def __init__(self, keydata, compressed) -> None:
         self.keydata: bytes = keydata
         """32 byte raw private key (as you would get from
         deserialize_privkey, etc)"""
@@ -115,5 +115,5 @@ class Key:
         """
         return schnorr.sign(self.keydata, message_hash)
 
-    def get_pubkey(self):
+    def get_pubkey(self) -> PublicKey:
         return PublicKey(ECPrivkey(self.keydata).get_public_key_bytes(self.compressed))
