@@ -36,7 +36,7 @@ class QrCodeResult:
     A detected QR code.
     """
 
-    def __init__(self, data: str, center: QrCodePoint, points: QrCodePointList):
+    def __init__(self, data: str, center: QrCodePoint, points: QrCodePointList) -> None:
         self.data: str = data
         self.center: QrCodePoint = center
         self.points: QrCodePointList = points
@@ -46,13 +46,13 @@ class QrCodeResult:
             self.data, self.center, self.points
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.data)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.data == other.data
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
 

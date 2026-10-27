@@ -95,7 +95,7 @@ FOURCC_Y800 = 0x30303859
 
 
 @ctypes.CFUNCTYPE(None, ctypes.c_void_p)
-def zbar_cleanup(image):
+def zbar_cleanup(image) -> None:
     """
     Do nothing, this is just so zbar doesn't try to manage our QImage buffers
     """
@@ -140,7 +140,7 @@ class ZbarQrCodeReader(AbstractQrCodeReader):
     Reader that uses libzbar
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         if not LIBZBAR:
             raise MissingLib("Zbar library not found")
         # Set up zbar
@@ -158,7 +158,7 @@ class ZbarQrCodeReader(AbstractQrCodeReader):
             self.zbar_scanner, ZbarSymbolType.QRCODE, ZbarConfig.ENABLE, 1
         )
 
-    def __del__(self):
+    def __del__(self) -> None:
         if LIBZBAR:
             LIBZBAR.zbar_image_scanner_destroy(self.zbar_scanner)
             LIBZBAR.zbar_image_destroy(self.zbar_image)
