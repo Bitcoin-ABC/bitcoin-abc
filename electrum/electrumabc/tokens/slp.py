@@ -47,7 +47,7 @@ lokad_id = b"SLP\x00"
 valid_token_types = frozenset((1, 65, 129))
 
 
-def _i2b(val):
+def _i2b(val) -> bytes:
     return bytes((val,))
 
 
@@ -74,7 +74,7 @@ class ScriptOutput(address.ScriptOutput):
         maxlen=25, name="SLP Script Message Cache", timeout=60.0
     )
 
-    def __new__(cls, script):
+    def __new__(cls, script) -> "ScriptOutput":
         """Instantiate from a script (or address.ScriptOutput) you wish to parse."""
         script = (
             script if isinstance(script, (bytes, bytearray)) else script.to_script()
@@ -150,7 +150,7 @@ class Message:
     __slots__ = ("chunks",)  # Tuple[bytes]
 
     # -- FACTORY METHOD(s) and CONSTRUCTOR --
-    def __init__(self, chunks: object):
+    def __init__(self, chunks: object) -> None:
         """`chunks` is expected to be a Tuple of parsed chunks *or* a bytes
         *or* ScriptOutput object.
 
@@ -198,10 +198,10 @@ class Message:
 
     # -- /FACTORY METHOD(s) & C'TOR --
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.chunks) if self.chunks is not None else 0
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.chunks)
 
     @property
@@ -255,10 +255,10 @@ class Message:
             )
         raise InvalidOutputMessage("Unknown transaction_type", tt)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         d = {}
 
-        def read(keys):
+        def read(keys) -> None:
             for k in keys:
                 if k.startswith("_") or k == "chunks":
                     continue
@@ -391,7 +391,7 @@ class Message:
     @staticmethod
     def _parseChunkToInt(
         intBytes: bytes, minByteLen: int, maxByteLen: int, raise_on_Null: bool = False
-    ):
+    ) -> int | None:
         # Parse data as unsigned-big-endian encoded integer.
         # For empty data different possibilities may occur:
         #      minByteLen <= 0 : return 0
@@ -764,12 +764,12 @@ class WalletData(PrintError):
 
     DATA_VERSION = 0.1  # used by load/save for data storage versioning
 
-    def __init__(self, wallet):
+    def __init__(self, wallet) -> None:
         assert wallet
         self.wallet = wallet
         self.clear()
 
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         return self.wallet.diagnostic_name() + ".SLP"
 
     def load(self) -> bool:
@@ -819,7 +819,7 @@ class WalletData(PrintError):
             self.need_rebuild = True
         return not self.need_rebuild
 
-    def save(self):
+    def save(self) -> None:
         """Caller should hold locks"""
         self.wallet.storage.put(
             "slp_data_version", None
@@ -837,7 +837,7 @@ class WalletData(PrintError):
         }
         self.wallet.storage.put("slp", data)
 
-    def clear(self):
+    def clear(self) -> None:
         """Caller should hold locks"""
         self.need_rebuild = False
 
@@ -854,7 +854,7 @@ class WalletData(PrintError):
         # ["prevouthash:n"] -> "token_id_hex"
         self.txo_token_id = {}
 
-    def rebuild(self):
+    def rebuild(self) -> None:
         """This takes wallet.lock"""
         with self.wallet.lock:
             self.clear()
@@ -907,7 +907,7 @@ class WalletData(PrintError):
     # --- /GETTERS/SETTERS
 
     # -- Wallet hooks (rm_tx, add_tx)
-    def rm_tx(self, txid):
+    def rm_tx(self, txid) -> None:
         """Caller should hold wallet.lock
         This is (usually) called by wallet.remove_transaction in the network
         thread with locks held.
@@ -946,7 +946,7 @@ class WalletData(PrintError):
                 # the validity dict as well
                 self.validity.pop(tok_id, None)
 
-    def add_tx(self, txid, tx):
+    def add_tx(self, txid, tx) -> None:
         """Caller should hold wallet.lock.
         This is (usually) called by wallet.add_transaction in the network thread
         with locks held."""
@@ -973,7 +973,7 @@ class WalletData(PrintError):
 
     # -- /Wallet hooks (rm_tx, add_tx)
 
-    def _add_token_qty(self, token_id_hex, txo_name, qty):
+    def _add_token_qty(self, token_id_hex, txo_name, qty) -> None:
         """No checks are done for address, etc. qty is just faithfully added
         for a given token/txo_name combo."""
         d = self.token_quantities.get(token_id_hex, {})
@@ -982,7 +982,7 @@ class WalletData(PrintError):
         if need_insert:
             self.token_quantities[token_id_hex] = d
 
-    def _add_txo(self, token_id_hex, txid, n, addr, token_qty):
+    def _add_txo(self, token_id_hex, txid, n, addr, token_qty) -> None:
         """Adds txid:n to requisite data structures, registering
         this token output, etc."""
         if not isinstance(addr, address.Address) or not self.wallet.is_mine(addr):
@@ -1001,10 +1001,10 @@ class WalletData(PrintError):
         self.txo_token_id[name] = token_id_hex
         self._add_token_qty(token_id_hex, name, token_qty)
 
-    def _add_mint_baton(self, token_id_hex, txid, n, addr):
+    def _add_mint_baton(self, token_id_hex, txid, n, addr) -> None:
         self._add_txo(token_id_hex, txid, n, addr, -1)
 
-    def _add_genesis_or_mint_tx(self, so, outputs, txid, tx):
+    def _add_genesis_or_mint_tx(self, so, outputs, txid, tx) -> None:
         """Adds the genesis and/or mint tx and keeps track of the txo's it
         sent coins to in internal data structures"""
         token_type = so.message.token_type
@@ -1037,7 +1037,7 @@ class WalletData(PrintError):
             )  # this silently ignores non-TYPE_ADDRESS
         self._add_txo(token_id_hex, txid, 1, r_addr, token_qty)
 
-    def _add_send_tx(self, so, outputs, txid, tx):
+    def _add_send_tx(self, so, outputs, txid, tx) -> None:
         """Caller should hold locks. This adds the send for addresses that are
         mine to appropriate internal data structures."""
         token_type = so.message.token_type

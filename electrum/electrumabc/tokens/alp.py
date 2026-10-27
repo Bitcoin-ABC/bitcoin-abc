@@ -37,7 +37,7 @@ class WalletData:
 
     STORAGE_VERSION = "1"
 
-    def __init__(self, wallet):
+    def __init__(self, wallet) -> None:
         self.wallet = wallet
         self.storage = wallet.storage
         self.needs_rebuild = False
@@ -46,7 +46,7 @@ class WalletData:
 
         self.load()
 
-    def load(self):
+    def load(self) -> None:
         alp = self.storage.get("alp")
         if alp is None:
             self.needs_rebuild = True
@@ -54,7 +54,7 @@ class WalletData:
 
         self.outpoints = alp.get("outpoints", {})
 
-    def rebuild(self):
+    def rebuild(self) -> None:
         """Scan the entire wallet for ALP outputs."""
         with self.wallet.lock:
             for txid, tx in self.wallet.transactions.items():
@@ -63,7 +63,7 @@ class WalletData:
                 self.add_tx(txid, Transaction(tx.raw))
         self.needs_rebuild = False
 
-    def add_tx(self, txid: str, tx: Transaction):
+    def add_tx(self, txid: str, tx: Transaction) -> None:
         if txid in self.outpoints:
             # We already processed this transaction. There is no way it has changed
             # since last time. If we ever want to rescan the entire wallet for any
@@ -94,20 +94,20 @@ class WalletData:
                 self.outpoints[txid] = []
             self.outpoints[txid].append(i + 1)
 
-    def rm_tx(self, txid: str):
+    def rm_tx(self, txid: str) -> None:
         self.outpoints.pop(txid, None)
 
-    def has_txo(self, txo: str):
+    def has_txo(self, txo: str) -> bool:
         txid, n = txo.split(":")
         return txid in self.outpoints and int(n) in self.outpoints[txid]
 
-    def save(self):
+    def save(self) -> None:
         data = {
             "outpoints": self.outpoints,
             "version": self.STORAGE_VERSION,
         }
         self.storage.put("alp", data)
 
-    def clear(self):
+    def clear(self) -> None:
         self.outpoints = {}
         self.needs_rebuild = False
