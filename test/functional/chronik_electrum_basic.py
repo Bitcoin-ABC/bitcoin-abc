@@ -471,7 +471,7 @@ class ChronikElectrumBasic(BitcoinTestFramework):
     def test_subscription_limits(self):
         self.log.info("Test Chronik Electrum subscription limit options")
 
-        # Per-connection (Electrum) / per-IP limit
+        # Per-IP limit shared across Electrum connections from the same IP
         self.restart_node(
             0,
             extra_args=self.extra_args[0]
@@ -492,6 +492,32 @@ class ChronikElectrumBasic(BitcoinTestFramework):
                 "message": "Subscription limit of 2 exceeded for this client",
             },
         )
+
+        # A second connection from the same IP shares the per-IP budget
+        client2 = self.node.get_chronik_electrum_client(name="limit_client_same_ip")
+        assert_equal(
+            client2.blockchain.scripthash.subscribe(sh3).error,
+            {
+                "code": 1,
+                "message": "Subscription limit of 2 exceeded for this client",
+            },
+        )
+
+        # Chronik WebSocket from the same IP shares the Electrum per-IP budget
+        from test_framework.chronik.client import pb
+
+        chronik = self.node.get_chronik_client()
+        ws = chronik.ws()
+        ws.sub_txid(sh3)
+        assert_equal(
+            ws.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="503: Subscription limit of 2 exceeded for this client"
+                ),
+            ),
+        )
+        ws.close()
 
         # Global limit across connections
         self.restart_node(

@@ -2157,18 +2157,18 @@ dependencies = [
 
 [[package]]
 name = "karyon_async_rustls"
-version = "1.0.0-alpha.8"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd32c296f8c00c0181eda33bdc3ad42ff706a89bf0c0491cdf31ca998ecc4187"
+checksum = "9a9b6fc65eb42d932d9cf60b31ec357a2743b1c02d503b67cb93243cde53c1ae"
 dependencies = [
  "tokio-rustls",
 ]
 
 [[package]]
 name = "karyon_core"
-version = "1.0.0-alpha.8"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35eb4553e3fb6d8725e9a8415054fe02644ab60013d0bb6a729738f7e3fab436"
+checksum = "e5c83813c0bdce892b6d5bb97575870f010a947a177d8a32ba554a9bbf818c77"
 dependencies = [
  "once_cell",
  "parking_lot",
@@ -2180,9 +2180,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc"
-version = "1.0.0-alpha.8"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed9e97b96e812c76a55cd87e303803849bd7afc623ef7b5cefe5ad3d82588766"
+checksum = "b8e0e22b5170a2ca05ec35e41f0ebf477f3a9cf299e9bb665217a9edc37c662b"
 dependencies = [
  "async-channel",
  "async-trait",
@@ -2202,9 +2202,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_jsonrpc_macro"
-version = "1.0.0-alpha.8"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82bbc6ea78d288d3cdeaa7b00b7c0a931b904cbe52087319d4a0f41a9c9dab4e"
+checksum = "0f09c6c3f4399fead9984a9d0002f42adf956d3e3078003a12644c07656d2e92"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2214,9 +2214,9 @@ dependencies = [
 
 [[package]]
 name = "karyon_net"
-version = "1.0.0-alpha.8"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1dfe5c9e6eb2fd4aa08ba55c4562512f88ff9ebbd6a35c11358d495ea60ad3e"
+checksum = "b29b80a51ad7f1b87fa547716dbc34226a9f11343dbc37e0332e25c66d582e55"
 dependencies = [
  "async-tungstenite",
  "bincode 2.0.1",

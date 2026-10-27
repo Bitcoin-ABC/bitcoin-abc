@@ -602,6 +602,20 @@ fn channel_ptr(chan: &Arc<Channel>) -> usize {
     Arc::as_ptr(chan) as usize
 }
 
+/// Attribute Electrum subscriptions by peer IP when karyon exposes one.
+///
+/// Falls back to the channel pointer if the peer address is unavailable
+/// (e.g. Unix sockets), so those clients are not collapsed into one bucket.
+fn subscription_client_key(chan: &Arc<Channel>) -> SubscriptionClientKey {
+    match chan
+        .peer_endpoint()
+        .and_then(|endpoint| endpoint.addr().ok())
+    {
+        Some(Addr::Ip(ip)) => SubscriptionClientKey::Ip(ip),
+        _ => SubscriptionClientKey::Connection(channel_ptr(chan)),
+    }
+}
+
 impl ChronikElectrumRPCBlockchainEndpoint {
     /// Register a notification task so unsubscribe / disconnect can cancel it
     /// and drop its limiter guard immediately.
@@ -1435,7 +1449,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         // cannot leave SubsGroup entries behind.
         let sub_guard = self
             .subscription_limiter
-            .try_acquire(SubscriptionClientKey::Connection(channel_ptr(&chan)))
+            .try_acquire(subscription_client_key(&chan))
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
         let max_history = self.max_history;
@@ -1779,7 +1793,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         // cannot leave SubsGroup entries behind.
         let sub_guard = self
             .subscription_limiter
-            .try_acquire(SubscriptionClientKey::Connection(channel_ptr(&chan)))
+            .try_acquire(subscription_client_key(&chan))
             .map_err(|err| RPCError::CustomError(1, err.to_string()))?;
 
         let mut recv = {

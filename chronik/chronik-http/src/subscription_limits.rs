@@ -22,15 +22,15 @@ pub type SubscriptionLimiterRef = Arc<SubscriptionLimiter>;
 
 /// Key used to attribute a subscription to a client.
 ///
-/// Electrum (karyon) does not currently expose the peer address on
-/// [`karyon_jsonrpc::server::channel::Channel`], so subscriptions are tracked
-/// per connection instead. Chronik WebSocket uses the real peer [`IpAddr`].
+/// Chronik WebSocket and Electrum both prefer the real peer [`IpAddr`].
+/// [`SubscriptionClientKey::Connection`] is only a fallback when the peer
+/// address is unavailable (e.g. Unix sockets).
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum SubscriptionClientKey {
     /// Real client IP address.
     Ip(IpAddr),
     /// Opaque connection identity (e.g. `Arc::as_ptr` of the Electrum
-    /// channel).
+    /// channel) when no peer IP is available.
     Connection(usize),
 }
 

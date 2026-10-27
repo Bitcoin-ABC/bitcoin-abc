@@ -53,10 +53,10 @@ hyper = "1.1"
 itertools = "0.13.0"
 
 # JSON RPC network library
-karyon_jsonrpc = { version = "1.0.0-alpha.8", default-features = false, features = ["tokio", "tcp", "tls", "ws"] }
+karyon_jsonrpc = { version = "1.0.3", default-features = false, features = ["tokio", "tcp", "tls", "ws"] }
 
 # Networking primitives used by karyon_jsonrpc (endpoints, TLS config, codecs)
-karyon_net = { version = "1.0.0-alpha.8", default-features = false }
+karyon_net = { version = "1.0.2", default-features = false }
 
 # Protobuf en-/decoding
 prost = "0.11"
