@@ -101,7 +101,7 @@ class TorController(PrintError):
     tor_binary: str
     tor_binary_type: BinaryType = BinaryType.MISSING
 
-    def __init__(self, config: SimpleConfig):
+    def __init__(self, config: SimpleConfig) -> None:
         if not config:
             raise AssertionError("TorController: config must be set")
 
@@ -118,7 +118,7 @@ class TorController(PrintError):
                 ConfigKeys.TOR_SOCKS_PORT, ConfigKeys.TOR_SOCKS_PORT.default
             )
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.status_changed.clear()
         self.active_port_changed.clear()
 
@@ -148,7 +148,7 @@ class TorController(PrintError):
         re.compile(r".*This port is not an HTTP proxy.*"),
     ]
 
-    def _tor_msg_handler(self, message: str):
+    def _tor_msg_handler(self, message: str) -> None:
         if is_verbose:
             if all(not regex.match(message) for regex in TorController._ignored_res):
                 self.print_msg(message)
@@ -166,7 +166,7 @@ class TorController(PrintError):
                 # The control port is the last port opened, so only notify after it
                 self.active_port_changed(self)
 
-    def _read_tor_msg(self):
+    def _read_tor_msg(self) -> None:
         try:
             while self._tor_process and not self._tor_process.poll():
                 line = (
@@ -183,7 +183,7 @@ class TorController(PrintError):
     _orig_subprocess_popen = subprocess.Popen
 
     @staticmethod
-    def _popen_monkey_patch(*args, **kwargs):
+    def _popen_monkey_patch(*args, **kwargs) -> subprocess.Popen:
         if sys.platform in ("win32",):
             if hasattr(subprocess, "CREATE_NO_WINDOW"):
                 kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
@@ -214,7 +214,7 @@ class TorController(PrintError):
     def is_available(self) -> bool:
         return self.tor_binary_type != TorController.BinaryType.MISSING
 
-    def start(self):
+    def start(self) -> None:
         if self._tor_process is not None:
             # Tor is already running
             return
@@ -286,7 +286,7 @@ class TorController(PrintError):
             "started (Tor version {})".format(self._tor_controller.get_version())
         )
 
-    def stop(self):
+    def stop(self) -> None:
         if self._tor_process is None:
             # Tor is not running
             return
@@ -327,7 +327,7 @@ class TorController(PrintError):
 
     def _handle_network_liveliness_event(
         self, event: stem.response.events.NetworkLivenessEvent
-    ):
+    ) -> None:
         old_status = self.status
         self.status = (
             TorController.Status.READY
@@ -341,7 +341,7 @@ class TorController(PrintError):
         # Port 0 is automatic
         return isinstance(port, int) and (port == 0 or 1024 <= port <= 65535)
 
-    def set_enabled(self, enabled: bool):
+    def set_enabled(self, enabled: bool) -> None:
         self._config.set_key(ConfigKeys.TOR_ENABLED, enabled)
         if enabled:
             self.start()
@@ -351,7 +351,7 @@ class TorController(PrintError):
     def is_enabled(self) -> bool:
         return bool(self._config.get(ConfigKeys.TOR_ENABLED))
 
-    def set_socks_port(self, port: int):
+    def set_socks_port(self, port: int) -> None:
         if not self._check_port(port):
             raise AssertionError("TorController: invalid port")
 
