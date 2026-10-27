@@ -294,7 +294,7 @@ cf.CFLocaleCopyPreferredLanguages.restype = CFArray_p
 cf.CFLocaleCopyPreferredLanguages.argtypes = []
 
 
-def get_preferred_languages():
+def get_preferred_languages() -> list[str]:
     """Returns a list of preferred languages queried from the system using
     reliable macos calls.  This is because locale.getdefaultlocale() is
     unreliable.  The returned list is of the form:

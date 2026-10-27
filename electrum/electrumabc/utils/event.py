@@ -35,7 +35,7 @@ class Event(list):
 
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         # prevent mutation while invoking, in case callbacks themselves add to this list
         for method in self.copy():
             if isinstance(method, weakref.WeakMethod):
@@ -54,15 +54,15 @@ class Event(list):
                     method = strong_method
             method(*args, **kwargs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Event(%s)" % list.__repr__(self)
 
     @staticmethod
     def make_weak(method) -> weakref.WeakMethod:
         return weakref.WeakMethod(method)
 
-    def append_weak(self, method):
+    def append_weak(self, method) -> None:
         self.append(Event.make_weak(method))
 
-    def insert_weak(self, pos, method):
+    def insert_weak(self, pos, method) -> None:
         self.insert(pos, Event.make_weak(method))
