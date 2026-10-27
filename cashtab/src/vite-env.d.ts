@@ -9,6 +9,7 @@
 interface ImportMetaEnv {
     readonly VITE_BUILD_ENV?: string;
     readonly VITE_GOOGLE_ANALYTICS?: string;
+    readonly VITE_GA_DEBUG?: string;
     readonly VITE_RECAPTCHA_SITE_KEY?: string;
     readonly VITE_RECAPTCHA_V3_SITE_KEY?: string;
     readonly VITE_VERSION?: string;

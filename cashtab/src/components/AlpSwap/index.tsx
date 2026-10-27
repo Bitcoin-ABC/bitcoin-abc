@@ -35,6 +35,11 @@ import {
     XECX_TOKEN_ID,
 } from 'config/alpSwap';
 import Modal from 'components/Common/Modal';
+import {
+    getAnalyticsTokenLabel,
+    getFiatValueBucket,
+    trackEvent,
+} from 'components/Common/GoogleAnalytics';
 import { getTokenGenesisInfo } from 'chronik';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import {
@@ -1125,6 +1130,22 @@ const AlpSwap: React.FC = () => {
         // Freeze the quote the user is looking at. Confirm must not
         // fetch another template and sign that instead.
         const acceptedQuote = activeQuote;
+        const fromFiatPerUnit =
+            fromTokenId === XECX_TOKEN_ID
+                ? fiatPrice
+                : fromTokenId === FIRMA_TOKEN_ID
+                  ? firmaPrice
+                  : null;
+        const swapAnalytics = {
+            pair: `${getAnalyticsTokenLabel(fromTokenId)}>${getAnalyticsTokenLabel(toTokenId)}`,
+            source: 'alpswap',
+            exact_in: acceptedQuote.exactIn ? 1 : 0,
+            high_impact: highImpact ? 1 : 0,
+            value_bucket: getFiatValueBucket(
+                fromFiatPerUnit !== null ? fromAmt * fromFiatPerUnit : null,
+            ),
+        };
+        let submitted = false;
         isSwappingRef.current = true;
         quoteRequestId.current += 1;
         try {
@@ -1136,6 +1157,8 @@ const AlpSwap: React.FC = () => {
             ) {
                 return;
             }
+            trackEvent('swap_submit', swapAnalytics);
+            submitted = true;
 
             setIsSwapping(true);
             setQuoteError(null);
@@ -1173,6 +1196,7 @@ const AlpSwap: React.FC = () => {
             }
 
             rememberAlpSwapSettleTxid(result.txid);
+            trackEvent('swap_success', swapAnalytics);
             const fromTicker = tokenLabel(fromTokenId).ticker;
             const toTicker = tokenLabel(toTokenId).ticker;
             toast.success(
@@ -1195,6 +1219,9 @@ const AlpSwap: React.FC = () => {
             }, 15_000);
         } catch (err) {
             setAlpSwapBuyerToastSuppressed(false);
+            if (submitted) {
+                trackEvent('swap_failure', swapAnalytics);
+            }
             const message = alpDexUserMessage(err, 'Swap failed');
             setQuoteError(message);
             toast.error(message);

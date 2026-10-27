@@ -76,6 +76,12 @@ import {
     DeepLinkBuyTitle,
     DeepLinkBuyTokenMeta,
 } from './styled';
+import {
+    getAnalyticsTokenLabel,
+    getFiatValueBucket,
+    trackEvent,
+    type TradeSource,
+} from 'components/Common/GoogleAnalytics';
 
 export interface DeepLinkBuyProps {
     tokenId: string;
@@ -90,6 +96,8 @@ export interface DeepLinkBuyProps {
      * token page (same tokenId would not otherwise reset showDeepLinkBuy).
      */
     onDismiss: () => void;
+    /** Analytics only: which screen opened this confirm. */
+    source?: TradeSource;
 }
 
 const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
@@ -97,6 +105,7 @@ const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
     quantity,
     userLocale,
     onDismiss,
+    source = 'deeplink',
 }) => {
     const navigate = useNavigate();
     const ContextValue = useContext(WalletContext);
@@ -408,6 +417,13 @@ const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
             return;
         }
         setIsSending(true);
+        const buyAnalytics = {
+            token: getAnalyticsTokenLabel(tokenId),
+            source,
+            value_bucket: getFiatValueBucket(
+                fiatPrice !== null ? toXec(askedSats) * fiatPrice : null,
+            ),
+        };
         try {
             if (
                 !(await confirmBiometricBroadcast(
@@ -433,6 +449,7 @@ const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
                 );
             }
             const txid = broadcastResult.broadcasted[0];
+            trackEvent('agora_buy_success', buyAnalytics);
             const qtyFormatted = decimalizedTokenQtyToLocaleFormat(
                 decimalizeTokenAmount(
                     preparedTokenSatoshis.toString(),
@@ -451,6 +468,7 @@ const DeepLinkBuy: React.FC<DeepLinkBuyProps> = ({
             setShowSuccessModal(true);
         } catch (err) {
             console.error('Error accepting deep-link buy', err);
+            trackEvent('agora_buy_failure', buyAnalytics);
             toast.error(`${err}`);
         } finally {
             setIsSending(false);

@@ -19,7 +19,13 @@ import PrimaryButton, {
 } from 'components/Common/Buttons';
 import { Info, Alert } from 'components/Common/Atoms';
 import Spinner from 'components/Common/Spinner';
-import { Event } from 'components/Common/GoogleAnalytics';
+import {
+    Event,
+    getAnalyticsTokenLabel,
+    getFiatValueBucket,
+    trackEvent,
+    type TradeSource,
+} from 'components/Common/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import {
     isValidTokenSendOrBurnAmount,
@@ -164,7 +170,10 @@ import {
 } from 'constants/tokens';
 import UncontrolledLink from 'components/Common/UncontrolledLink';
 import { showInstantRedeemToast } from 'components/Etokens/RedeemToast';
-import { isHotWalletCoveredRedeem } from 'components/Etokens/pendingRedeems';
+import {
+    createPendingRedeem,
+    isHotWalletCoveredRedeem,
+} from 'components/Etokens/pendingRedeems';
 import {
     firmaPerXecFromRedeemAmmQuote,
     getRedeemOutputRates,
@@ -501,6 +510,12 @@ const Token: React.FC = () => {
         setDeepLinkBuyQty(null);
     }, []);
 
+    /**
+     * Analytics only: which screen started the current buy / redeem on this
+     * page. Reset to token_page whenever the user picks an action by hand.
+     */
+    const tradeSourceRef = useRef<TradeSource>('token_page');
+
     const setAction = (action: TokenActionType) => {
         setActiveTokenAction(action);
         setMoreDropdownOpen(false);
@@ -523,6 +538,20 @@ const Token: React.FC = () => {
             ...(action === 'mintNft' && { showMintNft: true }),
             ...(action === 'mint' && { showMint: true }),
         });
+    };
+
+    /**
+     * An action the user picked from the action bar. Only these are
+     * recorded as token_action; programmatic setAction calls (blacklist
+     * fallback, LIST deep link) are not.
+     */
+    const pickAction = (action: TokenActionType) => {
+        tradeSourceRef.current = 'token_page';
+        trackEvent('token_action', {
+            token: getAnalyticsTokenLabel(tokenId),
+            action,
+        });
+        setAction(action);
     };
     const [showLargeIconModal, setShowLargeIconModal] =
         useState<boolean>(false);
@@ -1929,6 +1958,29 @@ const Token: React.FC = () => {
         setShowAlpRedeemConfirm(true);
     };
 
+    /**
+     * Params for redeem_submit / redeem_success / redeem_failure.
+     * output: xec = instant Agora redeem, alpswap = AlpDex path
+     */
+    const getRedeemAnalytics = (output: 'xec' | 'alpswap', qty: number) => {
+        const fiatPerUnit =
+            redeemTokenKind === 'xecx'
+                ? fiatPrice
+                : redeemTokenKind === 'firma'
+                  ? firmaPrice
+                  : null;
+        return {
+            token: getAnalyticsTokenLabel(tokenId),
+            output,
+            source: tradeSourceRef.current,
+            value_bucket: getFiatValueBucket(
+                fiatPerUnit !== null && Number.isFinite(qty)
+                    ? qty * fiatPerUnit
+                    : null,
+            ),
+        };
+    };
+
     const confirmAlpRedeem = async () => {
         if (!ecashWallet || redeemTokenKind === null) {
             return;
@@ -1957,6 +2009,7 @@ const Token: React.FC = () => {
             return;
         }
         const template = acceptedRedeemTemplate;
+        const redeemAnalytics = getRedeemAnalytics('alpswap', fromQty);
         isSettlingAlpRedeemRef.current = true;
         setIsSettlingAlpRedeem(true);
         if (
@@ -1969,6 +2022,7 @@ const Token: React.FC = () => {
             setIsSettlingAlpRedeem(false);
             return;
         }
+        trackEvent('redeem_submit', redeemAnalytics);
 
         setAlpSwapBuyerToastSuppressed(true);
         try {
@@ -1982,6 +2036,7 @@ const Token: React.FC = () => {
                 template,
             });
             rememberAlpSwapSettleTxid(result.txid);
+            trackEvent('redeem_success', redeemAnalytics);
             const recvDisplay = result.amountOut.toLocaleString(userLocale, {
                 maximumFractionDigits: toDecimals,
             });
@@ -2006,6 +2061,7 @@ const Token: React.FC = () => {
             }, 15_000);
         } catch (err) {
             setAlpSwapBuyerToastSuppressed(false);
+            trackEvent('redeem_failure', redeemAnalytics);
             toast.error(alpRedeemUserMessage(err, 'Redeem failed'));
         } finally {
             isSettlingAlpRedeemRef.current = false;
@@ -2744,6 +2800,19 @@ const Token: React.FC = () => {
 
         // offeredTokens is in units of token satoshis
         const offeredTokens = previewedAgoraPartial.offeredAtoms();
+        // XECX / FIRMA redeem for XEC is an Agora listing to the hot wallet
+        const isXecRedeem = switches.showRedeemXecx || isRedeemingFirma;
+        const redeemAnalytics = isXecRedeem
+            ? getRedeemAnalytics(
+                  'xec',
+                  Number(
+                      decimalizeTokenAmount(
+                          offeredTokens.toString(),
+                          decimals as SlpDecimals,
+                      ),
+                  ),
+              )
+            : null;
 
         let offerTxid;
         try {
@@ -2809,7 +2878,27 @@ const Token: React.FC = () => {
                     chronik,
                     offerTxid,
                 });
+                if (redeemAnalytics !== null) {
+                    trackEvent('redeem_listed', {
+                        ...redeemAnalytics,
+                        instant: 1,
+                    });
+                    // The redeem is done when the hot wallet takes the
+                    // offer, not when it is listed. Resolves only if that is
+                    // seen in this session.
+                    void createPendingRedeem(offerTxid).then(() =>
+                        trackEvent('redeem_success', redeemAnalytics),
+                    );
+                }
             } else {
+                if (redeemAnalytics !== null) {
+                    // Hot wallet cannot cover it now; it may fill up to 24h
+                    // later, possibly in another session
+                    trackEvent('redeem_listed', {
+                        ...redeemAnalytics,
+                        instant: 0,
+                    });
+                }
                 // Maintain this notification as we do not parse listing prices
                 // in websocket
                 toast(
@@ -2831,6 +2920,9 @@ const Token: React.FC = () => {
             // We stay on this token page as, unlike with NFTs, we may still have more of this token
         } catch (err) {
             console.error(`Error listing ALP Partial`, err);
+            if (redeemAnalytics !== null) {
+                trackEvent('redeem_failure', redeemAnalytics);
+            }
             toast.error(`Error listing ALP Partial: ${err}`);
         }
 
@@ -3889,7 +3981,7 @@ const Token: React.FC = () => {
                                                         isNftChild
                                                     }
                                                     onClick={() =>
-                                                        setAction('buy')
+                                                        pickAction('buy')
                                                     }
                                                 >
                                                     + Buy
@@ -3927,18 +4019,18 @@ const Token: React.FC = () => {
                                                             appConfig.vipTokens
                                                                 .xecx.tokenId
                                                         )
-                                                            setAction(
+                                                            pickAction(
                                                                 'redeemXecx',
                                                             );
                                                         else if (
                                                             tokenId ===
                                                             FIRMA.tokenId
                                                         )
-                                                            setAction(
+                                                            pickAction(
                                                                 'redeemFirma',
                                                             );
                                                         else if (isNftChild)
-                                                            setAction(
+                                                            pickAction(
                                                                 'sellNft',
                                                             );
                                                         else if (
@@ -3948,7 +4040,7 @@ const Token: React.FC = () => {
                                                                 'SLP_TOKEN_TYPE_MINT_VAULT' ||
                                                             isAlp
                                                         )
-                                                            setAction(
+                                                            pickAction(
                                                                 'sellSlp',
                                                             );
                                                     }}
@@ -3993,7 +4085,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'send',
                                                                     )
                                                                 }
@@ -4004,7 +4096,7 @@ const Token: React.FC = () => {
                                                     {isNftParent && (
                                                         <TokenActionDropdownItem
                                                             onClick={() =>
-                                                                setAction(
+                                                                pickAction(
                                                                     'mintNft',
                                                                 )
                                                             }
@@ -4017,7 +4109,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'airdrop',
                                                                     )
                                                                 }
@@ -4031,7 +4123,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'burn',
                                                                     )
                                                                 }
@@ -4044,7 +4136,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'mint',
                                                                     )
                                                                 }
@@ -4058,7 +4150,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'sellNft',
                                                                     )
                                                                 }
@@ -4076,7 +4168,7 @@ const Token: React.FC = () => {
                                                             'undefined' && (
                                                             <TokenActionDropdownItem
                                                                 onClick={() =>
-                                                                    setAction(
+                                                                    pickAction(
                                                                         'sellSlp',
                                                                     )
                                                                 }

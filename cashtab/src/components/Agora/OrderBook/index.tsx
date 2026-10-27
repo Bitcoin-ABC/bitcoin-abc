@@ -93,6 +93,11 @@ import { Alert, Info, CopyTokenId } from 'components/Common/Atoms';
 import { IsMintAddressIcon } from 'components/Common/CustomIcons';
 import { confirmBiometricBroadcast } from 'services/biometricLockService';
 import {
+    getAnalyticsTokenLabel,
+    getFiatValueBucket,
+    trackEvent,
+} from 'components/Common/GoogleAnalytics';
+import {
     PartialOffer,
     prepareBuyableOffers,
 } from 'components/Agora/partialOffers';
@@ -246,6 +251,13 @@ const OrderBook: React.FC<OrderBookProps> = ({
         }
         // Determine tx fee from settings
         const satsPerKb: bigint = BigInt(settings.satsPerKb);
+        const buyAnalytics = {
+            token: getAnalyticsTokenLabel(tokenId),
+            source: 'token_page',
+            value_bucket: getFiatValueBucket(
+                fiatPrice !== null ? toXec(askedSats) * fiatPrice : null,
+            ),
+        };
 
         try {
             if (
@@ -272,6 +284,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             }
 
             const txid = broadcastResult.broadcasted[0];
+            trackEvent('agora_buy_success', buyAnalytics);
             toast(
                 <a
                     href={`${explorer.blockExplorerUrl}/tx/${txid}`}
@@ -310,6 +323,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
             setShowConfirmBuyModal(false);
         } catch (err) {
             console.error('Error accepting offer', err);
+            trackEvent('agora_buy_failure', buyAnalytics);
             toast.error(`${err}`);
             // Hide the confirmation modal on error
             setShowConfirmBuyModal(false);

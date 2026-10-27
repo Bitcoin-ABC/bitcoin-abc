@@ -61,6 +61,7 @@ import {
     swapTemplateUrl,
 } from 'services/alpSwapService';
 import { settleAlpRedeemExactIn } from 'components/Etokens/settleAlpRedeem';
+import * as GA from 'components/Common/GoogleAnalytics';
 
 jest.mock('components/Etokens/settleAlpRedeem', () => {
     const actual = jest.requireActual('components/Etokens/settleAlpRedeem');
@@ -2609,6 +2610,7 @@ describe('<Token /> available actions rendered', () => {
         }
     });
     it('We can redeem Firma for XEC using a workflow unique to Firma', async () => {
+        const trackSpy = jest.spyOn(GA, 'trackEvent');
         // Mock Math.random()
         jest.spyOn(global.Math, 'random').mockReturnValue(0.5); // set a fixed value
 
@@ -2681,6 +2683,10 @@ describe('<Token /> available actions rendered', () => {
         await userEvent.click(
             await screen.findByRole('button', { name: '− Redeem' }),
         );
+        expect(trackSpy).toHaveBeenCalledWith('token_action', {
+            token: 'FIRMA',
+            action: 'redeemFirma',
+        });
 
         // The redeem button is disabled on load
         const redeemButton = await screen.findByRole('button', {
@@ -2787,6 +2793,21 @@ describe('<Token /> available actions rendered', () => {
                 `${actualOfferedQty} Firma listed for ${actualPricePerTokenForMinBuy} per token`,
             ),
         ).not.toBeInTheDocument();
+
+        // Listed, but not redeemed until the hot wallet takes the offer
+        expect(trackSpy).toHaveBeenCalledWith('redeem_listed', {
+            token: 'FIRMA',
+            output: 'xec',
+            source: 'token_page',
+            // 10 FIRMA at $1
+            value_bucket: '10-100',
+            instant: 1,
+        });
+        expect(trackSpy).not.toHaveBeenCalledWith(
+            'redeem_success',
+            expect.anything(),
+        );
+        trackSpy.mockRestore();
     });
     it('FIRMA redeem is disabled if the hot wallet cannot cover redeem amount', async () => {
         // Mock Math.random()

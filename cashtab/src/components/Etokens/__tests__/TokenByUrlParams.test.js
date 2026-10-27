@@ -26,6 +26,7 @@ import {
     firmaMocks,
 } from 'components/Etokens/fixtures/mocks';
 import { Ecc } from 'ecash-lib';
+import * as GA from 'components/Common/GoogleAnalytics';
 import { MockAgora } from '../../../../../modules/mock-chronik-client';
 
 /**
@@ -117,6 +118,7 @@ describe('<Token /> rendered with params in URL', () => {
     });
 
     it('LIST. An NFT with a valid price opens the sell form with the price prefilled.', async () => {
+        const trackSpy = jest.spyOn(GA, 'trackEvent');
         renderToken(
             `/token/${slp1NftChildMocks.tokenId}?action=LIST&price=5000`,
         );
@@ -129,6 +131,13 @@ describe('<Token /> rendered with params in URL', () => {
         );
         // and the valid price is prefilled
         await waitFor(() => expect(priceInput.value).toBe('5000'));
+
+        // Opened by the link, not picked by the user: not a token_action
+        expect(trackSpy).not.toHaveBeenCalledWith(
+            'token_action',
+            expect.anything(),
+        );
+        trackSpy.mockRestore();
     });
 
     it('LIST. An NFT with no price param opens the sell form with an empty price.', async () => {
