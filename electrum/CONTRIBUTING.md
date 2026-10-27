@@ -36,7 +36,7 @@ in addition to your system's version.
 
 The simplest way to install all needed packages is to run the following command:
 ```shell
-pip install .[all]
+pip install ".[all]"
 ```
 
 This will install Electrum ABC and all its dependencies as a python package and application.
@@ -44,8 +44,8 @@ This will install Electrum ABC and all its dependencies as a python package and 
 This is equivalent to:
 ```shell
 pip install .
-pip install .[gui]
-pip install .[hardware]
+pip install ".[gui]"
+pip install ".[hardware]"
 ```
 
 If you do not want to install Electrum ABC as a package, you can install only the dependencies
