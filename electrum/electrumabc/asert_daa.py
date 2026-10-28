@@ -40,7 +40,7 @@ def bits_to_target(bits: int) -> int:
         return word << (8 * (size - 3))
 
 
-def _get_asert_activation_mtp():
+def _get_asert_activation_mtp() -> int:
     """Returns 1605441600 (Nov 15, 2020 12:00:00 UTC) or whatever override may
     be set by the env variable ASERT_MTP"""
     default_mtp = 1605441600  # Nov 15, 2020 12:00:00 UTC
