@@ -76,7 +76,7 @@ class BaseWizard(PrintError):
         self.keystores = []
         self.seed_type = None
 
-    def run(self, *args, **kwargs):
+    def run(self, *args, **kwargs) -> None:
         action = args[0]
         args = args[1:]
         storage_data = copy.deepcopy(self.data)
@@ -94,10 +94,10 @@ class BaseWizard(PrintError):
         else:
             raise RuntimeError("unknown action", action)
 
-    def can_go_back(self):
+    def can_go_back(self) -> bool:
         return len(self._stack) > 1
 
-    def go_back(self):
+    def go_back(self) -> None:
         if not self.can_go_back():
             return
         # pop 'current' frame
@@ -110,10 +110,10 @@ class BaseWizard(PrintError):
         # rerun 'previous' frame
         self.run(stack_item.action, *stack_item.args, **stack_item.kwargs)
 
-    def reset_stack(self):
+    def reset_stack(self) -> None:
         self._stack = []
 
-    def new(self):
+    def new(self) -> None:
         title = _("Create new wallet")
         message = "\n".join([_("What kind of wallet do you want to create?")])
         wallet_kinds = [
@@ -126,16 +126,16 @@ class BaseWizard(PrintError):
             title=title, message=message, choices=choices, run_next=self.on_wallet_type
         )
 
-    def upgrade_storage(self, storage):
+    def upgrade_storage(self, storage) -> None:
         exc = None
 
-        def on_finished():
+        def on_finished() -> None:
             if exc is None:
                 self.terminate(storage=storage)
             else:
                 raise exc
 
-        def do_upgrade():
+        def do_upgrade() -> None:
             nonlocal exc
             try:
                 storage.upgrade()
@@ -153,7 +153,7 @@ class BaseWizard(PrintError):
         """
         raise NotImplementedError()
 
-    def on_wallet_type(self, choice):
+    def on_wallet_type(self, choice) -> None:
         self.data["wallet_type"] = self.wallet_type = choice
         if choice == "standard":
             action = "choose_keystore"
@@ -163,8 +163,8 @@ class BaseWizard(PrintError):
             action = "import_addresses_or_keys"
         self.run(action)
 
-    def choose_multisig(self):
-        def on_multisig(m, n):
+    def choose_multisig(self) -> None:
+        def on_multisig(m, n) -> None:
             multisig_type = "%dof%d" % (m, n)
             self.data["wallet_type"] = multisig_type
             self.n = n
@@ -172,7 +172,7 @@ class BaseWizard(PrintError):
 
         self.multisig_dialog(run_next=on_multisig)
 
-    def choose_keystore(self):
+    def choose_keystore(self) -> None:
         assert self.wallet_type in ["standard", "multisig"]
         i = len(self.keystores)
         title = (
@@ -203,8 +203,8 @@ class BaseWizard(PrintError):
             title=title, message=message, choices=choices, run_next=self.run
         )
 
-    def import_addresses_or_keys(self):
-        def is_valid(x):
+    def import_addresses_or_keys(self) -> None:
+        def is_valid(x) -> bool:
             return keystore.is_address_list(x) or keystore.is_private_key_list(
                 x, allow_bip38=True
             )
@@ -228,7 +228,7 @@ class BaseWizard(PrintError):
         """Implemented in Qt InstallWizard subclass"""
         raise NotImplementedError("bip38_prompt_for_pw not implemented")
 
-    def on_import(self, text):
+    def on_import(self, text) -> None:
         # text is already sanitized by is_address_list and is_private_keys_list
         if keystore.is_address_list(text):
             self.data["addresses"] = {}
@@ -266,7 +266,7 @@ class BaseWizard(PrintError):
             return self.terminate()
         return self.run("create_wallet")
 
-    def restore_from_key(self):
+    def restore_from_key(self) -> None:
         if self.wallet_type == "standard":
             v = keystore.is_master_key
             title = _("Create keystore from a master key")
@@ -296,14 +296,14 @@ class BaseWizard(PrintError):
                 is_valid=keystore.is_bip32_key,
             )
 
-    def on_restore_from_key(self, text):
+    def on_restore_from_key(self, text) -> None:
         k = keystore.from_master_key(text)
         self.on_keystore(k)
 
-    def on_hw_wallet_support(self):
+    def on_hw_wallet_support(self) -> None:
         """Derived class InstallWizard for Qt implements this"""
 
-    def choose_hw_device(self, purpose=HWD_SETUP_NEW_WALLET, *, storage=None):
+    def choose_hw_device(self, purpose=HWD_SETUP_NEW_WALLET, *, storage=None) -> None:
         title = _("Hardware Keystore")
         # check available plugins
         support = self.plugins.get_hardware_support()
@@ -410,7 +410,9 @@ class BaseWizard(PrintError):
             extra_button=extra_button,
         )
 
-    def on_device(self, name, device_info: DeviceInfo, *, purpose, storage=None):
+    def on_device(
+        self, name, device_info: DeviceInfo, *, purpose, storage=None
+    ) -> None:
         self.plugin = self.plugins.find_plugin(name, force_load=True)
         print("-------  " + name + "--------------")
         try:
@@ -473,7 +475,7 @@ class BaseWizard(PrintError):
         default_derivation: str,
         is_hw_wallet: bool = False,
         bip32_seed: bytes = b"",
-    ):
+    ) -> None:
         lines = [
             _("Enter your wallet derivation here."),
             _("If you are not sure what this is, leave this field unchanged."),
@@ -512,7 +514,7 @@ class BaseWizard(PrintError):
             scannable=scannable,
         )
 
-    def on_hw_derivation(self, name, device_info: DeviceInfo, derivation):
+    def on_hw_derivation(self, name, device_info: DeviceInfo, derivation) -> None:
         from .keystore import hardware_keystore
 
         devmgr = self.plugins.device_manager
@@ -536,7 +538,7 @@ class BaseWizard(PrintError):
         k = hardware_keystore(d)
         self.on_keystore(k)
 
-    def passphrase_dialog(self, run_next):
+    def passphrase_dialog(self, run_next) -> None:
         title = _("Seed extension")
         message = "\n".join(
             [
@@ -561,7 +563,7 @@ class BaseWizard(PrintError):
             run_next=run_next,
         )
 
-    def restore_from_seed(self):
+    def restore_from_seed(self) -> None:
         self.opt_bip39 = True
         self.opt_slip39 = True
         self.opt_ext = True
@@ -569,24 +571,26 @@ class BaseWizard(PrintError):
         test = mnemo.is_seed
         self.restore_seed_dialog(run_next=self.on_restore_seed, test=test)
 
-    def on_restore_seed(self, seed: str | slip39.EncryptedSeed, seed_type, is_ext):
+    def on_restore_seed(
+        self, seed: str | slip39.EncryptedSeed, seed_type, is_ext
+    ) -> None:
         self.seed_type = seed_type
         if self.seed_type == "bip39":
 
-            def f(passphrase):
+            def f(passphrase) -> None:
                 self.on_restore_bip39(seed, passphrase)
 
             self.passphrase_dialog(run_next=f) if is_ext else f("")
         elif self.seed_type == "slip39":
 
-            def f(passphrase):
+            def f(passphrase) -> None:
                 self.on_restore_slip39(seed, passphrase)
 
             self.passphrase_dialog(run_next=f) if is_ext else f("")
 
         elif self.seed_type in ["standard", "electrum"]:
 
-            def f(passphrase):
+            def f(passphrase) -> None:
                 self.run("create_keystore", seed, passphrase)
 
             self.passphrase_dialog(run_next=f) if is_ext else f("")
@@ -595,7 +599,7 @@ class BaseWizard(PrintError):
         else:
             raise RuntimeError("Unknown seed type", self.seed_type)
 
-    def on_restore_bip39(self, seed: str, passphrase):
+    def on_restore_bip39(self, seed: str, passphrase) -> None:
         bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
         self.derivation_dialog(
             lambda x: self.run("on_bip44", seed, passphrase, "bip39", str(x)),
@@ -603,7 +607,7 @@ class BaseWizard(PrintError):
             bip32_seed=bip32_seed,
         )
 
-    def on_restore_slip39(self, seed: slip39.EncryptedSeed, passphrase: str):
+    def on_restore_slip39(self, seed: slip39.EncryptedSeed, passphrase: str) -> None:
         bip32_seed = seed.decrypt(passphrase)
         self.derivation_dialog(
             lambda x: self.run("on_bip44", seed, passphrase, "slip39", str(x)),
@@ -611,19 +615,19 @@ class BaseWizard(PrintError):
             bip32_seed=bip32_seed,
         )
 
-    def create_keystore(self, seed, passphrase):
+    def create_keystore(self, seed, passphrase) -> None:
         # auto-detect, prefers old, electrum, bip39 in that order. Since we
         # never create ambiguous seeds, this is fine.
         k = keystore.from_seed(seed, passphrase)
         self.on_keystore(k)
 
-    def on_bip44(self, seed, passphrase, seed_type, derivation):
+    def on_bip44(self, seed, passphrase, seed_type, derivation) -> None:
         k = keystore.from_seed(
             seed, passphrase, seed_type=seed_type, derivation=derivation
         )
         self.on_keystore(k)
 
-    def on_keystore(self, k):
+    def on_keystore(self, k) -> None:
         has_xpub = isinstance(k, keystore.Xpub)
         if has_xpub:
             t1 = xpub_type(k.xpub)
@@ -664,7 +668,7 @@ class BaseWizard(PrintError):
             else:
                 self.run("create_wallet")
 
-    def create_wallet(self):
+    def create_wallet(self) -> None:
         encrypt_keystore = any(k.may_have_password() for k in self.keystores)
         # note: the following condition ("if") is duplicated logic from
         # wallet.get_available_storage_encryption_version()
@@ -713,7 +717,7 @@ class BaseWizard(PrintError):
         encrypt_storage,
         storage_enc_version=STO_EV_USER_PW,
         encrypt_keystore,
-    ):
+    ) -> None:
         for k in self.keystores:
             if k.may_have_password():
                 k.update_password(None, password)
@@ -736,7 +740,7 @@ class BaseWizard(PrintError):
         self.pw_args = password, encrypt_storage, storage_enc_version
         self.terminate()
 
-    def create_storage(self, path):
+    def create_storage(self, path) -> WalletStorage | None:
         if not self.pw_args:
             return
         password, encrypt_storage, storage_enc_version = self.pw_args
@@ -749,23 +753,23 @@ class BaseWizard(PrintError):
         storage.write()
         return storage
 
-    def terminate(self, *, storage: Optional[WalletStorage] = None):
+    def terminate(self, *, storage: Optional[WalletStorage] = None) -> None:
         # implemented by subclasses
         raise NotImplementedError()
 
-    def show_xpub_and_add_cosigners(self, xpub):
+    def show_xpub_and_add_cosigners(self, xpub) -> None:
         self.show_xpub_dialog(xpub=xpub, run_next=lambda x: self.run("choose_keystore"))
 
-    def on_cosigner(self, text, password, i):
+    def on_cosigner(self, text, password, i) -> None:
         k = keystore.from_master_key(text, password)
         self.on_keystore(k)
 
-    def create_standard_seed(self):
+    def create_standard_seed(self) -> None:
         # we now generate bip39 by default; changing the below back to
         # 'electrum' would default to electrum seeds again.
         self.create_seed("bip39")
 
-    def create_seed(self, seed_type):
+    def create_seed(self, seed_type) -> None:
         self.seed_type = seed_type
         if seed_type in ["standard", "electrum"]:
             seed = mnemo.MnemonicElectrum("en").make_seed()
@@ -780,19 +784,19 @@ class BaseWizard(PrintError):
             run_next=lambda x: self.request_passphrase(seed, x), seed_text=seed
         )
 
-    def request_passphrase(self, seed, opt_passphrase):
+    def request_passphrase(self, seed, opt_passphrase) -> None:
         if opt_passphrase:
             self.passphrase_dialog(run_next=lambda x: self.confirm_seed(seed, x))
         else:
             self.run("confirm_seed", seed, "")
 
-    def confirm_seed(self, seed, passphrase):
+    def confirm_seed(self, seed, passphrase) -> None:
         self.confirm_seed_dialog(
             run_next=lambda x: self.confirm_passphrase(seed, passphrase),
             test=lambda x: x == seed,
         )
 
-    def confirm_passphrase(self, seed, passphrase):
+    def confirm_passphrase(self, seed, passphrase) -> None:
         if passphrase:
             title = _("Confirm Seed Extension")
             message = "\n".join(
@@ -811,8 +815,8 @@ class BaseWizard(PrintError):
         else:
             self.run("create_keystore", seed, "")
 
-    def create_addresses(self):
-        def task():
+    def create_addresses(self) -> None:
+        def task() -> None:
             self.wallet.synchronize()
             self.wallet.storage.write()
             self.terminate()
