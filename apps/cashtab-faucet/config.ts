@@ -81,7 +81,7 @@ const config: CashtabFaucetConfig = {
     // Rate limits for eligibility checks (read-only, but Chronik history walks are expensive)
     eligibilityLimiter: {
         windowMs: 60 * 1000, // 1 minute
-        limit: 1, // requests per IP per `window`
+        limit: 3, // requests per IP per `window`; Cashtab checks eligibility on page load and again after a claim
         standardHeaders: 'draft-7',
         legacyHeaders: false,
         handler: (req: Request, res: Response) => {

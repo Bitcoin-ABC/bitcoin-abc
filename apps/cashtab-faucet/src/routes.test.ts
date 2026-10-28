@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import * as assert from 'assert';
 import * as http from 'http';
 import request from 'supertest';
 import config from '../config';
@@ -149,6 +150,28 @@ describe('routes.js', function () {
                 },
             });
         return axiosRecaptchaMock;
+    };
+    const expectClaimSuccess = (
+        body: Record<string, unknown>,
+        claimStart: number,
+    ) => {
+        const { becomesEligible, ...rest } = body;
+        assert.deepEqual(rest, {
+            address: ELIGIBLE_ADDRESS,
+            msg: 'Success',
+            txid: mockCachetClaim.txid,
+        });
+        assert.strictEqual(typeof becomesEligible, 'number');
+        // becomesEligible is set when the response is built, so it falls
+        // between the start of the request and now
+        assert.ok(
+            (becomesEligible as number) >=
+                claimStart + config.eligibilityResetSeconds,
+        );
+        assert.ok(
+            (becomesEligible as number) <=
+                Math.ceil(Date.now() / 1000) + config.eligibilityResetSeconds,
+        );
     };
     const getTestRateLimiter = () =>
         rateLimit({
@@ -345,6 +368,7 @@ describe('routes.js', function () {
     });
     it('/claim/:address returns expected status for an eligible address', function () {
         mockRecaptchaV3Success();
+        const claimStart = Math.ceil(Date.now() / 1000);
 
         return request(app)
             .post(`/claim/${ELIGIBLE_ADDRESS}`)
@@ -352,10 +376,8 @@ describe('routes.js', function () {
             .set('Content-Type', 'application/json')
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect({
-                address: ELIGIBLE_ADDRESS,
-                msg: 'Success',
-                txid: mockCachetClaim.txid,
+            .expect(res => {
+                expectClaimSuccess(res.body, claimStart);
             });
     });
     it('/claim/:address returns 500 if Android client is used without enterprise config', function () {
@@ -377,6 +399,7 @@ describe('routes.js', function () {
         app.close();
         app = startTestServer(MOCK_RECAPTCHA_ENTERPRISE_SETTINGS);
         mockRecaptchaV3EnterpriseSuccess();
+        const claimStart = Math.ceil(Date.now() / 1000);
 
         return request(app)
             .post(`/claim/${ELIGIBLE_ADDRESS}`)
@@ -387,10 +410,8 @@ describe('routes.js', function () {
             .set('Content-Type', 'application/json')
             .expect(200)
             .expect('Content-Type', /json/)
-            .expect({
-                address: ELIGIBLE_ADDRESS,
-                msg: 'Success',
-                txid: mockCachetClaim.txid,
+            .expect(res => {
+                expectClaimSuccess(res.body, claimStart);
             });
     });
     it('/claim/:address returns 500 and expected msg if Android reCAPTCHA score is too low', function () {

@@ -300,11 +300,17 @@ export const startExpressServer = (
                 address: string;
                 txid?: string;
                 msg: string;
+                becomesEligible: number;
             }
             const response: SendRewardResponse = {
                 address,
                 txid,
                 msg: 'Success',
+                // Return when this address may claim again, so clients do not
+                // need another /is-eligible request after a claim
+                becomesEligible:
+                    Math.ceil(Date.now() / 1000) +
+                    config.eligibilityResetSeconds,
             };
 
             return res.status(200).json(response);
