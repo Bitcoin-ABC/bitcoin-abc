@@ -57,7 +57,7 @@ use rustls::{
 use serde_json::{json, Map, Value};
 use sha2::Digest;
 use thiserror::Error;
-use tokio::sync::{oneshot, Mutex};
+use tokio::sync::{oneshot, watch, Mutex};
 use versions::Versioning;
 
 use crate::{
@@ -65,6 +65,7 @@ use crate::{
     subscription_limits::{
         SubscriptionClientKey, SubscriptionGuard, SubscriptionLimiterRef,
     },
+    tasks::{wait_until_cancelled, ChronikTasks},
     {electrum::ChronikElectrumServerError::*, electrum_codec::ElectrumCodec},
 };
 
@@ -113,6 +114,8 @@ pub struct ChronikElectrumServerParams {
     pub idle_timeout: u32,
     /// Shared subscription limiter (Electrum + Chronik WS)
     pub subscription_limiter: SubscriptionLimiterRef,
+    /// Shared async task registry for cooperative shutdown
+    pub tasks: Arc<ChronikTasks>,
 }
 
 /// Chronik Electrum server, holding all the data/handles required to serve an
@@ -130,6 +133,7 @@ pub struct ChronikElectrumServer {
     peers_validation_interval: u32,
     idle_timeout: u32,
     subscription_limiter: SubscriptionLimiterRef,
+    tasks: Arc<ChronikTasks>,
 }
 
 /// Errors for [`ChronikElectrumServer`].
@@ -203,6 +207,7 @@ impl ChronikElectrumServer {
             peers_validation_interval: params.peers_validation_interval,
             idle_timeout: params.idle_timeout,
             subscription_limiter: params.subscription_limiter,
+            tasks: params.tasks,
         })
     }
 
@@ -210,6 +215,7 @@ impl ChronikElectrumServer {
     pub async fn serve(self) -> Result<()> {
         let genesis_hash = self.node.bridge.get_genesis_hash();
         let genesis_hash = Sha256::from_le_bytes(genesis_hash.data).hex_be();
+        let tasks = self.tasks;
 
         // The behavior is to bind the endpoint name to its method name like so:
         // endpoint.method as the name of the RPC
@@ -226,19 +232,32 @@ impl ChronikElectrumServer {
         // disabled (i.e. validation interval is set to 0)
         if self.peers_validation_interval > 0 {
             let moved_endpoint = server_endpoint.clone();
-            tokio::spawn(async move {
+            let cancel_rx = tasks.cancel_receiver();
+            let peers_validation_interval = self.peers_validation_interval;
+            tasks.spawn(async move {
                 let mut interval =
                     tokio::time::interval(tokio::time::Duration::from_secs(
-                        self.peers_validation_interval as u64,
+                        peers_validation_interval as u64,
                     ));
 
                 loop {
-                    interval.tick().await;
-                    let Ok(_) = moved_endpoint.validate_peers().await else {
-                        // This might fail, in this case we just wait for the
-                        // next interval and retry
-                        continue;
-                    };
+                    tokio::select! {
+                        _ = interval.tick() => {
+                            // Also race cancel against the validation pass
+                            // itself: otherwise network I/O in validate_peers
+                            // can hold ChronikTasks::shutdown until the full
+                            // timeout.
+                            tokio::select! {
+                                // This might fail, in this case we just wait
+                                // for the next interval and retry
+                                _ = moved_endpoint.validate_peers() => {}
+                                _ = wait_until_cancelled(
+                                    cancel_rx.clone(),
+                                ) => break,
+                            }
+                        }
+                        _ = wait_until_cancelled(cancel_rx.clone()) => break,
+                    }
                 }
             });
         } else {
@@ -258,6 +277,7 @@ impl ChronikElectrumServer {
                 notify_tasks: Arc::new(Mutex::new(HashMap::new())),
                 watched_conns: Arc::new(Mutex::new(HashSet::new())),
                 next_notify_token: AtomicU64::new(1),
+                tasks: Arc::clone(&tasks),
             });
 
         let mempool_endpoint = Arc::new(ChronikElectrumRPCMempoolEndpoint {
@@ -275,7 +295,8 @@ impl ChronikElectrumServer {
             std::iter::repeat(blockchain_endpoint),
             std::iter::repeat(mempool_endpoint),
             std::iter::repeat(tls_cert_path),
-            std::iter::repeat(tls_privkey_path)
+            std::iter::repeat(tls_privkey_path),
+            std::iter::repeat(tasks.cancel_receiver())
         )
         .map(
             |(
@@ -285,6 +306,7 @@ impl ChronikElectrumServer {
                 mempool_endpoint,
                 tls_cert_path,
                 tls_privkey_path,
+                cancel_rx,
             )| {
                 Box::pin(async move {
                     let mut require_tls_config = false;
@@ -397,18 +419,23 @@ impl ChronikElectrumServer {
                         .build()
                         .await
                         .map_err(|err| ServingFailed(err.to_string()))?;
-                    server
-                        .start_block()
-                        .await
-                        .map_err(|err| ServingFailed(err.to_string()))?;
+                    tokio::select! {
+                        result = server.start_block() => {
+                            result.map_err(|err| {
+                                ServingFailed(err.to_string())
+                            })?;
+                        }
+                        _ = wait_until_cancelled(cancel_rx) => {}
+                    }
 
                     Ok::<(), ChronikElectrumServerError>(())
                 })
             },
         );
 
-        let (result, _, _) = futures::future::select_all(servers).await;
-        result?;
+        // Wait for every host, but fail fast on the first error so the caller
+        // can abort on a bind/TLS failure.
+        futures::future::try_join_all(servers).await?;
         Ok(())
     }
 }
@@ -542,6 +569,8 @@ struct ChronikElectrumRPCBlockchainEndpoint {
     watched_conns: Arc<Mutex<HashSet<usize>>>,
     /// Monotonic token minted for each tracked notification task.
     next_notify_token: AtomicU64,
+    /// Shared async task registry for cooperative shutdown
+    tasks: Arc<ChronikTasks>,
 }
 
 /// An Electrum notification task plus the optional limiter slot it holds.
@@ -618,7 +647,8 @@ impl ChronikElectrumRPCBlockchainEndpoint {
     /// Spawn a notification task that does not start until it is registered.
     ///
     /// `make_fut` receives a cancel receiver that completes on unsubscribe or
-    /// disconnect. The task waits on a oneshot start signal sent after
+    /// disconnect, and a shutdown receiver that completes on Chronik interrupt.
+    /// The task waits on a oneshot start signal sent after
     /// [`Self::track_notify_task`]. If this future is cancelled before the
     /// signal is sent, dropping the sender makes the task exit (and drop any
     /// guard that was already inserted for this task's token).
@@ -629,7 +659,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         guard: Option<SubscriptionGuard>,
         make_fut: F,
     ) where
-        F: FnOnce(oneshot::Receiver<()>) -> Fut,
+        F: FnOnce(oneshot::Receiver<()>, watch::Receiver<bool>) -> Fut,
         Fut: std::future::Future<Output = ()> + Send + 'static,
     {
         let token = self.next_notify_token.fetch_add(1, Ordering::Relaxed);
@@ -637,8 +667,8 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let (cancel_tx, cancel_rx) = oneshot::channel();
         let notify_tasks = Arc::clone(&self.notify_tasks);
         let chan_ptr = channel_ptr(chan);
-        let fut = make_fut(cancel_rx);
-        tokio::spawn(async move {
+        let fut = make_fut(cancel_rx, self.tasks.cancel_receiver());
+        self.tasks.spawn(async move {
             if start_rx.await.is_err() {
                 // Registration was cancelled; drop any late-inserted guard
                 // for this token only.
@@ -694,9 +724,16 @@ impl ChronikElectrumRPCBlockchainEndpoint {
         let weak = Arc::downgrade(chan);
         let notify_tasks = Arc::clone(&self.notify_tasks);
         let watched_conns = Arc::clone(&self.watched_conns);
-        tokio::spawn(async move {
-            while weak.strong_count() > 0 {
-                tokio::time::sleep(Duration::from_secs(1)).await;
+        let cancel_rx = self.tasks.cancel_receiver();
+        self.tasks.spawn(async move {
+            loop {
+                if weak.strong_count() == 0 {
+                    break;
+                }
+                tokio::select! {
+                    _ = tokio::time::sleep(Duration::from_secs(1)) => {}
+                    _ = wait_until_cancelled(cancel_rx.clone()) => return,
+                }
             }
             let mut tasks = notify_tasks.lock().await;
             let keys: Vec<_> = tasks
@@ -1427,7 +1464,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     &chan,
                     sub_id,
                     Some(sub_guard),
-                    |mut cancel_rx| async move {
+                    |mut cancel_rx, shutdown_rx| async move {
                         log_chronik!("Subscription to electrum scripthash\n");
 
                         let mut last_status = None;
@@ -1442,6 +1479,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                                     tx_msg
                                 }
                                 _ = &mut cancel_rx => break,
+                                _ = wait_until_cancelled(
+                                    shutdown_rx.clone(),
+                                ) => break,
                             };
 
                             // We want all the events except finalization (this
@@ -1568,7 +1608,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                 &chan,
                 0,
                 None,
-                |mut cancel_rx| async move {
+                |mut cancel_rx, shutdown_rx| async move {
                     log_chronik!("Subscription to electrum headers\n");
 
                     loop {
@@ -1581,6 +1621,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                                 block_msg
                             }
                             _ = &mut cancel_rx => break,
+                            _ = wait_until_cancelled(
+                                shutdown_rx.clone(),
+                            ) => break,
                         };
 
                         if !matches!(
@@ -1755,7 +1798,7 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                     &chan,
                     sub_id,
                     Some(sub_guard),
-                    |mut cancel_rx| async move {
+                    |mut cancel_rx, shutdown_rx| async move {
                         log_chronik!(
                             "Subscription to electrum txid {txid_hex}\n"
                         );
@@ -1770,6 +1813,9 @@ impl ChronikElectrumRPCBlockchainEndpoint {
                                     tx_msg
                                 }
                                 _ = &mut cancel_rx => break,
+                                _ = wait_until_cancelled(
+                                    shutdown_rx.clone(),
+                                ) => break,
                             };
 
                             // We want all the events except finalization (this

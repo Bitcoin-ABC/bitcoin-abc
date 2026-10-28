@@ -35,6 +35,7 @@ use crate::{
     handlers,
     protobuf::{Protobuf, MAX_REQUEST_BODY_SIZE},
     subscription_limits::SubscriptionLimiterRef,
+    tasks::{wait_until_cancelled, ChronikTasks},
     ws::{handle_subscribe_socket, MAX_WS_MESSAGE_SIZE},
 };
 
@@ -73,6 +74,8 @@ pub struct ChronikServerParams {
     pub settings: ChronikSettings,
     /// Shared subscription limiter (Chronik WS + Electrum)
     pub subscription_limiter: SubscriptionLimiterRef,
+    /// Shared async task registry for cooperative shutdown
+    pub tasks: Arc<ChronikTasks>,
 }
 
 /// Chronik HTTP server, holding all the data/handles required to serve an
@@ -85,6 +88,7 @@ pub struct ChronikServer {
     pause_notify: PauseNotifyRef,
     settings: ChronikSettings,
     subscription_limiter: SubscriptionLimiterRef,
+    tasks: Arc<ChronikTasks>,
 }
 
 /// Errors for [`ChronikServer`].
@@ -135,6 +139,7 @@ impl ChronikServer {
             pause_notify: params.pause_notify,
             settings: params.settings,
             subscription_limiter: params.subscription_limiter,
+            tasks: params.tasks,
         })
     }
 
@@ -147,22 +152,25 @@ impl ChronikServer {
             self.settings,
             self.subscription_limiter,
         );
+        let cancel_rx = self.tasks.cancel_receiver();
         let servers = self
             .tcp_listeners
             .into_iter()
             .zip(std::iter::repeat(app))
-            .map(|(tcp_listener, app)| {
+            .zip(std::iter::repeat(cancel_rx))
+            .map(|((tcp_listener, app), cancel_rx)| {
                 Box::pin(async move {
                     axum::serve(
                         tcp_listener,
                         app.into_make_service_with_connect_info::<SocketAddr>(),
                     )
+                    .with_graceful_shutdown(wait_until_cancelled(cancel_rx))
                     .await
                     .map_err(|err| ServingFailed(err.to_string()))
                 })
             });
-        let (result, _, _) = futures::future::select_all(servers).await;
-        result?;
+        // Wait for every listener, but fail fast on the first error.
+        futures::future::try_join_all(servers).await?;
         Ok(())
     }
 

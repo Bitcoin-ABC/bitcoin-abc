@@ -27,6 +27,7 @@ use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
 };
 use chronik_http::subscription_limits::SubscriptionLimiter;
+use chronik_http::tasks::ChronikTasks;
 use chronik_indexer::{
     indexer::{ChronikIndexer, ChronikIndexerParams, Node},
     pause::Pause,
@@ -147,10 +148,12 @@ fn try_setup_chronik(
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()?;
+    let tasks = ChronikTasks::new();
     let server = runtime.block_on({
         let indexer = Arc::clone(&indexer);
         let node = Arc::clone(&node);
         let subscription_limiter = Arc::clone(&subscription_limiter);
+        let tasks = Arc::clone(&tasks);
         async move {
             // try_bind requires a Runtime
             ChronikServer::setup(ChronikServerParams {
@@ -169,15 +172,17 @@ fn try_setup_chronik(
                         .subscription_max_plugin_size,
                 },
                 subscription_limiter,
+                tasks,
             })
         }
     })?;
-    runtime.spawn({
+    {
+        let _enter = runtime.enter();
         let node = Arc::clone(&node);
-        async move {
+        tasks.spawn(async move {
             node.ok_or_abort("ChronikServer::serve", server.serve().await);
-        }
-    });
+        });
+    }
 
     if !params.electrum_hosts.is_empty() {
         let electrum_hosts = params
@@ -208,15 +213,15 @@ fn try_setup_chronik(
                     .electrum_peers_validation_interval,
                 idle_timeout: params.electrum_idle_timeout,
                 subscription_limiter,
+                tasks: Arc::clone(&tasks),
             })?;
-        runtime.spawn({
-            let node = Arc::clone(&node);
-            async move {
-                node.ok_or_abort(
-                    "ChronikElectrumServer::serve",
-                    electrum_server.serve().await,
-                );
-            }
+        let _enter = runtime.enter();
+        let node = Arc::clone(&node);
+        tasks.spawn(async move {
+            node.ok_or_abort(
+                "ChronikElectrumServer::serve",
+                electrum_server.serve().await,
+            );
         });
     }
 
@@ -224,6 +229,7 @@ fn try_setup_chronik(
         node: Arc::clone(&node),
         indexer,
         pause,
+        tasks,
         runtime: Mutex::new(Some(runtime)),
     });
     StartChronikValidationInterface(node_context, chronik);
@@ -293,6 +299,8 @@ pub struct Chronik {
     node: Arc<Node>,
     indexer: Arc<RwLock<ChronikIndexer>>,
     pause: Pause,
+    /// HTTP/Electrum tasks tracked for cooperative shutdown.
+    tasks: Arc<ChronikTasks>,
     /// Tokio runtime driving HTTP and Electrum. Wrapped so
     /// [`Chronik::interrupt`] can shut it down before the node is torn down
     /// and before RocksDB is closed, ensuring no async task touches either
@@ -397,23 +405,27 @@ impl Chronik {
         );
     }
 
-    /// Shut down the tokio runtime driving HTTP and Electrum, so no request
-    /// handler (including detached `tokio::spawn` work) can access the node or
-    /// RocksDB anymore. Chronik keeps indexing validation interface events
-    /// after this returns; only [`Chronik::stop`] tears the indexer down.
+    /// Cancel and await HTTP/Electrum tasks, then shut down the tokio runtime,
+    /// so no request handler can access the node or RocksDB anymore. Chronik
+    /// keeps indexing validation interface events after this returns; only
+    /// [`Chronik::stop`] tears the indexer down.
     pub fn interrupt(&self) {
         let mut runtime_guard = self.runtime.lock().unwrap();
-        if let Some(runtime) = runtime_guard.take() {
-            runtime.shutdown_timeout(Duration::from_secs(60));
-        }
+        let Some(runtime) = runtime_guard.take() else {
+            return;
+        };
+        runtime.block_on(self.tasks.shutdown(Duration::from_secs(60)));
+        // Any task not registered with ChronikTasks is abandoned without
+        // waiting; the runtime must not block process exit on it.
+        runtime.shutdown_background();
     }
 
     /// Stop Chronik to prepare for shutdown.
     ///
-    /// Shuts down the tokio runtime first (if [`Chronik::interrupt`] didn't
-    /// already do so) so HTTP and Electrum tasks cannot access RocksDB, then
-    /// flushes the DB. RocksDB background work cancellation happens when the DB
-    /// is dropped.
+    /// Shuts down async tasks and the tokio runtime first (if
+    /// [`Chronik::interrupt`] didn't already do so) so HTTP and Electrum
+    /// cannot access RocksDB, then flushes the DB. RocksDB background work
+    /// cancellation happens when the DB is dropped.
     pub fn stop(&self) -> Result<()> {
         self.interrupt();
         let indexer = self.indexer.blocking_write();

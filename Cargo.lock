@@ -778,6 +778,7 @@ dependencies = [
  "sha2",
  "thiserror 2.0.17",
  "tokio",
+ "tokio-util",
  "tower-http 0.5.2",
  "tower-service",
  "versions",
@@ -3946,6 +3947,7 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
+ "futures-util",
  "pin-project-lite",
  "tokio",
 ]

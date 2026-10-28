@@ -79,6 +79,9 @@ tower-http = { version = "0.5", features = ["cors"] }
 # Trait representing an asynchronous server. 
 tower-service = "0.3"
 
+# Tokio utilities (TaskTracker for cooperative shutdown)
+tokio-util = { version = "0.7", default-features = false, features = ["rt"] }
+
 # Semantic version string parser
 versions = "6.2"
 
@@ -88,4 +91,4 @@ webpki-roots = "1.0.1"
 # Async runtime
 [dependencies.tokio]
 version = "1.25"
-features = ["sync", "rt", "rt-multi-thread", "macros"]
+features = ["sync", "rt", "rt-multi-thread", "macros", "time"]
