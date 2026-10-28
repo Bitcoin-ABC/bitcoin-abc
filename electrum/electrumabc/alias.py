@@ -24,7 +24,7 @@
 from __future__ import annotations
 
 import re
-from typing import Dict
+from typing import Literal, TypedDict
 
 import dns
 from dns.exception import DNSException
@@ -36,7 +36,18 @@ from .printerror import print_error
 OA1_PREFIX = "oa1:xec"
 
 
-def resolve(k: str) -> Dict:
+# Could be improved with typing.NotRequired usage when switching to python 3.11
+class ResolveAliasBaseT(TypedDict):
+    address: Address
+    type: Literal["address", "openalias"]
+
+
+class ResolveAliasFullT(ResolveAliasBaseT):
+    name: str
+    validated: bool
+
+
+def resolve(k: str) -> ResolveAliasBaseT | ResolveAliasFullT:
     if Address.is_valid(k):
         return {"address": Address.from_string(k), "type": "address"}
     out = resolve_openalias(k)
@@ -51,7 +62,7 @@ def resolve(k: str) -> Dict:
     raise RuntimeWarning(f"Invalid eCash address or alias {k}")
 
 
-def find_regex(haystack, needle):
+def find_regex(haystack, needle) -> str | None:
     regex = re.compile(needle)
     try:
         return regex.search(haystack).groups()[0]
@@ -59,7 +70,7 @@ def find_regex(haystack, needle):
         return None
 
 
-def resolve_openalias(url):
+def resolve_openalias(url) -> tuple[Address, str, bool] | None:
     # support email-style addresses, per the OA standard
     url = url.replace("@", ".")
     try:
