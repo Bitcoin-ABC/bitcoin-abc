@@ -52,3 +52,6 @@ known-first-party = [
     "electrumabc_gui",
     "electrumabc_plugins"
 ]
+
+[lint.flake8-annotations]
+mypy-init-return = true
