@@ -31,7 +31,7 @@ import sys
 import threading
 import urllib.parse
 import urllib.request
-from typing import Dict, Union
+from typing import Any, Dict, Union
 
 from . import bitcoin, networks
 from .address import Address
@@ -141,11 +141,13 @@ def BE_URL(config, kind: ExplorerUrlParts, item: Union[str, Address]) -> str:
     return "/".join(part for part in (explorer.url_base, kind_str, item) if part)
 
 
-def BE_sorted_list():
+def BE_sorted_list() -> dict[str, BlockchainExplorer]:
     return sorted(BE_info())
 
 
-def create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net=None):
+def create_URI(
+    addr, amount, message, *, op_return=None, op_return_raw=None, net=None
+) -> str:
     if not isinstance(addr, Address):
         return ""
     if op_return is not None and op_return_raw is not None:
@@ -174,12 +176,12 @@ def create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net
     return urllib.parse.urlunparse(p)
 
 
-def urlencode(s):
+def urlencode(s) -> str:
     """URL Encode; encodes a url or a uri fragment by %-quoting special chars"""
     return urllib.parse.quote(s)
 
 
-def urldecode(url):
+def urldecode(url) -> str:
     """Inverse of urlencode"""
     return urllib.parse.unquote(url)
 
@@ -217,7 +219,9 @@ class BadURIParameter(ValueError):
     args[1] is the underlying Exception that was raised (if any, may be missing)."""
 
 
-def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
+def parse_URI(
+    uri, on_pr=None, *, net=None, strict=False, on_exc=None
+) -> dict[str, Any]:
     """If strict=True, may raise ExtraParametersInURIWarning (see docstring
     above).
 
@@ -320,7 +324,7 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
 
     if on_pr and "r" in out:
 
-        def get_payment_request_thread():
+        def get_payment_request_thread() -> None:
             from . import paymentrequest as pr
 
             try:
@@ -358,7 +362,7 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
     return out
 
 
-def check_www_dir(rdir):
+def check_www_dir(rdir) -> None:
     if not os.path.exists(rdir):
         os.mkdir(rdir)
     index = os.path.join(rdir, "index.html")
