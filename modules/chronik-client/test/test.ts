@@ -8,7 +8,11 @@ import * as net from 'net';
 import { WebSocket, WebSocketServer } from 'ws';
 import * as proto from '../proto/chronik';
 import { ChronikClient, WsEndpoint } from '../src/ChronikClient';
-import { FailoverProxy, appendWsUrls } from '../src/failoverProxy';
+import {
+    ChronikError,
+    FailoverProxy,
+    appendWsUrls,
+} from '../src/failoverProxy';
 import { toHex } from '../src/hex';
 import { assertTokenDecimals, isValidWsSubscription } from '../src/validation';
 import vectors from './vectors';
@@ -107,6 +111,31 @@ describe('FailoverProxy', () => {
             "`url` must start with 'https://' or 'http://', got: " +
                 oneBrokenUrl[1],
         );
+    });
+    it('ensureResponseErrorThrown throws a ChronikError carrying the HTTP status', () => {
+        const proxyInterface = new FailoverProxy([
+            'https://chronik.fabien.cash',
+        ]);
+        const data = proto.Error.encode({
+            msg: '400: Tx is spending an unknown outpoint',
+        }).finish();
+        let thrown: unknown;
+        try {
+            proxyInterface.ensureResponseErrorThrown(
+                { status: 400, data } as any,
+                '/validate-tx',
+            );
+        } catch (err) {
+            thrown = err;
+        }
+        expect(thrown).to.be.instanceOf(ChronikError);
+        expect((thrown as ChronikError).status).to.equal(400);
+        // Message and string form are unchanged for existing callers
+        expect(String(thrown)).to.equal(
+            'Error: Failed getting /validate-tx: 400: Tx is spending an unknown outpoint',
+        );
+        // No `code` key, so _request does not treat it as an outage
+        expect('code' in (thrown as object)).to.equal(false);
     });
 });
 

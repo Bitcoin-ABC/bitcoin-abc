@@ -81,6 +81,22 @@ function emitWsError(wsEndpoint: WsEndpoint, err: unknown): void {
     }
 }
 
+/**
+ * Error response decoded from a working Chronik server, e.g. a 404 for an
+ * unknown txid or a 400 for a tx that fails validation. `status` is the HTTP
+ * status code, so callers can tell user errors (4xx) from server errors (5xx)
+ * without parsing `message`. `name` stays 'Error' so `String(err)` is
+ * unchanged for existing callers.
+ */
+export class ChronikError extends Error {
+    public readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.status = status;
+    }
+}
+
 // Converts an array of chronik http/https urls into
 // websocket equivalents and combines them into an object array
 export function appendWsUrls(urls: string[]): Endpoint[] {
@@ -278,7 +294,10 @@ export class FailoverProxy {
                 );
             }
             if (errorCanBeDecoded) {
-                throw new Error(`Failed getting ${path}: ${error.msg}`);
+                throw new ChronikError(
+                    `Failed getting ${path}: ${error.msg}`,
+                    response.status,
+                );
             }
         }
     }

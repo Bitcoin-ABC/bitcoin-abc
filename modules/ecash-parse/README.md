@@ -110,3 +110,7 @@ CI: `ecash-parse-tests` and dependent jobs (e.g. `cashtab-tests`) build this pac
 ### 1.0.4 [D20878](https://reviews.bitcoinabc.org/D20878)
 
 - Patch bump to catch the latest `chronik-client`, `ecash-lib`, and `ecash-agora`
+
+### 1.0.5 [D20906](https://reviews.bitcoinabc.org/D20906)
+
+- Patch bump to catch the latest `chronik-client`, `ecash-lib`, and `ecash-agora`
