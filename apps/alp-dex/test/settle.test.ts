@@ -3,11 +3,17 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
-import type { ChronikClient, ScriptUtxo } from 'chronik-client';
+import type {
+    ChronikClient,
+    Tx as ChronikTx,
+    ScriptUtxo,
+} from 'chronik-client';
+import { ChronikError } from 'chronik-client';
 import {
     ALP_TOKEN_TYPE_STANDARD,
     DEFAULT_DUST_SATS,
     Script,
+    Tx,
     fromHex,
     payment,
     toHex,
@@ -19,6 +25,7 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import type { ParsedTradedConfig } from '../src/config/tradedConfig';
 import { POSTAGE_SATS, SETTLE_MAX_QUEUE_AGE_MS } from '../src/constants';
+import { outpointTxidHex } from '../src/inventory/localBook';
 import type { TradedTokens } from '../src/tokens/tradedTokens';
 import { createLpWallets } from '../src/wallet/accounts';
 
@@ -169,6 +176,57 @@ const stubAcceptAnyBroadcast = (
         }
         return originalTxs(txsHex, skipTokenChecks);
     };
+};
+
+const BUYER_UTXO_TXID = '11'.repeat(32);
+
+type StubTakerInput = {
+    outputScript: string;
+    sats: bigint;
+    token?: {
+        tokenId: string;
+        atoms: bigint;
+        isMintBaton: boolean;
+    };
+};
+
+/**
+ * Chronik `validateRawTx` that resolves the buyer's `11…11:i` outpoints
+ * (see {@link buildBuyerSettlePayload}) and rejects anything else the way
+ * Chronik does for an unknown outpoint. `input` overrides what each buyer
+ * outpoint resolves to.
+ */
+const stubValidateBuyerInputs = (
+    mock: MockChronikClient,
+    input: Partial<StubTakerInput> = {},
+): void => {
+    const buyerScriptHex = Wallet.fromSk(
+        fromHex(BUYER_SK),
+        new MockChronikClient() as unknown as ChronikClient,
+    ).script.toHex();
+    const resolved: StubTakerInput = {
+        outputScript: buyerScriptHex,
+        sats: DEFAULT_DUST_SATS,
+        token: { tokenId: TOKEN_A, atoms: 10_000n, isMintBaton: false },
+        ...input,
+    };
+    (mock as unknown as Pick<ChronikClient, 'validateRawTx'>).validateRawTx =
+        async (rawTx: Uint8Array | string) => {
+            const tx = Tx.deser(
+                typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
+            );
+            const inputs = tx.inputs.map(txInput => {
+                const txid = outpointTxidHex(txInput.prevOut.txid);
+                if (txid !== BUYER_UTXO_TXID) {
+                    throw new ChronikError(
+                        `Failed getting /validate-tx: 400: Tx is spending ${txid} which is found neither in the mempool nor DB`,
+                        400,
+                    );
+                }
+                return { prevOut: txInput.prevOut, ...resolved };
+            });
+            return { inputs } as unknown as ChronikTx;
+        };
 };
 
 type SettlePayload = {
@@ -509,6 +567,7 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
             tipHeight: 800_000,
         });
         stubAcceptAnyBroadcast(mock);
+        stubValidateBuyerInputs(mock);
         const origBroadcastTx = mock.broadcastTx.bind(mock);
         mock.broadcastTx = async (txHex: string, skipTokenChecks?: boolean) => {
             broadcastCalls += 1;
@@ -1136,5 +1195,118 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         assert.ok(audit.logs[0]!.serializedTxHexLength > 0);
         assert.ok(audit.logs[0]!.taker.startsWith('ecash:'));
         assert.ok(!('serializedTxHex' in audit.logs[0]!));
+    });
+
+    describe('taker input pre-check', () => {
+        /** Settle and assert nothing was signed into a broadcast. */
+        const expectRejectedBeforeSigning = async (
+            payload: SettlePayload,
+            status: number,
+        ) => {
+            broadcastCalls = 0;
+            const settle = await request(app)
+                .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+                .send(payload)
+                .expect(status);
+            assert.strictEqual(broadcastCalls, 0);
+            assert.strictEqual(audit.logs.length, 1);
+            assert.strictEqual(audit.logs[0]!.broadcasted, false);
+            return settle;
+        };
+
+        it('rejects a taker tx spending an outpoint Chronik does not know', async () => {
+            const payload = await buildBuyerSettlePayload(app);
+            const tx = Tx.deser(fromHex(payload.serializedTxHex));
+            tx.inputs[0]!.prevOut = {
+                txid: '22'.repeat(32),
+                outIdx: tx.inputs[0]!.prevOut.outIdx,
+            };
+            const settle = await expectRejectedBeforeSigning(
+                { ...payload, serializedTxHex: toHex(tx.ser()) },
+                400,
+            );
+            assert.match(
+                settle.body.error,
+                /Taker inputs failed Chronik validation: .*found neither/,
+            );
+            assert.strictEqual(audit.logs[0]!.outcome, 'invalid');
+        });
+
+        it('rejects taker inputs that carry no fromToken', async () => {
+            stubValidateBuyerInputs(mock, { token: undefined });
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 400);
+            assert.match(
+                settle.body.error,
+                /fromToken inputs \(0 atoms\) must equal fromToken outputs/,
+            );
+        });
+
+        it('rejects taker inputs carrying a token other than fromToken', async () => {
+            stubValidateBuyerInputs(mock, {
+                token: { tokenId: TOKEN_B, atoms: 10_000n, isMintBaton: false },
+            });
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 400);
+            assert.match(settle.body.error, /token other than fromToken/);
+        });
+
+        it('rejects taker inputs that spend an LP wallet UTXO', async () => {
+            stubValidateBuyerInputs(mock, {
+                outputScript: slush.script.toHex(),
+            });
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 400);
+            assert.match(settle.body.error, /spends an LP wallet UTXO/);
+        });
+
+        it('rejects prePostageInputSats that do not match the taker inputs', async () => {
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(
+                {
+                    ...payload,
+                    prePostageInputSats: (
+                        BigInt(payload.prePostageInputSats) + 1n
+                    ).toString(),
+                },
+                400,
+            );
+            assert.match(settle.body.error, /prePostageInputSats mismatch/);
+        });
+
+        it('returns 500 (not 400) when Chronik is unavailable', async () => {
+            (
+                mock as unknown as Pick<ChronikClient, 'validateRawTx'>
+            ).validateRawTx = async () => {
+                throw new Error(
+                    'Unable to decode error msg, chronik server is indexing or in error state',
+                );
+            };
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 500);
+            assert.strictEqual(
+                settle.body.error,
+                'Failed to complete swap transaction',
+            );
+            assert.strictEqual(audit.logs[0]!.outcome, 'failed');
+        });
+
+        it('returns 500 (not 400) when Chronik answers with a 5xx', async () => {
+            (
+                mock as unknown as Pick<ChronikClient, 'validateRawTx'>
+            ).validateRawTx = async () => {
+                throw new ChronikError(
+                    'Failed getting /validate-tx: 500: Unknown error, contact admins',
+                    500,
+                );
+            };
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 500);
+            assert.strictEqual(
+                settle.body.error,
+                'Failed to complete swap transaction',
+            );
+            assert.strictEqual(audit.logs[0]!.outcome, 'failed');
+        });
     });
 });

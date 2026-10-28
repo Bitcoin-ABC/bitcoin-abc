@@ -164,7 +164,10 @@ Flow:
 2. Taker builds an ALP send (EMPP), signs own inputs, `POST`s hex +
    `prePostageInputSats` + expected `tokenId` / `atoms`.
 3. Node parses EMPP/ALP, validates schema / fees / exact constant-product
-   output, serializes settle through a queue, selects N exact-size
+   output, resolves taker inputs via Chronik `validate-tx` (must exist,
+   not be LP wallet UTXOs, carry only `fromToken` atoms equal to the
+   `fromToken` outputs, and sum to `prePostageInputSats`), serializes
+   settle through a queue, selects N exact-size
    `toToken` seller UTXOs, adds postage fuel, signs, broadcasts.
 4. On success: stdout settle log + optional post-swap inventory pass.
 

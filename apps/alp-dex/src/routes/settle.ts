@@ -41,6 +41,7 @@ import {
     validatePartiallySignedTx,
     type ParsedPartiallySignedSwap,
 } from '../settle/parseSwap';
+import { assertTakerInputs, resolveTakerInputs } from '../settle/takerInputs';
 import type { TradedTokens } from '../tokens/tradedTokens';
 
 export type SendOpsFn = (message: string) => Promise<void>;
@@ -197,6 +198,11 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
     const localBook = localBookDep ?? new LocalBook();
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
     const slushScriptHex = slush.script.toHex();
+    const lpScriptHexes = new Set([
+        seller.script.toHex(),
+        slushScriptHex,
+        feeScriptHex,
+    ]);
     // Prefer the process-wide wallet queue so maintain cannot race settle.
     const settleQueue = deps.walletQueue ?? new AsyncQueue();
     const router = Router();
@@ -451,6 +457,18 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                 const parsedToTokenAtoms = swap.outputs
                     .filter(output => output.tokenId === swap.toTokenId)
                     .reduce((sum, output) => sum + output.atoms, 0n);
+
+                // Outside the queue: unfunded or fake taker txs must not
+                // hold the wallet queue, trigger a sync, or get signed.
+                const takerInputs = await resolveTakerInputs(
+                    seller.chronik,
+                    serializedTxHex,
+                );
+                assertTakerInputs(takerInputs, swap, {
+                    fromTokenId,
+                    prePostageInputSats: calculatedPrePostageInputSats,
+                    lpScriptHexes,
+                });
 
                 const settled = await settleQueue.enqueue(async () => {
                     // Drop jobs the taker has already timed out. Check
