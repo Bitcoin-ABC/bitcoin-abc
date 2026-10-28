@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .simple_config import SimpleConfig
 
 
-def format_satoshis_plain(x, decimal_point=8):
+def format_satoshis_plain(x, decimal_point=8) -> str:
     """Display a satoshi amount scaled.  Always uses a '.' as a decimal
     point and has no thousands separator"""
     if x is None:
@@ -30,14 +30,14 @@ _cached_dp = None
 LOCALE_HAS_THOUSANDS_SEPARATOR = None
 
 
-def clear_cached_dp():
+def clear_cached_dp() -> None:
     """This function allows to reset the cached locale decimal point.
     This is used for testing amount formatting with various locales."""
     global _cached_dp
     _cached_dp = None
 
 
-def set_locale_has_thousands_separator(flag: bool):
+def set_locale_has_thousands_separator(flag: bool) -> None:
     global LOCALE_HAS_THOUSANDS_SEPARATOR
     LOCALE_HAS_THOUSANDS_SEPARATOR = flag
 
@@ -133,14 +133,16 @@ def format_amount(x, config: SimpleConfig, is_diff=False, whitespaces=False) -> 
     )
 
 
-def base_unit(config: SimpleConfig):
+def base_unit(config: SimpleConfig) -> str:
     decimal_point = config.get_decimal_point()
     if decimal_point in BASE_UNITS_BY_DECIMALS:
         return BASE_UNITS_BY_DECIMALS[decimal_point]
     raise Exception("Unknown base unit")
 
 
-def format_amount_and_units(amount, config: SimpleConfig, fx: FxThread, is_diff=False):
+def format_amount_and_units(
+    amount, config: SimpleConfig, fx: FxThread, is_diff=False
+) -> str:
     text = format_amount(amount, config, is_diff=is_diff) + " " + base_unit(config)
     x = fx.format_amount_and_units(amount, is_diff=is_diff)
     if text and x:
@@ -148,10 +150,10 @@ def format_amount_and_units(amount, config: SimpleConfig, fx: FxThread, is_diff=
     return text
 
 
-def format_fee_satoshis(fee, num_zeros=0):
+def format_fee_satoshis(fee, num_zeros=0) -> str:
     return format_satoshis(fee, num_zeros, 0, precision=num_zeros)
 
 
-def format_fee_rate(fee_rate, config: SimpleConfig):
+def format_fee_rate(fee_rate, config: SimpleConfig) -> str:
     sats_per_byte = format_fee_satoshis(fee_rate / 1000, max(config.get_num_zeros(), 1))
     return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)
