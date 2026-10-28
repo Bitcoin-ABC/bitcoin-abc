@@ -37,7 +37,7 @@ interface RewardsClaimButtonProps {
     hours: string;
     minutes: string;
     seconds: string;
-    onClaimSuccess: () => void;
+    onClaimSuccess: (becomesEligible?: number) => void;
 }
 
 const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
@@ -111,7 +111,7 @@ const RewardsClaimButton: React.FC<RewardsClaimButtonProps> = ({
                 );
             }
             toast.success('Rewards claimed!');
-            onClaimSuccess();
+            onClaimSuccess(claimResponse.becomesEligible);
         } catch (err) {
             console.error(err);
             toast.error(`${err}`);
@@ -191,6 +191,20 @@ const Rewards = () => {
             console.error(errorMsg, err);
             return toast.error(errorMsg);
         }
+    };
+
+    const handleClaimSuccess = (becomesEligible?: number) => {
+        // The server returns when this address may claim again, so we can
+        // start the countdown without another (rate-limited) eligibility check
+        if (typeof becomesEligible === 'number') {
+            // Replace any expired timeRemainingMs in the same render, or
+            // getParsedTimeRemaining would immediately re-enable the button
+            setTimeRemainingMs(1000 * becomesEligible - new Date().getTime());
+            setIsEligible(false);
+            setEligibleAgainTimestamp(becomesEligible);
+            return;
+        }
+        getIsEligible(address);
     };
 
     const getParsedTimeRemaining = (timeRemainingMs: number) => {
@@ -288,7 +302,7 @@ const Rewards = () => {
                         hours={hours}
                         minutes={minutes}
                         seconds={seconds}
-                        onClaimSuccess={() => getIsEligible(address)}
+                        onClaimSuccess={handleClaimSuccess}
                     />
                 ) : (
                     <p>Token rewards are unavailable</p>

@@ -99,6 +99,9 @@ describe('<Rewards />', () => {
                         address,
                         msg: 'Success',
                         txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
+                        becomesEligible: Math.floor(
+                            (new Date().getTime() + 86400000) / 1000,
+                        ),
                     }),
             });
         render(<CashtabTestWrapper chronik={mockedChronik} route="/rewards" />);
@@ -126,6 +129,25 @@ describe('<Rewards />', () => {
 
         // We see a toast for the successful rewards claim
         expect(await screen.findByText('Rewards claimed!')).toBeInTheDocument();
+
+        // The countdown starts from the claim response
+        // It is populated by a 1s interval, so wait longer than the default
+        expect(
+            await screen.findByRole(
+                'button',
+                { name: /Come back in/ },
+                { timeout: 3000 },
+            ),
+        ).toBeDisabled();
+
+        // We do not check eligibility again after the claim
+        expect(
+            fetch.mock.calls.filter(
+                ([url]) =>
+                    url ===
+                    `${tokenConfig.rewardsServerBaseUrl}/is-eligible/${address}`,
+            ),
+        ).toHaveLength(1);
     });
     it('An ineligible cashtab wallet sees a countdown to eligibility', async () => {
         // localforage defaults
@@ -199,6 +221,84 @@ describe('<Rewards />', () => {
         // Ref https://testing-library.com/docs/using-fake-timers/
         jest.runOnlyPendingTimers();
         jest.useRealTimers();
+    });
+    it('A wallet whose countdown expired sees a new countdown after claiming', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokensActive,
+            localforage,
+        );
+        const address = walletWithXecAndTokensActive.address;
+
+        // Mock eligibility call as ineligible for a couple more seconds
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.rewardsServerBaseUrl}/is-eligible/${address}`,
+            )
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        address,
+                        isEligible: false,
+                        becomesEligible: Math.floor(
+                            (new Date().getTime() + 2000) / 1000,
+                        ),
+                    }),
+            });
+
+        // Mock successful claim rewards call
+        when(fetch)
+            .calledWith(
+                `${tokenConfig.rewardsServerBaseUrl}/claim/${address}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: MOCKED_RECAPTCHA_V3_TOKEN }),
+                },
+            )
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        address,
+                        msg: 'Success',
+                        txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
+                        becomesEligible: Math.floor(
+                            (new Date().getTime() + 86400000) / 1000,
+                        ),
+                    }),
+            });
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/rewards" />);
+
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // The countdown expires and the Claim button is enabled
+        const claimButton = await screen.findByRole(
+            'button',
+            { name: /Claim/ },
+            { timeout: 4000 },
+        );
+        await waitFor(() => expect(claimButton).toBeEnabled());
+
+        // Click button to claim token rewards
+        await userEvent.click(claimButton);
+
+        expect(await screen.findByText('Rewards claimed!')).toBeInTheDocument();
+
+        // The expired countdown does not re-enable the button
+        expect(
+            await screen.findByRole(
+                'button',
+                { name: /Come back in/ },
+                { timeout: 3000 },
+            ),
+        ).toBeDisabled();
     });
     it('We see expected error if token server is out of money', async () => {
         // localforage defaults
