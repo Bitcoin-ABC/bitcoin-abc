@@ -27,13 +27,13 @@ See https://github.com/satoshilabs/slips/blob/master/slip-0039.md.
 import hmac
 from collections import defaultdict
 from hashlib import pbkdf2_hmac
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Iterable
 
 from .i18n import _
 from .wordlist import Wordlist
 
-Indices = Tuple[int, ...]
-MnemonicGroups = Dict[int, Tuple[int, Set[Tuple[int, bytes]]]]
+Indices = tuple[int, ...]
+MnemonicGroups = dict[int, tuple[int, set[tuple[int, bytes]]]]
 
 
 # Simple helpers
@@ -196,7 +196,7 @@ class EncryptedSeed:
         return rr + ll
 
 
-def recover_ems(mnemonics: List[str]) -> EncryptedSeed:
+def recover_ems(mnemonics: list[str]) -> EncryptedSeed:
     """
     Combines mnemonic shares to obtain the encrypted master secret which was previously
     split using Shamir's secret sharing scheme.
@@ -311,7 +311,7 @@ def get_wordlist() -> Wordlist:
     return wordlist
 
 
-def process_mnemonics(mnemonics: List[str]) -> Tuple[Optional[EncryptedSeed], str]:
+def process_mnemonics(mnemonics: list[str]) -> tuple[EncryptedSeed | None, str]:
     # Collect valid shares.
     shares = []
     for i, mnemonic in enumerate(mnemonics):
@@ -326,7 +326,7 @@ def process_mnemonics(mnemonics: List[str]) -> Tuple[Optional[EncryptedSeed], st
         return None, _("No valid shares.")
 
     # Sort shares into groups.
-    groups: Dict[int, Set[Share]] = defaultdict(set)  # group idx : shares
+    groups: dict[int, set[Share]] = defaultdict(set)  # group idx : shares
     common_params = shares[0].common_parameters()
     for share in shares:
         if share.common_parameters() != common_params:
@@ -399,13 +399,13 @@ _ERROR_STYLE = (
 
 
 def _make_group_prefix(
-    identifier,
-    extendable_backup_flag,
-    iteration_exponent,
-    group_index,
-    group_threshold,
-    group_count,
-):
+    identifier: int,
+    extendable_backup_flag: bool,
+    iteration_exponent: int,
+    group_index: int,
+    group_threshold: int,
+    group_count: int,
+) -> str:
     wordlist = get_wordlist()
     val = identifier
     val <<= _EXTENDABLE_BACKUP_FLAG_LENGTH_BITS
@@ -426,7 +426,7 @@ def _make_group_prefix(
     return prefix
 
 
-def _group_status(group: Set[Share], group_prefix) -> str:
+def _group_status(group: set[Share], group_prefix: str) -> str:
     len(group)
     if not group:
         return (
@@ -464,7 +464,7 @@ def _int_to_indices(value: int, output_length: int, bits: int) -> Iterable[int]:
     return ((value >> (i * bits)) & mask for i in reversed(range(output_length)))
 
 
-def _mnemonic_to_indices(mnemonic: str) -> List[int]:
+def _mnemonic_to_indices(mnemonic: str) -> list[int]:
     wordlist = get_wordlist()
     indices = []
     for word in mnemonic.split():
@@ -522,7 +522,7 @@ def _rs1024_verify_checksum(data: Indices, extendable_backup_flag: bool) -> bool
 # Internal functions
 
 
-def _precompute_exp_log() -> Tuple[List[int], List[int]]:
+def _precompute_exp_log() -> tuple[list[int], list[int]]:
     exp = [0 for i in range(255)]
     log = [0 for i in range(256)]
 
@@ -544,7 +544,7 @@ def _precompute_exp_log() -> Tuple[List[int], List[int]]:
 _EXP_TABLE, _LOG_TABLE = _precompute_exp_log()
 
 
-def _interpolate(shares, x) -> bytes:
+def _interpolate(shares: list[tuple[int, bytes]], x: int) -> bytes:
     """
     Returns f(x) given the Shamir shares (x_1, f(x_1)), ... , (x_k, f(x_k)).
     :param shares: The Shamir shares.
@@ -622,7 +622,7 @@ def _create_digest(random_data: bytes, shared_secret: bytes) -> bytes:
     ]
 
 
-def _recover_secret(threshold: int, shares: List[Tuple[int, bytes]]) -> bytes:
+def _recover_secret(threshold: int, shares: list[tuple[int, bytes]]) -> bytes:
     # If the threshold is 1, then the digest of the shared secret is not used.
     if threshold == 1:
         return shares[0][1]
@@ -639,8 +639,8 @@ def _recover_secret(threshold: int, shares: List[Tuple[int, bytes]]) -> bytes:
 
 
 def _decode_mnemonics(
-    mnemonics: List[str],
-) -> Tuple[int, bool, int, int, int, MnemonicGroups]:
+    mnemonics: list[str],
+) -> tuple[int, bool, int, int, int, MnemonicGroups]:
     identifiers = set()
     extendable_backup_flags = set()
     iteration_exponents = set()
