@@ -35,7 +35,7 @@ language = gettext.translation("electron-cash", LOCALE_DIR, fallback=True)
 set_language_called = 0
 
 
-def _(x):
+def _(x) -> str:
     global language
     return language.gettext(x)
 
@@ -57,7 +57,7 @@ def pgettext(context: str, message: str) -> str:
     return message if "\x04" in translated else translated
 
 
-def set_language(x):
+def set_language(x: str) -> str | None:
     global language, set_language_called
 
     if not x:
