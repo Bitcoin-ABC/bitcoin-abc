@@ -27,6 +27,7 @@
 # SOFTWARE.
 import hashlib
 import math
+from collections.abc import Generator
 from enum import IntEnum, auto, unique
 from typing import List, Optional, Set, Tuple, Union
 
@@ -154,7 +155,7 @@ def is_seed(text: str) -> bool:
     return seed_type(text) is not None
 
 
-def bip39_mnemonic_to_seed(words: str, passphrase: str = ""):
+def bip39_mnemonic_to_seed(words: str, passphrase: str = "") -> bytes:
     language = mnemonic.Mnemonic.detect_language(words)
     return mnemonic.Mnemonic(language).to_seed(words, passphrase)
 
@@ -169,7 +170,7 @@ class MnemonicBase(PrintError):
     They both use the same word list, so the commonality between them is
     captured in this class."""
 
-    def __init__(self, lang=None):
+    def __init__(self, lang: str | None = None):
         if isinstance(lang, str):
             lang = lang[:2].lower()
         if lang not in filenames:
@@ -179,7 +180,7 @@ class MnemonicBase(PrintError):
         filename = filenames[lang]
         self.wordlist = Wordlist.from_file(filename)
 
-    def get_suggestions(self, prefix):
+    def get_suggestions(self, prefix: str) -> Generator[str]:
         for w in self.wordlist:
             if w.startswith(prefix):
                 yield w
@@ -271,7 +272,7 @@ class MnemonicElectrum(MnemonicBase):
     text data, instead of a wordlist-dependent checksum."""
 
     @classmethod
-    def mnemonic_to_seed(cls, mnemonic, passphrase):
+    def mnemonic_to_seed(cls, mnemonic, passphrase) -> bytes:
         """Electrum format"""
         PBKDF2_ROUNDS = 2048
         mnemonic = cls.normalize_text(mnemonic)
@@ -283,7 +284,7 @@ class MnemonicElectrum(MnemonicBase):
             iterations=PBKDF2_ROUNDS,
         )
 
-    def mnemonic_encode(self, i):
+    def mnemonic_encode(self, i) -> str:
         n = len(self.wordlist)
         words = []
         while i:
@@ -292,7 +293,7 @@ class MnemonicElectrum(MnemonicBase):
             words.append(self.wordlist[x])
         return " ".join(words)
 
-    def mnemonic_decode(self, seed):
+    def mnemonic_decode(self, seed) -> int:
         n = len(self.wordlist)
         i = 0
         for w in reversed(seed.split()):
@@ -300,7 +301,7 @@ class MnemonicElectrum(MnemonicBase):
             i = i * n + k
         return i
 
-    def make_seed(self, seed_type=None, num_bits=132, custom_entropy=1):
+    def make_seed(self, seed_type=None, num_bits=132, custom_entropy=1) -> str:
         """Electrum format"""
         if self.lang not in ("en", "es", "pt"):
             raise NotImplementedError(
