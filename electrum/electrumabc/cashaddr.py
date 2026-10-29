@@ -19,10 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import Literal
+
 _CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 
-def _polymod(values):
+def _polymod(values) -> int:
     """Internal function that computes the cashaddr checksum."""
     c = 1
     for d in values:
@@ -42,7 +44,7 @@ def _polymod(values):
     return retval
 
 
-def _prefix_expand(prefix):
+def _prefix_expand(prefix) -> bytearray:
     """Expand the prefix into values for checksum computation."""
     retval = bytearray(ord(x) & 0x1F for x in prefix)
     # Append null separator
@@ -50,7 +52,7 @@ def _prefix_expand(prefix):
     return retval
 
 
-def _create_checksum(prefix, data):
+def _create_checksum(prefix, data) -> bytes:
     """Compute the checksum values given prefix and data."""
     values = _prefix_expand(prefix) + data + bytes(8)
     polymod = _polymod(values)
@@ -58,7 +60,7 @@ def _create_checksum(prefix, data):
     return bytes((polymod >> 5 * (7 - i)) & 31 for i in range(8))
 
 
-def _convertbits(data, frombits, tobits, pad=True):
+def _convertbits(data, frombits, tobits, pad=True) -> bytearray:
     """General power-of-2 base conversion."""
     acc = 0
     bits = 0
@@ -78,7 +80,7 @@ def _convertbits(data, frombits, tobits, pad=True):
     return ret
 
 
-def _pack_addr_data(kind, addr_hash):
+def _pack_addr_data(kind, addr_hash) -> bytearray:
     """Pack addr data with version byte"""
     version_byte = kind << 3
 
@@ -99,7 +101,7 @@ def _pack_addr_data(kind, addr_hash):
     return _convertbits(data, 8, 5, True)
 
 
-def _decode_payload(addr):
+def _decode_payload(addr) -> tuple[str, bytes]:
     """Validate a cashaddr string.
 
     Throws CashAddr.Error if it is invalid, otherwise returns the
@@ -146,8 +148,10 @@ def _decode_payload(addr):
 PUBKEY_TYPE = 0
 SCRIPT_TYPE = 1
 
+AddresKindT = Literal[PUBKEY_TYPE, SCRIPT_TYPE]
 
-def decode(address):
+
+def decode(address) -> tuple[str, AddresKindT, bytes]:
     """Given a cashaddr address, return a triple
 
     (prefix, kind, hash)
@@ -185,7 +189,7 @@ def decode(address):
     return prefix, kind, addr_hash
 
 
-def encode(prefix, kind, addr_hash):
+def encode(prefix, kind, addr_hash) -> str:
     """Encode a cashaddr address without prefix and separator."""
     if not isinstance(prefix, str):
         raise TypeError("prefix must be a string")
@@ -201,6 +205,6 @@ def encode(prefix, kind, addr_hash):
     return "".join([_CHARSET[d] for d in (payload + checksum)])
 
 
-def encode_full(prefix, kind, addr_hash):
+def encode_full(prefix, kind, addr_hash) -> str:
     """Encode a full cashaddr address, with prefix and separator."""
     return ":".join([prefix, encode(prefix, kind, addr_hash)])
