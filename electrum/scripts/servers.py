@@ -3,7 +3,6 @@
 import json
 
 import util
-
 from electrumabc.network import filter_version
 from electrumabc.printerror import set_verbosity
 

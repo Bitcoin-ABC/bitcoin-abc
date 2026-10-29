@@ -48,7 +48,7 @@ class WrongDelegatorKeyError(Exception):
 
 class DelegationId(UInt256):
     @classmethod
-    def from_proof_id(cls, proof_id: ProofId) -> "DelegationId":
+    def from_proof_id(cls, proof_id: ProofId) -> DelegationId:
         return cls(proof_id.data)
 
 

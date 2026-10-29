@@ -1043,7 +1043,7 @@ class DeviceMgr(ThreadJob):
         xpub,
         handler: HardwareHandlerBase,
         devices: Iterable[Device],
-    ) -> Optional["HardwareClientBase"]:
+    ) -> Optional[HardwareClientBase]:
         _id = self.xpub_id(xpub)
         client = self._client_by_id(_id)
         if client:

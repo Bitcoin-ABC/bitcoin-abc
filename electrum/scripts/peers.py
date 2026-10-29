@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import util
-
 from electrumabc.blockchain import hash_header
 from electrumabc.network import filter_protocol
 

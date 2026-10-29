@@ -417,7 +417,7 @@ POINT_AT_INFINITY = ECPubkey(None)
 
 
 def verify_message_with_address(
-    address: Union[str, "Address"],
+    address: Union[str, Address],
     sig65: bytes,
     message: bytes,
     *,

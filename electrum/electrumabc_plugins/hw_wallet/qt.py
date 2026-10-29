@@ -337,7 +337,7 @@ class QtPluginBase(object):
             keystore.thread.add(partial(self.get_client, keystore))
 
     def choose_device(
-        self: Union["QtPluginBase", HWPluginBase],
+        self: Union[QtPluginBase, HWPluginBase],
         window: ElectrumWindow,
         keystore: HardwareKeyStore,
     ) -> Optional[str]:

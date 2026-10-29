@@ -31,9 +31,8 @@ import json
 import sys
 import time
 
-from util import get_interfaces
-
 from electrumabc.printerror import set_verbosity
+from util import get_interfaces
 
 MAX_MESSAGE_BYTES = 1024 * 1024 * 32
 
