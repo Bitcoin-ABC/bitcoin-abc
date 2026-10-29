@@ -35,28 +35,28 @@ from . import util
 
 
 class RPCAuthCredentialsInvalid(Exception):
-    def __str__(self):
+    def __str__(self) -> str:
         return "Authentication failed (bad credentials)"
 
 
 class RPCAuthCredentialsMissing(Exception):
-    def __str__(self):
+    def __str__(self) -> str:
         return "Authentication failed (missing credentials)"
 
 
 class RPCAuthUnsupportedType(Exception):
-    def __str__(self):
+    def __str__(self) -> str:
         return "Authentication failed (only basic auth is supported)"
 
 
 # based on http://acooke.org/cute/BasicHTTPA0.html by andrew cooke
 class VerifyingJSONRPCServer(SimpleJSONRPCServer):
-    def __init__(self, *args, rpc_user, rpc_password, **kargs):
+    def __init__(self, *args, rpc_user: str, rpc_password: str, **kwargs):
         self.rpc_user = rpc_user
         self.rpc_password = rpc_password
 
         class VerifyingRequestHandler(SimpleJSONRPCRequestHandler):
-            def parse_request(myself):
+            def parse_request(myself) -> bool:
                 # first, call the original implementation which returns
                 # True if all OK so far
                 if SimpleJSONRPCRequestHandler.parse_request(myself):
@@ -78,10 +78,10 @@ class VerifyingJSONRPCServer(SimpleJSONRPCServer):
                 return False
 
         SimpleJSONRPCServer.__init__(
-            self, requestHandler=VerifyingRequestHandler, *args, **kargs
+            self, requestHandler=VerifyingRequestHandler, *args, **kwargs
         )
 
-    def authenticate(self, headers):
+    def authenticate(self, headers) -> None:
         if self.rpc_password == "":
             # RPC authentication is disabled
             return
