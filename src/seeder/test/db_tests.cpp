@@ -10,10 +10,11 @@ static CNetAddr ResolveIP(const std::string &ip) {
     return LookupHost(ip, false).value_or(CNetAddr{});
 }
 
-static SeederAddrInfo BuildSeederAddrInfo(const CService &ip, bool good,
-                                          uint64_t services = NODE_NETWORK,
-                                          int clientVersion = REQUIRE_VERSION,
-                                          bool checkpointVerified = true) {
+static SeederAddrInfo
+BuildSeederAddrInfo(const CService &ip, bool good,
+                    uint64_t services = NODE_NETWORK,
+                    int clientVersion = MIN_PEER_PROTO_VERSION,
+                    bool checkpointVerified = true) {
     SeederAddrInfo info{};
     DataStream info_stream{};
 
@@ -80,16 +81,17 @@ BOOST_AUTO_TEST_CASE(seederaddrinfo_test) {
     BOOST_CHECK(info.GetReliabilityStatus() ==
                 ReliabilityStatus::NOT_NODE_NETWORK);
 
-    // A node with clientVersion < REQUIRE_VERSION is considered unreliable
+    // A node with clientVersion < MIN_PEER_PROTO_VERSION is considered
+    // unreliable
     info = BuildSeederAddrInfo(ip, /*good=*/true, /*services=*/NODE_NETWORK,
-                               /*clientVersion=*/REQUIRE_VERSION - 1);
+                               /*clientVersion=*/MIN_PEER_PROTO_VERSION - 1);
     BOOST_CHECK(!info.IsReliable());
     BOOST_CHECK(info.GetReliabilityStatus() ==
                 ReliabilityStatus::NOT_REQUIRED_VERSION);
 
     // The checkpoint must be verified
     info = BuildSeederAddrInfo(ip, /*good=*/true, /*services=*/NODE_NETWORK,
-                               /*clientVersion=*/REQUIRE_VERSION,
+                               /*clientVersion=*/MIN_PEER_PROTO_VERSION,
                                /*checkpointVerified=*/false);
     BOOST_CHECK(!info.IsReliable());
     BOOST_CHECK(info.GetReliabilityStatus() ==

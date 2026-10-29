@@ -83,7 +83,7 @@ from test_framework.util import (
 logger = logging.getLogger("TestFramework.p2p")
 
 # The minimum P2P version that this test framework supports
-MIN_P2P_VERSION_SUPPORTED = 60001
+MIN_P2P_VERSION_SUPPORTED = 70016
 # The P2P version that this test framework implements and sends in its `version`
 # message. Past avalanche poll size bump
 P2P_VERSION = 70017

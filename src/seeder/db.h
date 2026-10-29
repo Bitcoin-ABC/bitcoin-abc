@@ -7,6 +7,7 @@
 
 #include <chainparams.h>
 #include <netbase.h>
+#include <node/protocol_version.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
 #include <seeder/util.h>
@@ -21,8 +22,6 @@
 #include <vector>
 
 #define MIN_RETRY 1000
-
-#define REQUIRE_VERSION 70001
 
 static inline int GetRequireHeight() {
     return Params().Checkpoints().mapCheckpoints.rbegin()->first;
@@ -141,7 +140,7 @@ public:
         if (!ip.IsRoutable()) {
             return ReliabilityStatus::NOT_ROUTABLE;
         }
-        if (clientVersion && clientVersion < REQUIRE_VERSION) {
+        if (clientVersion && clientVersion < MIN_PEER_PROTO_VERSION) {
             return ReliabilityStatus::NOT_REQUIRED_VERSION;
         }
         if (blocks && blocks < GetRequireHeight()) {

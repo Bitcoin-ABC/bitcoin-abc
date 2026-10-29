@@ -347,8 +347,7 @@ enum ServiceFlags : uint64_t {
     NODE_GETUTXO = (1 << 1),
     // NODE_BLOOM means the node is capable and willing to handle bloom-filtered
     // connections. Bitcoin ABC nodes used to support this by default, without
-    // advertising this bit, but no longer do as of protocol version 70011 (=
-    // NO_BLOOM_VERSION)
+    // advertising this bit, but no longer do as of protocol version 70011
     NODE_BLOOM = (1 << 2),
     // Bit 4 was NODE_XTHIN, removed in v0.22.12
 

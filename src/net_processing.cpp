@@ -3063,8 +3063,7 @@ void PeerManagerImpl::NewPoWValidBlock(
             EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
                 AssertLockHeld(::cs_main);
 
-                if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
-                    pnode->fDisconnect) {
+                if (pnode->fDisconnect) {
                     return;
                 }
                 ProcessBlockAvailability(pnode->GetId());
@@ -5316,15 +5315,13 @@ void PeerManagerImpl::ProcessMessage(
                       pfrom.ConnectionTypeAsString());
         }
 
-        if (pfrom.GetCommonVersion() >= SHORT_IDS_BLOCKS_VERSION) {
-            // Tell our peer we are willing to provide version 1
-            // cmpctblocks. However, we do not request new block announcements
-            // using cmpctblock messages. We send this to non-NODE NETWORK peers
-            // as well, because they may wish to request compact blocks from us.
-            MakeAndPushMessage(pfrom, NetMsgType::SENDCMPCT,
-                               /*high_bandwidth=*/false,
-                               /*version=*/CMPCTBLOCKS_VERSION);
-        }
+        // Tell our peer we are willing to provide version 1
+        // cmpctblocks. However, we do not request new block announcements
+        // using cmpctblock messages. We send this to non-NODE NETWORK peers
+        // as well, because they may wish to request compact blocks from us.
+        MakeAndPushMessage(pfrom, NetMsgType::SENDCMPCT,
+                           /*high_bandwidth=*/false,
+                           /*version=*/CMPCTBLOCKS_VERSION);
 
         if (m_avalanche) {
             if (m_avalanche->sendHello(&pfrom)) {
@@ -7844,25 +7841,22 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::PING) {
-        if (pfrom.GetCommonVersion() > BIP0031_VERSION) {
-            uint64_t nonce = 0;
-            vRecv >> nonce;
-            // Echo the message back with the nonce. This allows for two useful
-            // features:
-            //
-            // 1) A remote node can quickly check if the connection is
-            // operational.
-            // 2) Remote nodes can measure the latency of the network thread. If
-            // this node is overloaded it won't respond to pings quickly and the
-            // remote node can avoid sending us more work, like chain download
-            // requests.
-            //
-            // The nonce stops the remote getting confused between different
-            // pings: without it, if the remote node sends a ping once per
-            // second and this node takes 5 seconds to respond to each, the 5th
-            // ping the remote sends would appear to return very quickly.
-            MakeAndPushMessage(pfrom, NetMsgType::PONG, nonce);
-        }
+        uint64_t nonce = 0;
+        vRecv >> nonce;
+        // Echo the message back with the nonce. This allows for two useful
+        // features:
+        //
+        // 1) A remote node can quickly check if the connection is operational.
+        // 2) Remote nodes can measure the latency of the network thread. If
+        // this node is overloaded it won't respond to pings quickly and the
+        // remote node can avoid sending us more work, like chain download
+        // requests.
+        //
+        // The nonce stops the remote getting confused between different pings:
+        // without it, if the remote node sends a ping once per second and this
+        // node takes 5 seconds to respond to each, the 5th ping the remote
+        // sends would appear to return very quickly.
+        MakeAndPushMessage(pfrom, NetMsgType::PONG, nonce);
         return;
     }
 
@@ -8498,15 +8492,8 @@ void PeerManagerImpl::MaybeSendPing(CNode &node_to, Peer &peer,
         } while (nonce == 0);
         peer.m_ping_queued = false;
         peer.m_ping_start = now;
-        if (node_to.GetCommonVersion() > BIP0031_VERSION) {
-            peer.m_ping_nonce_sent = nonce;
-            MakeAndPushMessage(node_to, NetMsgType::PING, nonce);
-        } else {
-            // Peer is too old to support ping command with nonce, pong will
-            // never arrive.
-            peer.m_ping_nonce_sent = 0;
-            MakeAndPushMessage(node_to, NetMsgType::PING);
-        }
+        peer.m_ping_nonce_sent = nonce;
+        MakeAndPushMessage(node_to, NetMsgType::PING, nonce);
     }
 }
 
@@ -8601,8 +8588,7 @@ void PeerManagerImpl::MaybeSendSendHeaders(CNode &node, Peer &peer) {
     // initial-headers-sync with this peer. Receiving headers announcements for
     // new blocks while trying to sync their headers chain is problematic,
     // because of the state tracking done.
-    if (!peer.m_sent_sendheaders &&
-        node.GetCommonVersion() >= SENDHEADERS_VERSION) {
+    if (!peer.m_sent_sendheaders) {
         LOCK(cs_main);
         CNodeState &state = *State(node.GetId());
         if (state.pindexBestKnownBlock != nullptr &&
@@ -8621,9 +8607,6 @@ void PeerManagerImpl::MaybeSendSendHeaders(CNode &node, Peer &peer) {
 void PeerManagerImpl::MaybeSendFeefilter(
     CNode &pto, Peer &peer, std::chrono::microseconds current_time) {
     if (m_opts.ignore_incoming_txs) {
-        return;
-    }
-    if (pto.GetCommonVersion() < FEEFILTER_VERSION) {
         return;
     }
     // peers with the forcerelay permission should not filter txs to us
