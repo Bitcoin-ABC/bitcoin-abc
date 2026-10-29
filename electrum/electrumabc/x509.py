@@ -24,6 +24,7 @@
 # SOFTWARE.
 import hashlib
 import time
+from typing import Literal, NamedTuple
 
 from .printerror import print_error, set_verbosity
 from .util import profiler
@@ -106,8 +107,24 @@ PREFIX_RSA_SHA512 = bytearray(
     ]
 )
 
+ASN1TypesT = Literal[
+    "BOOLEAN",
+    "INTEGER",
+    "BIT STRING",
+    "OCTET STRING",
+    "NULL",
+    "OBJECT IDENTIFIER",
+    "SEQUENCE",
+    "SET",
+    "PrintableString",
+    "IA5String",
+    "UTCTime",
+    "GeneralizedTime",
+    "ENUMERATED",
+    "UTF8String",
+]
 # types used in ASN1 structured data
-ASN1_TYPES = {
+ASN1_TYPES: dict[ASN1TypesT, int] = {
     "BOOLEAN": 0x01,
     "INTEGER": 0x02,
     "BIT STRING": 0x03,
@@ -130,13 +147,13 @@ class CertificateError(Exception):
 
 
 # helper functions
-def bitstr_to_bytestr(s):
+def bitstr_to_bytestr(s: bytes) -> bytes:
     if s[0] != 0x00:
         raise TypeError("no padding")
     return s[1:]
 
 
-def bytestr_to_int(s):
+def bytestr_to_int(s: bytes) -> int:
     i = 0
     for char in s:
         i <<= 8
@@ -144,7 +161,7 @@ def bytestr_to_int(s):
     return i
 
 
-def decode_OID(s):
+def decode_OID(s: bytes) -> str:
     r = []
     r.append(s[0] // 40)
     r.append(s[0] % 40)
@@ -158,8 +175,11 @@ def decode_OID(s):
     return ".".join(map(str, r))
 
 
+NodeT = tuple[int, int, int]
+
+
 class ASN1Node(bytes):
-    def get_node(self, ix):
+    def get_node(self, ix: int) -> NodeT:
         # return index of first byte, first content byte and last byte.
         first = self[ix + 1]
         if (first & 0x80) == 0:
@@ -173,36 +193,36 @@ class ASN1Node(bytes):
             ixl = ixf + length - 1
         return ix, ixf, ixl
 
-    def root(self):
+    def root(self) -> NodeT:
         return self.get_node(0)
 
-    def next_node(self, node):
+    def next_node(self, node: NodeT) -> NodeT:
         ixs, ixf, ixl = node
         return self.get_node(ixl + 1)
 
-    def first_child(self, node):
+    def first_child(self, node: NodeT) -> NodeT:
         ixs, ixf, ixl = node
         if self[ixs] & 0x20 != 0x20:
             raise TypeError("Can only open constructed types.", hex(self[ixs]))
         return self.get_node(ixf)
 
-    def get_all(self, node):
+    def get_all(self, node: NodeT) -> bytes:
         # return type + length + value
         ixs, ixf, ixl = node
         return self[ixs : ixl + 1]
 
-    def get_value_of_type(self, node, asn1_type):
+    def get_value_of_type(self, node: NodeT, asn1_type: ASN1TypesT) -> bytes:
         # verify type byte and return content
         ixs, ixf, ixl = node
         if ASN1_TYPES[asn1_type] != self[ixs]:
             raise TypeError("Wrong type:", hex(self[ixs]), hex(ASN1_TYPES[asn1_type]))
         return self[ixf : ixl + 1]
 
-    def get_value(self, node):
+    def get_value(self, node: NodeT) -> bytes:
         ixs, ixf, ixl = node
         return self[ixf : ixl + 1]
 
-    def get_children(self, node):
+    def get_children(self, node: NodeT) -> list[NodeT]:
         nodes = []
         ii = self.first_child(node)
         nodes.append(ii)
@@ -211,10 +231,10 @@ class ASN1Node(bytes):
             nodes.append(ii)
         return nodes
 
-    def get_sequence(self):
+    def get_sequence(self) -> list[bytes]:
         return [self.get_value(j) for j in self.get_children(self.root())]
 
-    def get_dict(self, node):
+    def get_dict(self, node: NodeT) -> dict[str, bytes]:
         p = {}
         for ii in self.get_children(node):
             for iii in self.get_children(ii):
@@ -228,7 +248,7 @@ class ASN1Node(bytes):
                 p[oid] = value
         return p
 
-    def decode_time(self, ii):
+    def decode_time(self, ii: NodeT) -> time.struct_time:
         GENERALIZED_TIMESTAMP_FMT = "%Y%m%d%H%M%SZ"
         UTCTIME_TIMESTAMP_FMT = "%y%m%d%H%M%SZ"
 
@@ -269,7 +289,7 @@ class ASN1Node(bytes):
 
 
 class X509(object):
-    def __init__(self, b):
+    def __init__(self, b: bytes | bytearray):
         self.bytes = bytearray(b)
 
         der = ASN1Node(b)
@@ -370,23 +390,23 @@ class X509(object):
         cert_sig = der.next_node(cert_sig_algo)
         self.signature = der.get_value(cert_sig)[1:]
 
-    def get_keyID(self):
+    def get_keyID(self) -> str:
         # http://security.stackexchange.com/questions/72077/validating-an-ssl-certificate-chain-according-to-rfc-5280-am-i-understanding-th
-        return self.SKI if self.SKI else repr(self.subject)
+        return self.SKI or repr(self.subject)
 
-    def get_issuer_keyID(self):
-        return self.AKI if self.AKI else repr(self.issuer)
+    def get_issuer_keyID(self) -> str:
+        return self.AKI or repr(self.issuer)
 
-    def get_common_name(self):
+    def get_common_name(self) -> str:
         return self.subject.get("2.5.4.3", b"unknown").decode()
 
-    def get_signature(self):
+    def get_signature(self) -> tuple[str, bytes, bytes]:
         return self.cert_sig_algo, self.signature, self.data
 
-    def check_ca(self):
+    def check_ca(self) -> bool:
         return self.CA
 
-    def check_date(self):
+    def check_date(self) -> None:
         now = time.gmtime()
         if self.notBefore > now:
             raise CertificateError(
@@ -403,12 +423,17 @@ class X509(object):
                 )
             )
 
-    def getFingerprint(self):
+    def getFingerprint(self) -> bytes:
         return hashlib.sha1(self.bytes).digest()
 
 
+class LoadedCertificatesT(NamedTuple):
+    ca_list: dict[bytes, X509]
+    ca_keyID: dict[str, bytes]
+
+
 @profiler
-def load_certificates(ca_path):
+def load_certificates(ca_path: str) -> LoadedCertificatesT:
     from . import pem
 
     ca_list = {}
@@ -429,7 +454,7 @@ def load_certificates(ca_path):
         ca_list[fp] = x
         ca_keyID[x.get_keyID()] = fp
 
-    return ca_list, ca_keyID
+    return LoadedCertificatesT(ca_list, ca_keyID)
 
 
 if __name__ == "__main__":
