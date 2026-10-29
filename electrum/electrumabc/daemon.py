@@ -29,7 +29,7 @@ import os
 import sys
 import time
 from base64 import b64encode
-from typing import TYPE_CHECKING, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 import jsonrpclib
 
@@ -50,11 +50,11 @@ if TYPE_CHECKING:
     from .wallet import AbstractWallet
 
 
-def get_lockfile(config):
+def get_lockfile(config) -> str:
     return os.path.join(config.path, "daemon")
 
 
-def remove_lockfile(lockfile):
+def remove_lockfile(lockfile) -> None:
     try:
         os.unlink(lockfile)
         print_error("Removed lockfile:", lockfile)
@@ -142,7 +142,7 @@ def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]
         time.sleep(1.0)
 
 
-def get_rpc_credentials(config):
+def get_rpc_credentials(config) -> tuple[Any, Any]:
     rpc_user = config.get(ConfigKeys.RPCUSER)
     rpc_password = config.get(ConfigKeys.RPCPASSWORD)
     if rpc_user is None or rpc_password is None:
@@ -186,7 +186,7 @@ class Daemon(DaemonThread):
             # Setup JSONRPC server
             self.init_server(config, fd)
 
-    def init_server(self, config: SimpleConfig, fd: int):
+    def init_server(self, config: SimpleConfig, fd: int) -> None:
         host = config.get(ConfigKeys.RPCHOST)
         port = config.get(ConfigKeys.RPCPORT)
 
@@ -214,10 +214,10 @@ class Daemon(DaemonThread):
             server.register_function(getattr(self.cmd_runner, cmdname), cmdname)
         server.register_function(self.run_cmdline, "run_cmdline")
 
-    def ping(self):
+    def ping(self) -> bool:
         return True
 
-    def run_daemon(self, config_options):
+    def run_daemon(self, config_options) -> str:
         config = SimpleConfig(config_options)
         sub = config.get("subcommand")
         subargs = config.get(ConfigKeys.SUBARGS)
@@ -238,7 +238,7 @@ class Daemon(DaemonThread):
             return "Unrecognized subcommand {!r}".format(sub)
         return response
 
-    def run_gui(self, config_options):
+    def run_gui(self, config_options) -> str:
         config = SimpleConfig(config_options)
         if self.gui:
             if hasattr(self.gui, "new_window"):
@@ -255,7 +255,7 @@ class Daemon(DaemonThread):
             )
         return response
 
-    def load_wallet(self, path, password: str):
+    def load_wallet(self, path, password: str) -> AbstractWallet:
         path = standardize_path(path)
         # wizard will be launched if we return
         if path in self.wallets:
@@ -279,27 +279,27 @@ class Daemon(DaemonThread):
         self.wallets[path] = wallet
         return wallet
 
-    def add_wallet(self, wallet):
+    def add_wallet(self, wallet) -> None:
         path = wallet.storage.path
         self.wallets[path] = wallet
 
-    def get_wallet(self, path):
+    def get_wallet(self, path) -> AbstractWallet | None:
         return self.wallets.get(path)
 
-    def delete_wallet(self, path):
+    def delete_wallet(self, path) -> bool:
         self.stop_wallet(path)
         if os.path.exists(path):
             os.unlink(path)
             return True
         return False
 
-    def stop_wallet(self, path):
+    def stop_wallet(self, path) -> None:
         # Issue #659 wallet may already be stopped.
         if path in self.wallets:
             wallet = self.wallets.pop(path)
             wallet.stop_threads()
 
-    def run_cmdline(self, config_options):
+    def run_cmdline(self, config_options) -> dict[str, str] | str:
         config = SimpleConfig(config_options)
         cmdname = config.get("cmd")
         cmd = known_commands[cmdname]
@@ -336,7 +336,7 @@ class Daemon(DaemonThread):
             ) from e
         return result
 
-    def run(self):
+    def run(self) -> None:
         while self.is_running():
             self.server.handle_request() if self.server else time.sleep(0.1)
         for k, wallet in self.wallets.items():
@@ -347,13 +347,13 @@ class Daemon(DaemonThread):
             self.network.join()
         self.on_stop()
 
-    def stop(self):
+    def stop(self) -> None:
         if self.listen_jsonrpc:
             self.print_error("stopping, removing lockfile")
             remove_lockfile(get_lockfile(self.config))
         super().stop()
 
-    def init_gui(self):
+    def init_gui(self) -> None:
         config = self.config
         plugins = self.plugins
         gui_name = config.get(ConfigKeys.GUI)
