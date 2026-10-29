@@ -7,19 +7,21 @@ import pkgutil
 import sys
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime
 
 # Qt 5.12 also exports Decimal
 from decimal import Decimal as PyDecimal
 from threading import Thread
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypeVar
 
 import requests
 
 from .constants import BASE_UNITS_BY_DECIMALS, PROJECT_NAME
 from .i18n import _
+from .network import Network
 from .printerror import PrintError, print_error
-from .simple_config import ConfigKeys
+from .simple_config import ConfigKeys, SimpleConfig
 from .util import ThreadJob
 
 # See https://en.wikipedia.org/wiki/ISO_4217
@@ -61,15 +63,15 @@ class ExchangeBase(PrintError):
     satoshis_per_unit: int = 100
     """Number of satoshis per unit for the exchange's base unit."""
 
-    def __init__(self, on_quotes, on_history):
-        self.history = {}
+    def __init__(self, on_quotes: Callable[[], None], on_history: Callable[[], None]):
+        self.history: dict[str, dict[str, float]] = {}
         self.history_timestamps = defaultdict(float)
         self.quotes = {}
         self.on_quotes = on_quotes
         self.on_history = on_history
 
     @staticmethod
-    def get_json(site, get_string):
+    def get_json(site, get_string) -> Any:
         # APIs must have https
         url = f"https://{site}{get_string}"
         response = requests.request(
@@ -90,10 +92,10 @@ class ExchangeBase(PrintError):
         reader = csv.DictReader(response.content.decode().split("\n"))
         return list(reader)
 
-    def name(self):
+    def name(self) -> str:
         return self.__class__.__name__
 
-    def update_safe(self, ccy):
+    def update_safe(self, ccy) -> None:
         try:
             self.print_error("getting fx quotes for", ccy)
             self.quotes = self.get_rates(ccy)
@@ -102,7 +104,7 @@ class ExchangeBase(PrintError):
             self.print_error("failed fx quotes:", e)
         self.on_quotes()
 
-    def update(self, ccy):
+    def update(self, ccy) -> None:
         t = Thread(target=self.update_safe, args=(ccy,), daemon=True)
         t.start()
 
@@ -122,20 +124,20 @@ class ExchangeBase(PrintError):
                 self.print_error("read_historical_rates: error", repr(e))
         return h, timestamp
 
-    def _get_cache_filename(self, ccy, cache_dir):
+    def _get_cache_filename(self, ccy, cache_dir) -> str:
         return os.path.join(cache_dir, self.name() + "_" + ccy)
 
     @staticmethod
-    def _is_timestamp_old(timestamp):
+    def _is_timestamp_old(timestamp) -> bool:
         HOUR = 60.0 * 60.0  # number of seconds in an hour
         # check history rates every 24 hours, as the granularity is per-day
         # anyway
         return time.time() - timestamp >= 24.0 * HOUR
 
-    def is_historical_rate_old(self, ccy):
+    def is_historical_rate_old(self, ccy) -> bool:
         return self._is_timestamp_old(self.history_timestamps.get(ccy, 0.0))
 
-    def _cache_historical_rates(self, h, ccy, cache_dir):
+    def _cache_historical_rates(self, h, ccy, cache_dir) -> bool:
         """Writes the history, h, to the cache file. Catches its own exceptions
         and always returns successfully, even if the write process failed.
         """
@@ -153,7 +155,7 @@ class ExchangeBase(PrintError):
         )
         return True
 
-    def get_historical_rates_safe(self, ccy, cache_dir):
+    def get_historical_rates_safe(self, ccy, cache_dir) -> None:
         cached_history, timestamp = self.read_historical_rates(ccy, cache_dir)
         if not cached_history or self._is_timestamp_old(timestamp):
             try:
@@ -174,7 +176,7 @@ class ExchangeBase(PrintError):
         self.history_timestamps[ccy] = timestamp
         self.on_history()
 
-    def get_historical_rates(self, ccy, cache_dir):
+    def get_historical_rates(self, ccy, cache_dir) -> dict[str, float] | None:
         result, timestamp = self.history.get(ccy), self.history_timestamps.get(ccy, 0.0)
 
         if (
@@ -193,10 +195,10 @@ class ExchangeBase(PrintError):
         has an API to query the historical prices."""
         return []
 
-    def historical_rate(self, ccy: str, d_t: datetime):
+    def historical_rate(self, ccy: str, d_t: datetime) -> float | None:
         return self.history.get(ccy, {}).get(d_t.strftime("%Y-%m-%d"))
 
-    def get_rates(self, ccy: str) -> Dict[str, decimal.Decimal]:
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
         """Return a dictionary of exchange rates.
         The keys are currencies codes, and the values are decimal.Decimal
         objects.
@@ -211,7 +213,7 @@ class ExchangeBase(PrintError):
             [str(a) for (a, b) in rates.items() if b is not None and len(a) == 3]
         )
 
-    def request_history(self, ccy: str) -> Dict[str, float]:
+    def request_history(self, ccy: str) -> dict[str, float]:
         """Return a dict of historical rates for a given currency.
         The dict key is a '%Y-%m-%d' date string, the value are
         floating point numbers.
@@ -223,7 +225,7 @@ class ExchangeBase(PrintError):
 
 
 class CoinGecko(ExchangeBase):
-    def get_rates(self, ccy):
+    def get_rates(self, ccy) -> dict[str, PyDecimal]:
         json_data = self.get_json(
             "api.coingecko.com",
             "/api/v3/coins/ecash?localization=False&sparkline=false",
@@ -231,7 +233,7 @@ class CoinGecko(ExchangeBase):
         prices = json_data["market_data"]["current_price"]
         return {a[0].upper(): PyDecimal(a[1]) for a in prices.items()}
 
-    def history_ccys(self):
+    def history_ccys(self) -> list[str]:
         return [
             "AED",
             "ARS",
@@ -284,7 +286,7 @@ class CoinGecko(ExchangeBase):
             "ZAR",
         ]
 
-    def request_history(self, ccy):
+    def request_history(self, ccy) -> dict[str, float]:
         history = self.get_json(
             "api.coingecko.com",
             f"/api/v3/coins/ecash/market_chart?vs_currency={ccy}&days=365",
@@ -297,14 +299,14 @@ class CoinGecko(ExchangeBase):
 
 
 class CryptoCompare(ExchangeBase):
-    def get_rates(self, ccy):
+    def get_rates(self, ccy) -> dict[str, PyDecimal]:
         price = self.get_json(
             "min-api.cryptocompare.com",
             f"/data/price?fsym=XEC&tsyms={ccy}",
         )
         return price
 
-    def get_currencies(self):
+    def get_currencies(self) -> list[str]:
         return [
             "AED",
             "ARS",
@@ -358,7 +360,11 @@ class CryptoCompare(ExchangeBase):
         ]
 
 
-def dictinvert(d):
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def dictinvert(d: dict[K, list[V]]) -> dict[V, list[K]]:
     inv = {}
     for k, vlist in d.items():
         for v in vlist:
@@ -389,7 +395,7 @@ def is_exchange_class(obj) -> bool:
     )
 
 
-def query_save_exchanges_and_currencies():
+def query_save_exchanges_and_currencies() -> None:
     """Query the API of all defined exchanges to get the list of
     supported currencies.
     Save the result to a currencies.json data file in the same directory
@@ -414,7 +420,7 @@ def query_save_exchanges_and_currencies():
 CURRENCIES = load_exchanges_and_currencies()
 
 
-def get_exchanges_by_ccy(history=True):
+def get_exchanges_by_ccy(history=True) -> dict[str, list[str]]:
     if not history:
         return dictinvert(CURRENCIES)
     d = {}
@@ -432,7 +438,7 @@ def get_exchanges_by_ccy(history=True):
 
 
 class FxThread(ThreadJob):
-    def __init__(self, config, network):
+    def __init__(self, config: SimpleConfig, network: Network | None):
         self.config = config
         self.network = network
         self.ccy = self.get_currency()
@@ -447,16 +453,16 @@ class FxThread(ThreadJob):
             os.mkdir(self.cache_dir)
 
     @staticmethod
-    def get_currencies(h):
+    def get_currencies(h) -> list[str]:
         d = get_exchanges_by_ccy(h)
         return sorted(d.keys())
 
     @staticmethod
-    def get_exchanges_by_ccy(ccy, h):
+    def get_exchanges_by_ccy(ccy, h) -> list[str]:
         d = get_exchanges_by_ccy(h)
         return d.get(ccy, [])
 
-    def ccy_amount_str(self, amount, commas, default_prec=2, is_diff=False):
+    def ccy_amount_str(self, amount, commas, default_prec=2, is_diff=False) -> str:
         prec = CCY_PRECISIONS.get(self.ccy, default_prec)
         diff_str = ""
         if is_diff:
@@ -468,7 +474,7 @@ class FxThread(ThreadJob):
             rounded_amount = amount
         return fmt_str.format(rounded_amount)
 
-    def run(self):
+    def run(self) -> None:
         """This runs from the Network thread. It is invoked roughly every
         100ms (see network.py), with actual work being done every 2.5 minutes.
         """
@@ -487,46 +493,46 @@ class FxThread(ThreadJob):
                 # every ~2.5 minutes
                 self.timeout = time.time() + 150
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return self.config.get(ConfigKeys.USE_EXCHANGE_RATE)
 
-    def set_enabled(self, b):
+    def set_enabled(self, b) -> bool:
         return self.config.set_key(ConfigKeys.USE_EXCHANGE_RATE, bool(b))
 
-    def get_history_config(self):
+    def get_history_config(self) -> bool:
         return bool(self.config.get("history_rates"))
 
-    def set_history_config(self, b):
+    def set_history_config(self, b) -> None:
         self.config.set_key("history_rates", bool(b))
 
-    def get_fiat_address_config(self):
+    def get_fiat_address_config(self) -> bool:
         return bool(self.config.get("fiat_address"))
 
-    def set_fiat_address_config(self, b):
+    def set_fiat_address_config(self, b) -> None:
         self.config.set_key("fiat_address", bool(b))
 
-    def get_currency(self):
+    def get_currency(self) -> str:
         """Use when dynamic fetching is needed"""
         return self.config.get(ConfigKeys.CURRENCY)
 
-    def config_exchange(self):
+    def config_exchange(self) -> str:
         return self.config.get(ConfigKeys.USE_EXCHANGE)
 
-    def show_history(self):
+    def show_history(self) -> bool:
         return (
             self.is_enabled()
             and self.get_history_config()
             and self.ccy in self.exchange.history_ccys()
         )
 
-    def set_currency(self, ccy):
+    def set_currency(self, ccy) -> None:
         self.ccy = ccy
         if self.get_currency() != ccy:
             self.config.set_key(ConfigKeys.CURRENCY, ccy, True)
         self.timeout = 0  # Force update because self.ccy changes
         self.on_quotes()
 
-    def set_exchange(self, name):
+    def set_exchange(self, name) -> None:
         default_exchange_name = ConfigKeys.USE_EXCHANGE.default
         default_class = globals().get(ConfigKeys.USE_EXCHANGE.default)
         class_ = globals().get(name, default_class)
@@ -550,15 +556,15 @@ class FxThread(ThreadJob):
         # This forces a quote refresh, which will happen in the Network thread.
         self.timeout = 0
 
-    def on_quotes(self):
+    def on_quotes(self) -> None:
         if self.network:
             self.network.trigger_callback("on_quotes")
 
-    def on_history(self):
+    def on_history(self) -> None:
         if self.network:
             self.network.trigger_callback("on_history")
 
-    def exchange_rate(self, ccy=None) -> Optional[PyDecimal]:
+    def exchange_rate(self, ccy=None) -> PyDecimal | None:
         """Returns None, or the exchange rate as a PyDecimal"""
         rate = self.exchange.quotes.get(ccy or self.ccy)
         if rate:
@@ -570,11 +576,11 @@ class FxThread(ThreadJob):
         1000000 for BCHA)"""
         return self.exchange.satoshis_per_unit
 
-    def format_amount_and_units(self, satoshis: int, is_diff=False):
+    def format_amount_and_units(self, satoshis: int, is_diff=False) -> str:
         amount_str = self.format_amount(satoshis, is_diff=is_diff)
         return "" if not amount_str else "%s %s" % (amount_str, self.ccy)
 
-    def format_amount(self, satoshis: int, is_diff=False):
+    def format_amount(self, satoshis: int, is_diff=False) -> str:
         rate = self.exchange_rate()
         return "" if rate is None else self.value_str(satoshis, rate, is_diff=is_diff)
 
@@ -597,7 +603,7 @@ class FxThread(ThreadJob):
             self.ccy,
         )
 
-    def value_str(self, satoshis, rate, default_prec=2, is_diff=False):
+    def value_str(self, satoshis, rate, default_prec=2, is_diff=False) -> str:
         if satoshis is None:  # Can happen with incomplete history
             return _("Unknown")
         if rate:
@@ -609,7 +615,7 @@ class FxThread(ThreadJob):
             )
         return _("No data")
 
-    def history_rate(self, d_t):
+    def history_rate(self, d_t) -> PyDecimal | None:
         rate = self.exchange.historical_rate(self.ccy, d_t)
         # Frequently there is no rate for today, until tomorrow :)
         # Use spot quotes in that case
@@ -618,18 +624,18 @@ class FxThread(ThreadJob):
             self.history_used_spot = True
         return PyDecimal(rate) if rate is not None else None
 
-    def historical_value_str(self, satoshis, d_t):
+    def historical_value_str(self, satoshis, d_t) -> str:
         rate = self.history_rate(d_t)
         return self.value_str(satoshis, rate)
 
-    def historical_value(self, satoshis, d_t):
+    def historical_value(self, satoshis, d_t) -> PyDecimal:
         rate = self.history_rate(d_t)
         if rate:
             return (
                 PyDecimal(satoshis) / self.exchange.satoshis_per_unit * PyDecimal(rate)
             )
 
-    def timestamp_rate(self, timestamp):
+    def timestamp_rate(self, timestamp) -> PyDecimal | None:
         from .util import timestamp_to_datetime
 
         date = timestamp_to_datetime(timestamp)
