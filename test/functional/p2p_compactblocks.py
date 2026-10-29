@@ -45,7 +45,7 @@ from test_framework.messages import (
     msg_tx,
 )
 from test_framework.p2p import P2PInterface, p2p_lock
-from test_framework.script import OP_TRUE, CScript
+from test_framework.script import OP_RETURN, OP_TRUE, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_greater_than_or_equal, uint256_hex
@@ -799,8 +799,41 @@ class CompactBlocksTest(BitcoinTestFramework):
         test_node.send_and_ping(msg)
 
         # Check that the tip didn't advance
-        assert node.getbestblockhash() != uint256_hex(block.hash_int)
+        assert node.getbestblockhash() != block.hash_hex
         test_node.sync_with_ping()
+
+        # Invalidate the last tx in the block.
+        block.vtx[4].vin[0].scriptSig = CScript([OP_RETURN])
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+
+        # This will lead to a consensus failure for which we also won't be disconnected but which
+        # will be cached.
+        comp_block.initialize_from_block(
+            block, prefill_list=list(range(len(block.vtx)))
+        )
+        msg = msg_cmpctblock(comp_block.to_p2p())
+        test_node.send_and_ping(msg)
+
+        # The tip still didn't advance.
+        assert node.getbestblockhash() != block.hash_hex
+        test_node.sync_with_ping()
+
+        # The failure above was cached. Submitting the compact block again will returned a cached
+        # consensus error (the code path is different) and still not get us disconnected (nor
+        # advance the tip).
+        test_node.send_and_ping(msg)
+        assert node.getbestblockhash() != block.hash_hex
+        test_node.sync_with_ping()
+
+        # Now, announcing a second block building on top of the invalid one will get us disconnected.
+        block.hashPrevBlock = block.hash_int
+        block.solve()
+        comp_block.initialize_from_block(
+            block, prefill_list=list(range(len(block.vtx)))
+        )
+        msg = msg_cmpctblock(comp_block.to_p2p())
+        test_node.send_await_disconnect(msg)
 
     # Helper for enabling cb announcements
     # Send the sendcmpct request and sync headers
@@ -1031,6 +1064,9 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         self.log.info("Testing handling of invalid compact blocks...")
         self.test_invalid_tx_in_compactblock(self.additional_test_node)
+
+        # The previous test will lead to a disconnection. Reconnect before continuing.
+        self.additional_test_node = self.nodes[0].add_p2p_connection(TestP2PConn())
 
         self.log.info("Testing invalid index in cmpctblock message...")
         self.test_invalid_cmpctblock_message()
