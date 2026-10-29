@@ -104,7 +104,7 @@ def check_query(ns, sub, _type, keys) -> dns.rrset.RRset:
     return rrset
 
 
-def get_and_validate(ns, url, _type):
+def get_and_validate(ns, url, _type) -> dns.rrset.RRset:
     # get trusted root key
     root_rrset = None
     for dnskey_rr in trust_anchors:
@@ -167,7 +167,7 @@ def get_and_validate(ns, url, _type):
     return rrset
 
 
-def query(url, rtype):
+def query(url, rtype) -> tuple[dns.rrset.RRset | dns.resolver.Answer, bool]:
     # 8.8.8.8 is Google's public DNS server
     nameservers = ["8.8.8.8"]
     ns = nameservers[0]
