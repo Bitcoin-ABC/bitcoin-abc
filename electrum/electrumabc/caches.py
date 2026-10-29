@@ -10,6 +10,7 @@ import threading
 import time
 import weakref
 from collections import defaultdict
+from typing import Any
 
 from .printerror import PrintError, print_error
 
@@ -53,7 +54,13 @@ class ExpiringCache:
     thread runs every 10 seconds -- so caches may temporarily overflow past
     their maxlen for up to 10 seconds."""
 
-    def __init__(self, *, maxlen=10000, name="An Unnamed Cache", timeout=None):
+    def __init__(
+        self,
+        *,
+        maxlen: int = 10000,
+        name: str = "An Unnamed Cache",
+        timeout: float | None = None,
+    ):
         assert maxlen > 0
         timeout = (
             isinstance(timeout, (float, int)) and timeout > 0.0 and timeout
@@ -66,7 +73,7 @@ class ExpiringCache:
         self.d = {}
         _ExpiringCacheMgr.add_cache(self)
 
-    def get(self, key, default=None):
+    def get(self, key, default=None) -> Any:
         res = self.d.get(key)
         if res is not None:
             # cache hit
@@ -76,24 +83,24 @@ class ExpiringCache:
         # cache miss
         return default
 
-    def put(self, key, value):
+    def put(self, key, value) -> None:
         self.d[key] = [_ExpiringCacheMgr.tick, value]
 
-    def size_bytes(self):
+    def size_bytes(self) -> int:
         """Returns the cache's memory usage in bytes. This is done by doing a
         deep, recursive examination of the cache contents."""
         return get_object_size(self.d.copy())  # prevent iterating over a mutating dict.
 
-    def copy_dict(self):
+    def copy_dict(self) -> dict[Any, tuple[int, Any]]:
         """Returns a copy of the cache contents. Useful for seriliazing
         or otherwise examining the cache. The returned dict format is:
         d[item_key] -> [tick, item_value]"""
         return self.d.copy()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.d)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         name, address, length, maxlen, timeout = (
             self.name,
             "0x{:x}".format(id(self)),
@@ -151,7 +158,7 @@ class _ExpiringCacheMgr(PrintError):
         self.thread.start()
 
     @classmethod
-    def add_cache(cls, *caches):
+    def add_cache(cls, *caches) -> None:
         assert caches
         new_caches = caches
         with cls._lock:
@@ -168,7 +175,7 @@ class _ExpiringCacheMgr(PrintError):
             slf.livect = len(slf.caches)
 
     @classmethod
-    def on_cache_gc(cls, name):
+    def on_cache_gc(cls, name) -> None:
         assert cls._instance
         thread2join = None
         with cls._lock:
@@ -198,7 +205,7 @@ class _ExpiringCacheMgr(PrintError):
             # thread ends up taking locks in some future implementation.
             thread2join.join()
 
-    def mgr_thread(self):
+    def mgr_thread(self) -> None:
         cls = type(self)
         # self.print_error("thread started")
         try:
@@ -249,7 +256,7 @@ class _ExpiringCacheMgr(PrintError):
                 self.print_error("thread exit")
 
     @classmethod
-    def _try_to_expire_old_items(cls, d_orig, num):
+    def _try_to_expire_old_items(cls, d_orig, num) -> int:
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if len(d) < num or num <= 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
@@ -293,7 +300,7 @@ class _ExpiringCacheMgr(PrintError):
         return ct
 
     @classmethod
-    def _remove_timed_out_items(cls, d_orig, tick_cutoff):
+    def _remove_timed_out_items(cls, d_orig, tick_cutoff) -> int:
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if not len(d) or tick_cutoff < 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
@@ -316,7 +323,7 @@ class _ExpiringCacheMgr(PrintError):
         return ct
 
 
-def get_object_size(obj_0):
+def get_object_size(obj_0) -> int:
     """Debug tool -- returns the amount of memory taken by an object in bytes
     by deeply examining its contents recursively (more accurate than
     sys.getsizeof as a result)."""
@@ -332,11 +339,11 @@ def get_object_size(obj_0):
         zero_depth_bases = (str, bytes, Number, range, bytearray)
         iteritems = "items"
 
-    def getsize(obj_0):
+    def getsize(obj_0) -> int:
         """Recursively iterate to sum size of object & members."""
         _seen_ids = set()
 
-        def inner(obj):
+        def inner(obj) -> int:
             obj_id = id(obj)
             if obj_id in _seen_ids:
                 return 0
