@@ -38,13 +38,14 @@ import weakref
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
+from typing import Any
 
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
 from .i18n import _, ngettext
 from .printerror import PrintError, print_error, print_stderr
 
 
-def inv_dict(d):
+def inv_dict(d) -> dict[Any, Any]:
     return {v: k for k, v in d.items()}
 
 
@@ -57,17 +58,17 @@ class ExcessiveFee(Exception):
 
 
 class InvalidPassword(Exception):
-    def __str__(self):
+    def __str__(self) -> str:
         return _("Incorrect password")
 
 
 class FileImportFailed(Exception):
-    def __str__(self):
+    def __str__(self) -> str:
         return _("Failed to import file.")
 
 
 class FileImportFailedEncrypted(FileImportFailed):
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             _("Failed to import file.")
             + " "
@@ -99,19 +100,19 @@ class ThreadJob(ABC, PrintError):
     """
 
     @abstractmethod
-    def run(self):
+    def run(self) -> None:
         """Called periodically from the thread"""
 
 
 class DebugMem(ThreadJob):
     """A handy class for debugging GC memory leaks"""
 
-    def __init__(self, classes, interval=30):
+    def __init__(self, classes, interval: int = 30):
         self.next_time = 0
         self.classes = classes
         self.interval = interval
 
-    def mem_stats(self):
+    def mem_stats(self) -> None:
         import gc
 
         self.print_error("Start memscan")
@@ -125,7 +126,7 @@ class DebugMem(ThreadJob):
             self.print_error("%s: %d" % (class_.__name__, len(objs)))
         self.print_error("Finish memscan")
 
-    def run(self):
+    def run(self) -> None:
         if time.time() > self.next_time:
             self.mem_stats()
             self.next_time = time.time() + self.interval
@@ -149,7 +150,7 @@ class DaemonThread(threading.Thread, PrintError):
         # uniqueness property of using a set.
         self._jobs2rm = set()
 
-    def add_jobs(self, jobs):
+    def add_jobs(self, jobs) -> None:
         if threading.current_thread() is not self:
             with self.job_lock:
                 for job in jobs:
@@ -163,7 +164,7 @@ class DaemonThread(threading.Thread, PrintError):
             self._jobs2rm.difference_update(jobs)
             self._jobs2add.extend(jobs)
 
-    def remove_jobs(self, jobs):
+    def remove_jobs(self, jobs) -> None:
         if threading.current_thread() is not self:
             with self.job_lock:
                 for job in jobs:
@@ -181,7 +182,7 @@ class DaemonThread(threading.Thread, PrintError):
                     self._jobs2add.remove(job)
             self._jobs2rm.update(jobs)
 
-    def run_jobs(self):
+    def run_jobs(self) -> None:
         with self.job_lock:
             for job in self.jobs:
                 try:
@@ -204,20 +205,20 @@ class DaemonThread(threading.Thread, PrintError):
                     self.print_error("Job removed", rmjob)
             self._jobs2rm.clear()
 
-    def start(self):
+    def start(self) -> None:
         with self.running_lock:
             self.running = True
         return threading.Thread.start(self)
 
-    def is_running(self):
+    def is_running(self) -> None:
         with self.running_lock:
             return self.running and self.parent_thread.is_alive()
 
-    def stop(self):
+    def stop(self) -> None:
         with self.running_lock:
             self.running = False
 
-    def on_stop(self):
+    def on_stop(self) -> None:
         self.print_error("stopped")
 
 
@@ -236,7 +237,7 @@ class cachedproperty:
 
 
 # taken from Django Source Code
-def constant_time_compare(val1, val2):
+def constant_time_compare(val1, val2) -> bool:
     """Return True if the two strings are equal, False otherwise."""
     return hmac.compare_digest(to_bytes(val1, "utf8"), to_bytes(val2, "utf8"))
 
@@ -253,7 +254,7 @@ def profiler(func):
     return lambda *args, **kw_args: do_profile(args, kw_args)
 
 
-def ensure_sparse_file(filename):
+def ensure_sparse_file(filename) -> None:
     if os.name == "nt":
         try:
             subprocess.call('fsutil sparse setFlag "' + filename + '" 1', shell=True)
@@ -265,7 +266,7 @@ def get_headers_dir(config):
     return config.path
 
 
-def assert_datadir_available(config_path):
+def assert_datadir_available(config_path) -> None:
     path = config_path
     if os.path.exists(path):
         return
@@ -277,7 +278,7 @@ def assert_datadir_available(config_path):
         )
 
 
-def assert_file_in_datadir_available(path, config_path):
+def assert_file_in_datadir_available(path, config_path) -> None:
     if os.path.exists(path):
         return
     else:
@@ -306,7 +307,7 @@ def get_new_wallet_name(wallet_folder: str) -> str:
     return filename
 
 
-def assert_bytes(*args):
+def assert_bytes(*args) -> None:
     """
     porting helper, assert args type
     """
@@ -318,7 +319,7 @@ def assert_bytes(*args):
         raise
 
 
-def assert_str(*args):
+def assert_str(*args) -> None:
     """
     porting helper, assert args type
     """
@@ -326,7 +327,7 @@ def assert_str(*args):
         assert isinstance(x, str)
 
 
-def to_string(x, enc="utf8"):
+def to_string(x, enc="utf8") -> str:
     if isinstance(x, (bytes, bytearray)):
         return x.decode(enc)
     if isinstance(x, str):
@@ -335,7 +336,7 @@ def to_string(x, enc="utf8"):
         raise TypeError("Not a string or bytes like object")
 
 
-def to_bytes(something, encoding="utf8"):
+def to_bytes(something, encoding="utf8") -> bytes:
     """
     cast string to bytes() like object, but for python2 support it's bytearray copy
     """
@@ -352,7 +353,7 @@ def to_bytes(something, encoding="utf8"):
 bfh = bytes.fromhex
 
 
-def get_user_dir(prefer_local=False):
+def get_user_dir(prefer_local=False) -> str:
     if os.name == "posix" and "HOME" in os.environ:
         return os.path.join(os.environ["HOME"], POSIX_DATA_DIR)
     elif "APPDATA" in os.environ or "LOCALAPPDATA" in os.environ:
@@ -367,7 +368,7 @@ def get_user_dir(prefer_local=False):
         return
 
 
-def make_dir(path):
+def make_dir(path) -> None:
     # Make directory if it does not yet exist.
     if not os.path.exists(path):
         if os.path.islink(path):
@@ -376,14 +377,14 @@ def make_dir(path):
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 
 
-def timestamp_to_datetime(timestamp):
+def timestamp_to_datetime(timestamp) -> datetime | None:
     try:
         return datetime.fromtimestamp(timestamp)
     except Exception:
         return None
 
 
-def format_time(timestamp):
+def format_time(timestamp) -> str:
     if timestamp:
         date = timestamp_to_datetime(timestamp)
         if date:
@@ -392,7 +393,7 @@ def format_time(timestamp):
 
 
 # Takes a timestamp and returns a string with the approximation of the age
-def age(from_date, since_date=None, target_tz=None, include_seconds=False):
+def age(from_date, since_date=None, target_tz=None, include_seconds=False) -> str:
     if from_date is None:
         return _("Unknown")
 
@@ -414,7 +415,7 @@ def age(from_date, since_date=None, target_tz=None, include_seconds=False):
         return _("in {time}").format(time=td)
 
 
-def time_difference(distance_in_time, include_seconds):
+def time_difference(distance_in_time, include_seconds) -> str:
     # distance_in_time = from_date - since_date
     distance_in_seconds = int(
         round(abs(distance_in_time.days * 86400 + distance_in_time.seconds))
@@ -493,7 +494,7 @@ class ServerError(Exception):
     phishing attacks from the untrusted server.
     See: https://github.com/spesmilo/electrum/issues/4968"""
 
-    def __init__(self, msg, server_msg=None):
+    def __init__(self, msg: str, server_msg: str = None):
         super().__init__(msg)
         self.server_msg = server_msg or ""  # prefer empty string if none supplied
 
@@ -521,7 +522,7 @@ class TxHashMismatch(ServerError):
     pass
 
 
-def setup_thread_excepthook():
+def setup_thread_excepthook() -> None:
     """
     Workaround for `sys.excepthook` thread bug from:
     http://bugs.python.org/issue1230540
@@ -531,11 +532,11 @@ def setup_thread_excepthook():
 
     init_original = threading.Thread.__init__
 
-    def init(self, *args, **kwargs):
+    def init(self, *args: Any, **kwargs: Any) -> None:
         init_original(self, *args, **kwargs)
         run_original = self.run
 
-        def run_with_except_hook(*args2, **kwargs2):
+        def run_with_except_hook(*args2, **kwargs2) -> None:
             try:
                 run_original(*args2, **kwargs2)
             except Exception:
@@ -546,7 +547,7 @@ def setup_thread_excepthook():
     threading.Thread.__init__ = init
 
 
-def versiontuple(v):
+def versiontuple(v) -> tuple[int, ...]:
     """Please do not use this function as it breaks with EC version styles
     of things like '3.3.4CS'. Instead, use version.parse_package_version"""
     return tuple(map(int, (v.split("."))))
@@ -557,7 +558,7 @@ class Handlers:
     "do_in_main_thread_handler" lives here"""
 
     @staticmethod
-    def default_do_in_main_thread_handler(func, *args, **kwargs):
+    def default_do_in_main_thread_handler(func, *args, **kwargs) -> None:
         """The default "do_in_main_thread_handler" simply immediately calls
         func, but it does print a warning if the current thread is not
         the main thread."""
@@ -578,7 +579,7 @@ class Handlers:
     do_in_main_thread = default_do_in_main_thread_handler
 
 
-def do_in_main_thread(func, *args, **kwargs):
+def do_in_main_thread(func, *args, **kwargs) -> None:
     """Calls func(*args, **kwargs) in the main thread, or immediately if the
     calling context *is* the main thread. Note that for this to work the GUI
     system in question must install a handler for this mechanism (if it has an
@@ -670,7 +671,7 @@ class Weak:
     _weak_refs_for_print_error = defaultdict(list)
 
     @staticmethod
-    def finalization_print_error(obj, msg=None):
+    def finalization_print_error(obj, msg=None) -> None:
         """Supply a message to be printed via print_error when obj is
         finalized (Python GC'd). This is useful for debugging memory leaks."""
         assert not isinstance(obj, type), (
@@ -683,7 +684,7 @@ class Weak:
                 name = obj.__class__.__qualname__
             msg = "[{}] finalized".format(name)
 
-        def finalizer(x):
+        def finalizer(x) -> None:
             wrs = Weak._weak_refs_for_print_error
             msgs = wrs.get(x, [])
             for m in msgs:
@@ -725,7 +726,7 @@ class Weak:
 finalization_print_error = Weak.finalization_print_error
 
 
-def multisig_type(wallet_type):
+def multisig_type(wallet_type) -> list[int] | None:
     """If wallet_type is mofn multi-sig, return [m, n],
     otherwise return None."""
     if not wallet_type:
