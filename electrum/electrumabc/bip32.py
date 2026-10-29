@@ -28,6 +28,8 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from collections.abc import Generator
+from typing import NamedTuple
 
 from . import ecc, networks
 from .bitcoin import DecodeBase58Check, EncodeBase58Check
@@ -46,12 +48,12 @@ BIP32_PRIME = 0x80000000
 #  corresponding public key can NOT be determined without the master private key.
 # However, if n is positive, the resulting private key's corresponding
 #  public key can be determined without the master private key.
-def CKD_priv(k, c, n):
+def CKD_priv(k, c, n) -> tuple[bytes, bytes]:
     is_prime = n & BIP32_PRIME
     return _CKD_priv(k, c, n.to_bytes(4, "big"), is_prime)
 
 
-def _CKD_priv(k, c, s, is_prime):
+def _CKD_priv(k, c, s, is_prime) -> tuple[bytes, bytes]:
     keypair = ecc.ECPrivkey(k)
     cK = keypair.get_public_key_bytes(compressed=True)
     data = bytes([0]) + k + s if is_prime else cK + s
@@ -72,7 +74,7 @@ def _CKD_priv(k, c, s, is_prime):
 # n = index of key we want to derive
 # This function allows us to find the nth public key, as long as n is
 #  non-negative. If n is negative, we need the master private key to find it.
-def CKD_pub(cK, c, n):
+def CKD_pub(cK, c, n) -> tuple[bytes, bytes:]:
     if n & BIP32_PRIME:
         raise ValueError(
             f"hardened child key derivation (index >= {BIP32_PRIME}) is not allowed"
@@ -81,7 +83,7 @@ def CKD_pub(cK, c, n):
 
 
 # helper function, callable with arbitrary string
-def _CKD_pub(cK, c, s):
+def _CKD_pub(cK, c, s) -> tuple[bytes, bytes]:
     I_ = hmac.new(c, cK + s, hashlib.sha512).digest()
     pubkey = ecc.ECPrivkey(I_[0:32]) + ecc.ECPubkey(cK)
     cK_n = pubkey.get_public_key_bytes(compressed=True)
@@ -95,7 +97,7 @@ def xprv_header(xtype, *, net=None) -> bytes:
     return net.XPRV_HEADERS[xtype].to_bytes(4, "big")
 
 
-def xpub_header(xtype, *, net=None):
+def xpub_header(xtype, *, net=None) -> bytes:
     if net is None:
         net = networks.net
     return net.XPUB_HEADERS[xtype].to_bytes(4, "big")
@@ -103,7 +105,7 @@ def xpub_header(xtype, *, net=None):
 
 def serialize_xprv(
     xtype, c, k, depth=0, fingerprint=b"\x00" * 4, child_number=b"\x00" * 4, *, net=None
-):
+) -> str:
     if net is None:
         net = networks.net
     xprv = (
@@ -127,7 +129,7 @@ def serialize_xpub(
     child_number=b"\x00" * 4,
     *,
     net=None,
-):
+) -> str:
     if net is None:
         net = networks.net
     xpub = (
@@ -157,7 +159,16 @@ class InvalidXKeyNotBase58(InvalidXKey):
     pass
 
 
-def deserialize_xkey(xkey, prv, *, net=None):
+class DeserializeXKeyReturnT(NamedTuple):
+    xtype: str
+    depth: int
+    fingerprint: bytes
+    child_number: bytes
+    c: bytes
+    K_or_k: bytes
+
+
+def deserialize_xkey(xkey, prv, *, net=None) -> DeserializeXKeyReturnT:
     if net is None:
         net = networks.net
     xkey = DecodeBase58Check(xkey)
@@ -185,28 +196,28 @@ def deserialize_xkey(xkey, prv, *, net=None):
             CKD_pub(K_or_k, c, 0)
     except Exception as e:
         raise InvalidXKey("Cannot derive from key") from e
-    return xtype, depth, fingerprint, child_number, c, K_or_k
+    return DeserializeXKeyReturnT(xtype, depth, fingerprint, child_number, c, K_or_k)
 
 
-def deserialize_xpub(xkey, *, net=None):
+def deserialize_xpub(xkey, *, net=None) -> DeserializeXKeyReturnT:
     if net is None:
         net = networks.net
     return deserialize_xkey(xkey, False, net=net)
 
 
-def deserialize_xprv(xkey, *, net=None):
+def deserialize_xprv(xkey, *, net=None) -> DeserializeXKeyReturnT:
     if net is None:
         net = networks.net
     return deserialize_xkey(xkey, True, net=net)
 
 
-def xpub_type(x, *, net=None):
+def xpub_type(x, *, net=None) -> str:
     if net is None:
         net = networks.net
     return deserialize_xpub(x, net=net)[0]
 
 
-def is_xpub(text, *, net=None):
+def is_xpub(text, *, net=None) -> bool:
     if net is None:
         net = networks.net
     try:
@@ -216,7 +227,7 @@ def is_xpub(text, *, net=None):
         return False
 
 
-def is_xprv(text, *, net=None):
+def is_xprv(text, *, net=None) -> bool:
     if net is None:
         net = networks.net
     try:
@@ -226,7 +237,7 @@ def is_xprv(text, *, net=None):
         return False
 
 
-def xpub_from_xprv(xprv, *, net=None):
+def xpub_from_xprv(xprv, *, net=None) -> str:
     if net is None:
         net = networks.net
     xtype, depth, fingerprint, child_number, c, k = deserialize_xprv(xprv, net=net)
@@ -234,7 +245,7 @@ def xpub_from_xprv(xprv, *, net=None):
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
-def bip32_root(seed, xtype, *, net=None):
+def bip32_root(seed, xtype, *, net=None) -> tuple[str, str]:
     if net is None:
         net = networks.net
     I_ = hmac.new(b"Bitcoin seed", seed, hashlib.sha512).digest()
@@ -247,7 +258,7 @@ def bip32_root(seed, xtype, *, net=None):
     return xprv, xpub
 
 
-def bip32_derivation(s):
+def bip32_derivation(s) -> Generator[int]:
     if not s.startswith("m/"):
         raise ValueError("invalid bip32 derivation path: {}".format(s))
     s = s[2:]
@@ -258,7 +269,7 @@ def bip32_derivation(s):
         yield i
 
 
-def is_bip32_derivation(x):
+def is_bip32_derivation(x) -> bool:
     try:
         list(bip32_derivation(x))
         return True
@@ -266,7 +277,7 @@ def is_bip32_derivation(x):
         return False
 
 
-def bip32_private_derivation(xprv, branch, sequence, *, net=None):
+def bip32_private_derivation(xprv, branch, sequence, *, net=None) -> tuple[str, str]:
     if net is None:
         net = networks.net
     if not sequence.startswith(branch):
@@ -293,7 +304,7 @@ def bip32_private_derivation(xprv, branch, sequence, *, net=None):
     return xprv, xpub
 
 
-def bip32_public_derivation(xpub, branch, sequence, *, net=None):
+def bip32_public_derivation(xpub, branch, sequence, *, net=None) -> str:
     if net is None:
         net = networks.net
     xtype, depth, fingerprint, child_number, c, cK = deserialize_xpub(xpub, net=net)
@@ -311,7 +322,7 @@ def bip32_public_derivation(xpub, branch, sequence, *, net=None):
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
-def bip32_private_key(sequence, k, chain):
+def bip32_private_key(sequence, k, chain) -> bytes:
     for i in sequence:
         k, chain = CKD_priv(k, chain, i)
     return k
