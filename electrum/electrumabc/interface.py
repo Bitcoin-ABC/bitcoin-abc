@@ -93,7 +93,7 @@ class TcpConnection(threading.Thread, PrintError):
     override_ca_certs: str | None = None
     override_host: str | None = None
 
-    def __init__(self, server, queue, config_path):
+    def __init__(self, server: str, queue: Queue, config_path: str):
         threading.Thread.__init__(self)
         self.config_path: str = config_path
         self.queue: Queue = queue
@@ -104,10 +104,10 @@ class TcpConnection(threading.Thread, PrintError):
         self.use_ssl = protocol == "s"
         self.daemon = True
 
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         return self.host
 
-    def get_simple_socket(self):
+    def get_simple_socket(self) -> socket.socket | None:
         try:
             host = self.override_host if self.override_host else self.host
             addr_info = socket.getaddrinfo(
@@ -139,7 +139,9 @@ class TcpConnection(threading.Thread, PrintError):
             self.print_error("failed to connect", str(e))
 
     @staticmethod
-    def get_ssl_context(cert_reqs, ca_certs, check_hostname: bool = False):
+    def get_ssl_context(
+        cert_reqs, ca_certs, check_hostname: bool = False
+    ) -> ssl.SSLContext:
         context = ssl.create_default_context(
             purpose=ssl.Purpose.SERVER_AUTH, cafile=ca_certs
         )
@@ -193,7 +195,7 @@ class TcpConnection(threading.Thread, PrintError):
         # inform caller to abort the operation
         return None, True
 
-    def get_socket(self):
+    def get_socket(self) -> ssl.SSLSocket | None:
         if self.use_ssl:
             # Try with CA first, since they are preferred over self-signed certs
             # and are always accepted (even if a previous pinned self-signed
@@ -335,7 +337,7 @@ class TcpConnection(threading.Thread, PrintError):
 
         return s
 
-    def run(self):
+    def run(self) -> None:
         try:
             socket = self.get_socket()
         except OSError:
@@ -349,7 +351,7 @@ class TcpConnection(threading.Thread, PrintError):
         self.queue.put((self.server, socket))
 
 
-def parse_json(message):
+def parse_json(message: bytearray) -> tuple[Any, bytearray]:
     # TODO: check \r\n pattern
     n = message.find(b"\n")
     if n == -1:
@@ -373,7 +375,7 @@ class JSONSocketPipe(PrintError):
     class Closed(RuntimeError):
         """Raised if socket is closed"""
 
-    def __init__(self, sock, *, max_message_bytes=0):
+    def __init__(self, sock: ssl.SSLSocket, *, max_message_bytes: int = 0):
         """A max_message_bytes of <= 0 means unlimited, otherwise a positive
         value indicates this many bytes to limit the message size by. This is
         used by get(), which will raise MessageSizeExceeded if the message size
@@ -385,10 +387,10 @@ class JSONSocketPipe(PrintError):
         self.recv_buf = bytearray()
         self.send_buf = bytearray()
 
-    def idle_time(self):
+    def idle_time(self) -> float:
         return time.time() - self.recv_time
 
-    def get_selectloop_info(self):
+    def get_selectloop_info(self) -> tuple[bool, bool]:
         """Returns tuple:
 
         read_pending - new data is available that may be unknown to select(),
@@ -403,7 +405,7 @@ class JSONSocketPipe(PrintError):
             has_pending = False
         return has_pending, bool(self.send_buf)
 
-    def get(self):
+    def get(self) -> Any:
         """Attempt to read out a message, possibly saving additional messages in
         a receive buffer.
 
@@ -443,18 +445,18 @@ class JSONSocketPipe(PrintError):
                     " exceeded this limit!"
                 )
 
-    def send(self, request):
+    def send(self, request) -> None:
         out = json.dumps(request) + "\n"
         out = out.encode("utf8")
         self.send_buf.extend(out)
         return self.send_flush()
 
-    def send_all(self, requests):
+    def send_all(self, requests) -> None:
         out = b"".join((json.dumps(req) + "\n").encode("utf8") for req in requests)
         self.send_buf.extend(out)
         return self.send_flush()
 
-    def send_flush(self):
+    def send_flush(self) -> None:
         """Flush any unsent data from a prior call to send / send_all.
 
         Raises timeout if more data remains to be sent.
@@ -613,24 +615,24 @@ class Interface(PrintError):
         self.bad: int = 0
         self.bad_header: Header = {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{}.{} {}>".format(__name__, type(self).__name__, self.format_address())
 
-    def format_address(self):
+    def format_address(self) -> str:
         return "{}:{}".format(self.host, self.port)
 
-    def set_mode(self, mode: Mode):
+    def set_mode(self, mode: Mode) -> None:
         self.print_error("set_mode({})".format(mode))
         self.mode = mode
 
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         return self.host
 
-    def fileno(self):
+    def fileno(self) -> int:
         # Needed for select
         return self.socket.fileno()
 
-    def close(self):
+    def close(self) -> None:
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except Exception:
@@ -640,7 +642,7 @@ class Interface(PrintError):
         except Exception:
             pass
 
-    def queue_request(self, method: str, params: list[Any], id_: int):
+    def queue_request(self, method: str, params: list[Any], id_: int) -> None:
         """Queue a request, later to be sent with send_requests when the
         socket is available for writing."""
         self.request_time = time.time()
@@ -653,7 +655,9 @@ class Interface(PrintError):
     req_throttle_default = ReqThrottleParams(2000, 100)
 
     @classmethod
-    def get_req_throttle_params(cls, config: Optional[SimpleConfig]):
+    def get_req_throttle_params(
+        cls, config: Optional[SimpleConfig]
+    ) -> ReqThrottleParams:
         tup = config and config.get("network_unanswered_requests_throttle")
         if not isinstance(tup, (list, tuple)) or len(tup) != 2:
             return cls.req_throttle_default
@@ -666,7 +670,7 @@ class Interface(PrintError):
         config: Optional[SimpleConfig],
         max_unanswered_requests: Optional[int] = None,
         chunkSize: Optional[int] = None,
-    ):
+    ) -> None:
         if not config:
             return
         l_ = list(cls.get_req_throttle_params(config))
@@ -676,7 +680,7 @@ class Interface(PrintError):
             l_[1] = chunkSize
         config.set_key("network_unanswered_requests_throttle", l_)
 
-    def num_requests(self):
+    def num_requests(self) -> int:
         """If there are more than tup.max (default: 2000) unanswered requests,
         don't send any more. Otherwise send more requests, but not more than tup.chunkSize
         (default: 100) at a time."""
@@ -685,7 +689,7 @@ class Interface(PrintError):
             return 0
         return min(tup.chunkSize, len(self.unsent_requests))
 
-    def send_requests(self):
+    def send_requests(self) -> bool:
         """Sends queued requests. Returns False on failure."""
         try:
             try:
@@ -701,7 +705,7 @@ class Interface(PrintError):
 
             self.last_send = time.time()
 
-            def make_dict(m, p, i):
+            def make_dict(m, p, i) -> dict[str, Any]:
                 return {"jsonrpc": "2.0", "method": m, "params": p, "id": i}
 
             n = self.num_requests()
@@ -726,11 +730,11 @@ class Interface(PrintError):
             self.unanswered_requests[request[2]] = request
         return True
 
-    def ping_required(self):
+    def ping_required(self) -> bool:
         """Returns True if a ping should be sent."""
         return time.time() - self.last_send > PING_INTERVAL
 
-    def has_timed_out(self):
+    def has_timed_out(self) -> bool:
         """Returns True if the interface has timed out."""
         if (
             self.unanswered_requests
@@ -801,7 +805,7 @@ class Interface(PrintError):
         return responses
 
 
-def check_cert(host, cert):
+def check_cert(host, cert) -> None:
     try:
         b = pem.dePem(cert, "CERTIFICATE")
         x = x509.X509(b)
@@ -822,7 +826,7 @@ def check_cert(host, cert):
     print_msg(m)
 
 
-def test_certificates():
+def test_certificates() -> None:
     config = SimpleConfig()
     mydir = os.path.join(config.path, "certs")
     certs = os.listdir(mydir)
