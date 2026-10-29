@@ -7,12 +7,13 @@ import json
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
+from typing import Any
 
 from .transaction import Transaction
 
 
 class MyEncoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj) -> Any:
         if isinstance(obj, Transaction):
             return obj.as_dict()
         if isinstance(obj, datetime):
@@ -24,7 +25,7 @@ class MyEncoder(json.JSONEncoder):
         return super(MyEncoder, self).default(obj)
 
 
-def json_encode(obj):
+def json_encode(obj) -> str:
     try:
         s = json.dumps(obj, sort_keys=True, indent=4, cls=MyEncoder)
     except TypeError:
@@ -32,7 +33,7 @@ def json_encode(obj):
     return s
 
 
-def json_decode(x):
+def json_decode(x) -> Any:
     try:
         return json.loads(x, parse_float=Decimal)
     except Exception:
