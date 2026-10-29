@@ -22,7 +22,7 @@ _logger = logging.getLogger(__name__)
 OLD_DEFAULT_FEES = [80000, 10000, 5000]
 
 
-def safe_rm(path: str):
+def safe_rm(path: str) -> None:
     """Delete a file or a directory.
     In case an exception occurs, log the error message.
     """
@@ -35,11 +35,11 @@ def safe_rm(path: str):
         _logger.warning(f"Unable to delete path {path}.\n{str(e)}")
 
 
-def _version_tuple_to_str(version_tuple):
+def _version_tuple_to_str(version_tuple: tuple[int, ...]) -> str:
     return ".".join(map(str, version_tuple))
 
 
-def update_config():
+def update_config() -> None:
     """Update configuration parameters for old default parameters
     that changed in newer releases. This function should only be
     called if a data directory already exists."""
