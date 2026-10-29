@@ -108,7 +108,7 @@ def normalize_text(seed: str, is_passphrase=False) -> str:
 _WORDLIST_CACHE: dict[str, "Wordlist"] = {}
 
 
-class Wordlist(tuple):
+class Wordlist(tuple[str, ...]):
     def __init__(self, words: Sequence[str]):
         super().__init__()
         index_from_word = {w: i for i, w in enumerate(words)}
