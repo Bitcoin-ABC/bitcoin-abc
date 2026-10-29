@@ -36,10 +36,10 @@ class Unit:
         unit selection menu."""
 
     @property
-    def name_for_selection_menu(self):
+    def name_for_selection_menu(self) -> str:
         return self.ticker if not self.old_name else f"{self.ticker} ({self.old_name})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.ticker
 
     def unit_to_satoshis(self, amount: Decimal) -> int:
