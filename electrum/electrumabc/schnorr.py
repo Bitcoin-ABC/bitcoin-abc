@@ -22,7 +22,7 @@ from .util import randrange
 seclib = secp256k1.secp256k1
 
 
-def jacobi(a, n):
+def jacobi(a: int, n: int) -> int:
     """Jacobi symbol"""
     # Based on the Handbook of Applied Cryptography (HAC), algorithm 2.149.
     # This is more than 2x faster than the one from python ecdsa package, due
@@ -49,7 +49,13 @@ def jacobi(a, n):
 
 
 # only used for pure python:
-def nonce_function_rfc6979(order, privkeybytes, msg32, algo16=b"", ndata=b""):
+def nonce_function_rfc6979(
+    order: int,
+    privkeybytes: bytes,
+    msg32: bytes,
+    algo16: bytes = b"",
+    ndata: bytes = b"",
+) -> int:
     """pure python RFC6979 deterministic nonce generation, done in
     libsecp256k1 style -- see nonce_function_rfc6979() in secp256k1.c.
     """
@@ -83,7 +89,7 @@ def nonce_function_rfc6979(order, privkeybytes, msg32, algo16=b"", ndata=b""):
     return k
 
 
-def sign(privkey, message_hash):
+def sign(privkey: bytes, message_hash: bytes) -> bytes:
     """Create a Schnorr signature.
 
     Returns a 64-long bytes object (the signature), or raise ValueError
@@ -114,7 +120,7 @@ def sign(privkey, message_hash):
     return bytes(sig)
 
 
-def verify(pubkey, signature, message_hash):
+def verify(pubkey: bytes, signature: bytes, message_hash: bytes) -> bool:
     """Verify a Schnorr signature, returning True if valid.
 
     May raise a ValueError or return False on failure.
@@ -186,17 +192,17 @@ class BlindSigner:
       to get an additional signature: https://eprint.iacr.org/2019/877
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         k = randrange(CURVE_ORDER)
         # we store k in a list since .pop() is atomic.
         self._kcontainer = [k]
         Rpoint = k * GENERATOR
         self.R = Rpoint.get_public_key_bytes(compressed=True)
 
-    def get_R(self):
+    def get_R(self) -> bytes:
         return self.R
 
-    def sign(self, privkey, ebytes):
+    def sign(self, privkey: bytes, ebytes: bytes) -> bytes:
         assert len(privkey) == 32
         assert len(ebytes) == 32
         try:
@@ -248,7 +254,7 @@ class BlindSignatureRequest:
     # See https://neuromancer.sk/std/secg/secp256k1
     fieldsize = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
-    def __init__(self, pubkey, R, message_hash):
+    def __init__(self, pubkey: bytes, R: bytes, message_hash: bytes):
         """Expects three bytes objects"""
         assert isinstance(pubkey, bytes)
         assert isinstance(R, bytes)
@@ -269,7 +275,7 @@ class BlindSignatureRequest:
 
         self.enew = int.from_bytes(ehash, "big") % CURVE_ORDER  # debug
 
-    def _calc_initial(self):
+    def _calc_initial(self) -> None:
         ctx = seclib.ctx
 
         abytes = int(self.a).to_bytes(32, "big")
@@ -340,13 +346,11 @@ class BlindSignatureRequest:
         # calculate the jacobi symbol (+1 or -1). ~30 microsec, because pure python :(
         self.c = jacobi(y, self.fieldsize)
 
-    def get_request(
-        self,
-    ):
+    def get_request(self) -> bytes:
         """returns 32 bytes e value, to be sent to the signer"""
         return int(self.e).to_bytes(32, "big")
 
-    def finalize(self, sbytes, check=True):
+    def finalize(self, sbytes: bytearray, check: bool = True) -> bytes:
         """expects 32 bytes s value, returns 64 byte finished signature
 
         If check=True (default) this will perform a verification of the result.
