@@ -33,7 +33,7 @@ import binascii
 from .x509 import ASN1Node, bytestr_to_int, decode_OID
 
 
-def a2b_base64(s):
+def a2b_base64(s) -> bytearray:
     try:
         b = bytearray(binascii.a2b_base64(s))
     except Exception as e:
@@ -41,11 +41,11 @@ def a2b_base64(s):
     return b
 
 
-def b2a_base64(b):
+def b2a_base64(b) -> bytes:
     return binascii.b2a_base64(b)
 
 
-def dePem(s, name):
+def dePem(s, name) -> bytearray:
     """Decode a PEM string into a bytearray of its payload.
 
     The input must contain an appropriate PEM prefix and postfix
@@ -73,7 +73,7 @@ def dePem(s, name):
     return retBytes
 
 
-def dePemList(s, name):
+def dePemList(s, name) -> list[bytearray]:
     """Decode a sequence of PEM blocks into a list of bytearrays.
 
     The input must contain any number of PEM blocks, each with the appropriate
@@ -112,7 +112,7 @@ def dePemList(s, name):
         s = s[end + len(postfix) :]
 
 
-def pem(b, name):
+def pem(b, name) -> bytes:
     """Encode a payload bytearray into a PEM string.
 
     The input will be base64 encoded, then wrapped in a PEM prefix/postfix
@@ -137,12 +137,12 @@ def pem(b, name):
     return s
 
 
-def pemSniff(inStr, name):
+def pemSniff(inStr, name) -> bool:
     searchStr = "-----BEGIN %s-----" % name
     return searchStr in inStr
 
 
-def parse_private_key(s):
+def parse_private_key(s) -> list[int]:
     """Parse a string containing a PEM-encoded <privateKey>."""
     if pemSniff(s, "PRIVATE KEY"):
         key = dePem(s, "PRIVATE KEY")
@@ -154,7 +154,7 @@ def parse_private_key(s):
         raise SyntaxError("Not a PEM private key file")
 
 
-def _parsePKCS8(key):
+def _parsePKCS8(key) -> list[int]:
     s = ASN1Node(key)
     root = s.root()
     version_node = s.first_child(root)
@@ -171,15 +171,15 @@ def _parsePKCS8(key):
     return _parseASN1PrivateKey(value)
 
 
-def _parseSSLeay(key):
+def _parseSSLeay(key) -> list[int]:
     return _parseASN1PrivateKey(ASN1Node(key))
 
 
-def bytesToNumber(s):
+def bytesToNumber(s) -> int:
     return int(s.hex(), 16)
 
 
-def _parseASN1PrivateKey(s):
+def _parseASN1PrivateKey(s) -> list[int]:
     s = ASN1Node(s)
     root = s.root()
     version_node = s.first_child(root)
