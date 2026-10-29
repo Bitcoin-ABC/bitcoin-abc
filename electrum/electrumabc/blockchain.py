@@ -64,7 +64,7 @@ NULL_HASH_BYTES = bytes([0]) * 32
 NULL_HASH_HEX = NULL_HASH_BYTES.hex()
 
 
-def bits_to_work(bits):
+def bits_to_work(bits) -> int:
     target = bits_to_target(bits)
     if not (0 < target < (1 << 256)):
         return 0
@@ -209,7 +209,7 @@ def get_connecting_chain(header: Header) -> Optional[Blockchain]:
     return None
 
 
-def verify_proven_chunk(chunk_base_height: int, chunk_data: bytes):
+def verify_proven_chunk(chunk_base_height: int, chunk_data: bytes) -> None:
     """Verify a chain of headers. Raises VerifyError if any prev_block_hash does not
     match the hash of the previous header."""
     chunk = HeaderChunk(chunk_base_height, chunk_data)
@@ -253,15 +253,15 @@ class HeaderChunk:
             for i in range(self.header_count)
         ]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "HeaderChunk(base_height={}, header_count={})".format(
             self.base_height, self.header_count
         )
 
-    def get_count(self):
+    def get_count(self) -> int:
         return self.header_count
 
-    def contains_height(self, height: int):
+    def contains_height(self, height: int) -> bool:
         return self.base_height <= height < self.base_height + self.header_count
 
     def get_header_at_height(self, height: int) -> Header:
@@ -287,16 +287,16 @@ class Blockchain(PrintError):
         with self.lock:
             self.update_size()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{}.{} {}>".format(__name__, type(self).__name__, self.format_base())
 
-    def format_base(self):
+    def format_base(self) -> str:
         return "{}@{}".format(self.get_name(), self.get_base_height())
 
     def parent(self) -> Blockchain:
         return blockchains[self.parent_base_height]
 
-    def get_max_child(self):
+    def get_max_child(self) -> int | None:
         children = list(
             filter(
                 lambda y: y.parent_base_height == self.base_height, blockchains.values()
@@ -304,17 +304,17 @@ class Blockchain(PrintError):
         )
         return max([x.base_height for x in children]) if children else None
 
-    def get_base_height(self):
+    def get_base_height(self) -> int:
         mc = self.get_max_child()
         return mc if mc is not None else self.base_height
 
-    def get_branch_size(self):
+    def get_branch_size(self) -> int:
         return self.height() - self.get_base_height() + 1
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.get_hash(self.get_base_height()).lstrip("00")[0:10]
 
-    def check_header(self, header: Header):
+    def check_header(self, header: Header) -> bool:
         """Return True if this chain contains the header at the expected height."""
         header_hash = hash_header(header)
         height = header.get("block_height")
@@ -327,14 +327,14 @@ class Blockchain(PrintError):
         self.save_header(header)
         return self
 
-    def height(self):
+    def height(self) -> int:
         return self.base_height + self.size() - 1
 
-    def size(self):
+    def size(self) -> int:
         with self.lock:
             return self._size
 
-    def update_size(self):
+    def update_size(self) -> None:
         p = self.path()
         self._size = os.path.getsize(p) // HEADER_SIZE if os.path.exists(p) else 0
 
@@ -393,7 +393,7 @@ class Blockchain(PrintError):
             self.verify_header(header, prev_header, bits)
             prev_header = header
 
-    def path(self):
+    def path(self) -> str:
         d = util.get_headers_dir(self.config)
         filename = (
             "blockchain_headers"
@@ -404,7 +404,7 @@ class Blockchain(PrintError):
         )
         return os.path.join(d, filename)
 
-    def save_chunk(self, base_height: int, chunk_data: bytes):
+    def save_chunk(self, base_height: int, chunk_data: bytes) -> None:
         chunk_offset = (base_height - self.base_height) * HEADER_SIZE
         if chunk_offset < 0:
             chunk_data = chunk_data[-chunk_offset:]
@@ -416,7 +416,7 @@ class Blockchain(PrintError):
         self.write(chunk_data, chunk_offset, truncate)
         self.swap_with_parent()
 
-    def swap_with_parent(self):
+    def swap_with_parent(self) -> None:
         if self.parent_base_height is None:
             return
         parent_branch_size = self.parent().height() - self.base_height + 1
@@ -454,7 +454,7 @@ class Blockchain(PrintError):
         blockchains[self.base_height] = self
         blockchains[parent.base_height] = parent
 
-    def write(self, data: bytes, offset: int, truncate=True):
+    def write(self, data: bytes, offset: int, truncate=True) -> None:
         filename = self.path()
         with self.lock:
             with open(filename, "rb+") as f:
@@ -467,7 +467,7 @@ class Blockchain(PrintError):
                 os.fsync(f.fileno())
             self.update_size()
 
-    def save_header(self, header: Header):
+    def save_header(self, header: Header) -> None:
         delta = header.get("block_height") - self.base_height
         data = serialize_header(header)
         assert delta == self.size()
@@ -718,7 +718,7 @@ class Blockchain(PrintError):
             return MAX_BITS
         return target_to_bits(new_target)
 
-    def can_connect(self, header: Header, check_height=True):
+    def can_connect(self, header: Header, check_height=True) -> bool:
         """Return True if header is the next header on this chain."""
         height = header["block_height"]
         if check_height and self.height() != height - 1:
