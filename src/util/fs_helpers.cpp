@@ -39,7 +39,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #else
-#include <io.h>     /* For _get_osfhandle, _chsize */
+#include <io.h>     /* For _get_osfhandle, _chsize_s */
 #include <shlobj.h> /* For SHGetSpecialFolderPathW */
 #endif              // WIN32
 
@@ -152,9 +152,9 @@ void DirectoryCommit(const fs::path &dirname) {
 #endif
 }
 
-bool TruncateFile(FILE *file, unsigned int length) {
+bool TruncateFile(FILE *file, uint64_t length) {
 #if defined(WIN32)
-    return _chsize(_fileno(file), length) == 0;
+    return _chsize_s(_fileno(file), length) == 0;
 #else
     return ftruncate(fileno(file), length) == 0;
 #endif
@@ -191,7 +191,7 @@ int RaiseFileDescriptorLimit(int nMinFD) {
  * (corresponding to disk space) it is advisory, and the range specified in the
  * arguments will never contain live data.
  */
-void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
+void AllocateFileRange(FILE *file, uint64_t offset, unsigned int length) {
 #if defined(WIN32)
     // Windows-specific version.
     HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
@@ -226,7 +226,7 @@ void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
     // Fallback version
     // TODO: just write one byte per block
     static const char buf[65536] = {};
-    if (fseek(file, offset, SEEK_SET)) {
+    if (FileSeek64(file, offset, SEEK_SET)) {
         return;
     }
     while (length > 0) {

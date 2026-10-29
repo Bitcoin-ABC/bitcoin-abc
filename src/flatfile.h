@@ -9,11 +9,12 @@
 #include <serialize.h>
 #include <util/fs.h>
 
+#include <cstdint>
 #include <string>
 
 struct FlatFilePos {
     int nFile{-1};
-    unsigned int nPos{0};
+    uint64_t nPos{0};
 
     SERIALIZE_METHODS(FlatFilePos, obj) {
         READWRITE(VARINT_MODE(obj.nFile, VarIntMode::NONNEGATIVE_SIGNED),
@@ -22,8 +23,7 @@ struct FlatFilePos {
 
     FlatFilePos() = default;
 
-    FlatFilePos(int nFileIn, unsigned int nPosIn)
-        : nFile(nFileIn), nPos(nPosIn) {}
+    FlatFilePos(int nFileIn, uint64_t nPosIn) : nFile(nFileIn), nPos(nPosIn) {}
 
     friend bool operator==(const FlatFilePos &a, const FlatFilePos &b) {
         return (a.nFile == b.nFile && a.nPos == b.nPos);

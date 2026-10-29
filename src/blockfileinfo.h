@@ -15,9 +15,9 @@ public:
     //! number of blocks stored in file
     unsigned int nBlocks;
     //! number of used bytes of block file
-    unsigned int nSize;
+    uint64_t nSize;
     //! number of used bytes in the undo file
-    unsigned int nUndoSize;
+    uint64_t nUndoSize;
     //! lowest height of block in file
     unsigned int nHeightFirst;
     //! highest height of block in file
