@@ -57,7 +57,7 @@ class Contacts(PrintError):
     # Load / Save plus their private methods #
     ##########################################
 
-    def load(self):
+    def load(self) -> None:
         self.data = self._load_from_dict_like_object(self.storage)
 
     @staticmethod
@@ -78,7 +78,7 @@ class Contacts(PrintError):
         return Contacts._load_v2_list(contacts_list)
 
     @staticmethod
-    def _load_v2_list(in_list):
+    def _load_v2_list(in_list) -> list[Contact]:
         out = []
         for d in in_list:
             if not isinstance(d, dict):
@@ -151,7 +151,7 @@ class Contacts(PrintError):
 
         return ret
 
-    def save(self):
+    def save(self) -> None:
         # Note: set v1_too = True if you want to save to v1 so older EC wallets can also see the updated contacts
         d = self._save(self.data, v1_too=False)
         for k, v in d.items():
@@ -220,7 +220,7 @@ class Contacts(PrintError):
             return self.data
         return self.data.copy()
 
-    def replace(self, old: Contact, new: Contact):
+    def replace(self, old: Contact, new: Contact) -> bool:
         """Replaces existing contact old with a new one. Will not add if old
         is not found. Returns True on success or False on error."""
         assert isinstance(new, Contact)
