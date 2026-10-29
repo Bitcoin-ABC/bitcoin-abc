@@ -31,7 +31,7 @@ import hashlib
 import hmac
 import os
 from enum import IntEnum
-from typing import TYPE_CHECKING, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Literal, Optional, Tuple, Union
 
 import pyaes
 
@@ -284,7 +284,7 @@ def push_script(data: str, *, minimal=True) -> str:
     return push_script_bytes(bytes.fromhex(data), minimal=minimal).hex()
 
 
-def hmac_oneshot(key, msg, digest):
+def hmac_oneshot(key, msg, digest) -> bytes:
     """Params key, msg and return val are bytes.
     Digest is a hashlib algorithm, e.g. hashlib.sha512"""
     return hmac.digest(key, msg, digest)
@@ -294,11 +294,11 @@ def hash_encode(x: bytes) -> str:
     return x[::-1].hex()
 
 
-def hash_decode(x):
+def hash_decode(x) -> bytes:
     return bytes.fromhex(x)[::-1]
 
 
-def hmac_sha_512(x, y):
+def hmac_sha_512(x, y) -> bytes:
     return hmac_oneshot(x, y, hashlib.sha512)
 
 
@@ -308,38 +308,38 @@ def hmac_sha_512(x, y):
 # end pywallet openssl private key implementation
 
 
-def hash160_to_b58_address(h160, addrtype):
+def hash160_to_b58_address(h160, addrtype) -> str:
     s = bytes([addrtype])
     s += h160
     return base_encode(s + Hash(s)[0:4], base=58)
 
 
-def b58_address_to_hash160(addr):
+def b58_address_to_hash160(addr) -> tuple[bytes, bytes]:
     addr = to_bytes(addr, "ascii")
     # will raise ValueError on bad characters
     _bytes = base_decode(addr, 25, base=58)
     return _bytes[0], _bytes[1:21]
 
 
-def hash160_to_p2pkh(h160, *, net=None):
+def hash160_to_p2pkh(h160, *, net=None) -> str:
     if net is None:
         net = networks.net
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2PKH)
 
 
-def hash160_to_p2sh(h160, *, net=None):
+def hash160_to_p2sh(h160, *, net=None) -> str:
     if net is None:
         net = networks.net
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2SH)
 
 
-def public_key_to_p2pkh(public_key: bytes, *, net=None):
+def public_key_to_p2pkh(public_key: bytes, *, net=None) -> str:
     if net is None:
         net = networks.net
     return hash160_to_p2pkh(hash_160(public_key), net=net)
 
 
-def pubkey_to_address(txin_type: ScriptType, pubkey: bytes, *, net=None):
+def pubkey_to_address(txin_type: ScriptType, pubkey: bytes, *, net=None) -> str:
     if net is None:
         net = networks.net
     if txin_type == ScriptType.p2pkh:
@@ -395,7 +395,7 @@ def base_encode(v, base) -> str:
     return result.decode("ascii")
 
 
-def base_decode(v: str, length, base) -> Optional[bytes]:
+def base_decode(v: str, length, base) -> bytes | None:
     """decode v into a string of len bytes. May raise ValueError on bad chars
     in string."""
     # assert_bytes(v)
@@ -498,13 +498,13 @@ def deserialize_privkey(key, *, net=None) -> Tuple[ScriptType, bytes, bool]:
         raise ValueError("cannot deserialize", key)
 
 
-def is_compressed(sec, *, net=None):
+def is_compressed(sec, *, net=None) -> bool:
     if net is None:
         net = networks.net
     return deserialize_privkey(sec, net=net)[2]
 
 
-def address_from_private_key(sec, *, net=None):
+def address_from_private_key(sec, *, net=None) -> str:
     if net is None:
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
@@ -512,7 +512,7 @@ def address_from_private_key(sec, *, net=None):
     return pubkey_to_address(txin_type, public_key, net=net)
 
 
-def is_private_key(key, *, net=None):
+def is_private_key(key, *, net=None) -> bool:
     """Returns True if key is a WIF key (and also non bip38)"""
     if net is None:
         net = networks.net
@@ -526,7 +526,7 @@ def is_private_key(key, *, net=None):
 # end pywallet functions
 
 
-def is_minikey(text):
+def is_minikey(text) -> bool:
     # Minikeys are typically 22 or 30 characters, but this routine
     # permits any length of 20 or more provided the minikey is valid.
     # A valid minikey must begin with an 'S', be in base58, and when
@@ -541,14 +541,14 @@ def is_minikey(text):
     )
 
 
-def minikey_to_private_key(text):
+def minikey_to_private_key(text) -> bytes:
     return sha256(text)
 
 
 # BIP38
 
 
-def is_bip38_available(require_fast=True):
+def is_bip38_available(require_fast=True) -> bool:
     """Returns True iff we have the underlying libs to decode Bip38 (scrypt libs).
     Use require_fast=True if we require native code.  Note that the non-native
     code libs are incredibly slow and not suitable for production use."""
@@ -559,14 +559,16 @@ def is_bip38_available(require_fast=True):
     return True
 
 
-def is_bip38_key(bip38str, *, net=None):
+def is_bip38_key(bip38str, *, net=None) -> bool:
     """Returns True iff the '6P...' passed-in string is a valid Bip38 encrypted
     key. False otherwise.  Does not require is_bip38_available to return a valid
     result."""
     return Bip38Key.isBip38(bip38str, net=net)
 
 
-def bip38_decrypt(enc_key, password, *, require_fast=True, net=None):
+def bip38_decrypt(
+    enc_key, password, *, require_fast=True, net=None
+) -> tuple[str, object] | None:
     """Pass a bip38 key eg '6PnQ46rtBGW4XuiudqinAZYobT4Aa8GdtYkjG1LvXK3RBq6ARJA3txjj21'
     and a password. Both should be str's. Returns a tuple of:
     (decrypted_WIF_key_str, Address_object) if decoding succeeds, or an empty
@@ -583,6 +585,9 @@ def bip38_decrypt(enc_key, password, *, require_fast=True, net=None):
     except Bip38Key.Error as e:
         print_error("[bip38_decrypt] Error with key", enc_key, "error was:", repr(e))
     return None
+
+
+Bip38KeyTypeStringT = Literal["UnknownKey", "NonECMultKey", "ECMultKey"]
 
 
 class Bip38Key:
@@ -673,7 +678,7 @@ class Bip38Key:
     class PasswordError(Error, InvalidPassword):
         pass
 
-    def __init__(self, enc, *, net=None):
+    def __init__(self, enc: str, *, net=None):
         if isinstance(enc, (bytearray, bytes)):
             enc = enc.decode("ascii")
         assert isinstance(enc, str), (
@@ -742,7 +747,7 @@ class Bip38Key:
         if self.dec and self.hasLotSequence:
             return (self.entropy[6] & 0x0F) * 256 + self.entropy[7]
 
-    def typeString(self):
+    def typeString(self) -> Bip38KeyTypeStringT:
         if self.typ == Bip38Key.Type.NonECMult:
             return "NonECMultKey"
         if self.typ == Bip38Key.Type.ECMult:
@@ -750,7 +755,7 @@ class Bip38Key:
         return "UnknownKey"
 
     @classmethod
-    def isBip38(cls, bip38_enc_key, *, net=None):
+    def isBip38(cls, bip38_enc_key, *, net=None) -> bool:
         """Returns true if the encryped key string is a valid bip38 key."""
         try:
             cls(bip38_enc_key, net=net)
@@ -760,7 +765,7 @@ class Bip38Key:
             return False
 
     @staticmethod
-    def isFast():
+    def isFast() -> bool:
         """Returns True if the fast hashlib.scrypt implementation is found."""
         cls = __class__
         if cls._scrypt_1 or cls._scrypt_2:
@@ -779,7 +784,7 @@ class Bip38Key:
         return False
 
     @staticmethod
-    def canDecrypt():
+    def canDecrypt() -> bool:
         """Tests if this class can decrypt. If this returns False then we are
         missing the scrypt module: either hashlib.scrypt or pyscrypt"""
         if Bip38Key.isFast():
@@ -793,11 +798,11 @@ class Bip38Key:
         return False
 
     @staticmethod
-    def canEncrypt():
+    def canEncrypt() -> bool:
         return Bip38Key.canDecrypt()
 
     @staticmethod
-    def _scrypt(password, salt, N, r, p, dkLen):
+    def _scrypt(password, salt, N, r, p, dkLen) -> bytes:
         password = to_bytes(password)
         salt = to_bytes(salt)
         if Bip38Key.isFast():
@@ -1131,7 +1136,7 @@ class Bip38Key:
         )
 
     @staticmethod
-    def _int_to_bytes(value, length):
+    def _int_to_bytes(value, length) -> bytes:
         result = []
         for i in range(0, length):
             result.append(value >> (i * 8) & 0xFF)
@@ -1139,13 +1144,13 @@ class Bip38Key:
         return bytes(result)
 
     @staticmethod
-    def _bytes_to_int(by):
+    def _bytes_to_int(by) -> int:
         result = 0
         for b in by:
             result = result * 256 + int(b)
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ret = "<{}:".format(self.__class__.__name__)
         d = dir(self)
         for x in d:
@@ -1161,5 +1166,5 @@ class Bip38Key:
         ret += ">"
         return ret
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.enc
