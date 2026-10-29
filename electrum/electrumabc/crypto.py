@@ -41,13 +41,13 @@ class InvalidPadding(Exception):
     pass
 
 
-def append_PKCS7_padding(data):
+def append_PKCS7_padding(data) -> bytes:
     assert_bytes(data)
     padlen = 16 - (len(data) % 16)
     return data + bytes([padlen]) * padlen
 
 
-def strip_PKCS7_padding(data):
+def strip_PKCS7_padding(data) -> bytes:
     assert_bytes(data)
     if len(data) % 16 != 0 or len(data) == 0:
         raise InvalidPadding("invalid length")
@@ -60,7 +60,7 @@ def strip_PKCS7_padding(data):
     return data[0:-padlen]
 
 
-def aes_encrypt_with_iv(key, iv, data):
+def aes_encrypt_with_iv(key, iv, data) -> bytes:
     assert_bytes(key, iv, data)
     data = append_PKCS7_padding(data)
     if AES:
@@ -72,7 +72,7 @@ def aes_encrypt_with_iv(key, iv, data):
     return e
 
 
-def aes_decrypt_with_iv(key, iv, data):
+def aes_decrypt_with_iv(key, iv, data) -> bytes:
     assert_bytes(key, iv, data)
     if AES:
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -87,7 +87,7 @@ def aes_decrypt_with_iv(key, iv, data):
         raise InvalidPassword()
 
 
-def EncodeAES_bytes(secret, msg):
+def EncodeAES_bytes(secret, msg) -> bytes:
     """Params and retval are all bytes objects."""
     assert_bytes(msg)
     iv = bytes(os.urandom(16))
@@ -95,20 +95,20 @@ def EncodeAES_bytes(secret, msg):
     return iv + ct
 
 
-def EncodeAES_base64(secret, msg):
+def EncodeAES_base64(secret, msg) -> bytes:
     """Returns base64 encoded ciphertext. Params and retval are all bytes."""
     e = EncodeAES_bytes(secret, msg)
     return base64.b64encode(e)
 
 
-def DecodeAES_bytes(secret, ciphertext):
+def DecodeAES_bytes(secret, ciphertext) -> bytes:
     assert_bytes(ciphertext)
     iv, e = ciphertext[:16], ciphertext[16:]
     s = aes_decrypt_with_iv(secret, iv, e)
     return s
 
 
-def DecodeAES_base64(secret, ciphertext_b64):
+def DecodeAES_base64(secret, ciphertext_b64) -> bytes:
     ciphertext = bytes(base64.b64decode(ciphertext_b64))
     return DecodeAES_bytes(secret, ciphertext)
 
@@ -118,7 +118,7 @@ def sha256(x) -> bytes:
     return bytes(hashlib.sha256(x).digest())
 
 
-def Hash(x):
+def Hash(x) -> bytes:
     x = to_bytes(x, "utf8")
     out = bytes(sha256(sha256(x)))
     return out
@@ -139,7 +139,7 @@ def hash_160(public_key: bytes) -> bytes:
         return md.digest()
 
 
-def pw_encode(s, password):
+def pw_encode(s, password) -> str:
     if password:
         secret = Hash(password)
         return EncodeAES_base64(secret, to_bytes(s, "utf8")).decode("utf8")
@@ -147,7 +147,7 @@ def pw_encode(s, password):
         return s
 
 
-def pw_decode(s, password):
+def pw_decode(s, password) -> str:
     if password is not None:
         secret = Hash(password)
         try:
