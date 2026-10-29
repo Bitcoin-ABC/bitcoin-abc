@@ -193,7 +193,9 @@ class ECPubkey(object):
             self._x, self._y = _x_and_y_from_pubkey_bytes(b)
 
     @classmethod
-    def from_sig_string(cls, sig_string: bytes, recid: int, msg_hash: bytes):
+    def from_sig_string(
+        cls, sig_string: bytes, recid: int, msg_hash: bytes
+    ) -> ECPubkey:
         assert_bytes(sig_string)
         if len(sig_string) != 64:
             raise Exception("Wrong encoding")
@@ -212,7 +214,7 @@ class ECPubkey(object):
         return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey)
 
     @classmethod
-    def from_signature65(cls, sig: bytes, msg_hash: bytes):
+    def from_signature65(cls, sig: bytes, msg_hash: bytes) -> ECPubkey:
         if len(sig) != 65:
             raise Exception("Wrong encoding")
         nV = sig[0]
@@ -235,7 +237,7 @@ class ECPubkey(object):
         )
         return ECPubkey(_bytes)
 
-    def get_public_key_bytes(self, compressed=True):
+    def get_public_key_bytes(self, compressed=True) -> bytes:
         if self.is_at_infinity():
             raise InvalidECPointException("point is at infinity")
         x = int.to_bytes(self.x(), length=32, byteorder="big", signed=False)
@@ -247,7 +249,7 @@ class ECPubkey(object):
             header = b"\x04"
             return header + x + y
 
-    def get_public_key_hex(self, compressed=True):
+    def get_public_key_hex(self, compressed=True) -> str:
         return self.get_public_key_bytes(compressed).hex()
 
     def point(self) -> EcCoordinates:
@@ -259,7 +261,7 @@ class ECPubkey(object):
     def y(self) -> int:
         return self._y
 
-    def _to_libsecp256k1_pubkey_ptr(self):
+    def _to_libsecp256k1_pubkey_ptr(self) -> Array[c_char]:
         pubkey = create_string_buffer(64)
         public_pair_bytes = self.get_public_key_bytes(compressed=False)
         ret = secp256k1.secp256k1_ec_pubkey_parse(
@@ -282,7 +284,7 @@ class ECPubkey(object):
         )
         return ECPubkey(bytes(pubkey_serialized))
 
-    def __mul__(self, other: int):
+    def __mul__(self, other: int) -> ECPubkey:
         if not isinstance(other, int):
             raise TypeError(
                 f"multiplication not defined for ECPubkey and {type(other)}"
@@ -299,10 +301,10 @@ class ECPubkey(object):
             return POINT_AT_INFINITY
         return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey)
 
-    def __rmul__(self, other: int):
+    def __rmul__(self, other: int) -> ECPubkey:
         return self * other
 
-    def __add__(self, other):
+    def __add__(self, other) -> ECPubkey:
         if not isinstance(other, ECPubkey):
             raise TypeError(f"addition not defined for ECPubkey and {type(other)}")
         if self.is_at_infinity():
@@ -329,7 +331,7 @@ class ECPubkey(object):
             return False
         return self.point() == other.point()
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not (self == other)
 
     def verify_message(
@@ -371,7 +373,7 @@ class ECPubkey(object):
             secp256k1.ctx, sig, msg_hash, pubkey
         )
 
-    def encrypt_message(self, message: bytes, magic=b"BIE1"):
+    def encrypt_message(self, message: bytes, magic=b"BIE1") -> bytes:
         """
         ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the
          cipher; hmac-sha256 is used as the mac
@@ -399,10 +401,10 @@ class ECPubkey(object):
         return base64.b64encode(encrypted + mac)
 
     @classmethod
-    def order(cls):
+    def order(cls) -> int:
         return CURVE_ORDER
 
-    def is_at_infinity(self):
+    def is_at_infinity(self) -> bool:
         return self == POINT_AT_INFINITY
 
 
@@ -474,14 +476,14 @@ class ECPrivkey(ECPubkey):
         super().__init__(pubkey.get_public_key_bytes(compressed=False))
 
     @classmethod
-    def from_secret_scalar(cls, secret_scalar: int):
+    def from_secret_scalar(cls, secret_scalar: int) -> ECPrivkey:
         secret_bytes = int.to_bytes(
             secret_scalar, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
         )
         return ECPrivkey(secret_bytes)
 
     @classmethod
-    def from_arbitrary_size_secret(cls, privkey_bytes: bytes):
+    def from_arbitrary_size_secret(cls, privkey_bytes: bytes) -> ECPrivkey:
         """This method is only for wallet file encryption using arbitrary password data.
         Do not introduce new code that uses it.
         Unlike the default constructor, this method does not verify the privkey's length
@@ -508,7 +510,7 @@ class ECPrivkey(ECPubkey):
         nonce_function = None
         sig = create_string_buffer(64)
 
-        def sign_with_extra_entropy(extra_entropy):
+        def sign_with_extra_entropy(extra_entropy) -> tuple[int, int]:
             ret = secp256k1.secp256k1_ecdsa_sign(
                 secp256k1.ctx,
                 sig,
@@ -543,7 +545,7 @@ class ECPrivkey(ECPubkey):
         sig = sigencode(r, s)
         return sig
 
-    def sign_transaction(self, hashed_preimage):
+    def sign_transaction(self, hashed_preimage) -> bytes:
         return self.sign(
             hashed_preimage,
             sigencode=der_sig_from_r_and_s,
@@ -556,7 +558,7 @@ class ECPrivkey(ECPubkey):
         *,
         sigtype: SignatureType = SignatureType.ECASH,
     ) -> bytes:
-        def bruteforce_recid(sig_string):
+        def bruteforce_recid(sig_string) -> tuple[bytes, int]:
             for recid in range(4):
                 sig65 = construct_sig65(sig_string, recid, is_compressed)
                 if not self.verify_message(sig65, message, sigtype=sigtype):
@@ -574,7 +576,7 @@ class ECPrivkey(ECPubkey):
         sig65, recid = bruteforce_recid(sig_string)
         return sig65
 
-    def decrypt_message(self, encrypted, magic=b"BIE1"):
+    def decrypt_message(self, encrypted, magic=b"BIE1") -> bytes:
         encrypted = base64.b64decode(encrypted)
         if len(encrypted) < 85:
             raise Exception("invalid ciphertext: length")
@@ -598,6 +600,6 @@ class ECPrivkey(ECPubkey):
         return aes_decrypt_with_iv(key_e, iv, ciphertext)
 
 
-def construct_sig65(sig_string, recid, is_compressed):
+def construct_sig65(sig_string, recid, is_compressed) -> bytes:
     comp = 4 if is_compressed else 0
     return bytes([27 + recid + comp]) + sig_string
