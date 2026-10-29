@@ -2,8 +2,10 @@ import sys
 import threading
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from contextlib import suppress
 from traceback import format_exception
+from typing import TextIO
 
 from .monotonic import Monotonic
 
@@ -11,20 +13,20 @@ from .monotonic import Monotonic
 class PrintError:
     """A handy base class for printing formatted log messages"""
 
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         return self.__class__.__name__
 
-    def print_error(self, *msg):
+    def print_error(self, *msg) -> None:
         # only prints with --verbose flag
         print_error(f"[{self.diagnostic_name()}]", *msg)
 
-    def print_stderr(self, *msg):
+    def print_stderr(self, *msg) -> None:
         print_stderr(f"[{self.diagnostic_name()}]", *msg)
 
-    def print_msg(self, *msg):
+    def print_msg(self, *msg) -> None:
         print_msg(f"[{self.diagnostic_name()}]", *msg)
 
-    def print_exception(self, *msg):
+    def print_exception(self, *msg) -> None:
         text = " ".join(str(item) for item in msg)
         text += ": "
         text += "".join(format_exception(*sys.exc_info()))
@@ -33,7 +35,7 @@ class PrintError:
     SPAM_MSG_RATE_LIMIT = 1.0  # Once every second
     _print_error_last_spam_msg = 0.0
 
-    def _spam_common(self, method, *args):
+    def _spam_common(self, method: Callable[..., None], *args) -> None:
         """Used internally to control spam messages. *All* messages called with
         spam_* are suppressed to max once every SPAM_MSG_RATE_LIMIT seconds"""
         now = time.time()
@@ -41,15 +43,15 @@ class PrintError:
             method(*args)
             self._print_error_last_spam_msg = now
 
-    def spam_error(self, *args):
+    def spam_error(self, *args) -> None:
         """Like self.print_error except it only prints the supplied args
         once every self.SPAM_MSG_RATE_LIMIT seconds."""
         self._spam_common(self.print_error, *args)
 
-    def spam_msg(self, *args):
+    def spam_msg(self, *args) -> None:
         self._spam_common(self.print_msg, *args)
 
-    def spam_stderr(self, *args):
+    def spam_stderr(self, *args) -> None:
         self._spam_common(self.print_stderr, *args)
 
 
@@ -58,7 +60,7 @@ verbose_timestamps = True
 verbose_thread_id = True
 
 
-def set_verbosity(b, *, timestamps=True, thread_id=True):
+def set_verbosity(b: bool, *, timestamps: bool = True, thread_id: bool = True) -> None:
     global is_verbose, verbose_timestamps, verbose_thread_id
     is_verbose = b
     verbose_timestamps = timestamps
@@ -71,7 +73,7 @@ _human_readable_thread_ids_lock = threading.Lock()
 _t0 = time.time()
 
 
-def print_error(*args):
+def print_error(*args) -> None:
     if not is_verbose:
         return
     if verbose_thread_id:
@@ -87,7 +89,7 @@ def print_error(*args):
 _print_lock = threading.RLock()
 
 
-def _print_common(file, *args):
+def _print_common(file: TextIO, *args) -> None:
     # newline at end *should* implicitly .flush() underlying stream, but not always if
     # redirecting to file
     s_args = " ".join(str(item) for item in args) + "\n"
@@ -101,9 +103,9 @@ def _print_common(file, *args):
         file.flush()
 
 
-def print_stderr(*args):
+def print_stderr(*args) -> None:
     _print_common(sys.stderr, *args)
 
 
-def print_msg(*args):
+def print_msg(*args) -> None:
     _print_common(sys.stdout, *args)
