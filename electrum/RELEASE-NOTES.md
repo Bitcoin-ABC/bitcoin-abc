@@ -1,5 +1,22 @@
 # Release notes
 
+## Release 5.5.3
+
+- Improve handling of malformed server responses (D20759, D20786).
+- Fix OpenAlias lookups (D20819).
+- Improve verification of the date validity for chains of X.509
+  certificates (D20824).
+- Improve handling of malformed payment requests (D20823, D20830).
+- Improve UI for adding coins to an Avalanche Proof with hardware wallets:
+  do not re-sign already signed stakes if the stake commitment did not
+  change (D20844).
+- Update CA bundles to reject compromised eMudhra certificates (D20880,
+  D20887, D20907).
+- Fix several user-facing bugs for Satochip wallets and add support for
+  the upcoming applet v0.16 (D20888).
+- Miscellaneous code quality improvements (type annotations, linter rules).
+
+
 ## Release 5.5.2
 
 - Sanitize error logs to avoid logging secrets in verbose mode (D20473).
