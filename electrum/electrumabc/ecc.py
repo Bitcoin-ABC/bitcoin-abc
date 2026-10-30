@@ -424,7 +424,7 @@ def verify_message_with_address(
     message: bytes,
     *,
     sigtype: SignatureType = SignatureType.ECASH,
-    net: Optional[networks.AbstractNet] = None,
+    net: type[networks.AbstractNetProtocol] | None = None,
 ) -> bool:
     # Fixme: circular import address -> ecc -> address
     from .address import Address

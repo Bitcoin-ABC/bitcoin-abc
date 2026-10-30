@@ -26,6 +26,8 @@
 import json
 import pkgutil
 import re
+from collections.abc import Sequence
+from typing import Any, ClassVar, Protocol, TypeVar
 
 from .asert_daa import Anchor, ASERTDaa
 from .constants import (
@@ -39,7 +41,7 @@ from .constants import (
 from .printerror import print_error
 
 
-def _read_json_dict(filename):
+def _read_json_dict(filename: str) -> Any:
     try:
         data = pkgutil.get_data(__name__, filename)
         r = json.loads(data.decode("utf-8"))
@@ -48,8 +50,36 @@ def _read_json_dict(filename):
     return r
 
 
+class AbstractNetProtocol(Protocol):
+    TESTNET: ClassVar[bool]
+
+    CASHADDR_PREFIX: ClassVar[str]
+    CASHADDR_PREFIX_BCH: ClassVar[str]
+
+    GENESIS: ClassVar[str]
+    WIF_PREFIX: ClassVar[int]
+    CW144_HEIGHT: ClassVar[int]
+
+    DEFAULT_PORTS: ClassVar[dict[str, str]]
+    DEFAULT_SERVERS: ClassVar[dict[str, dict[str, str]]]
+
+    BITCOIN_CASH_FORK_BLOCK_HEIGHT: ClassVar[int]
+    BITCOIN_CASH_FORK_BLOCK_HASH: ClassVar[str]
+
+    ADDRTYPE_P2PKH: ClassVar[int]
+    ADDRTYPE_P2SH: ClassVar[int]
+
+    VERIFICATION_BLOCK_HEIGHT: ClassVar[int]
+    VERIFICATION_BLOCK_MERKLE_ROOT: ClassVar[str]
+
+    XPRV_HEADERS: ClassVar[dict[str, int]]
+    XPUB_HEADERS: ClassVar[dict[str, int]]
+
+    asert_daa: ClassVar[ASERTDaa]
+
+
 class AbstractNet:
-    TESTNET = False
+    TESTNET: ClassVar[bool] = False
     REGTEST = False
     # 2 weeks
     LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60
@@ -61,8 +91,8 @@ class AbstractNet:
     )
 
 
-class MainNet(AbstractNet):
-    TESTNET = False
+class MainNet(AbstractNetProtocol, AbstractNet):
+    TESTNET: ClassVar[bool] = False
     WIF_PREFIX = 0x80
     ADDRTYPE_P2PKH = 0
     ADDRTYPE_P2SH = 5
@@ -112,7 +142,7 @@ class MainNet(AbstractNet):
     }
 
 
-class TestNet(AbstractNet):
+class TestNet(AbstractNetProtocol, AbstractNet):
     TESTNET = True
 
     WIF_PREFIX = 0xEF
@@ -172,26 +202,29 @@ class RegtestNet(TestNet):
 
 
 # All new code should access this to get the current network config.
-net = MainNet
+net: type[AbstractNetProtocol] = MainNet
 
 
-def set_mainnet():
+def set_mainnet() -> None:
     global net
     net = MainNet
 
 
-def set_testnet():
+def set_testnet() -> None:
     global net
     net = TestNet
 
 
-def set_regtest():
+def set_regtest() -> None:
     global net
     net = RegtestNet
 
 
+T = TypeVar("T")
+
+
 # Compatibility
-def _instancer(cls):
+def _instancer(cls: type[T]) -> T:
     return cls()
 
 
@@ -205,10 +238,10 @@ class NetworkConstants:
     We have transitioned away from this class. All new code should use the
     'net' global variable above instead."""
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
         return getattr(net, name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: Any, value: Any) -> None:
         raise RuntimeError(
             "NetworkConstants does not support setting attributes! ({}={})".format(
                 name, value
@@ -217,9 +250,9 @@ class NetworkConstants:
         # setattr(net, name, value)
 
 
-def parse_servers(result):
+def parse_servers(result: Sequence[Sequence[Any]]) -> dict[str, dict[str, Any]]:
     """parse servers list into dict format"""
-    servers = {}
+    servers: dict[str, dict[str, Any]] = {}
     for item in result:
         try:
             host = item[1]

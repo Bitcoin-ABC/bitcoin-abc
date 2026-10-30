@@ -397,7 +397,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         cls,
         string: str,
         *,
-        net: Optional[networks.AbstractNet] = None,
+        net: type[networks.AbstractNetProtocol] | None = None,
         support_arbitrary_prefix: bool = False,
     ) -> Address:
         """Construct from a cashaddress string.
@@ -438,7 +438,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         cls,
         string: str,
         *,
-        net: Optional[networks.AbstractNet] = None,
+        net: type[networks.AbstractNetProtocol] | None = None,
         support_arbitrary_prefix: bool = False,
     ) -> Address:
         """Construct from an address string.
