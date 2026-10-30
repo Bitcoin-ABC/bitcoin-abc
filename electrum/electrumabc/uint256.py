@@ -23,7 +23,7 @@ class BaseBlob:
     def is_null(self) -> bool:
         return not self.data or all(b == 0 for b in self.data)
 
-    def set_null(self):
+    def set_null(self) -> None:
         self.data = b"\x00" * self.WIDTH
 
     def compare(self, other: BaseBlob) -> int:
@@ -38,28 +38,30 @@ class BaseBlob:
             return 1
         return 0
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BaseBlob):
+            return False
         return self.compare(other) == 0
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.data, self.WIDTH))
 
-    def __lt__(self, other):
+    def __lt__(self, other: BaseBlob) -> bool:
         return self.compare(other) < 0
 
-    def __gt__(self, other):
+    def __gt__(self, other: BaseBlob) -> bool:
         return self.compare(other) > 0
 
-    def __ge__(self, other):
+    def __ge__(self, other: BaseBlob) -> bool:
         return self.compare(other) >= 0
 
-    def __le__(self, other):
+    def __le__(self, other: BaseBlob) -> bool:
         return self.compare(other) <= 0
 
     def serialize(self) -> bytes:
         return self.data
 
-    def unserialize(self, data: bytes):
+    def unserialize(self, data: bytes) -> None:
         """Deserialize into an existing instance from bytes"""
         if len(data) != self.WIDTH:
             raise DeserializationError(
