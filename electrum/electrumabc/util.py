@@ -210,7 +210,7 @@ class DaemonThread(threading.Thread, PrintError):
             self.running = True
         return threading.Thread.start(self)
 
-    def is_running(self) -> None:
+    def is_running(self) -> bool:
         with self.running_lock:
             return self.running and self.parent_thread.is_alive()
 

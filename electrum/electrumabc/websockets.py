@@ -28,6 +28,8 @@ import queue
 import threading
 from collections import defaultdict
 
+from electrumabc.network import Network
+
 from .printerror import PrintError
 from .simple_config import ConfigKeys, SimpleConfig
 
@@ -41,33 +43,33 @@ except ImportError:
 from . import util
 from .address import Address
 
-request_queue = queue.Queue()
+request_queue: queue.Queue[tuple[WebSocket, str]] = queue.Queue()
 
 
 class ElectrumWebSocket(WebSocket, PrintError):
-    def handleMessage(self):
+    def handleMessage(self) -> None:
         assert self.data[:3] == "id:"
         self.print_error("message received", self.data)
-        request_id = self.data[3:]
+        request_id: str = self.data[3:]
         request_queue.put((self, request_id))
 
-    def handleConnected(self):
+    def handleConnected(self) -> None:
         self.print_error("connected", self.address)
 
-    def handleClose(self):
+    def handleClose(self) -> None:
         self.print_error("closed", self.address)
 
 
 class WsClientThread(util.DaemonThread):
-    def __init__(self, config: SimpleConfig, network):
+    def __init__(self, config: SimpleConfig, network: Network | None):
         super().__init__()
         self.network = network
         self.config = config
         self.response_queue = queue.Queue()
-        self.subscriptions = defaultdict(list)
-        self.sh2addr = {}
+        self.subscriptions: dict[Address, tuple[WebSocket, float]] = defaultdict(list)
+        self.sh2addr: dict[str, Address] = {}
 
-    def make_request(self, request_id):
+    def make_request(self, request_id: str) -> tuple[str, float]:
         # read json file
         rdir = self.config.get(ConfigKeys.PAYMENTREQUESTS_DIR)
         n = os.path.join(
@@ -80,7 +82,7 @@ class WsClientThread(util.DaemonThread):
         amount = d.get("amount")
         return addr, amount
 
-    def reading_thread(self):
+    def reading_thread(self) -> None:
         while self.is_running():
             try:
                 ws, request_id = request_queue.get()
@@ -105,7 +107,7 @@ class WsClientThread(util.DaemonThread):
                 [("blockchain.scripthash.subscribe", [h])], self.response_queue.put
             )
 
-    def run(self):
+    def run(self) -> None:
         threading.Thread(target=self.reading_thread).start()
         while self.is_running():
             try:
@@ -137,13 +139,13 @@ class WsClientThread(util.DaemonThread):
 
 
 class WebSocketServer(threading.Thread):
-    def __init__(self, config: SimpleConfig, ns):
+    def __init__(self, config: SimpleConfig, ns: Network | None):
         threading.Thread.__init__(self)
         self.config = config
         self.net_server = ns
         self.daemon = True
 
-    def run(self):
+    def run(self) -> None:
         t = WsClientThread(self.config, self.net_server)
         t.start()
 
