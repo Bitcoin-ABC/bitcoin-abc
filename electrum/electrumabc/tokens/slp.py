@@ -147,7 +147,7 @@ class Message:
     due to the guarded __init__ which validates the chunks and raises upon
     parse errors."""
 
-    __slots__ = ("chunks",)  # Tuple[bytes]
+    __slots__ = ("chunks",)
 
     # -- FACTORY METHOD(s) and CONSTRUCTOR --
     def __init__(self, chunks: object) -> None:
@@ -176,7 +176,7 @@ class Message:
         if any(not isinstance(b, bytes) for b in chunks):
             # ensure bytes and not bytearray
             chunks = tuple(bytes(b) for b in chunks)
-        self.chunks = chunks
+        self.chunks: tuple[bytes, ...] = chunks
         if not self._is_valid_or_raise():
             raise RuntimeError("FIXME -- Should not be reached")
 
@@ -205,7 +205,7 @@ class Message:
         return hash(self.chunks)
 
     @property
-    def valid_properties(self) -> Tuple[str]:
+    def valid_properties(self) -> tuple[str, ...]:
         """Returns the expected valid properties for this instance
         based on self.transaction_type. Raises Error if unknown
         transaction_type."""
@@ -359,8 +359,8 @@ class Message:
         return self.token_id.hex()
 
     @property
-    def token_output(self) -> Tuple[int]:  # ret[0] is always 0
-        """Returns the token output as a list of ints.
+    def token_output(self) -> tuple[int, ...]:  # ret[0] is always 0
+        """Returns the token output as a tuple of ints.
         Note that we put an explicit 0 for self.token_output[0] since it
         corresponds to vout=0, which is the OP_RETURN tx output.
         token_output[1] is the first token output given by the SLP

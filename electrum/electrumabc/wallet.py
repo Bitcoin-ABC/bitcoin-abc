@@ -674,7 +674,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             self._change_address_set_cached = frozenset(ca)
         return address in self._change_address_set_cached
 
-    def get_address_index(self, address: Address) -> Tuple[int]:
+    def get_address_index(self, address: Address) -> tuple[int, int]:
         """Return last two elements of the bip 44 path (change, address_index)
         for an address in the wallet."""
         try:

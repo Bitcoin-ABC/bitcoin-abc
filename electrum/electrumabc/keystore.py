@@ -162,7 +162,7 @@ class SoftwareKeyStore(KeyStore):
     def sign_stake(
         self,
         stake: Stake,
-        index: Tuple[int],
+        index: tuple[int, int],
         expiration_time: int,
         master_pubkey: avalanche.primitives.PublicKey,
         password: Optional[str],
@@ -555,7 +555,7 @@ class OldKeyStore(DeterministicKeyStore):
         )
         return pk
 
-    def get_private_key(self, sequence, password):
+    def get_private_key(self, sequence: tuple[int, int], password):
         seed = self.get_hex_seed(password)
         secexp = self.check_seed(seed)
         for_change, n = sequence
@@ -703,7 +703,7 @@ class HardwareKeyStore(KeyStore, Xpub):
     def sign_stake(
         self,
         stake: Stake,
-        index: Tuple[int],
+        index: tuple[int, int],
         expiration_time: int,
         master_pubkey: avalanche.primitives.PublicKey,
         password: Optional[str],

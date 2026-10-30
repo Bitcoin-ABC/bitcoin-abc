@@ -322,7 +322,7 @@ def bip32_public_derivation(xpub, branch, sequence, *, net=None) -> str:
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
-def bip32_private_key(sequence, k, chain) -> bytes:
+def bip32_private_key(sequence: tuple[int, ...], k, chain) -> bytes:
     for i in sequence:
         k, chain = CKD_priv(k, chain, i)
     return k
