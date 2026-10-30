@@ -34,7 +34,7 @@ import threading
 import time
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, TypedDict
 
 import certifi
 from pathvalidate import sanitize_filename
@@ -53,6 +53,17 @@ if TYPE_CHECKING:
     InterfaceRequest = tuple[str, list[Any], int]
     """(method, params, id)"""
 
+    InterfaceResponse = tuple[InterfaceRequest | None, dict | None]
+
+    class InterfaceJsonRPCRequest(TypedDict):
+        jsonrpc: str
+        method: str
+        params: list[Any]
+        id: int
+
+    ConnectionQueueT = Queue[tuple[str, socket.socket | None]]
+
+
 ca_path = certifi.where()
 
 PING_INTERVAL = 300
@@ -63,9 +74,9 @@ REQUEST_TIMEOUT = 30
 
 def Connection(
     server: str,
-    queue: Queue,
+    queue: ConnectionQueueT,
     config_path: str,
-    callback: Optional[Callable[[TcpConnection], None]] = None,
+    callback: Callable[[TcpConnection], None] | None = None,
 ) -> TcpConnection:
     """Makes asynchronous connections to a remote electrum server.
     Returns the running thread that is making the connection.
@@ -93,10 +104,15 @@ class TcpConnection(threading.Thread, PrintError):
     override_ca_certs: str | None = None
     override_host: str | None = None
 
-    def __init__(self, server: str, queue: Queue, config_path: str):
+    def __init__(
+        self,
+        server: str,
+        queue: ConnectionQueueT,
+        config_path: str,
+    ):
         threading.Thread.__init__(self)
         self.config_path: str = config_path
-        self.queue: Queue = queue
+        self.queue = queue
         self.server: str = server
         host, port, protocol = self.server.rsplit(":", 2)
         self.host: str = host
@@ -116,13 +132,13 @@ class TcpConnection(threading.Thread, PrintError):
         except OverflowError:
             # This can happen if user specifies a huge port out of 32-bit range. See #985
             self.print_error("port invalid:", self.port)
-            return
+            return None
         except socket.gaierror:
             self.print_error("cannot resolve hostname")
-            return
+            return None
         except UnicodeError:
             self.print_error("hostname cannot be decoded with 'idna' codec")
-            return
+            return None
         e = None
         for res in addr_info:
             try:
@@ -137,10 +153,13 @@ class TcpConnection(threading.Thread, PrintError):
                 continue
         else:
             self.print_error("failed to connect", str(e))
+        return None
 
     @staticmethod
     def get_ssl_context(
-        cert_reqs, ca_certs, check_hostname: bool = False
+        cert_reqs: ssl.VerifyMode,
+        ca_certs: str | None,
+        check_hostname: bool = False,
     ) -> ssl.SSLContext:
         context = ssl.create_default_context(
             purpose=ssl.Purpose.SERVER_AUTH, cafile=ca_certs
@@ -152,7 +171,7 @@ class TcpConnection(threading.Thread, PrintError):
 
         return context
 
-    def _get_socket_and_verify_ca_cert(self) -> Optional[ssl.SSLSocket]:
+    def _get_socket_and_verify_ca_cert(self) -> ssl.SSLSocket | None:
         """Attempts to connect to the remote host, assuming it is using a CA
         signed certificate. If the cert is valid then a SSLSocket is returned.
         Otherwise None is returned on error."""
@@ -160,7 +179,7 @@ class TcpConnection(threading.Thread, PrintError):
         if s is None:
             return None
 
-        ca_certs = self.override_ca_certs if self.override_ca_certs else ca_path
+        ca_certs = self.override_ca_certs or ca_path
         context = self.get_ssl_context(
             cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_certs, check_hostname=True
         )
@@ -169,8 +188,10 @@ class TcpConnection(threading.Thread, PrintError):
         )
 
     def _get_socket_and_verify_ca_cert_checked(
-        self, *, suppress_errors
-    ) -> tuple[Optional[ssl.SSLSocket], bool]:
+        self,
+        *,
+        suppress_errors: bool,
+    ) -> tuple[ssl.SSLSocket | None, bool]:
         """Attempts to connect to the remote host, assuming it is using a CA
         signed certificate. If the cert is valid then a tuple of: (wrapped
         SSLSocket, False) is returned. Otherwise (None, bool) is returned on
@@ -195,7 +216,8 @@ class TcpConnection(threading.Thread, PrintError):
         # inform caller to abort the operation
         return None, True
 
-    def get_socket(self) -> ssl.SSLSocket | None:
+    def get_socket(self) -> socket.socket | None:
+        s: socket.socket | None
         if self.use_ssl:
             # Try with CA first, since they are preferred over self-signed certs
             # and are always accepted (even if a previous pinned self-signed
@@ -227,7 +249,7 @@ class TcpConnection(threading.Thread, PrintError):
                 return s
             elif give_up:
                 # low-level error in _get_socket_and_verify_ca_cert_checked, give up
-                return
+                return None
             # if we get here, certificate is not CA signed, so try the alternate
             # "pinned self-signed" method.
             if not has_pinned_self_signed:
@@ -236,7 +258,7 @@ class TcpConnection(threading.Thread, PrintError):
                 # because it does not work with proxy
                 s = self.get_simple_socket()
                 if s is None:
-                    return
+                    return None
                 try:
                     context = self.get_ssl_context(
                         cert_reqs=ssl.CERT_NONE, ca_certs=None
@@ -244,9 +266,9 @@ class TcpConnection(threading.Thread, PrintError):
                     s = context.wrap_socket(s)
                 except ssl.SSLError as e:
                     self.print_error("SSL error retrieving SSL certificate:", e)
-                    return
+                    return None
                 except Exception:
-                    return
+                    return None
 
                 dercert = s.getpeercert(True)
                 s.close()
@@ -269,7 +291,7 @@ class TcpConnection(threading.Thread, PrintError):
 
         s = self.get_simple_socket()
         if s is None:
-            return
+            return None
 
         if self.use_ssl:
             try:
@@ -280,11 +302,11 @@ class TcpConnection(threading.Thread, PrintError):
                 s = context.wrap_socket(s, do_handshake_on_connect=True)
             except socket.timeout:
                 self.print_error("timeout")
-                return
+                return None
             except ssl.SSLError as e:
                 self.print_error("SSL error:", e)
                 if e.errno != 1:
-                    return
+                    return None
                 if is_new:
                     rej = cert_path + ".rej"
                     try:
@@ -310,7 +332,7 @@ class TcpConnection(threading.Thread, PrintError):
                             traceback.print_exc(file=sys.stderr)
                         self.print_error("wrong certificate")
                         self.bad_certificate(self.server, cert_path)
-                        return
+                        return None
                     try:
                         x.check_date()
                     except Exception:
@@ -324,12 +346,12 @@ class TcpConnection(threading.Thread, PrintError):
                                 cert_path,
                                 repr(e2),
                             )
-                        return
+                        return None
                     self.print_error("wrong certificate")
                     self.bad_certificate(self.server, cert_path)
                 if e.errno == 104:
-                    return
-                return
+                    return None
+                return None
 
             if is_new:
                 self.print_error("saving certificate")
@@ -375,7 +397,7 @@ class JSONSocketPipe(PrintError):
     class Closed(RuntimeError):
         """Raised if socket is closed"""
 
-    def __init__(self, sock: ssl.SSLSocket, *, max_message_bytes: int = 0):
+    def __init__(self, sock: socket.socket, *, max_message_bytes: int = 0):
         """A max_message_bytes of <= 0 means unlimited, otherwise a positive
         value indicates this many bytes to limit the message size by. This is
         used by get(), which will raise MessageSizeExceeded if the message size
@@ -398,11 +420,10 @@ class JSONSocketPipe(PrintError):
         write_pending - some send data is still buffered, so make sure to call
             send_flush if writing becomes available.
         """
-        try:
-            # pending() only defined on SSL sockets.
-            has_pending = self.socket.pending() > 0
-        except AttributeError:
-            has_pending = False
+        # pending() only defined on SSL sockets.
+        has_pending = (
+            isinstance(self.socket, ssl.SSLSocket) and self.socket.pending() > 0
+        )
         return has_pending, bool(self.send_buf)
 
     def get(self) -> Any:
@@ -445,13 +466,12 @@ class JSONSocketPipe(PrintError):
                     " exceeded this limit!"
                 )
 
-    def send(self, request) -> None:
-        out = json.dumps(request) + "\n"
-        out = out.encode("utf8")
+    def send(self, request: InterfaceJsonRPCRequest) -> None:
+        out = (json.dumps(request) + "\n").encode("utf8")
         self.send_buf.extend(out)
         return self.send_flush()
 
-    def send_all(self, requests) -> None:
+    def send_all(self, requests: list[InterfaceJsonRPCRequest]) -> None:
         out = b"".join((json.dumps(req) + "\n").encode("utf8") for req in requests)
         self.send_buf.extend(out)
         return self.send_flush()
@@ -579,10 +599,10 @@ class Interface(PrintError):
     def __init__(
         self,
         server: str,
-        socket: ssl.SSLSocket,
+        socket: socket.socket,
         *,
         max_message_bytes: int = 0,
-        config: Optional[SimpleConfig] = None,
+        config: SimpleConfig | None = None,
     ):
         self.server = server
         self.config = config
@@ -601,11 +621,11 @@ class Interface(PrintError):
         """{id: (method, params, id), ...}"""
         self.last_send = time.time()
 
-        self.mode: Optional[Interface.Mode] = None
+        self.mode: Interface.Mode | None = None
 
         # Set and used in network.py
-        self.blockchain: Optional[Blockchain] = None
-        self.tip_header: Optional[Header] = None
+        self.blockchain: Blockchain | None = None
+        self.tip_header: Header | None = None
         self.tip = 0
         """Tip height"""
 
@@ -655,9 +675,7 @@ class Interface(PrintError):
     req_throttle_default = ReqThrottleParams(2000, 100)
 
     @classmethod
-    def get_req_throttle_params(
-        cls, config: Optional[SimpleConfig]
-    ) -> ReqThrottleParams:
+    def get_req_throttle_params(cls, config: SimpleConfig | None) -> ReqThrottleParams:
         tup = config and config.get("network_unanswered_requests_throttle")
         if not isinstance(tup, (list, tuple)) or len(tup) != 2:
             return cls.req_throttle_default
@@ -667,9 +685,9 @@ class Interface(PrintError):
     @classmethod
     def set_req_throttle_params(
         cls,
-        config: Optional[SimpleConfig],
-        max_unanswered_requests: Optional[int] = None,
-        chunkSize: Optional[int] = None,
+        config: SimpleConfig | None,
+        max_unanswered_requests: int | None = None,
+        chunkSize: int | None = None,
     ) -> None:
         if not config:
             return
@@ -705,8 +723,10 @@ class Interface(PrintError):
 
             self.last_send = time.time()
 
-            def make_dict(m, p, i) -> dict[str, Any]:
-                return {"jsonrpc": "2.0", "method": m, "params": p, "id": i}
+            def make_dict(
+                method: str, params: list[Any], _id: int
+            ) -> InterfaceJsonRPCRequest:
+                return {"jsonrpc": "2.0", "method": method, "params": params, "id": _id}
 
             n = self.num_requests()
             wire_requests = self.unsent_requests[0:n]
@@ -746,7 +766,7 @@ class Interface(PrintError):
 
         return False
 
-    def get_responses(self) -> list[tuple[Optional[InterfaceRequest], Optional[dict]]]:
+    def get_responses(self) -> list[InterfaceResponse]:
         """Call if there is data available on the socket.  Returns a list of
         (request, response) pairs.  Notifications are singleton
         unsolicited responses presumably as a result of prior
@@ -755,7 +775,7 @@ class Interface(PrintError):
         corresponding request.  If the connection was closed remotely
         or the remote server is misbehaving, a (None, None) will appear.
         """
-        responses = []
+        responses: list[InterfaceResponse] = []
         while True:
             response = None
             try:
@@ -805,7 +825,7 @@ class Interface(PrintError):
         return responses
 
 
-def check_cert(host, cert) -> None:
+def check_cert(host: str, cert: str) -> None:
     try:
         b = pem.dePem(cert, "CERTIFICATE")
         x = x509.X509(b)
@@ -828,7 +848,7 @@ def check_cert(host, cert) -> None:
 
 def test_certificates() -> None:
     config = SimpleConfig()
-    mydir = os.path.join(config.path, "certs")
+    mydir: str = os.path.join(config.path, "certs")
     certs = os.listdir(mydir)
     for c in certs:
         p = os.path.join(mydir, c)
