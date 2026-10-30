@@ -24,14 +24,17 @@
 
 import decimal
 import enum
-import os
 import re
-import shutil
 import sys
 import threading
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Union
+from collections.abc import Callable
+from types import TracebackType
+from typing import Any, TypeAlias
+
+from electrumabc.networks import AbstractNetProtocol
+from electrumabc.paymentrequest import PaymentRequest
 
 from . import bitcoin, networks
 from .address import Address
@@ -57,13 +60,14 @@ class BlockchainExplorer:
     block_part: str = "block"
     addr_uses_prefix: bool = True
 
-    def get_kind_str(self, kind: ExplorerUrlParts) -> str:
+    @classmethod
+    def get_kind_str(cls, kind: ExplorerUrlParts) -> str:
         if kind == ExplorerUrlParts.TX:
-            return self.tx_part
+            return cls.tx_part
         if kind == ExplorerUrlParts.ADDR:
-            return self.addr_part
+            return cls.addr_part
         if kind == ExplorerUrlParts.BLOCK:
-            return self.block_part
+            return cls.block_part
         raise RuntimeError(f"Unknown block explorer URL kind {kind} ({type(kind)}")
 
 
@@ -96,22 +100,23 @@ class ECashTestnet(ECash):
 
 DEFAULT_EXPLORER = ECash
 
-mainnet_block_explorers = {
+BlockChainExplorerDictT = dict[str, type[BlockchainExplorer]]
+mainnet_block_explorers: BlockChainExplorerDictT = {
     explorer.name: explorer for explorer in [ECash, Blockchair, CoinexExplorer, BeCash]
 }
 
 DEFAULT_EXPLORER_TESTNET = ECashTestnet
 
-testnet_block_explorers = {ECashTestnet.name: ECashTestnet}
+testnet_block_explorers: BlockChainExplorerDictT = {ECashTestnet.name: ECashTestnet}
 
 
-def BE_info() -> Dict[str, BlockchainExplorer]:
+def BE_info() -> BlockChainExplorerDictT:
     if networks.net is networks.TestNet:
         return testnet_block_explorers
     return mainnet_block_explorers
 
 
-def BE_default_explorer() -> BlockchainExplorer:
+def BE_default_explorer() -> type[BlockchainExplorer]:
     if networks.net is networks.TestNet:
         return DEFAULT_EXPLORER_TESTNET
     return DEFAULT_EXPLORER
@@ -126,27 +131,33 @@ def BE_name_from_config(config: SimpleConfig) -> str:
     return explorer_name
 
 
-def BE_URL(config, kind: ExplorerUrlParts, item: Union[str, Address]) -> str:
+def BE_URL(config: SimpleConfig, kind: ExplorerUrlParts, item: str | Address) -> str:
     explorer_name = BE_name_from_config(config)
     explorer = BE_info().get(explorer_name, BE_default_explorer())
 
-    kind_str = BlockchainExplorer.get_kind_str(explorer, kind)
+    kind_str = explorer.get_kind_str(kind)
 
     if kind == ExplorerUrlParts.ADDR:
         assert isinstance(item, Address)
         if explorer.addr_uses_prefix:
-            item = item.to_full_string(explorer.addr_fmt)
+            item_str = item.to_full_string(explorer.addr_fmt)
         else:
-            item = item.to_string(explorer.addr_fmt)
-    return "/".join(part for part in (explorer.url_base, kind_str, item) if part)
+            item_str = item.to_string(explorer.addr_fmt)
+    return "/".join(part for part in (explorer.url_base, kind_str, item_str) if part)
 
 
-def BE_sorted_list() -> dict[str, BlockchainExplorer]:
+def BE_sorted_list() -> list[str]:
     return sorted(BE_info())
 
 
 def create_URI(
-    addr, amount, message, *, op_return=None, op_return_raw=None, net=None
+    addr: Address,
+    amount: float | None,
+    message: str,
+    *,
+    op_return: str | None = None,
+    op_return_raw: str | None = None,
+    net: type[AbstractNetProtocol] | None = None,
 ) -> str:
     if not isinstance(addr, Address):
         return ""
@@ -176,17 +187,17 @@ def create_URI(
     return urllib.parse.urlunparse(p)
 
 
-def urlencode(s) -> str:
+def urlencode(s: str) -> str:
     """URL Encode; encodes a url or a uri fragment by %-quoting special chars"""
     return urllib.parse.quote(s)
 
 
-def urldecode(url) -> str:
+def urldecode(url: str) -> str:
     """Inverse of urlencode"""
     return urllib.parse.unquote(url)
 
 
-def parseable_schemes(net=None) -> tuple:
+def parseable_schemes(net: type[AbstractNetProtocol] | None = None) -> tuple:
     if net is None:
         net = networks.net
     return (net.CASHADDR_PREFIX,)
@@ -219,8 +230,17 @@ class BadURIParameter(ValueError):
     args[1] is the underlying Exception that was raised (if any, may be missing)."""
 
 
+ExcInfo: TypeAlias = tuple[type[BaseException], BaseException, TracebackType]
+OptExcInfo: TypeAlias = ExcInfo | tuple[None, None, None]
+
+
 def parse_URI(
-    uri, on_pr=None, *, net=None, strict=False, on_exc=None
+    uri: str,
+    on_pr: Callable[[PaymentRequest], None] | None = None,
+    *,
+    net: type[AbstractNetProtocol] | None = None,
+    strict: bool = False,
+    on_exc: Callable[[OptExcInfo], None] | None = None,
 ) -> dict[str, Any]:
     """If strict=True, may raise ExtraParametersInURIWarning (see docstring
     above).
@@ -269,7 +289,9 @@ def parse_URI(
         if len(v) != 1 and k not in ["addr", "amount"]:
             raise DuplicateKeyInURIError(_("Duplicate key in URI"), k)
 
-    out = {k: v[0] for k, v in pq.items() if k not in ("addr", "amount")}
+    out: dict[str, Any] = {
+        k: v[0] for k, v in pq.items() if k not in ("addr", "amount")
+    }
 
     addresses = []
     if address:
@@ -299,8 +321,8 @@ def parse_URI(
         try:
             m = re.match(r"([0-9.]+)X([0-9]{2})", am)
             if m:
-                k = int(m.group(2)) - 2
-                amount = decimal.Decimal(m.group(1)) * int(pow(10, k))
+                amount_k = int(m.group(2)) - 2
+                amount = decimal.Decimal(m.group(1)) * int(pow(10, amount_k))
             else:
                 amount = decimal.Decimal(am) * int(bitcoin.CASH)
             out["amounts"].append(int(amount))
@@ -360,26 +382,3 @@ def parse_URI(
         if extra_keys:
             raise ExtraParametersInURIWarning(out, *tuple(extra_keys))
     return out
-
-
-def check_www_dir(rdir) -> None:
-    if not os.path.exists(rdir):
-        os.mkdir(rdir)
-    index = os.path.join(rdir, "index.html")
-    if not os.path.exists(index):
-        print_error("copying index.html")
-        src = os.path.join(os.path.dirname(__file__), "www", "index.html")
-        shutil.copy(src, index)
-    files = [
-        "https://code.jquery.com/jquery-1.9.1.min.js",
-        "https://raw.githubusercontent.com/davidshimjs/qrcodejs/master/qrcode.js",
-        "https://code.jquery.com/ui/1.10.3/jquery-ui.js",
-        "https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
-    ]
-    for URL in files:
-        path = urllib.parse.urlsplit(URL).path
-        filename = os.path.basename(path)
-        path = os.path.join(rdir, filename)
-        if not os.path.exists(path):
-            print_error("downloading ", URL)
-            urllib.request.urlretrieve(URL, path)
