@@ -25,7 +25,7 @@ import pkgutil
 import string
 import unicodedata
 from types import MappingProxyType
-from typing import Sequence
+from typing import Sequence, SupportsIndex
 
 # http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/e_asia.html
 CJK_INTERVALS = [
@@ -63,7 +63,8 @@ CJK_INTERVALS = [
 _cjk_min_max = None
 
 
-def is_CJK(c) -> bool:
+def is_CJK(c: str) -> bool:
+    """c is expected to be a str of length 1"""
     global _cjk_min_max
     if not _cjk_min_max:
         # cache some values for fast path
@@ -82,7 +83,7 @@ def is_CJK(c) -> bool:
     return False
 
 
-def normalize_text(seed: str, is_passphrase=False) -> str:
+def normalize_text(seed: str, is_passphrase: bool = False) -> str:
     # normalize
     seed = unicodedata.normalize("NFKD", seed)
     # lower
@@ -115,13 +116,18 @@ class Wordlist(tuple[str, ...]):
         # no mutation
         self._index_from_word = MappingProxyType(index_from_word)
 
-    def index(self, word, start=None, stop=None) -> int:
+    def index(
+        self,
+        word: str,
+        start: SupportsIndex | None = None,
+        stop: SupportsIndex | None = None,
+    ) -> int:
         try:
             return self._index_from_word[word]
         except KeyError as e:
             raise ValueError from e
 
-    def __contains__(self, word) -> bool:
+    def __contains__(self, word: str) -> bool:
         try:
             self.index(word)
         except ValueError:
@@ -130,7 +136,7 @@ class Wordlist(tuple[str, ...]):
             return True
 
     @classmethod
-    def from_file(cls, filename) -> "Wordlist":
+    def from_file(cls, filename: str) -> "Wordlist":
         if filename not in _WORDLIST_CACHE:
             data = pkgutil.get_data(__name__, os.path.join("wordlist", filename))
             s = data.decode("utf-8").strip()
