@@ -19,6 +19,8 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     // Must always return 0
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount::zero());
     BOOST_CHECK_EQUAL(feeRate.GetFee(1e5), Amount::zero());
+    BOOST_CHECK_EQUAL(CFeeRate(Amount::zero(), 0).GetFeePerK(), Amount::zero());
+    BOOST_CHECK_EQUAL(CFeeRate(5 * SATOSHI, 0).GetFeePerK(), Amount::zero());
 
     feeRate = CFeeRate(1000 * SATOSHI);
     // Must always just return the arg
@@ -101,6 +103,11 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
                 CFeeRate(27 * SATOSHI, 789) < CFeeRate(35 * SATOSHI));
     // Maximum size in bytes, should not crash
     CFeeRate(MAX_MONEY, std::numeric_limits<int32_t>::max()).GetFeePerK();
+
+    // Adding to a zero size fee rate should not crash
+    CFeeRate empty_rate(Amount::zero(), 0);
+    empty_rate += CFeeRate(SATOSHI, 1);
+    BOOST_CHECK(empty_rate == CFeeRate(SATOSHI, 1));
 }
 
 BOOST_AUTO_TEST_CASE(FeeAddTests) {

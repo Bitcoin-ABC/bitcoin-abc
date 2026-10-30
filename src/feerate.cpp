@@ -20,6 +20,13 @@ CFeeRate::CFeeRate(const Amount nFeePaid, int32_t virtual_bytes) {
     }
 }
 
+Amount CFeeRate::GetFeePerK() const {
+    if (m_feerate.IsEmpty()) {
+        return Amount::zero();
+    }
+    return m_feerate.EvaluateFeeDown(1000) * SATOSHI;
+}
+
 Amount CFeeRate::GetFee(int32_t virtual_bytes) const {
     Assume(virtual_bytes >= 0);
     if (m_feerate.IsEmpty()) {

@@ -52,9 +52,7 @@ public:
     /**
      * Return the fee in satoshis for a size of 1000 bytes
      */
-    Amount GetFeePerK() const {
-        return m_feerate.EvaluateFeeDown(1000) * SATOSHI;
-    }
+    Amount GetFeePerK() const;
 
     friend std::weak_ordering operator<=>(const CFeeRate &a,
                                           const CFeeRate &b) noexcept {
