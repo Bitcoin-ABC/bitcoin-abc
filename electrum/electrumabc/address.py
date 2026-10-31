@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import abc
+import functools
 import hashlib
 import struct
 from collections import namedtuple
@@ -42,7 +43,6 @@ from .bitcoin import (
 )
 from .crypto import hash_160
 from .ecc import ECPrivkey
-from .util import cachedproperty
 
 _sha256 = hashlib.sha256
 hex_to_bytes = bytes.fromhex
@@ -200,7 +200,7 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
             return  # Uncompressed
         raise AddressError("invalid pubkey {}".format(pubkey))
 
-    @cachedproperty
+    @functools.cached_property
     def address(self) -> Address:
         """Convert to an Address object."""
         return Address(hash_160(self.pubkey), Address.ADDR_P2PKH)

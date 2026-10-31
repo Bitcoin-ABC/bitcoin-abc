@@ -222,20 +222,6 @@ class DaemonThread(threading.Thread, PrintError):
         self.print_error("stopped")
 
 
-# Method decorator.  To be used for calculations that will always
-# deliver the same result.  The method cannot take any arguments
-# and should be accessed as an attribute.
-class cachedproperty:
-    def __init__(self, f):
-        self.f = f
-
-    def __get__(self, obj, type_):
-        obj = obj or type_
-        value = self.f(obj)
-        setattr(obj, self.f.__name__, value)
-        return value
-
-
 # taken from Django Source Code
 def constant_time_compare(val1, val2) -> bool:
     """Return True if the two strings are equal, False otherwise."""
