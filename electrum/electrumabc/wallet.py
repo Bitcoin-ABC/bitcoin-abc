@@ -115,6 +115,8 @@ from .util import (
 from .verifier import SPV, SPVDelegate
 
 if TYPE_CHECKING:
+    from qtpy.QtCore import QThread
+
     from electrumabc_gui.qt import ElectrumWindow
 
     from .network import Network
@@ -258,7 +260,8 @@ class AbstractWallet(PrintError, SPVDelegate):
 
         self.storage = storage
         self.keystore: KeyStore | None = None
-        self.thread = None  # this is used by the qt main_window to store a QThread. We just make sure it's always defined as an attribute here.
+        # this is used by the qt main_window to store a QThread. We just make sure it's always defined as an attribute here.
+        self.thread: QThread | None = None
         self.network = None
         # verifier (SPV) and synchronizer are started in start_threads
         self.synchronizer = None

@@ -45,7 +45,7 @@ from ..serialize import (
 
 class PublicKey(SerializableObject):
     # fixme: merge with address.PublicKey or us a different name for one of the classes
-    def __init__(self, keydata) -> None:
+    def __init__(self, keydata: bytes) -> None:
         self.keydata: bytes = keydata
 
     def serialize(self) -> bytes:
@@ -86,14 +86,16 @@ class PublicKey(SerializableObject):
     def __repr__(self) -> str:
         return f"PublicKey({self.to_hex()})"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PublicKey):
+            return False
         return self.keydata == other.keydata
 
 
 class Key:
     """A private key"""
 
-    def __init__(self, keydata, compressed) -> None:
+    def __init__(self, keydata: bytes, compressed: bool) -> None:
         self.keydata: bytes = keydata
         """32 byte raw private key (as you would get from
         deserialize_privkey, etc)"""

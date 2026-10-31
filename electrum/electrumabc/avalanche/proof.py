@@ -32,10 +32,11 @@ the hash of the stakes to prove ownership of the UTXO.
 from __future__ import annotations
 
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from io import BytesIO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -70,8 +71,12 @@ class StakeAndSigningData:
     sig: bytes | None = None
 
     def verify_signature(self, commitment: bytes) -> bool:
-        return self.sig is not None and self.stake.pubkey.verify_schnorr(
-            self.sig, self.stake.get_hash(commitment)
+        return (
+            self.sig is not None
+            and self.stake.pubkey is not None
+            and self.stake.pubkey.verify_schnorr(
+                self.sig, self.stake.get_hash(commitment)
+            )
         )
 
 
@@ -95,7 +100,7 @@ class Stake(SerializableObject):
         """Public key"""
         self.is_coinbase = is_coinbase
 
-        self.stake_id = None
+        self.stake_id: UInt256 | None = None
         """Stake id used for sorting stakes in a proof"""
 
     def compute_stake_id(self) -> None:
@@ -155,7 +160,7 @@ class LimitedProofId(UInt256):
 
 
 class SignedStake(SerializableObject):
-    def __init__(self, stake, sig) -> None:
+    def __init__(self, stake: Stake, sig: bytes) -> None:
         self.stake: Stake = stake
         self.sig: bytes = sig
         """Signature for this stake, bytes of length 64"""
@@ -170,7 +175,7 @@ class SignedStake(SerializableObject):
         return SignedStake(stake, sig)
 
     def verify_signature(self, commitment: bytes) -> bool:
-        return self.stake.pubkey.verify_schnorr(
+        return self.stake.pubkey is not None and self.stake.pubkey.verify_schnorr(
             self.sig, self.stake.get_hash(commitment)
         )
 
@@ -324,7 +329,7 @@ class ProofBuilder:
         return builder
 
     def sign_and_add_stake(self, stake: StakeAndSigningData) -> None:
-        def add_signed_stake(signature) -> None:
+        def add_signed_stake(signature: bytes | None) -> None:
             if not signature:
                 return
 
@@ -359,11 +364,11 @@ class ProofBuilder:
         # See UInt256.compare for the specifics about sorting these objects.
         self.signed_stakes.sort(key=lambda ss: ss.stake.stake_id)
 
-    def build(self, on_completion) -> None:
+    def build(self, on_completion: Callable[[Proof], None]) -> None:
         # Make sure all the stakes are signed by the time we compute the proof.
         # We achieve this by queuing a dummy task in the wallet thread and only
         # build the proof when it completed so we end up serializing the calls.
-        def build_proof(_) -> None:
+        def build_proof(_: Any) -> None:
             ltd_id = LimitedProofId.build(
                 self.sequence,
                 self.expiration_time,

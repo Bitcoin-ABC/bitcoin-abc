@@ -84,7 +84,9 @@ class Level(SerializableObject):
         sig = base64.b64encode(self.sig).decode("ascii")
         return f"Level(pubkey={self.pubkey}, sig={sig})"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Level):
+            return False
         return self.pubkey == other.pubkey and self.sig == other.sig
 
 
@@ -154,9 +156,9 @@ class Delegation(SerializableObject):
         hash_ = self.get_proof_id().serialize()
         auth = self.proof_master
 
-        def verify_level(h, level: Level) -> bool:
+        def verify_level(hash__: bytes, level: Level) -> bool:
             nonlocal auth
-            if not auth.verify_schnorr(level.sig, h):
+            if not auth.verify_schnorr(level.sig, hash__):
                 return False
             auth = level.pubkey
             return True
@@ -172,7 +174,9 @@ class Delegation(SerializableObject):
             f"levels={self.levels})"
         )
 
-    def __eq__(self, other: Delegation) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SerializableObject):
+            return False
         return self.serialize() == other.serialize()
 
 

@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import struct
 from io import BytesIO
+from typing import TypeVar
 
 from .serialize import DeserializationError
+
+# NOTE: When switching to python>=3.11, use typing.Self
+T = TypeVar("T")
 
 
 class BaseBlob:
@@ -69,7 +73,7 @@ class BaseBlob:
         self.data = data
 
     @classmethod
-    def deserialize(cls, stream: BytesIO) -> BaseBlob:
+    def deserialize(cls: type[T], stream: BytesIO) -> T:
         """Deserialize from a bystream and return a new instance."""
         return cls(stream.read(cls.BITS // 8))
 
@@ -80,7 +84,7 @@ class BaseBlob:
         return self.get_hex()
 
     @classmethod
-    def from_hex(cls, hex_str: str) -> BaseBlob:
+    def from_hex(cls: type[T], hex_str: str) -> T:
         hex_str = hex_str.strip()
         if hex_str.startswith("0x"):
             hex_str = hex_str[2:]
