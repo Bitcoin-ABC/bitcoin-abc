@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import base64
 from io import BytesIO
-from typing import Callable, List, Optional, Sequence, Tuple
+from typing import Callable, List, Sequence, Tuple
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -112,7 +112,7 @@ class Delegation(SerializableObject):
         limited_proofid: LimitedProofId,
         proof_master: PublicKey,
         levels: Sequence[Level],
-        dgid: Optional[DelegationId] = None,
+        dgid: DelegationId | None = None,
     ) -> None:
         self.limited_proofid = limited_proofid
         self.proof_master = proof_master
@@ -181,7 +181,7 @@ class DelegationBuilder:
         self,
         limited_proofid: LimitedProofId,
         proof_master: PublicKey,
-        delegation_id: Optional[DelegationId] = None,
+        delegation_id: DelegationId | None = None,
     ) -> None:
         self.limited_proofid = limited_proofid
         self.proof_master = proof_master

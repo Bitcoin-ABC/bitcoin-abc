@@ -29,7 +29,7 @@ import stat
 import threading
 import zlib
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from . import ecc
 from .json_db import JsonDB
@@ -53,7 +53,7 @@ STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW = range(0, 3)
 @dataclass
 class StorageKey:
     key: str
-    default: Optional[Any] = None
+    default: Any | None = None
 
 
 class StorageKeys:

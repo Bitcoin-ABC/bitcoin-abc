@@ -32,7 +32,7 @@ import signal
 import sys
 import threading
 import traceback
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Callable
 
 try:
     from qtpy import QtCore, QtWidgets
@@ -754,9 +754,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         window.activateWindow()
         return window
 
-    def _start_wizard_to_select_or_create_wallet(
-        self, path
-    ) -> Optional[AbstractWallet]:
+    def _start_wizard_to_select_or_create_wallet(self, path) -> AbstractWallet | None:
         wizard = InstallWizard(self.config, self.app, self.plugins, gui_object=self)
         try:
             path, storage = wizard.select_storage(path, self.daemon.get_wallet)

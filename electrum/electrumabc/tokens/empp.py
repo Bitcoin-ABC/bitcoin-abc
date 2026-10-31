@@ -25,15 +25,13 @@
 https://ecashbuilders.notion.site/eCash-Multi-Pushdata-Protocol-11e1b991071c4a77a3e948ba604859ac
 """
 
-from typing import Optional
-
 from ..bitcoin import OpCodes
 from ..transaction import is_push_opcode
 
 EMPP_PREFIX = bytes([OpCodes.OP_RETURN, OpCodes.OP_RESERVED])
 
 
-def parse_empp_script(script: bytes) -> Optional[list[bytes]]:
+def parse_empp_script(script: bytes) -> list[bytes] | None:
     """Parse an op_return output script, return a list of payloads.
 
     OP_RETURN OP_RESERVED push(data0) push(data1)...

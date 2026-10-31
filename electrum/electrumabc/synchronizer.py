@@ -29,7 +29,7 @@ import hashlib
 import traceback
 from collections import defaultdict
 from threading import Lock
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, Optional, Set, Tuple
+from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, Set, Tuple
 
 from . import networks
 from .address import Address
@@ -323,7 +323,7 @@ class Synchronizer(ThreadJob):
         # Check that this scripthash is a candidate for purge
         self._check_change_scripthash(scripthash)
 
-    def _tx_response(self, response, scripthash: Optional[str]):
+    def _tx_response(self, response, scripthash: str | None):
         if self.cleaned_up:
             return
         params, result, error = self._parse_response(response)
@@ -380,7 +380,7 @@ class Synchronizer(ThreadJob):
         self._check_change_scripthash(scripthash)
 
     def _request_missing_txs(
-        self, hist: Iterable[Tuple[str, int]], scripthash: Optional[str]
+        self, hist: Iterable[Tuple[str, int]], scripthash: str | None
     ) -> bool:
         # "hist" is a list of [tx_hash, tx_height] lists
         requests = []

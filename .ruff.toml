@@ -32,6 +32,7 @@ select = [
     "UP031",
     "UP032",
     "UP037",
+    "UP045", # non-pep604-annotation-optional
 ]
 
 ignore = [
@@ -46,6 +47,10 @@ ignore = [
 [lint.per-file-ignores]
 # don't enforce f-strings in the Electrum codebase for now
 "electrum/*" = ["UP031", "UP032"]
+# enforce only in the Electrum codebase for now
+"!electrum/*" = [
+    "UP045", # non-pep604-annotation-optional
+]
 
 [lint.isort]
 known-first-party = [

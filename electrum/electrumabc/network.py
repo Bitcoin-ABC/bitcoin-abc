@@ -35,7 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Union
 
 import socks
 
@@ -93,14 +93,14 @@ def filter_protocol(hostmap, protocol="s"):
     return eligible
 
 
-def get_eligible_servers(hostmap=None, protocol="s", exclude_set: Optional[set] = None):
+def get_eligible_servers(hostmap=None, protocol="s", exclude_set: set | None = None):
     if hostmap is None:
         hostmap = networks.net.DEFAULT_SERVERS
     exclude_set = exclude_set or set()
     return list(set(filter_protocol(hostmap, protocol)) - exclude_set)
 
 
-def pick_random_server(hostmap=None, protocol="s", exclude_set: Optional[set] = None):
+def pick_random_server(hostmap=None, protocol="s", exclude_set: set | None = None):
     exclude_set = exclude_set or set()
     eligible = get_eligible_servers(hostmap, protocol, exclude_set)
     return random.choice(eligible) if eligible else None
@@ -301,7 +301,7 @@ class Network(util.DaemonThread):
         if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
             self.verifications_required = 3
         self.checkpoint_servers_verified: dict[
-            str, dict[str, Union[int, Optional[str]]]
+            str, dict[str, Union[int, str | None]]
         ] = {}
         """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
         where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
@@ -343,7 +343,7 @@ class Network(util.DaemonThread):
         self.server_retry_time = time.time()
         self.nodes_retry_time = time.time()
         # kick off the network.
-        self.interface: Optional[Interface] = None
+        self.interface: Interface | None = None
         """The main server we are currently communicating with.
         Requires self.interface_lock.
         """
@@ -484,10 +484,10 @@ class Network(util.DaemonThread):
         self,
         method: str,
         params: list[Any],
-        interface: Optional[Interface] = None,
+        interface: Interface | None = None,
         *,
-        callback: Optional[Callable] = None,
-        max_qlen: Optional[int] = None,
+        callback: Callable | None = None,
+        max_qlen: int | None = None,
     ):
         """If you want to queue a request on any interface it must go through
         this function so message ids are properly tracked.

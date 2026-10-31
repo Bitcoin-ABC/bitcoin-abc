@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 import threading
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 
 from . import asert_daa, bitcoin, networks, util
 from .crypto import Hash
@@ -191,7 +191,7 @@ def read_blockchains(config: SimpleConfig) -> Dict[int, Blockchain]:
     return blockchains
 
 
-def get_chain_for_header(header: dict) -> Optional[Blockchain]:
+def get_chain_for_header(header: dict) -> Blockchain | None:
     """Return a blockchain that contains this header, or None."""
     if not isinstance(header, dict):
         return None
@@ -201,7 +201,7 @@ def get_chain_for_header(header: dict) -> Optional[Blockchain]:
     return None
 
 
-def get_connecting_chain(header: Header) -> Optional[Blockchain]:
+def get_connecting_chain(header: Header) -> Blockchain | None:
     """Return a blockchain on the tip of which this header can be added, or None."""
     for b in blockchains.values():
         if b.can_connect(header):
@@ -279,7 +279,7 @@ class Blockchain(PrintError):
 
     def __init__(self, config: SimpleConfig, base_height: int, parent_base_height: int):
         self.config = config
-        self.catch_up: Optional[Interface] = None
+        self.catch_up: Interface | None = None
         self.base_height = base_height
         self.parent_base_height = parent_base_height
 
@@ -339,7 +339,7 @@ class Blockchain(PrintError):
         self._size = os.path.getsize(p) // HEADER_SIZE if os.path.exists(p) else 0
 
     def verify_header(
-        self, header: Header, prev_header: Header, bits: Optional[int] = None
+        self, header: Header, prev_header: Header, bits: int | None = None
     ) -> None:
         """Raises VerifyError when failing to verify the header"""
         prev_header_hash = hash_header(prev_header)
@@ -476,8 +476,8 @@ class Blockchain(PrintError):
         self.swap_with_parent()
 
     def read_header(
-        self, height: int, chunk: Optional[HeaderChunk] = None
-    ) -> Optional[Header]:
+        self, height: int, chunk: HeaderChunk | None = None
+    ) -> Header | None:
         # If the read is done within an outer call with local unstored header data, we
         # first look in the chunk data currently being processed.
         if chunk is not None and chunk.contains_height(height):
@@ -509,7 +509,7 @@ class Blockchain(PrintError):
         return hash_header(self.read_header(height))
 
     def get_median_time_past(
-        self, height: int, chunk: Optional[HeaderChunk] = None
+        self, height: int, chunk: HeaderChunk | None = None
     ) -> int:
         if height < 0:
             return 0
@@ -520,7 +520,7 @@ class Blockchain(PrintError):
         return sorted(times)[len(times) // 2]
 
     def get_suitable_block_height(
-        self, suitableheight: int, chunk: Optional[HeaderChunk] = None
+        self, suitableheight: int, chunk: HeaderChunk | None = None
     ) -> int:
         # In order to avoid a block in a very skewed timestamp to have too much
         # influence, we select the median of the 3 top most block as a start point
@@ -541,11 +541,11 @@ class Blockchain(PrintError):
 
     # cached Anchor, per-Blockchain instance, only used if the checkpoint for
     # this network is *behind* the anchor block
-    _cached_asert_anchor: Optional[asert_daa.Anchor] = None
+    _cached_asert_anchor: asert_daa.Anchor | None = None
 
     def get_asert_anchor(
-        self, prevheader: Header, mtp: int, chunk: Optional[HeaderChunk] = None
-    ) -> Optional[asert_daa.Anchor]:
+        self, prevheader: Header, mtp: int, chunk: HeaderChunk | None = None
+    ) -> asert_daa.Anchor | None:
         """Returns the asert_anchor either from Networks.net if hardcoded or
         calculated in realtime if not."""
         if networks.net.asert_daa.anchor is not None:
@@ -582,7 +582,7 @@ class Blockchain(PrintError):
             mtp = prev_mtp
             anchor = prev
 
-    def get_bits(self, header: Header, chunk: Optional[HeaderChunk] = None) -> int:
+    def get_bits(self, header: Header, chunk: HeaderChunk | None = None) -> int:
         """Return bits for the given height."""
         # No difficulty adjustment on REGTEST
         if networks.net.REGTEST:
@@ -699,7 +699,7 @@ class Blockchain(PrintError):
             return MAX_BITS
         return target_to_bits(target)
 
-    def get_new_bits(self, height: int, chunk: Optional[HeaderChunk] = None) -> int:
+    def get_new_bits(self, height: int, chunk: HeaderChunk | None = None) -> int:
         N_BLOCKS = networks.net.LEGACY_POW_RETARGET_BLOCKS
         assert height % N_BLOCKS == 0
         # Genesis

@@ -27,7 +27,7 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Sequence, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -51,7 +51,7 @@ class Invoice:
         id_: str = "",
         label: str = "",
         currency: str = "XEC",
-        exchange_rate: Optional[Union[FixedExchangeRate, ExchangeRateApi]] = None,
+        exchange_rate: Union[FixedExchangeRate, ExchangeRateApi] | None = None,
         payee_address: str = "",
         payer_address: str = "",
     ):

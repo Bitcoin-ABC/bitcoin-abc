@@ -28,7 +28,7 @@ from __future__ import annotations
 import threading
 import weakref
 from functools import partial
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, Signal
@@ -114,7 +114,7 @@ class Plugin(FusionPlugin, QObject):
 
     fusions_win = None
     weak_settings_tab = None
-    gui: Optional[ElectrumGui] = None
+    gui: ElectrumGui | None = None
     initted = False
     last_server_status = (True, ("Ok", ""))
     _hide_history_txs = False
@@ -489,7 +489,7 @@ class Plugin(FusionPlugin, QObject):
     @hook
     def not_enough_funds_extra(
         self, wallet: AbstractWallet, config: SimpleConfig
-    ) -> Optional[str]:
+    ) -> str | None:
         """Called by the Qt UI if there is a "not enough funds" error in the send tab"""
         if not self.wallet_can_fuse(wallet):
             return
@@ -747,7 +747,7 @@ class Plugin(FusionPlugin, QObject):
                 return
 
         def chk_tor_ok():
-            self: Optional[Plugin] = weak_self()
+            self: Plugin | None = weak_self()
             if not self:
                 return
             self._integrated_tor_timer = None  # kill QTimer reference

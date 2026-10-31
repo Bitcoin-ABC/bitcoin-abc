@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 from qtpy import QtWidgets
 
@@ -25,8 +25,8 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[bytearray] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
+        pwd: bytearray | None = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         super().__init__(wallet, pwd, parent)
         self.setMinimumWidth(750)
@@ -99,7 +99,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         self.dg_display.setReadOnly(True)
         layout.addWidget(self.dg_display)
 
-        self.suggested_delegated_key_and_index: Optional[Tuple[str, int]] = None
+        self.suggested_delegated_key_and_index: Tuple[str, int] | None = None
 
         # Signals
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
@@ -208,7 +208,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
             self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
             self.maybe_increment_aux_key_index()
 
-    def _build(self) -> Optional[str]:
+    def _build(self) -> str | None:
         delegator_wif = self.delegator_key_edit.text()
         if not is_private_key(delegator_wif):
             QtWidgets.QMessageBox.critical(
@@ -291,8 +291,8 @@ class AvaDelegationDialog(QtWidgets.QDialog):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[bytearray] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
+        pwd: bytearray | None = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         super().__init__(parent)
         self.setWindowTitle("Build Avalanche Delegation")

@@ -22,7 +22,6 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import Optional
 
 import qtpy
 from qtpy.QtCore import QObject, QSize
@@ -35,7 +34,7 @@ else:
 
 class FixedAspectRatioSvgWidget(QSvgWidget):
     def __init__(
-        self, width: int, file: Optional[str] = None, parent: Optional[QObject] = None
+        self, width: int, file: str | None = None, parent: QObject | None = None
     ):
         if file:
             super().__init__(file, parent)

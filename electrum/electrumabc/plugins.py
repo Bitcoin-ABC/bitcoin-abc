@@ -43,7 +43,6 @@ from typing import (
     Callable,
     Iterable,
     NamedTuple,
-    Optional,
     Union,
 )
 from warnings import warn
@@ -90,7 +89,7 @@ internal_plugins_namespace = __import__("electrumabc_plugins")
 
 
 class Plugins(DaemonThread):
-    _all_found_plugins: Optional[dict[str, dict]] = None
+    _all_found_plugins: dict[str, dict] | None = None
     internal_plugins_pkgpath = os.path.dirname(internal_plugins_namespace.__file__)
 
     @profiler
@@ -592,7 +591,7 @@ def hook(func):
     return func
 
 
-def _get_func_if_hook(plugin, attr_name) -> Optional[Callable]:
+def _get_func_if_hook(plugin, attr_name) -> Callable | None:
     cls = plugin.__class__
     # We examine the class-level attribute with name attr_name to see if it's a
     # function that's tagged with _is_ec_plugin_hook. If it is, we know it was
@@ -829,9 +828,9 @@ class Device(NamedTuple):
 
 class DeviceInfo(NamedTuple):
     device: Device
-    label: Optional[str]
-    initialized: Optional[bool]
-    model_name: Optional[str] = None  # e.g. "Ledger Nano S"
+    label: str | None
+    initialized: bool | None
+    model_name: str | None = None  # e.g. "Ledger Nano S"
 
 
 PLACEHOLDER_HW_CLIENT_LABELS = {None, "", " "}
@@ -846,7 +845,7 @@ PLACEHOLDER_HW_CLIENT_LABELS = {None, "", " "}
 # For now, we use a dedicated thread to enumerate devices (_hid_executor),
 # and we synchronize all device opens/closes/enumeration (_hid_lock).
 # FIXME there are still probably threading issues with how we use hidapi...
-_hid_executor: Optional[concurrent.futures.Executor] = None
+_hid_executor: concurrent.futures.Executor | None = None
 _hid_lock = threading.Lock()
 
 
@@ -943,7 +942,7 @@ class DeviceMgr(ThreadJob):
 
     def create_client(
         self, device: Device, handler: HardwareHandlerBase, plugin: HWPluginBase
-    ) -> Optional[HardwareClientBase]:
+    ) -> HardwareClientBase | None:
         # Get from cache first
         client = self._client_by_id(device.id_)
         if client:
@@ -990,16 +989,14 @@ class DeviceMgr(ThreadJob):
         with self.lock:
             self.xpub_ids[xpub] = id_
 
-    def _client_by_id(self, id_) -> Optional[HardwareClientBase]:
+    def _client_by_id(self, id_) -> HardwareClientBase | None:
         with self.lock:
             for client, client_id in self.clients.items():
                 if client_id == id_:
                     return client
         return None
 
-    def client_by_id(
-        self, id_, *, scan_now: bool = True
-    ) -> Optional[HardwareClientBase]:
+    def client_by_id(self, id_, *, scan_now: bool = True) -> HardwareClientBase | None:
         """Returns a client for the device ID if one is registered.  If
         a device is wiped or in bootloader mode pairing is impossible;
         in such cases we communicate by device ID and not wallet."""
@@ -1011,10 +1008,10 @@ class DeviceMgr(ThreadJob):
     def client_for_keystore(
         self,
         plugin: HWPluginBase,
-        handler: Optional[HardwareHandlerBase],
+        handler: HardwareHandlerBase | None,
         keystore: HardwareKeyStore,
         force_pair: bool,
-    ) -> Optional[HardwareClientBase]:
+    ) -> HardwareClientBase | None:
         self.print_error("getting client for keystore")
         if handler is None:
             raise RuntimeError(
@@ -1043,7 +1040,7 @@ class DeviceMgr(ThreadJob):
         xpub,
         handler: HardwareHandlerBase,
         devices: Iterable[Device],
-    ) -> Optional[HardwareClientBase]:
+    ) -> HardwareClientBase | None:
         xpub_id = self.xpub_id(xpub)
         client = self._client_by_id(xpub_id)
         if client:
@@ -1063,7 +1060,7 @@ class DeviceMgr(ThreadJob):
         info: DeviceInfo,
         xpub,
         derivation,
-    ) -> Optional[HardwareClientBase]:
+    ) -> HardwareClientBase | None:
         # The wallet has not been previously paired, so let the user
         # choose an unpaired device and compare its first address.
         xtype = xpub_type(xpub)
@@ -1095,9 +1092,9 @@ class DeviceMgr(ThreadJob):
 
     def unpaired_device_infos(
         self,
-        handler: Optional[HardwareHandlerBase],
+        handler: HardwareHandlerBase | None,
         plugin: HWPluginBase,
-        devices: Optional[list[Device]] = None,
+        devices: list[Device] | None = None,
     ) -> list[DeviceInfo]:
         """Returns a list of DeviceInfo objects: one for each connected,
         unpaired device accepted by the plugin."""
@@ -1127,7 +1124,7 @@ class DeviceMgr(ThreadJob):
         plugin: HWPluginBase,
         handler: HardwareHandlerBase,
         keystore: HardwareKeyStore,
-        devices: Optional[list[Device]] = None,
+        devices: list[Device] | None = None,
     ) -> DeviceInfo:
         """Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device."""

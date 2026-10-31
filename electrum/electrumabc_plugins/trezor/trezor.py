@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, NamedTuple, Optional
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from electrumabc.address import Address
 from electrumabc.avalanche.primitives import PublicKey
@@ -135,7 +135,7 @@ class TrezorKeyStore(HardwareKeyStore):
         index: tuple[int, int],
         expiration_time: int,
         master_pubkey: PublicKey,
-        password: Optional[str],
+        password: str | None,
     ):
         client = self.get_client()
         if not self.supports_stake_signature():

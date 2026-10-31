@@ -29,7 +29,7 @@ import subprocess
 import sys
 import threading
 from enum import IntEnum, unique
-from typing import Optional, Tuple
+from typing import Tuple
 
 import stem
 import stem.control
@@ -87,15 +87,15 @@ class TorController(PrintError):
         SYSTEM = 1
         DOWNLOADED = 2
 
-    _tor_process: Optional[subprocess.Popen] = None
-    _tor_read_thread: Optional[threading.Thread] = None
-    _tor_controller: Optional[stem.control.Controller] = None
+    _tor_process: subprocess.Popen | None = None
+    _tor_read_thread: threading.Thread | None = None
+    _tor_controller: stem.control.Controller | None = None
 
     status: Status = Status.STOPPED
     status_changed = Event()
 
-    active_socks_port: Optional[int] = None
-    active_control_port: Optional[int] = None
+    active_socks_port: int | None = None
+    active_control_port: int | None = None
     active_port_changed = Event()
 
     tor_binary: str

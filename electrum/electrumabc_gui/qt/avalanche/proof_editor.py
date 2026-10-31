@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import struct
 from enum import IntEnum
-from typing import List, Optional, Union
+from typing import List, Union
 
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -255,8 +255,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self,
         wallet: DeterministicWallet,
         config: SimpleConfig,
-        receive_address: Optional[Address] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
+        receive_address: Address | None = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         CachedWalletPasswordWidget.__init__(self, wallet, parent=parent)
         # This is enough width to show a whole compressed pubkey.
@@ -653,7 +653,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.generate_dg_button.setEnabled(True)
         self.save_proof_button.setEnabled(True)
 
-    def find_auxiliary_privkey_from_pubkey(self, pubkey: PublicKey) -> Optional[str]:
+    def find_auxiliary_privkey_from_pubkey(self, pubkey: PublicKey) -> str | None:
         """Try to find the master private key from the master public key
         by scanning a range of recent auxiliary keys.
         Return the key in WIF format, or None."""
@@ -865,8 +865,8 @@ class AvaProofDialog(QtWidgets.QDialog):
         self,
         wallet: DeterministicWallet,
         config: SimpleConfig,
-        receive_address: Optional[Address] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
+        receive_address: Address | None = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         super().__init__(parent)
         self.setWindowTitle(f"Avalanche Proof Editor - {wallet.basename()}")
@@ -891,11 +891,11 @@ class AvaProofDialog(QtWidgets.QDialog):
 
 
 class LoadProofDialog(QtWidgets.QDialog):
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Load an existing proof")
 
-        self.proof: Optional[Proof] = None
+        self.proof: Proof | None = None
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -930,7 +930,7 @@ class LoadProofDialog(QtWidgets.QDialog):
         if proof_hex:
             self.proof_edit.setText(proof_hex)
 
-    def load_from_file(self) -> Optional[str]:
+    def load_from_file(self) -> str | None:
         fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select the proof file",
@@ -981,7 +981,7 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
         return self.clickedButton() == self.cancel_button
 
 
-def check_utxos(utxos: List[dict], parent: Optional[QtWidgets.QWidget] = None) -> bool:
+def check_utxos(utxos: List[dict], parent: QtWidgets.QWidget | None = None) -> bool:
     """Check utxos are usable for avalanche proofs.
     If they aren't, and the user has not acknowledged that he wants to build the
     proof anyway, return False.

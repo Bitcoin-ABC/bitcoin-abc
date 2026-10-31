@@ -48,7 +48,6 @@ from typing import (
     Dict,
     ItemsView,
     List,
-    Optional,
     Sequence,
     Set,
     Tuple,
@@ -213,7 +212,7 @@ def sweep(
     network: Network,
     config: SimpleConfig,
     recipient: Address,
-    fee: Optional[int] = None,
+    fee: int | None = None,
     imax: int = 100,
     sign_schnorr: bool = False,
 ) -> Transaction:
@@ -263,15 +262,15 @@ class AbstractWallet(PrintError, SPVDelegate):
             raise Exception("storage must be upgraded before constructing wallet")
 
         self.storage = storage
-        self.keystore: Optional[KeyStore] = None
+        self.keystore: KeyStore | None = None
         self.thread = None  # this is used by the qt main_window to store a QThread. We just make sure it's always defined as an attribute here.
         self.network = None
         # verifier (SPV) and synchronizer are started in start_threads
         self.synchronizer = None
-        self.verifier: Optional[SPV] = None
+        self.verifier: SPV | None = None
         # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer
         # back to themselves.  This should always be a weakref.ref (Weak.ref), or None
-        self.weak_window: Optional[ref[ElectrumWindow]] = None
+        self.weak_window: ref[ElectrumWindow] | None = None
 
         self.slp = slp.WalletData(self)
         finalization_print_error(self.slp)  # debug object lifecycle
@@ -2599,7 +2598,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         stake: StakeAndSigningData,
         expiration_time: int,
         master_pubkey: avalanche.primitives.PublicKey,
-        password: Optional[str],
+        password: str | None,
     ):
         """Sign an avalanche stake. Might not be supported by all wallets."""
         index = self.get_address_index(stake.address)
@@ -2650,7 +2649,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def get_payment_status(
         self, address: Address, amount: int
-    ) -> Tuple[bool, Optional[int], List[str]]:
+    ) -> Tuple[bool, int | None, List[str]]:
         """Return (is_paid, num_confirmations, list_of_tx_hashes)
         is_paid is True if the address received at least the specified amount.
         """
@@ -3037,7 +3036,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         self.start_threads(network)
         self.network.trigger_callback("wallet_updated", self)
 
-    def is_schnorr_possible(self, reason: Optional[list] = None) -> bool:
+    def is_schnorr_possible(self, reason: list | None = None) -> bool:
         """Returns True if this wallet type is compatible.
         `reason` is an optional list where you would like a translated string
         of why Schnorr isn't possible placed (on False return)."""
@@ -3131,7 +3130,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         sh = addr.to_scripthash_hex()
         return sh in self.synchronizer.change_scripthashes_that_are_retired
 
-    def get_address_for_outpoint(self, outpoint: OutPoint) -> Optional[Address]:
+    def get_address_for_outpoint(self, outpoint: OutPoint) -> Address | None:
         """Look for an outpoint in this wallet and return the corresponding address.
         Return None if the outpoint is not found in the wallet.
         """
@@ -3403,7 +3402,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
 
 class DeterministicWallet(AbstractWallet):
     def __init__(self, storage):
-        self.keystore: Optional[DeterministicKeyStore] = None
+        self.keystore: DeterministicKeyStore | None = None
         AbstractWallet.__init__(self, storage)
         self.gap_limit = storage.get(StorageKeys.GAP_LIMIT)
 
@@ -3533,7 +3532,7 @@ class DeterministicWallet(AbstractWallet):
             pk, compressed, bitcoin.ScriptType[self.txin_type]
         )
 
-    def get_auxiliary_pubkey_index(self, key: PublicKey, password) -> Optional[int]:
+    def get_auxiliary_pubkey_index(self, key: PublicKey, password) -> int | None:
         """Return an index for an auxiliary public key. These are the keys on the
         BIP 44 path that uses change index = 2, for keys that are guaranteed to not
         be used for addresses. Return None if the public key is not mine or too old

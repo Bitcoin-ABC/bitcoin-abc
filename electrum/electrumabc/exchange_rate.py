@@ -13,7 +13,7 @@ from datetime import datetime
 # Qt 5.12 also exports Decimal
 from decimal import Decimal as PyDecimal
 from threading import Thread
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, TypeVar
 
 import requests
 
@@ -447,7 +447,7 @@ class FxThread(ThreadJob):
         self.hist_checkbox = None
         self.timeout = 0.0
         self.cache_dir = os.path.join(config.path, "cache")
-        self.exchange: Optional[ExchangeBase] = None
+        self.exchange: ExchangeBase | None = None
         self.set_exchange(self.config_exchange())
         if not os.path.exists(self.cache_dir):
             os.mkdir(self.cache_dir)

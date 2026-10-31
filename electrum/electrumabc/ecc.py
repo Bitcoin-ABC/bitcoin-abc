@@ -30,7 +30,7 @@ import hashlib
 import hmac
 from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, NamedTuple, Tuple, Union
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
@@ -186,7 +186,7 @@ class InvalidECPointException(Exception):
 
 
 class ECPubkey(object):
-    def __init__(self, b: Optional[bytes]):
+    def __init__(self, b: bytes | None):
         self._x, self._y = None, None
         if b is not None:
             assert_bytes(b)

@@ -65,7 +65,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
 from io import BytesIO
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from .serialize import (
     DeserializationError,
@@ -108,7 +108,7 @@ class PSBTKeypair:
     valuedata: bytes
 
     @classmethod
-    def deserialize(cls, stream: BytesIO) -> Optional[PSBTKeypair]:
+    def deserialize(cls, stream: BytesIO) -> PSBTKeypair | None:
         """Deserialize a keypair from a buffer. Return None if the end of a section or
         the end of the stream is reached.
         """
@@ -156,7 +156,7 @@ class PSBTSection:
     keypairs: List[PSBTKeypair]
 
     @classmethod
-    def deserialize(cls, stream: BytesIO) -> Optional[PSBTSection]:
+    def deserialize(cls, stream: BytesIO) -> PSBTSection | None:
         """Return None in case the section is empty (EOF reached or other error)"""
         keypairs = []
         while (kp := PSBTKeypair.deserialize(stream)) is not None:

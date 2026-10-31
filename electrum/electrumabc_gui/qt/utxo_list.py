@@ -29,7 +29,7 @@ import json
 from dataclasses import dataclass
 from enum import IntEnum
 from functools import wraps
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QPoint, Qt, Signal
@@ -63,7 +63,7 @@ class CoinDisplayData:
     txid: str
     vout: int
     address: Address
-    slp_token: Optional[Tuple[str, int]]
+    slp_token: Tuple[str, int] | None
     is_alp_token: bool
     is_frozen: bool
     is_address_frozen: bool

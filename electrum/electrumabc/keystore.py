@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import struct
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from mnemonic import Mnemonic
 
@@ -165,7 +165,7 @@ class SoftwareKeyStore(KeyStore):
         index: tuple[int, int],
         expiration_time: int,
         master_pubkey: avalanche.primitives.PublicKey,
-        password: Optional[str],
+        password: str | None,
     ):
         privkey, compressed = self.get_private_key(index, password)
         key = avalanche.primitives.Key(privkey, compressed)
@@ -623,7 +623,7 @@ class HardwareKeyStore(KeyStore, Xpub):
     hw_type: str
     device: str
     plugin: HWPluginBase
-    thread: Optional[TaskThread]
+    thread: TaskThread | None
 
     # restore_wallet_class = BIP32_RD_Wallet
     max_change_outputs = 1
@@ -637,7 +637,7 @@ class HardwareKeyStore(KeyStore, Xpub):
         self.xpub = d.get("xpub")
         self.label = d.get("label")
         self.derivation = d.get("derivation")
-        self.handler: Optional[HardwareHandlerBase] = None
+        self.handler: HardwareHandlerBase | None = None
         run_hook("init_keystore", self)
         self.thread = None
 
@@ -706,7 +706,7 @@ class HardwareKeyStore(KeyStore, Xpub):
         index: tuple[int, int],
         expiration_time: int,
         master_pubkey: avalanche.primitives.PublicKey,
-        password: Optional[str],
+        password: str | None,
     ):
         raise NotImplementedError("This wallet does not support stake signing")
 

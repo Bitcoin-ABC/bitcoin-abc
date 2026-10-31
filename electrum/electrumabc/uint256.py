@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import struct
 from io import BytesIO
-from typing import Optional
 
 from .serialize import DeserializationError
 
@@ -15,7 +14,7 @@ class BaseBlob:
 
     BITS: int = 0
 
-    def __init__(self, data: Optional[bytes] = None):
+    def __init__(self, data: bytes | None = None):
         assert self.BITS % 8 == 0
         self.WIDTH: int = self.BITS // 8
         self.data = data or b"\x00" * self.WIDTH

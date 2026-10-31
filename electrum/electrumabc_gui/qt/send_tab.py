@@ -27,7 +27,7 @@ import sys
 import traceback
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
 
 from qtpy import QtWidgets
 from qtpy.QtCore import (
@@ -928,7 +928,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         tx: Transaction,
         tx_desc,
         *,
-        callback: Optional[Callable[[bool], None]] = None,
+        callback: Callable[[bool], None] | None = None,
     ):
         if self.window.gui_object.warn_if_no_network(self):
             # Don't allow a useless broadcast when in offline mode. Previous to this
@@ -1011,7 +1011,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
 
             return status, msg
 
-        def broadcast_done(result: Optional[Tuple[bool, str]]):
+        def broadcast_done(result: Tuple[bool, str] | None):
             # GUI thread
             status, msg = result or (False, "")
             if not status:

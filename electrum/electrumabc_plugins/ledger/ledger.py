@@ -5,7 +5,7 @@ import inspect
 import sys
 import traceback
 from struct import pack, unpack
-from typing import Optional, Tuple
+from typing import Tuple
 
 from electrumabc.address import Address
 from electrumabc.bip32 import serialize_xpub
@@ -812,7 +812,7 @@ class LedgerPlugin(HWPluginBase):
         self.device_manager().register_vendor_ids(self.VENDOR_IDS, plugin=self)
 
     @classmethod
-    def _recognize_device(cls, product_key) -> Tuple[bool, Optional[str]]:
+    def _recognize_device(cls, product_key) -> Tuple[bool, str | None]:
         """Returns (can_recognize, model_name) tuple."""
         # legacy product_keys
         if product_key in cls.DEVICE_IDS:
@@ -841,7 +841,7 @@ class LedgerPlugin(HWPluginBase):
         return self._recognize_device(device.product_key)[0]
 
     @classmethod
-    def device_name_from_product_key(cls, product_key) -> Optional[str]:
+    def device_name_from_product_key(cls, product_key) -> str | None:
         return cls._recognize_device(product_key)[1]
 
     def create_device_from_hid_enumeration(self, d, *, product_key):

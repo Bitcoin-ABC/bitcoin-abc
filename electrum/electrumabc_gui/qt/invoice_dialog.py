@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from http.client import InvalidURL
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Union
 from urllib.error import URLError
 
 from qtpy import QtCore, QtWidgets
@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 
 class InvoiceDialog(QtWidgets.QDialog):
     def __init__(
-        self, parent: Optional[QtWidgets.QWidget] = None, fx: Optional[FxThread] = None
+        self, parent: QtWidgets.QWidget | None = None, fx: FxThread | None = None
     ):
         super().__init__(parent)
         self.setMinimumWidth(650)
@@ -151,7 +151,7 @@ class InvoiceDialog(QtWidgets.QDialog):
             # hide dialog after saving
             self.accept()
 
-    def get_payment_address(self) -> Optional[Address]:
+    def get_payment_address(self) -> Address | None:
         address_string = self.address_edit.text().strip()
         if not address_string:
             return None
@@ -165,7 +165,7 @@ class InvoiceDialog(QtWidgets.QDialog):
             )
             return None
 
-    def get_invoice(self) -> Optional[Invoice]:
+    def get_invoice(self) -> Invoice | None:
         payment_address = self.get_payment_address()
         if payment_address is None:
             return None
@@ -224,7 +224,7 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
     currencyChanged = QtCore.Signal(str)
 
     def __init__(
-        self, parent: Optional[QtWidgets.QWidget] = None, fx: Optional[FxThread] = None
+        self, parent: QtWidgets.QWidget | None = None, fx: FxThread | None = None
     ):
         super().__init__(parent)
 
@@ -285,7 +285,7 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
 
 
 class ExchangeRateWidget(QtWidgets.QWidget):
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         super().__init__(parent)
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -358,7 +358,7 @@ class ExchangeRateWidget(QtWidgets.QWidget):
 
 
 class ExchangeRateAPIWidget(QtWidgets.QWidget):
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         super().__init__(parent)
 
         layout = QtWidgets.QVBoxLayout()
@@ -455,7 +455,7 @@ class PostalAddressWidget(QtWidgets.QWidget):
     """A simple widget for entering the company address or the customer address."""
 
     def __init__(
-        self, label="Customer address", parent: Optional[QtWidgets.QWidget] = None
+        self, label="Customer address", parent: QtWidgets.QWidget | None = None
     ):
         super().__init__(parent)
         self.setFixedHeight(150)
@@ -480,8 +480,8 @@ class PostalAddressWidget(QtWidgets.QWidget):
 
 def load_invoice_from_file_and_show_error_message(
     filename: str,
-    parent: Optional[QtWidgets.QWidget],
-) -> Optional[Invoice]:
+    parent: QtWidgets.QWidget | None,
+) -> Invoice | None:
     try:
         invoice = Invoice.from_file(filename)
     except (json.JSONDecodeError, InvoiceDataError, ExchangeRateApiError) as e:

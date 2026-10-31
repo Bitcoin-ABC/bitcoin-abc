@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from collections import namedtuple
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, QTimer, Signal
@@ -41,7 +41,7 @@ class TreeSortingMixin:
     # Specify this in subclasses to apply a default sort order to the widget.
     # If None, nothing is applied (items are presented in the order they are
     # added).
-    default_sort: Optional[SortSpec] = None
+    default_sort: SortSpec | None = None
 
     def __init__(
         self,

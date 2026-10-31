@@ -32,7 +32,7 @@ import random  # only used to select random coins
 import threading
 import time
 import weakref
-from typing import Optional, Tuple
+from typing import Tuple
 
 from electrumabc.address import Address, OpCodes
 from electrumabc.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
@@ -762,14 +762,14 @@ class FusionPlugin(BasePlugin):
         This is called by the Fusion thread (in its thread context) when it
         freezes & unfreezes coins."""
 
-    def notify_server_status(self, b, tup: Optional[tuple] = None):
+    def notify_server_status(self, b, tup: tuple | None = None):
         """The Qt plugin subclass implements this to tell the GUI about bad
         servers."""
         if not b:
             self.print_error("notify_server_status:", b, str(tup))
 
     @hook
-    def donation_address(self, window) -> Optional[Tuple[str, Address]]:
+    def donation_address(self, window) -> Tuple[str, Address] | None:
         """Plugin API: Returns a tuple of (description, Address) or None. This
         is the donation address that we as a client got from the remote server
         (as opposed to the donation address we announce if we are a server)."""
@@ -786,7 +786,7 @@ class FusionPlugin(BasePlugin):
         return can_fuse_from(wallet) and can_fuse_to(wallet)
 
     @staticmethod
-    def is_fuz_coin(wallet, coin, *, require_depth=0) -> Optional[bool]:
+    def is_fuz_coin(wallet, coin, *, require_depth=0) -> bool | None:
         """Returns True if the coin in question is definitely a CashFusion coin (uses heuristic matching),
         or False if the coin in question is not from a CashFusion tx. Returns None if the tx for the coin
         is not (yet) known to the wallet (None == inconclusive answer, caller may wish to try again later).

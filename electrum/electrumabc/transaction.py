@@ -34,7 +34,7 @@ import warnings
 from collections import defaultdict
 from contextlib import suppress
 from io import BytesIO
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Tuple, Union
 
 from . import bitcoin, schnorr
 from .address import (
@@ -165,48 +165,48 @@ class TxInput:
         self,
         outpoint: OutPoint,
         sequence: int,
-        scriptsig: Optional[bytes] = None,
-        script_type: Optional[ScriptType] = None,
-        num_required_sigs: Optional[int] = None,
-        pubkeys: Optional[List[bytes]] = None,
-        x_pubkeys: Optional[List[bytes]] = None,
-        signatures: Optional[List[bytes]] = None,
-        address: Optional[Address] = None,
-        value: Optional[int] = None,
-        height: Optional[int] = None,
-        prev_tx: Optional[Transaction] = None,
+        scriptsig: bytes | None = None,
+        script_type: ScriptType | None = None,
+        num_required_sigs: int | None = None,
+        pubkeys: List[bytes] | None = None,
+        x_pubkeys: List[bytes] | None = None,
+        signatures: List[bytes] | None = None,
+        address: Address | None = None,
+        value: int | None = None,
+        height: int | None = None,
+        prev_tx: Transaction | None = None,
     ):
         self.outpoint: OutPoint = outpoint
         self.sequence: int = sequence
 
-        self.scriptsig: Optional[bytes] = scriptsig
+        self.scriptsig: bytes | None = scriptsig
 
         # Properties that are lazily computed on demand if scriptsig is provided
-        self._num_required_sigs: Optional[int] = num_required_sigs
-        self._x_pubkeys: Optional[List[bytes]] = x_pubkeys
-        self._pubkeys: Optional[List[bytes]] = pubkeys
-        self._type: Optional[ScriptType] = script_type
-        self._signatures: Optional[List[Optional[bytes]]] = signatures
-        self._address: Optional[Address] = address
+        self._num_required_sigs: int | None = num_required_sigs
+        self._x_pubkeys: List[bytes] | None = x_pubkeys
+        self._pubkeys: List[bytes] | None = pubkeys
+        self._type: ScriptType | None = script_type
+        self._signatures: List[bytes | None] | None = signatures
+        self._address: Address | None = address
 
         # Needed by various tools (coinchooser, consolidate, fusion...).
         # The value is also required for offline signing.
-        self._value: Optional[int] = value
-        self.height: Optional[int] = height
+        self._value: int | None = value
+        self.height: int | None = height
 
         # This is set by the wallet for hardware wallets
-        self._prev_tx: Optional[Transaction] = prev_tx
+        self._prev_tx: Transaction | None = prev_tx
 
     def set_value(self, value: int):
         self._value = value
 
-    def get_value(self) -> Optional[int]:
+    def get_value(self) -> int | None:
         return self._value
 
     def set_prev_tx(self, tx: Transaction):
         self._prev_tx = tx
 
-    def get_prev_tx(self) -> Optional[Transaction]:
+    def get_prev_tx(self) -> Transaction | None:
         return self._prev_tx
 
     @staticmethod
@@ -381,7 +381,7 @@ class TxInput:
         return self._type
 
     @property
-    def x_pubkeys(self) -> Optional[List[bytes]]:
+    def x_pubkeys(self) -> List[bytes] | None:
         if self._x_pubkeys is None and self._type not in (
             ScriptType.p2pk,
             ScriptType.coinbase,
@@ -390,7 +390,7 @@ class TxInput:
         return self._x_pubkeys
 
     @property
-    def pubkeys(self) -> Optional[List[bytes]]:
+    def pubkeys(self) -> List[bytes] | None:
         if self._pubkeys is None and self._x_pubkeys is not None:
             self._pubkeys = [xpubkey_to_pubkey(xpub) for xpub in self._x_pubkeys]
         elif self._pubkeys is None and self._type not in (
@@ -409,7 +409,7 @@ class TxInput:
         self._pubkeys[index] = pubkey
 
     @property
-    def signatures(self) -> List[Optional[bytes]]:
+    def signatures(self) -> List[bytes | None]:
         """List of signatures for this input.
 
         For a complete input, the number of signatures is the actual number: M for an
@@ -467,7 +467,7 @@ class TxInput:
         return list(pubkeys), list(x_pubkeys)
 
     @property
-    def address(self) -> Optional[Address]:
+    def address(self) -> Address | None:
         if self._address is None and self._type not in (
             ScriptType.p2pk,
             ScriptType.coinbase,
@@ -544,7 +544,7 @@ class TxInput:
 
     @staticmethod
     def from_scriptsig(
-        outpoint: OutPoint, sequence: int, scriptsig: bytes, value: Optional[int] = None
+        outpoint: OutPoint, sequence: int, scriptsig: bytes, value: int | None = None
     ) -> TxInput:
         """TxInput factory for deserialized transactions (complete transactions or
         partially signed transactions previously serialized)."""
@@ -558,12 +558,12 @@ class TxInput:
         script_type: ScriptType,
         num_required_sigs: int,
         x_pubkeys: List[bytes],
-        signatures: List[Optional[bytes]],
-        pubkeys: Optional[List[bytes]] = None,
-        address: Optional[Address] = None,
-        value: Optional[int] = None,
-        height: Optional[int] = None,
-        prev_tx: Optional[Transaction] = None,
+        signatures: List[bytes | None],
+        pubkeys: List[bytes] | None = None,
+        address: Address | None = None,
+        value: int | None = None,
+        height: int | None = None,
+        prev_tx: Transaction | None = None,
     ) -> TxInput:
         """Txinput factory for defining an input by its components"""
         assert all(
@@ -832,7 +832,7 @@ def is_push_opcode(opcode: Union[OpCodes, int], min_data_size: int = 0) -> bool:
     return opcode == OpCodes.OP_PUSHDATA4
 
 
-def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) -> bool:
+def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> bool:
     """Return True if the script operations match a P2PK scriptSig:
 
         PUSH(pubkey)
@@ -844,7 +844,7 @@ def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) ->
     return is_push_opcode(script_ops[0][0], min_data_size=COMPRESSED_PUBKEY_NBYTES)
 
 
-def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) -> bool:
+def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> bool:
     """Return True if the script operations match a P2PHK scriptSig:
 
         PUSH(signature) PUSH(pubkey)
@@ -861,7 +861,7 @@ def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, Optional[bytes]]]) -
 
 
 def matches_p2sh_ecdsa_multisig_scriptsig(
-    script_ops: List[Tuple[OpCodes, Optional[bytes]]],
+    script_ops: List[Tuple[OpCodes, bytes | None]],
 ) -> bool:
     """Return True if the script operations match a P2SH multisig scriptSig:
 
@@ -879,7 +879,7 @@ def matches_p2sh_ecdsa_multisig_scriptsig(
 
 
 def matches_multisig_redeemscript(
-    script_ops: List[Tuple[OpCodes, Optional[bytes]]], num_pubkeys: int
+    script_ops: List[Tuple[OpCodes, bytes | None]], num_pubkeys: int
 ) -> bool:
     """Return True if the script operations match a P2SH multisig scriptSig:
 
@@ -1037,11 +1037,11 @@ class Transaction:
             self.raw = self.serialize()
         return self.raw.hex()
 
-    def __init__(self, raw: Optional[bytes], sign_schnorr=False):
-        self.raw: Optional[bytes] = raw
+    def __init__(self, raw: bytes | None, sign_schnorr=False):
+        self.raw: bytes | None = raw
         assert raw is None or isinstance(raw, bytes)
-        self._inputs: Optional[List[TxInput]] = None
-        self._outputs: Optional[List[TxOutput]] = None
+        self._inputs: List[TxInput] | None = None
+        self._outputs: List[TxOutput] | None = None
         self.locktime = 0
         self.version = 2
         self._sign_schnorr = sign_schnorr
@@ -1972,7 +1972,7 @@ class Transaction:
         return bool(self.ephemeral.pop("_fetch", None))
 
     @classmethod
-    def tx_cache_get(cls, txid: str) -> Optional[Transaction]:
+    def tx_cache_get(cls, txid: str) -> Transaction | None:
         """Attempts to retrieve txid from the tx cache that this class
         keeps in-memory.  Returns None on failure. The returned tx is
         not deserialized, and is a copy of the one in the cache."""
@@ -1986,7 +1986,7 @@ class Transaction:
         return None
 
     @classmethod
-    def tx_cache_put(cls, tx: Transaction, txid: Optional[str] = None):
+    def tx_cache_put(cls, tx: Transaction, txid: str | None = None):
         """Puts a non-deserialized copy of tx into the tx_cache."""
         if not tx.raw:
             raise ValueError("Please pass a tx which has a valid .raw attribute!")

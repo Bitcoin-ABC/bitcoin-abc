@@ -5,7 +5,7 @@ import threading
 from copy import deepcopy
 from dataclasses import dataclass
 from decimal import Decimal as PyDecimal
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from . import util
 from .constants import XEC
@@ -27,7 +27,7 @@ class AddressFormats:
 @dataclass
 class ConfigKey:
     key: str
-    default: Optional[Any] = None
+    default: Any | None = None
 
     def __str__(self):
         return self.key

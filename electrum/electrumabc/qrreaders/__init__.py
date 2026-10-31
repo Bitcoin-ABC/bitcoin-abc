@@ -23,7 +23,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Optional
 
 from ..printerror import print_error
 from .abstract_base import AbstractQrCodeReader, QrCodeResult  # noqa: F401
@@ -35,7 +34,7 @@ class MissingLib(RuntimeError):
     pass
 
 
-def get_qr_reader() -> Optional[AbstractQrCodeReader]:
+def get_qr_reader() -> AbstractQrCodeReader | None:
     """
     Get the Qr code reader for the current platform
     """

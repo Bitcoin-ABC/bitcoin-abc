@@ -29,7 +29,7 @@ import queue
 import sys
 import threading
 from functools import partial
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QObject, Signal
@@ -340,7 +340,7 @@ class QtPluginBase(object):
         self: Union[QtPluginBase, HWPluginBase],
         window: ElectrumWindow,
         keystore: HardwareKeyStore,
-    ) -> Optional[str]:
+    ) -> str | None:
         """This dialog box should be usable even if the user has
         forgotten their PIN or it is in bootloader mode."""
         device_id = self.device_manager().xpub_id(keystore.xpub)

@@ -29,7 +29,6 @@ import sys
 import traceback
 import urllib.parse
 import webbrowser
-from typing import Optional
 
 import qtpy.QtCore as QtCore
 from qtpy import QtWidgets
@@ -206,7 +205,7 @@ class ExceptionHook(QObject):
 
     def __init__(self, config: SimpleConfig):
         super().__init__()
-        self.dialog: Optional[ExceptionDialog] = None
+        self.dialog: ExceptionDialog | None = None
         if ExceptionHook._instance is not None:
             # This is ok, we will be GC'd later.
             return

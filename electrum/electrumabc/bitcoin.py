@@ -31,7 +31,7 @@ import hashlib
 import hmac
 import os
 from enum import IntEnum
-from typing import TYPE_CHECKING, Literal, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Literal, Tuple, Union
 
 import pyaes
 
@@ -440,7 +440,7 @@ def EncodeBase58Check(vchIn: bytes) -> str:
     return base_encode(vchIn + h[0:4], base=58)
 
 
-def DecodeBase58Check(psz: str) -> Optional[bytes]:
+def DecodeBase58Check(psz: str) -> bytes | None:
     """Returns None on failure"""
     try:
         vchRet = base_decode(psz, None, base=58)
@@ -735,13 +735,13 @@ class Bip38Key:
         )
 
     @property
-    def lot(self) -> Optional[int]:
+    def lot(self) -> int | None:
         """Returns the 'lot' number if 'hasLotSequence' or None otherwise."""
         if self.dec and self.hasLotSequence:
             return self.entropy[4] * 4096 + self.entropy[5] * 16 + self.entropy[6] // 16
 
     @property
-    def sequence(self) -> Optional[int]:
+    def sequence(self) -> int | None:
         """Returns the 'sequence' number if 'hasLotSequence' or None
         otherwise."""
         if self.dec and self.hasLotSequence:
@@ -1020,7 +1020,7 @@ class Bip38Key:
     def createECMult(
         cls,
         passphrase: str,
-        lot_sequence: Optional[Tuple[int, int]] = None,
+        lot_sequence: Tuple[int, int] | None = None,
         compressed=True,
         *,
         net=None,

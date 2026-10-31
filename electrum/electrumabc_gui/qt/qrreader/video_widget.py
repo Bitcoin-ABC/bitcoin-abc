@@ -22,7 +22,6 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import Optional
 
 from qtpy import QtWidgets
 from qtpy.QtGui import QPainter, QPaintEvent, QPixmap
@@ -35,7 +34,7 @@ class QrReaderVideoWidget(QtWidgets.QWidget):
 
     USE_BILINEAR_FILTER = True
 
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         super().__init__(parent)
 
         self.pixmap = None

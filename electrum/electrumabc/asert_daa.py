@@ -22,7 +22,7 @@
 # SOFTWARE.
 import os
 from collections import namedtuple
-from typing import Optional, Union
+from typing import Union
 
 from .printerror import print_error
 
@@ -84,7 +84,7 @@ class ASERTDaa:
     MAX_TARGET = bits_to_target(MAX_BITS)
 
     # If left as none, blockchain.py will calculate this at runtime as we read headers.
-    anchor: Optional[Anchor] = None
+    anchor: Anchor | None = None
 
     @staticmethod
     def bits_to_target(bits: int) -> int:

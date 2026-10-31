@@ -28,7 +28,7 @@ CashFusion - conf.py - configuration & settings management
 """
 
 from collections import namedtuple
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 from electrumabc.simple_config import ConfigKey
 
@@ -71,7 +71,7 @@ class Conf:
         )
 
     @autofuse.setter
-    def autofuse(self, b: Optional[bool]):
+    def autofuse(self, b: bool | None):
         if b is not None:
             b = bool(b)
         self.wallet.storage.put("cashfusion_autofuse", b)
@@ -85,7 +85,7 @@ class Conf:
         )
 
     @autofuse_coinbase.setter
-    def autofuse_coinbase(self, b: Optional[bool]):
+    def autofuse_coinbase(self, b: bool | None):
         if b is not None:
             b = bool(b)
         self.wallet.storage.put("cashfusion_autofuse_coinbase", b)
@@ -100,7 +100,7 @@ class Conf:
         )
 
     @autofuse_confirmed_only.setter
-    def autofuse_confirmed_only(self, b: Optional[bool]):
+    def autofuse_confirmed_only(self, b: bool | None):
         if b is not None:
             b = bool(b)
         self.wallet.storage.put("cashfusion_autofuse_only_when_all_confirmed", b)
@@ -114,7 +114,7 @@ class Conf:
         )
 
     @coinbase_seen_latch.setter
-    def coinbase_seen_latch(self, b: Optional[bool]):
+    def coinbase_seen_latch(self, b: bool | None):
         if b is not None:
             b = bool(b)
         self.wallet.storage.put("cashfusion_coinbase_seen_latch", b)
@@ -133,7 +133,7 @@ class Conf:
         return ret
 
     @fusion_mode.setter
-    def fusion_mode(self, m: Optional[str]):
+    def fusion_mode(self, m: str | None):
         if m is not None:
             assert isinstance(m, str)
             m = m.lower().strip()
@@ -149,7 +149,7 @@ class Conf:
         )
 
     @queued_autofuse.setter
-    def queued_autofuse(self, i: Optional[int]):
+    def queued_autofuse(self, i: int | None):
         if i is not None:
             assert i >= 1
             i = int(i)
@@ -162,7 +162,7 @@ class Conf:
         )
 
     @fuse_depth.setter
-    def fuse_depth(self, i: Optional[int]):
+    def fuse_depth(self, i: int | None):
         if i is not None:
             assert i >= 0
             i = int(i)
@@ -175,7 +175,7 @@ class Conf:
         )
 
     @selector.setter
-    def selector(self, t: Optional[Tuple[str, Union[int, float]]]):
+    def selector(self, t: Tuple[str, Union[int, float]] | None):
         """Optional: Pass None to clear the key"""
         assert t is None or (isinstance(t, (tuple, list)) and len(t) == 2)
         self.wallet.storage.put("cashfusion_selector", t)
@@ -189,7 +189,7 @@ class Conf:
         )
 
     @self_fuse_players.setter
-    def self_fuse_players(self, i: Optional[int]):
+    def self_fuse_players(self, i: int | None):
         if i is not None:
             assert i >= 1
             i = int(i)
@@ -241,7 +241,7 @@ class Global:
         return tuple(self.config.get(self.ConfKeys.Server))
 
     @server.setter
-    def server(self, t: Optional[Tuple[str, int, bool]]):
+    def server(self, t: Tuple[str, int, bool] | None):
         if t is not None:
             assert isinstance(t, (list, tuple)) and len(t) == 3
             t = CashFusionServer(*t)
@@ -255,7 +255,7 @@ class Global:
         return str(self.config.get(self.ConfKeys.TorHost))
 
     @tor_host.setter
-    def tor_host(self, h: Optional[str]):
+    def tor_host(self, h: str | None):
         if h is not None:
             h = str(h)
             assert h
@@ -266,7 +266,7 @@ class Global:
         return bool(self.config.get(self.ConfKeys.TorPortAuto))
 
     @tor_port_auto.setter
-    def tor_port_auto(self, b: Optional[bool]):
+    def tor_port_auto(self, b: bool | None):
         if b is not None:
             b = bool(b)
         self.config.set_key(self.ConfKeys.TorPortAuto, b)
@@ -276,7 +276,7 @@ class Global:
         return int(self.config.get(self.ConfKeys.TorPortManual))
 
     @tor_port_manual.setter
-    def tor_port_manual(self, i: Optional[int]):
+    def tor_port_manual(self, i: int | None):
         if i is not None:
             i = int(i)
             assert 0 <= i <= 65535

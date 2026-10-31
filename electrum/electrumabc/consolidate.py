@@ -24,7 +24,7 @@
 This module provides coin consolidation tools.
 """
 
-from typing import Iterator, List, Optional, Tuple
+from typing import Iterator, List, Tuple
 
 from . import wallet
 from .address import Address
@@ -55,12 +55,12 @@ class AddressConsolidator:
         include_non_coinbase: bool = True,
         include_frozen: bool = False,
         include_tokens: bool = False,
-        min_value_sats: Optional[int] = None,
-        max_value_sats: Optional[int] = None,
-        min_height: Optional[int] = None,
-        max_height: Optional[int] = None,
-        output_address: Optional[Address] = None,
-        max_tx_size: Optional[int] = MAX_STANDARD_TX_SIZE,
+        min_value_sats: int | None = None,
+        max_value_sats: int | None = None,
+        min_height: int | None = None,
+        max_height: int | None = None,
+        output_address: Address | None = None,
+        max_tx_size: int | None = MAX_STANDARD_TX_SIZE,
     ):
         # output address defaults to input address if unspecified
         self.output_address = output_address or address

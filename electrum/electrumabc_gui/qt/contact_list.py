@@ -27,7 +27,7 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from enum import IntEnum
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
@@ -397,8 +397,8 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
             self.set_contact(d.get_name(), address)
 
     def set_contact(
-        self, label, address, typ="address", replace: Optional[Contact] = None
-    ) -> Optional[Contact]:
+        self, label, address, typ="address", replace: Contact | None = None
+    ) -> Contact | None:
         """Returns a reference to the newly inserted Contact object.
         replace is optional and if specified, replace an existing contact,
         otherwise add a new one.

@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 import requests
 from jsonpath_ng import parse as path_parse
@@ -27,7 +27,7 @@ def poll_for_answer(
     json_req: Any,
     poll_interval: int = DEFAULT_POLL_INTERVAL,
     poll_timeout: int = DEFAULT_TIMEOUT,
-    expected_answer: Optional[Any] = None,
+    expected_answer: Any | None = None,
 ) -> Any:
     """Poll an RPC method until timeout or an expected answer has been received"""
     start = current = time.time()

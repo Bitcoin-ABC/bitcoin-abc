@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from qtpy import QtWidgets
 
 from electrumabc.address import PublicKey
@@ -17,8 +15,8 @@ from ..util import ButtonsLineEdit, PrintError
 def get_auxiliary_privkey(
     wallet: DeterministicWallet,
     key_index: int = 0,
-    pwd: Optional[str] = None,
-) -> Optional[str]:
+    pwd: str | None = None,
+) -> str | None:
     """Get a deterministic private key derived from a BIP44 path that is not used
     by the wallet to generate addresses.
 
@@ -43,13 +41,13 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[bytearray] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
+        pwd: bytearray | None = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         super().__init__(parent)
         # store the password as a mutable type so the memory can be zeroed after it is
         # no longer needed.
-        self._pwd: Optional[bytearray] = pwd
+        self._pwd: bytearray | None = pwd
         # Use a flag to remember whether this password was provided by a parent widget,
         # so we don't clear the memory for a password that might still be needed after
         # this widget dies.
@@ -57,7 +55,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
         self.wallet = wallet
 
     @property
-    def pwd(self) -> Optional[str]:
+    def pwd(self) -> str | None:
         """Return wallet password.
 
         Open a dialog to ask for the wallet password if necessary, and cache it.
@@ -89,7 +87,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
 class KeyWidget(QtWidgets.QWidget):
     """A widget to view a private key - public key pair"""
 
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         super().__init__(parent)
 
         layout = QtWidgets.QVBoxLayout()
@@ -123,9 +121,9 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[bytearray] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
-        additional_info: Optional[str] = None,
+        pwd: bytearray | None = None,
+        parent: QtWidgets.QWidget | None = None,
+        additional_info: str | None = None,
     ):
         super().__init__(wallet, pwd, parent)
 
@@ -191,9 +189,9 @@ class AuxiliaryKeysDialog(QtWidgets.QDialog):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[bytearray] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
-        additional_info: Optional[str] = None,
+        pwd: bytearray | None = None,
+        parent: QtWidgets.QWidget | None = None,
+        additional_info: str | None = None,
     ):
         super().__init__(parent)
         self.setWindowTitle("Auxiliary keys")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 from functools import partial
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 class CollapsibleSection(QWidget):
     def __init__(
-        self, title: str, content_widget: QWidget, parent: Optional[QWidget] = None
+        self, title: str, content_widget: QWidget, parent: QWidget | None = None
     ):
         super().__init__(parent)
 
@@ -83,7 +83,7 @@ class CollapsibleSection(QWidget):
 
 class SignVerifyDialog(QDialog, MessageBoxMixin):
     def __init__(
-        self, wallet: AbstractWallet, address: Optional[Address] = None, parent=None
+        self, wallet: AbstractWallet, address: Address | None = None, parent=None
     ):
         super().__init__(parent)
         self.setWindowModality(Qt.WindowModal)
@@ -148,7 +148,7 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         hbox.addWidget(b)
         layout.addLayout(hbox, 5, 1)
 
-    def _get_password(self) -> Optional[str]:
+    def _get_password(self) -> str | None:
         password = None
         while self.wallet.has_keystore_encryption():
             password = PasswordDialog(self).run()

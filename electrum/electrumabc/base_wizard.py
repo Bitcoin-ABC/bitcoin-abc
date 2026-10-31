@@ -29,7 +29,7 @@ from __future__ import annotations
 import copy
 import sys
 import traceback
-from typing import Any, Callable, Dict, List, NamedTuple, Optional
+from typing import Any, Callable, Dict, List, NamedTuple
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
@@ -72,7 +72,7 @@ class BaseWizard(PrintError):
         self.data = {}
         self.pw_args = None
         self._stack: List[WizardStackItem] = []
-        self.plugin: Optional[BasePlugin] = None
+        self.plugin: BasePlugin | None = None
         self.keystores = []
         self.seed_type = None
 
@@ -146,7 +146,7 @@ class BaseWizard(PrintError):
             do_upgrade, _("Upgrading wallet format..."), on_finished=on_finished
         )
 
-    def run_task_without_blocking_gui(self, task, *, msg: Optional[str] = None) -> Any:
+    def run_task_without_blocking_gui(self, task, *, msg: str | None = None) -> Any:
         """Perform a task in a thread without blocking the GUI.
         Returns the result of 'task', or raises the same exception.
         This method blocks until 'task' is finished.
@@ -753,7 +753,7 @@ class BaseWizard(PrintError):
         storage.write()
         return storage
 
-    def terminate(self, *, storage: Optional[WalletStorage] = None) -> None:
+    def terminate(self, *, storage: WalletStorage | None = None) -> None:
         # implemented by subclasses
         raise NotImplementedError()
 

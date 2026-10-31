@@ -35,7 +35,7 @@ import time
 import traceback
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
 from qtpy import QtWidgets
 from qtpy.QtCore import (
@@ -1301,7 +1301,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
 
-        self.receive_address: Optional[Address] = None
+        self.receive_address: Address | None = None
         self.receive_address_e = ButtonsLineEdit()
         self.receive_address_e.addCopyButton()
         self.receive_address_e.setReadOnly(True)
@@ -2133,7 +2133,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.status_bar.update_lock_icon(self.wallet.has_password())
 
     def get_passphrase_dialog(
-        self, msg: str, title: Optional[str] = None, *, permit_empty=False
+        self, msg: str, title: str | None = None, *, permit_empty=False
     ) -> str:
         d = PassphraseDialog(
             self.wallet, self.top_level_window(), msg, title, permit_empty=permit_empty
@@ -2435,7 +2435,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         parent = parent or self
         return PasswordDialog(parent, msg).run()
 
-    def tx_from_text(self, txt: str) -> Optional[Transaction]:
+    def tx_from_text(self, txt: str) -> Transaction | None:
         try:
             raw_tx = rawtx_from_str(txt)
             tx = Transaction(raw_tx, sign_schnorr=self.wallet.is_schnorr_enabled())
@@ -2516,7 +2516,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self._qr_dialog = None
             self.show_error(str(e))
 
-    def read_tx_from_file(self, filename: str) -> Optional[Transaction]:
+    def read_tx_from_file(self, filename: str) -> Transaction | None:
         try:
             with open(filename, "r", encoding="utf-8") as f:
                 file_content = f.read()

@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
 from qtpy import QtGui, QtWidgets
 
@@ -62,7 +62,7 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
         buttons_layout.addWidget(self.broadcast_button)
         self.disable_buttons()
 
-        self.broadcast_dialog: Optional[WaitingDialog] = None
+        self.broadcast_dialog: WaitingDialog | None = None
 
         self.save_button.clicked.connect(self.on_save_clicked)
         self.sign_button.clicked.connect(self.on_sign_clicked)

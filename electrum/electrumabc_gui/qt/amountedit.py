@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-from typing import Optional, Union
+from typing import Union
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
@@ -29,7 +29,7 @@ class AmountEdit(MyLineEdit):
         self,
         base_unit: str,
         is_int: bool = False,
-        parent: Optional[QtWidgets.QWidget] = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         QtWidgets.QLineEdit.__init__(self, parent)
         # This seems sufficient for 10,000 MXEC amounts with two decimals
@@ -77,7 +77,7 @@ class AmountEdit(MyLineEdit):
                 self.base_unit,
             )
 
-    def get_amount(self) -> Optional[Union[int, Decimal]]:
+    def get_amount(self) -> Union[int, Decimal] | None:
         try:
             return (int if self.is_int else Decimal)(self.text())
         except (ValueError, ArithmeticError):
@@ -96,7 +96,7 @@ class XECAmountEdit(AmountEdit):
         AmountEdit.__init__(self, base_unit, is_int, parent)
         self.decimal_point = decimal_point
 
-    def get_amount(self) -> Optional[int]:
+    def get_amount(self) -> int | None:
         """Return amount in satoshis"""
         try:
             x = Decimal(self.text())
@@ -105,7 +105,7 @@ class XECAmountEdit(AmountEdit):
         p = pow(10, self.decimal_point)
         return int(p * x)
 
-    def setAmount(self, amount: Optional[Union[float, int]]):
+    def setAmount(self, amount: Union[float, int] | None):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")
@@ -124,14 +124,14 @@ class XECSatsByteEdit(XECAmountEdit):
         XECAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
         self.set_base_unit("sats/B")
 
-    def get_amount(self) -> Optional[float]:
+    def get_amount(self) -> float | None:
         try:
             x = float(Decimal(self.text()))
         except (ValueError, ArithmeticError):
             return None
         return x if x > 0.0 else None
 
-    def setAmount(self, amount: Optional[Union[float, int]]):
+    def setAmount(self, amount: Union[float, int] | None):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")

@@ -3,8 +3,6 @@ This is used to patch the QApplication style sheet.
 It reads the current stylesheet, appends our modifications and sets the new stylesheet.
 """
 
-from typing import Optional
-
 from qtpy import QtWidgets
 
 from electrumabc.printerror import print_error
@@ -39,7 +37,7 @@ QComboBox::item:checked {
 """
 
 
-def patch(use_dark_theme: bool = False, darkstyle_ver: Optional[tuple] = None):
+def patch(use_dark_theme: bool = False, darkstyle_ver: tuple | None = None):
     if not use_dark_theme:
         return
     custom_patch = ""

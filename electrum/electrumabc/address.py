@@ -31,7 +31,7 @@ import hashlib
 import struct
 from collections import namedtuple
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -712,7 +712,7 @@ class Script:
     @classmethod
     def get_ops(
         cls, script: bytes, *, synthesize_minimal_data=True
-    ) -> List[Tuple[OpCodes, Optional[bytes]]]:
+    ) -> List[Tuple[OpCodes, bytes | None]]:
         """Parse a script and return a list of (opcode, data) tuples.
         If the opcode is not a push operation, data is None.
         """

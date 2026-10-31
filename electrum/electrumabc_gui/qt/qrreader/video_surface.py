@@ -23,7 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List, Optional
+from typing import List
 
 import qtpy
 from qtpy.QtCore import QObject, Signal
@@ -56,7 +56,7 @@ class QrReaderVideoSurface(ParentClass):
     necessary and sends them to listeners via the frame_available event.
     """
 
-    def __init__(self, parent: Optional[QObject] = None):
+    def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         if qtpy.QT6:
             self.videoFrameChanged.connect(self._on_new_frame)

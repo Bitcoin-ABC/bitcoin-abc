@@ -31,7 +31,7 @@ from __future__ import annotations
 import struct
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Optional, Sequence, Type
+from typing import Sequence, Type
 
 
 class DeserializationError(BaseException):
@@ -88,7 +88,7 @@ def compact_size(nsize: int) -> bytes:
     return b"\xff" + nsize.to_bytes(8, "little")
 
 
-def read_compact_size(stream: BytesIO) -> Optional[int]:
+def read_compact_size(stream: BytesIO) -> int | None:
     """
     Read a compact size from a stream and return its value.
     Return None in case the stream is depleted.

@@ -25,7 +25,7 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Type
+from typing import TYPE_CHECKING, Any, Iterable, Sequence, Type
 
 from electrumabc.address import OpCodes, Script, ScriptOutput
 from electrumabc.i18n import _, ngettext
@@ -67,7 +67,7 @@ class HWPluginBase(BasePlugin):
         d: dict,
         *,
         product_key,
-    ) -> Optional[Device]:
+    ) -> Device | None:
         # Older versions of hid don't provide interface_number
         interface_number = d.get("interface_number", -1)
         usage_page = d["usage_page"]
@@ -141,8 +141,8 @@ class HWPluginBase(BasePlugin):
     def create_client(
         self,
         device: Device,
-        handler: Optional[HardwareHandlerBase],
-    ) -> Optional[HardwareClientBase]:
+        handler: HardwareHandlerBase | None,
+    ) -> HardwareClientBase | None:
         raise NotImplementedError()
 
     def get_xpub(self, device_id, derivation: str, xtype, wizard: BaseWizard) -> str:
@@ -160,7 +160,7 @@ class HWPluginBase(BasePlugin):
 
 
 class HardwareClientBase:
-    handler: Optional[HardwareHandlerBase]
+    handler: HardwareHandlerBase | None
 
     def __init__(self, *, plugin: HWPluginBase):
         self.plugin = plugin
@@ -181,7 +181,7 @@ class HardwareClientBase:
         """True if initialized, False if wiped."""
         raise NotImplementedError()
 
-    def label(self) -> Optional[str]:
+    def label(self) -> str | None:
         """The name given by the user to the device.
         Note: labels are shown to the user to help distinguish their devices,
         and they are also used as a fallback to distinguish devices programmatically.
@@ -198,7 +198,7 @@ class HardwareClientBase:
     def get_xpub(self, bip32_path: str, xtype) -> str:
         raise NotImplementedError()
 
-    def device_model_name(self) -> Optional[str]:
+    def device_model_name(self) -> str | None:
         """Return the name of the model of this device, which might be displayed in the
         UI.
         E.g. for Trezor, "Trezor One" or "Trezor T".
@@ -212,12 +212,12 @@ class HardwareHandlerBase:
     win = None
     device: str
 
-    def get_wallet(self) -> Optional[AbstractWallet]:
+    def get_wallet(self) -> AbstractWallet | None:
         if self.win is not None:
             if hasattr(self.win, "wallet"):
                 return self.win.wallet
 
-    def get_gui_thread(self) -> Optional[threading.Thread]:
+    def get_gui_thread(self) -> threading.Thread | None:
         if self.win is not None:
             if hasattr(self.win, "gui_thread"):
                 return self.win.gui_thread
@@ -225,7 +225,7 @@ class HardwareHandlerBase:
     def update_status(self, paired: bool) -> None:
         pass
 
-    def query_choice(self, msg: str, labels: Sequence[str]) -> Optional[int]:
+    def query_choice(self, msg: str, labels: Sequence[str]) -> int | None:
         raise NotImplementedError()
 
     def yes_no_question(self, msg: str) -> bool:
@@ -243,7 +243,7 @@ class HardwareHandlerBase:
     def get_word(self, msg: str) -> str:
         raise NotImplementedError()
 
-    def get_passphrase(self, msg: str, confirm: bool) -> Optional[str]:
+    def get_passphrase(self, msg: str, confirm: bool) -> str | None:
         raise NotImplementedError()
 
 

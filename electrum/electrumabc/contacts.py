@@ -25,7 +25,7 @@ import json
 import os
 import traceback
 from collections import namedtuple
-from typing import List, Optional
+from typing import List
 
 from .address import Address
 from .printerror import PrintError
@@ -240,7 +240,7 @@ class Contacts(PrintError):
     def add(
         self,
         contact: Contact,
-        replace_old: Optional[Contact] = None,
+        replace_old: Contact | None = None,
         unique: bool = False,
     ) -> bool:
         """Puts a contact in the contact list, appending it at the end.

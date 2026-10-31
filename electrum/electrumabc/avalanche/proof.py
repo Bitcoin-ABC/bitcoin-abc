@@ -35,7 +35,7 @@ import struct
 from dataclasses import dataclass
 from functools import partial
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Union
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -67,7 +67,7 @@ class StakeAndSigningData:
 
     stake: Stake
     address: Address
-    sig: Optional[bytes] = None
+    sig: bytes | None = None
 
     def verify_signature(self, commitment: bytes) -> bool:
         return self.sig is not None and self.stake.pubkey.verify_schnorr(
@@ -82,7 +82,7 @@ class Stake(SerializableObject):
         amount: int,
         height: int,
         is_coinbase: bool,
-        pubkey: Optional[PublicKey] = None,
+        pubkey: PublicKey | None = None,
     ) -> None:
         self.outpoint = outpoint
         self.amount = amount
@@ -265,15 +265,15 @@ class ProofBuilder:
         expiration_time: int,
         payout_address: Union[Address, ScriptOutput, address.PublicKey],
         wallet: AbstractWallet,
-        master: Optional[Key] = None,
-        master_pub: Optional[PublicKey] = None,
-        pwd: Optional[str] = None,
+        master: Key | None = None,
+        master_pub: PublicKey | None = None,
+        pwd: str | None = None,
     ) -> None:
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
         """int64"""
-        self.master: Optional[Key] = master
+        self.master: Key | None = master
         """Master private key. If not specified, the proof signature will be invalid."""
         if self.master is not None:
             if master_pub is not None and self.master.get_pubkey() != master_pub:
@@ -299,7 +299,7 @@ class ProofBuilder:
 
     @classmethod
     def from_proof(
-        cls, proof: Proof, wallet: AbstractWallet, master: Optional[Key] = None
+        cls, proof: Proof, wallet: AbstractWallet, master: Key | None = None
     ) -> ProofBuilder:
         """Create a proof builder using the data from an existing proof.
         This is useful for adding more stakes to it.

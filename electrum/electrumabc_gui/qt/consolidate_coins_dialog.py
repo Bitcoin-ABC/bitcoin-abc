@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Sequence
+from typing import Sequence
 
 from qtpy import QtCore, QtWidgets
 
@@ -42,10 +42,10 @@ class ConsolidateWorker(QtCore.QObject):
         include_non_coinbase: bool,
         include_frozen: bool,
         include_tokens: bool,
-        minimum_value: Optional[int],
-        maximum_value: Optional[int],
-        minimum_height: Optional[int],
-        maximum_height: Optional[int],
+        minimum_value: int | None,
+        maximum_value: int | None,
+        minimum_height: int | None,
+        maximum_height: int | None,
         output_address: Address,
         max_tx_size: int,
     ):
@@ -111,12 +111,12 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
         address: Address,
         wallet: AbstractWallet,
         main_window,
-        parent: Optional[QtWidgets.QWidget] = None,
+        parent: QtWidgets.QWidget | None = None,
     ):
         super().__init__(parent)
         self.setWindowTitle(f"Consolidate coins for address {address.to_ui_string()}")
 
-        self.tx_thread: Optional[QtCore.QThread] = None
+        self.tx_thread: QtCore.QThread | None = None
 
         self.address: Address = address
         self.wallet: AbstractWallet = wallet
@@ -298,7 +298,7 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
             if button == QtWidgets.QMessageBox.Cancel:
                 self.include_tokens_cb.setChecked(False)
 
-    def get_minimum_value(self) -> Optional[int]:
+    def get_minimum_value(self) -> int | None:
         """Return minimum value in satoshis, or None"""
         return (
             None
@@ -306,7 +306,7 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
             else int(100 * self.minimum_amount_sb.value())
         )
 
-    def get_maximum_value(self) -> Optional[int]:
+    def get_maximum_value(self) -> int | None:
         """Return maximum value in satoshis, or None"""
         return (
             None
@@ -338,7 +338,7 @@ class OutputsPage(QtWidgets.QWizardPage):
         super().__init__(parent)
 
         self.inputs_address: Address = input_address
-        self.output_address: Optional[Address] = None
+        self.output_address: Address | None = None
 
         self.setTitle("Outputs")
 

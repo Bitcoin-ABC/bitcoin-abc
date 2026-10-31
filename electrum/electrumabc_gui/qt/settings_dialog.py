@@ -3,7 +3,7 @@ from __future__ import annotations
 import platform
 import sys
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import TYPE_CHECKING, Tuple
 
 import qtpy
 from qtpy import QtWidgets
@@ -74,11 +74,11 @@ class SettingsDialog(WindowModalDialog):
 
     def __init__(
         self,
-        parent: Optional[QtWidgets.QWidget],
+        parent: QtWidgets.QWidget | None,
         config: SimpleConfig,
         wallet: AbstractWallet,
         fx: FxThread,
-        alias_info: Optional[Tuple[Address, str, bool]],
+        alias_info: Tuple[Address, str, bool] | None,
         base_unit: str,
         gui_object: ElectrumGui,
     ):
@@ -710,7 +710,7 @@ class SettingsDialog(WindowModalDialog):
         super().showEvent(e)
         self.shown_signal.emit()
 
-    def set_alias_color(self, alias_info: Optional[Tuple[Address, str, bool]]):
+    def set_alias_color(self, alias_info: Tuple[Address, str, bool] | None):
         if not self.config.get(ConfigKeys.ALIAS):
             self.alias_e.setStyleSheet("")
             return

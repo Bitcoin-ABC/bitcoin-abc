@@ -1,6 +1,6 @@
 import unittest
 from io import BytesIO
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from .. import transaction
 from ..address import Address, PublicKey, Script, ScriptOutput, UnknownAddress
@@ -864,10 +864,10 @@ class TestTxInput(unittest.TestCase):
         expected_type: ScriptType,
         expected_sigs: List[str],
         num_required_sigs: int,
-        expected_pubkeys: Optional[List[str]] = None,
-        expected_address: Optional[Address] = None,
-        expected_value: Optional[int] = None,
-        expected_preimage_script: Optional[str] = None,
+        expected_pubkeys: List[str] | None = None,
+        expected_address: Address | None = None,
+        expected_value: int | None = None,
+        expected_preimage_script: str | None = None,
     ):
         tx = transaction.Transaction(bytes.fromhex(tx_hex))
         input_dict = tx.inputs()[0]

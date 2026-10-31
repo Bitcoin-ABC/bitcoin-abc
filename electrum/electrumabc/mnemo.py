@@ -29,7 +29,7 @@ import hashlib
 import math
 from collections.abc import Generator
 from enum import IntEnum, auto, unique
-from typing import List, Optional, Set, Tuple, Union
+from typing import List, Set, Tuple, Union
 
 import mnemonic
 
@@ -69,7 +69,7 @@ seed_type_names_inv = {
 
 
 def autodetect_seed_type(
-    seed: str, lang: Optional[str] = None, *, prefix: str = version.SEED_PREFIX
+    seed: str, lang: str | None = None, *, prefix: str = version.SEED_PREFIX
 ) -> Set[SeedType]:
     """Given a mnemonic seed phrase, auto-detect the possible seed types it can
     be. Note that some lucky seed phrases match all three types. Electron Cash
@@ -125,7 +125,7 @@ def is_old_seed(seed: str) -> bool:
     return is_hex or (uses_electrum_words and (len(words) == 12 or len(words) == 24))
 
 
-def seed_type(seed: str) -> Optional[SeedType]:
+def seed_type(seed: str) -> SeedType | None:
     if is_old_seed(seed):
         return SeedType.Old
     elif is_electrum_seed(seed):
@@ -212,7 +212,7 @@ class MnemonicBase(PrintError):
         raise Exception("Language not detected")
 
     @classmethod
-    def mnemonic_to_seed(cls, mnemonic: str, passphrase: Optional[str]) -> bytes:
+    def mnemonic_to_seed(cls, mnemonic: str, passphrase: str | None) -> bytes:
         raise NotImplementedError(
             f"mnemonic_to_seed is not implemented in {cls.__name__}"
         )
@@ -224,7 +224,7 @@ class MnemonicBase(PrintError):
 
     @classmethod
     def is_wordlist_valid(
-        cls, mnemonic: str, lang: Optional[str] = None
+        cls, mnemonic: str, lang: str | None = None
     ) -> Tuple[bool, str]:
         """Returns (True, lang) if the passed-in `mnemonic` phrase has all its
         words found in the wordlist for `lang`. Pass in a None value for `lang`

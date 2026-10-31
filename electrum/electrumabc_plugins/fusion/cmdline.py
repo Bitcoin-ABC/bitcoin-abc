@@ -26,7 +26,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, NamedTuple, Optional, Tuple
+from typing import TYPE_CHECKING, List, NamedTuple, Tuple
 
 from electrumabc.plugins import daemon_command
 from electrumabc.simple_config import ConfigKeys, SimpleConfig
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 class WalletToFuse(NamedTuple):
     name: str
     wallet: AbstractWallet
-    password: Optional[str]
+    password: str | None
 
 
 def is_password_valid(wallet: AbstractWallet, pwd: str) -> bool:
@@ -53,9 +53,7 @@ def is_password_valid(wallet: AbstractWallet, pwd: str) -> bool:
     return True
 
 
-def find_password_in_list(
-    wallet: AbstractWallet, passwords: List[str]
-) -> Optional[str]:
+def find_password_in_list(wallet: AbstractWallet, passwords: List[str]) -> str | None:
     for pwd in passwords:
         if is_password_valid(wallet, pwd):
             return pwd
