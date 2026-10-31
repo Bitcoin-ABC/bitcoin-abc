@@ -25,26 +25,26 @@ select = [
     "ASYNC",
     "FLY",
     "PLE",
-    "B006",
-    "B008",
-    "B912",
+    "B006", # mutable-argument-default
+    "B008", # function-call-in-default-argument
+    "B912", # map-without-explicit-strict
     "RUF059", # unused-unpacked-variable
-    "RUF064",
+    "RUF064", # non-octal-permissions
     "UP006", # non-pep585-annotation
     "UP007", # non-pep604-annotation-union
-    "UP031",
-    "UP032",
-    "UP037",
+    "UP031", # printf-string-formatting
+    "UP032", # f-string
+    "UP037", # quoted-annotation
     "UP045", # non-pep604-annotation-optional
 ]
 
 ignore = [
-    "A003",
-    "E203",
-    "E303",
-    "E305",
-    "E501",
-    "C901",
+    "A003", # builtin-attribute-shadowing
+    "E203", # whitespace-before-punctuation
+    "E303", # too-many-blank-lines
+    "E305", # blank-lines-after-function-or-class
+    "E501", # line-too-long
+    "C901", # complex-structure
 ]
 
 [lint.per-file-ignores]
