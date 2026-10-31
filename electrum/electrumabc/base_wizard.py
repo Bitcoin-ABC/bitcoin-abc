@@ -29,7 +29,7 @@ from __future__ import annotations
 import copy
 import sys
 import traceback
-from typing import Any, Callable, Dict, List, NamedTuple
+from typing import Any, Callable, NamedTuple
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
@@ -61,7 +61,7 @@ class GoBack(Exception):
 class WizardStackItem(NamedTuple):
     action: Any
     args: Any
-    kwargs: Dict[str, Any]
+    kwargs: dict[str, Any]
     storage_data: dict
 
 
@@ -71,7 +71,7 @@ class BaseWizard(PrintError):
         self.config = config
         self.data = {}
         self.pw_args = None
-        self._stack: List[WizardStackItem] = []
+        self._stack: list[WizardStackItem] = []
         self.plugin: BasePlugin | None = None
         self.keystores = []
         self.seed_type = None

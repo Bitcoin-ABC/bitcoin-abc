@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Sequence, Tuple
+from typing import Sequence
 
 from qtpy import QtGui, QtWidgets
 
@@ -222,14 +222,14 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
             progress_max=len(self.transactions),
         )
 
-    def broadcast_transactions(self) -> List[Tuple[bool, str]]:
+    def broadcast_transactions(self) -> list[tuple[bool, str]]:
         statuses = []
         for i, tx in enumerate(self.transactions):
             statuses.append(self.main_window.network.broadcast_transaction(tx))
             self.broadcast_dialog.update_progress(i)
         return statuses
 
-    def on_broadcast_done(self, statuses: List[Tuple[bool, str]]):
+    def on_broadcast_done(self, statuses: list[tuple[bool, str]]):
         if not statuses:
             # Should never happen. This means the user somehow manage to trigger
             # the broadcast button while there was no transaction to broadcast.

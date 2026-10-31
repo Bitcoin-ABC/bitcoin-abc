@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import struct
 from enum import IntEnum
-from typing import List
 
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -115,7 +114,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         # By default sort by descending amount
         self.sortByColumn(2, QtCore.Qt.DescendingOrder)
 
-        self.stakes: List[SignedStake | StakeAndSigningData] = []
+        self.stakes: list[SignedStake | StakeAndSigningData] = []
 
         # We assume that the tip height is not going to change much during the lifetime
         # of this widget, so we don't have to watch for new blocks and update the
@@ -188,7 +187,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         self.stakes.clear()
         self.clearContents()
 
-    def add_stakes(self, stakes: List[SignedStake | StakeAndSigningData]):
+    def add_stakes(self, stakes: list[SignedStake | StakeAndSigningData]):
         previous_utxo_count = len(self.stakes)
         self.stakes += stakes
         self.setSortingEnabled(False)
@@ -451,7 +450,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             f"Total amount: <b>{format_satoshis(amount)} XEC</b>"
         )
 
-    def add_utxos(self, utxos: List[dict]):
+    def add_utxos(self, utxos: list[dict]):
         """Add UTXOs from a list of dict objects, such as stored internally by
         the wallet or loaded from a JSON file. These UTXOs must belong to the current
         wallet, as they are not yet signed.
@@ -883,7 +882,7 @@ class AvaProofDialog(QtWidgets.QDialog):
 
         self.close_button.clicked.connect(self.accept)
 
-    def add_utxos(self, utxos: List[dict]) -> bool:
+    def add_utxos(self, utxos: list[dict]) -> bool:
         if not check_utxos(utxos, self):
             return False
         self.proof_widget.add_utxos(utxos)
@@ -981,7 +980,7 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
         return self.clickedButton() == self.cancel_button
 
 
-def check_utxos(utxos: List[dict], parent: QtWidgets.QWidget | None = None) -> bool:
+def check_utxos(utxos: list[dict], parent: QtWidgets.QWidget | None = None) -> bool:
     """Check utxos are usable for avalanche proofs.
     If they aren't, and the user has not acknowledged that he wants to build the
     proof anyway, return False.
@@ -1008,8 +1007,8 @@ class UtxosDialog(QtWidgets.QDialog):
 
         self.wallet = wallet
         self.config = config
-        self.utxos: List[dict] = []
-        self.selected_rows: List[int] = []
+        self.utxos: list[dict] = []
+        self.selected_rows: list[int] = []
         self.outpoints_to_exclude = outpoints_to_exclude
 
         layout = QtWidgets.QVBoxLayout(self)
@@ -1116,5 +1115,5 @@ class UtxosDialog(QtWidgets.QDialog):
         ]
         self.load_button.setEnabled(bool(self.selected_rows))
 
-    def get_selected_utxos(self) -> List[dict]:
+    def get_selected_utxos(self) -> list[dict]:
         return [self.utxos[r] for r in self.selected_rows]

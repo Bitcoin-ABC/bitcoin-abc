@@ -27,7 +27,6 @@ import ctypes
 import os
 import sys
 from enum import IntEnum
-from typing import List
 
 from ..printerror import print_error
 from ..util import _
@@ -171,7 +170,7 @@ class ZbarQrCodeReader(AbstractQrCodeReader):
         width: int,
         height: int,
         frame_id: int = -1,
-    ) -> List[QrCodeResult]:
+    ) -> list[QrCodeResult]:
         LIBZBAR.zbar_image_set_sequence(self.zbar_image, frame_id)
         LIBZBAR.zbar_image_set_size(self.zbar_image, width, height)
         LIBZBAR.zbar_image_set_format(self.zbar_image, FOURCC_Y800)

@@ -13,7 +13,7 @@ from datetime import datetime
 # Qt 5.12 also exports Decimal
 from decimal import Decimal as PyDecimal
 from threading import Thread
-from typing import Any, Dict, List, TypeVar
+from typing import Any, TypeVar
 
 import requests
 
@@ -190,7 +190,7 @@ class ExchangeBase(PrintError):
             t.start()
         return result
 
-    def history_ccys(self) -> List[str]:
+    def history_ccys(self) -> list[str]:
         """Return a list of currency codes for which this exchange
         has an API to query the historical prices."""
         return []
@@ -205,7 +205,7 @@ class ExchangeBase(PrintError):
         """
         raise NotImplementedError("Exchange classes must implement this method")
 
-    def get_currencies(self) -> List[str]:
+    def get_currencies(self) -> list[str]:
         """Return a list of currency codes for which this exchange
         has an API to query the current price."""
         rates = self.get_rates("")
@@ -373,7 +373,7 @@ def dictinvert(d: dict[K, list[V]]) -> dict[V, list[K]]:
     return inv
 
 
-def load_exchanges_and_currencies() -> Dict[str, List[str]]:
+def load_exchanges_and_currencies() -> dict[str, list[str]]:
     """Load exchanges and supported currencies from the
     currencies.json data file. If this data file does not
     exist, create it by querying the exchanges' public API.

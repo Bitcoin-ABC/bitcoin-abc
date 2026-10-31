@@ -25,7 +25,6 @@ import json
 import os
 import traceback
 from collections import namedtuple
-from typing import List
 
 from .address import Address
 from .printerror import PrintError
@@ -61,7 +60,7 @@ class Contacts(PrintError):
         self.data = self._load_from_dict_like_object(self.storage)
 
     @staticmethod
-    def _load_from_dict_like_object(storage) -> List[Contact]:
+    def _load_from_dict_like_object(storage) -> list[Contact]:
         assert callable(getattr(storage, "get", None))
         contacts_list = storage.get("contacts2")
         v2_was_missing = not isinstance(contacts_list, list)
@@ -95,7 +94,7 @@ class Contacts(PrintError):
         return out
 
     @staticmethod
-    def _loadv1(storage) -> List[Contact]:
+    def _loadv1(storage) -> list[Contact]:
         """loads v1 'contacts' key from `storage`, which should be either a
         dict or WalletStorage; it must simply support the dict-like method
         'get'. Note this also supports the pre-v1 format, as the old Contacts
@@ -136,7 +135,7 @@ class Contacts(PrintError):
         return data
 
     @staticmethod
-    def _save(data: List[Contact], v1_too: bool = False) -> dict:
+    def _save(data: list[Contact], v1_too: bool = False) -> dict:
         """Re-usable save methods. Saves keys to a dict, which can then
         be saved to wallet storage or saved to json."""
         out_v2, out_v1, ret = [], {}, {}
@@ -218,7 +217,7 @@ class Contacts(PrintError):
     def empty(self) -> bool:
         return not self.data
 
-    def get_all(self, nocopy: bool = False) -> List[Contact]:
+    def get_all(self, nocopy: bool = False) -> list[Contact]:
         """Returns a copy of the internal Contact list."""
         if nocopy:
             return self.data

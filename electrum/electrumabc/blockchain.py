@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 import threading
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 from . import asert_daa, bitcoin, networks, util
 from .crypto import Hash
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from interface import Interface
     from simple_config import SimpleConfig
 
-    Header = Dict[str, int | str]
+    Header = dict[str, int | str]
 
 
 class VerifyError(Exception):
@@ -172,10 +172,10 @@ def hash_header(header: Header) -> str:
     return bitcoin.hash_encode(Hash(serialize_header(header)))
 
 
-blockchains: Dict[int, Blockchain] = {}
+blockchains: dict[int, Blockchain] = {}
 
 
-def read_blockchains(config: SimpleConfig) -> Dict[int, Blockchain]:
+def read_blockchains(config: SimpleConfig) -> dict[int, Blockchain]:
     """Returns a dict of Blockchain indexed by base_height"""
     blockchains[0] = Blockchain(config, 0, None)
     fdir = os.path.join(util.get_headers_dir(config), "forks")
@@ -229,7 +229,7 @@ def verify_proven_chunk(chunk_base_height: int, chunk_data: bytes) -> None:
 
 
 # Copied from electrumx
-def root_from_proof(hash_: bytes, branch: List[bytes], index: int) -> bytes:
+def root_from_proof(hash_: bytes, branch: list[bytes], index: int) -> bytes:
     hash_func = Hash
     for elt in branch:
         if index & 1:

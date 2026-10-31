@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from http.client import InvalidURL
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 from urllib.error import URLError
 
 from qtpy import QtCore, QtWidgets
@@ -413,10 +413,10 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
     def set_url(self, url: str):
         return self.request_url_edit.setCurrentText(url)
 
-    def get_keys(self) -> List[str]:
+    def get_keys(self) -> list[str]:
         return [k.strip() for k in self.keys_edit.text().split(",")]
 
-    def set_keys(self, keys: List[str]):
+    def set_keys(self, keys: list[str]):
         return self.keys_edit.setText(", ".join(keys))
 
     def _on_test_api_clicked(self):

@@ -29,7 +29,6 @@ import subprocess
 import sys
 import threading
 from enum import IntEnum, unique
-from typing import Tuple
 
 import stem
 import stem.control
@@ -193,7 +192,7 @@ class TorController(PrintError):
         kwargs["start_new_session"] = True
         return TorController._orig_subprocess_popen(*args, **kwargs)
 
-    def _get_tor_binary(self) -> Tuple[str, BinaryType]:
+    def _get_tor_binary(self) -> tuple[str, BinaryType]:
         # Try to locate a system tor
         res = shutil.which("tor")
         if res and os.path.isfile(res):

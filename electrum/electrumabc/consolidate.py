@@ -24,7 +24,7 @@
 This module provides coin consolidation tools.
 """
 
-from typing import Iterator, List, Tuple
+from typing import Iterator
 
 from . import wallet
 from .address import Address
@@ -90,7 +90,7 @@ class AddressConsolidator:
         for coin in self._coins:
             wallet_instance.add_input_info(coin, received)
 
-    def get_unsigned_transactions(self) -> List[Transaction]:
+    def get_unsigned_transactions(self) -> list[Transaction]:
         """
         Build as many raw transactions as needed to consolidate the coins.
         """
@@ -102,7 +102,7 @@ class AddressConsolidator:
             coin_index, tx = self.build_another_transaction(coin_index)
             yield tx
 
-    def build_another_transaction(self, coin_index: int) -> Tuple[int, Transaction]:
+    def build_another_transaction(self, coin_index: int) -> tuple[int, Transaction]:
         """Build another transaction using coins starting at index coin_index.
         Return a 2-tuple with the index of the next unused coin and the transaction.
         """

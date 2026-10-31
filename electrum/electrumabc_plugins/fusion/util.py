@@ -28,7 +28,6 @@ Some pieces of fusion that can be reused in the server.
 """
 
 import hashlib
-from typing import Tuple
 
 from electrumabc import ecc
 from electrumabc.address import Address, OpCodes, ScriptOutput
@@ -205,7 +204,7 @@ def rand_position(seed, num_positions, counter):
     return (int64 * num_positions) >> 64
 
 
-def get_coin_name(coin: dict, also_return_txid_n=False) -> str | Tuple[str, str, int]:
+def get_coin_name(coin: dict, also_return_txid_n=False) -> str | tuple[str, str, int]:
     tx_id, n = coin["prevout_hash"], coin["prevout_n"]
     name = "{}:{}".format(tx_id, n)
     if not also_return_txid_n:

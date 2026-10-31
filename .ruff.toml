@@ -29,6 +29,7 @@ select = [
     "B008",
     "B912",
     "RUF064",
+    "UP006", # non-pep585-annotation
     "UP007", # non-pep604-annotation-union
     "UP031",
     "UP032",
@@ -50,6 +51,7 @@ ignore = [
 "electrum/*" = ["UP031", "UP032"]
 # enforce only in the Electrum codebase for now
 "!electrum/*" = [
+    "UP006",  # non-pep585-annotation
     "UP007", # non-pep604-annotation-union
     "UP045", # non-pep604-annotation-optional
 ]

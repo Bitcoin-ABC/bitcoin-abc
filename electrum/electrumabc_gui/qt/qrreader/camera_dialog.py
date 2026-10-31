@@ -25,7 +25,6 @@
 
 import math
 import time
-from typing import List
 
 import qtpy
 from qtpy import QtWidgets
@@ -99,7 +98,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.validator: AbstractQrReaderValidator = None
         self.frame_id: int = 0
         self.qr_crop: QRect = None
-        self.qrreader_res: List[QrCodeResult] = []
+        self.qrreader_res: list[QrCodeResult] = []
         self.validator_res: QrReaderValidatorResult = None
         self.last_stats_time: float = 0.0
         self.frame_counter: int = 0
@@ -191,14 +190,14 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
     def _on_flip_x_changed(self, _state: int):
         self.config.set_key(ConfigKeys.QRREADER_FLIP_X, self.flip_x.isChecked())
 
-    def _get_resolution(self, resolutions: List[QSize], min_size: int) -> QSize:
+    def _get_resolution(self, resolutions: list[QSize], min_size: int) -> QSize:
         """
         Given a list of resolutions that the camera supports this function picks the
         lowest resolution that is at least min_size in both width and height.
         If no resolution is found, NoCameraResolutionsFound is raised.
         """
 
-        def res_list_to_str(res_list: List[QSize]) -> str:
+        def res_list_to_str(res_list: list[QSize]) -> str:
             return ", ".join(["{}x{}".format(r.width(), r.height()) for r in res_list])
 
         def check_res(res: QSize):

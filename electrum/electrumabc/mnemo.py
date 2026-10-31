@@ -29,7 +29,6 @@ import hashlib
 import math
 from collections.abc import Generator
 from enum import IntEnum, auto, unique
-from typing import List, Set, Tuple
 
 import mnemonic
 
@@ -70,7 +69,7 @@ seed_type_names_inv = {
 
 def autodetect_seed_type(
     seed: str, lang: str | None = None, *, prefix: str = version.SEED_PREFIX
-) -> Set[SeedType]:
+) -> set[SeedType]:
     """Given a mnemonic seed phrase, auto-detect the possible seed types it can
     be. Note that some lucky seed phrases match all three types. Electron Cash
     will never generate a seed that matches more than one type, but it is
@@ -186,7 +185,7 @@ class MnemonicBase(PrintError):
                 yield w
 
     @classmethod
-    def list_languages(cls) -> List[str]:
+    def list_languages(cls) -> list[str]:
         return list(filenames.keys())
 
     @classmethod
@@ -225,7 +224,7 @@ class MnemonicBase(PrintError):
     @classmethod
     def is_wordlist_valid(
         cls, mnemonic: str, lang: str | None = None
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Returns (True, lang) if the passed-in `mnemonic` phrase has all its
         words found in the wordlist for `lang`. Pass in a None value for `lang`
         to auto-detect language. The fallback language is always "en".
@@ -253,7 +252,7 @@ class MnemonicBase(PrintError):
                 return False
         return True
 
-    def is_checksum_valid(self, mnemonic: str) -> Tuple[bool, bool]:
+    def is_checksum_valid(self, mnemonic: str) -> tuple[bool, bool]:
         raise NotImplementedError(
             f"is_checksum_valid is not implemented in {type(self).__name__}"
         )
@@ -349,7 +348,7 @@ class MnemonicElectrum(MnemonicBase):
 
     def is_checksum_valid(
         self, mnemonic: str, *, prefix: str = version.SEED_PREFIX
-    ) -> Tuple[bool, bool]:
+    ) -> tuple[bool, bool]:
         return self.verify_checksum_only(mnemonic, prefix), self.verify_wordlist(
             mnemonic
         )

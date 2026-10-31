@@ -27,7 +27,7 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from enum import IntEnum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
@@ -303,7 +303,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         run_hook("create_contact_menu", menu, selected)
         menu.exec_(self.viewport().mapToGlobal(position))
 
-    def get_full_contacts(self) -> List[Contact]:
+    def get_full_contacts(self) -> list[Contact]:
         return self.contact_manager.get_all(nocopy=True)
 
     @rate_limited(
@@ -432,7 +432,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
         run_hook("update_contact2", contact, replace)
         return contact
 
-    def delete_contacts(self, contacts: List[Contact]):
+    def delete_contacts(self, contacts: list[Contact]):
         names = [
             f"{contact.name} <{contact.address[:8]}{'…' if len(contact.address) > 8 else ''}>"
             for contact in contacts

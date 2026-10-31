@@ -27,7 +27,7 @@ from __future__ import annotations
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QFontMetrics
@@ -216,7 +216,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
     def get_recipient(self):
         return self.payto_address
 
-    def get_outputs(self, is_max) -> List[TxOutput]:
+    def get_outputs(self, is_max) -> list[TxOutput]:
         if self.payto_address:
             if is_max:
                 amount = "!"
@@ -336,7 +336,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
 
         util.WaitingDialog(self, "Resolving Alias", resolve_in_thread, on_done)
 
-    def on_alias_resolved(self, data: Dict):
+    def on_alias_resolved(self, data: dict):
         address = data.get("address")
         name = data.get("name")
         _type = data.get("type")

@@ -31,7 +31,7 @@ from __future__ import annotations
 import struct
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Sequence, Type
+from typing import Sequence
 
 
 class DeserializationError(BaseException):
@@ -130,7 +130,7 @@ def serialize_sequence(seq: Sequence[SerializableObject]) -> bytes:
     return b
 
 
-def deserialize_sequence(stream: BytesIO, cls: Type[SerializableObject]):
+def deserialize_sequence(stream: BytesIO, cls: type[SerializableObject]):
     """Deserialize a list of object of type klass.
     cls must implement a deserialize classmethod returning an instance of the class.
     """

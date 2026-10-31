@@ -30,7 +30,7 @@ import hashlib
 import hmac
 from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, NamedTuple, Tuple
+from typing import TYPE_CHECKING, Callable, NamedTuple
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
@@ -68,7 +68,7 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     return serialize_blob(magic) + serialize_blob(message)
 
 
-def _x_and_y_from_pubkey_bytes(pubkey: bytes) -> Tuple[int, int]:
+def _x_and_y_from_pubkey_bytes(pubkey: bytes) -> tuple[int, int]:
     pubkey_ptr = create_string_buffer(64)
     ret = secp256k1.secp256k1_ec_pubkey_parse(
         secp256k1.ctx, pubkey_ptr, pubkey, len(pubkey)
@@ -124,7 +124,7 @@ def der_sig_from_r_and_s(r: int, s: int) -> bytes:
     return bytes(der_sig)[:der_sig_size]
 
 
-def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> Tuple[int, int]:
+def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> tuple[int, int]:
     secp256k1.secp256k1_ecdsa_signature_normalize(secp256k1.ctx, sig, sig)
     compact_signature = create_string_buffer(64)
     secp256k1.secp256k1_ecdsa_signature_serialize_compact(
@@ -135,7 +135,7 @@ def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> Tuple[int, int]:
     return r, s
 
 
-def get_r_and_s_from_der_sig(der_sig: bytes) -> Tuple[int, int]:
+def get_r_and_s_from_der_sig(der_sig: bytes) -> tuple[int, int]:
     assert isinstance(der_sig, bytes)
     sig = create_string_buffer(64)
     ret = secp256k1.secp256k1_ecdsa_signature_parse_der(
@@ -146,7 +146,7 @@ def get_r_and_s_from_der_sig(der_sig: bytes) -> Tuple[int, int]:
     return get_r_and_s_from_raw_sig(sig)
 
 
-def get_r_and_s_from_sig_string(sig_string: bytes) -> Tuple[int, int]:
+def get_r_and_s_from_sig_string(sig_string: bytes) -> tuple[int, int]:
     if not (isinstance(sig_string, bytes) and len(sig_string) == 64):
         raise Exception("sig_string must be bytes, and 64 bytes exactly")
     sig = create_string_buffer(64)

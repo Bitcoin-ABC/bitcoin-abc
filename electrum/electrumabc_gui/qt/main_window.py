@@ -35,7 +35,7 @@ import time
 import traceback
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import (
@@ -1944,7 +1944,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.update_status()
             self.clear_receive_tab()
 
-    def payto_contacts(self, contacts: List[Contact]):
+    def payto_contacts(self, contacts: list[Contact]):
         paytos = []
         for contact in contacts:
             s = self.get_contact_payto(contact)

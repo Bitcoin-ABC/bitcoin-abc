@@ -24,7 +24,7 @@
 # SOFTWARE.
 from collections.abc import Callable
 from math import floor, log10
-from typing import Any, Dict, List
+from typing import Any
 
 from .bitcoin import CASH, TYPE_ADDRESS
 from .crypto import sha256
@@ -84,7 +84,7 @@ class Bucket:
 
         self.size: int = 0
         self.value: int = 0
-        self.coins: List[TxInput] = []
+        self.coins: list[TxInput] = []
         self.min_height: int | None = None
 
     def add_coin(self, coin: TxInput, sign_schnorr=False) -> None:
@@ -109,8 +109,8 @@ def strip_unneeded(bkts, sufficient_funds) -> list[Bucket]:
 
 
 class CoinChooserBase(PrintError):
-    def bucketize_coins(self, coins: List[TxInput], sign_schnorr=False) -> List[Bucket]:
-        buckets: Dict[str, Bucket] = {}
+    def bucketize_coins(self, coins: list[TxInput], sign_schnorr=False) -> list[Bucket]:
+        buckets: dict[str, Bucket] = {}
         for coin in coins:
             address = coin.address.to_cashaddr()
             if address not in buckets:
@@ -125,7 +125,7 @@ class CoinChooserBase(PrintError):
 
         return penalty
 
-    def change_amounts(self, tx: Transaction, count, fee_estimator) -> List[int]:
+    def change_amounts(self, tx: Transaction, count, fee_estimator) -> list[int]:
         """Return a list of at most `count` change amounts.
         This method attempts to break up the change amount into multiple sub-amounts
         that are not significantly larger than the largest non-change output for this
@@ -175,7 +175,7 @@ class CoinChooserBase(PrintError):
 
         return amounts
 
-    def change_outputs(self, tx, change_addrs, fee_estimator) -> List[TxOutput]:
+    def change_outputs(self, tx, change_addrs, fee_estimator) -> list[TxOutput]:
         amounts = self.change_amounts(tx, len(change_addrs), fee_estimator)
         assert min(amounts) >= 0
         assert len(change_addrs) >= len(amounts)
@@ -189,8 +189,8 @@ class CoinChooserBase(PrintError):
 
     def make_tx(
         self,
-        coins: List[TxInput],
-        outputs: List[TxOutput],
+        coins: list[TxInput],
+        outputs: list[TxOutput],
         change_addrs,
         fee_estimator,
         sign_schnorr=False,

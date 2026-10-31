@@ -1,6 +1,5 @@
 import unittest
 from io import BytesIO
-from typing import Dict, List
 
 from .. import transaction
 from ..address import Address, PublicKey, Script, ScriptOutput, UnknownAddress
@@ -113,7 +112,7 @@ class TestTransaction(unittest.TestCase):
         self.assert_tx_size(tx, len(tx_hex) // 2)
         return tx
 
-    def _assert_expected_tx_dict(self, tx: transaction.Transaction, expected: Dict):
+    def _assert_expected_tx_dict(self, tx: transaction.Transaction, expected: dict):
         self.assertEqual(tx.version, expected["version"])
         self.assertEqual(tx.locktime, expected["lockTime"])
         self.assertEqual(tx.inputs(), expected["inputs"])
@@ -862,9 +861,9 @@ class TestTxInput(unittest.TestCase):
         self,
         tx_hex: str,
         expected_type: ScriptType,
-        expected_sigs: List[str],
+        expected_sigs: list[str],
         num_required_sigs: int,
-        expected_pubkeys: List[str] | None = None,
+        expected_pubkeys: list[str] | None = None,
         expected_address: Address | None = None,
         expected_value: int | None = None,
         expected_preimage_script: str | None = None,

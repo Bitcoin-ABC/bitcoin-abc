@@ -27,7 +27,7 @@ from __future__ import annotations
 from contextlib import suppress
 from enum import IntEnum
 from functools import partial
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
@@ -129,7 +129,7 @@ class AddressList(MyTreeWidget):
             return
         super().update()
 
-    def get_selected_addresses(self) -> List[Address]:
+    def get_selected_addresses(self) -> list[Address]:
         data = [item.data(0, self.DataRoles.address) for item in self.selectedItems()]
         # item.data can return None for root nodes in the tree
         return [a for a in data if a is not None]

@@ -8,7 +8,7 @@ import tempfile
 import threading
 import time
 import traceback
-from typing import TYPE_CHECKING, Tuple
+from typing import TYPE_CHECKING
 
 import qtpy
 from qtpy import QtWidgets
@@ -205,7 +205,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     def select_storage(
         self, path, get_wallet_from_daemon
-    ) -> Tuple[str, WalletStorage | None]:
+    ) -> tuple[str, WalletStorage | None]:
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(
             QtWidgets.QLabel(

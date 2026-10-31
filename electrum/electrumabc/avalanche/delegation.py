@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import base64
 from io import BytesIO
-from typing import Callable, List, Sequence, Tuple
+from typing import Callable, Sequence
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -92,7 +92,7 @@ def reduce_levels(
     hash_: bytes,
     levels: Sequence[Level],
     verification_function: Callable[[bytes, Level], bool] = lambda h, level: True,
-) -> Tuple[bool, bytes]:
+) -> tuple[bool, bytes]:
     """Hash the concatenation of the previous hash and the current pubkey for each
     level. Call the optional verification function on each level, and abort if it
     returns False."""
@@ -147,7 +147,7 @@ class Delegation(SerializableObject):
         levels = deserialize_sequence(stream, Level)
         return Delegation(ltd_id, proof_master, levels)
 
-    def verify(self) -> Tuple[bool, PublicKey]:
+    def verify(self) -> tuple[bool, PublicKey]:
         """Verify this delegation, return a tuple with the success status and the
         final public key."""
 
@@ -189,7 +189,7 @@ class DelegationBuilder:
             limited_proofid.compute_proof_id(proof_master)
         )
 
-        self.levels: List[Level] = [Level(proof_master, b"")]
+        self.levels: list[Level] = [Level(proof_master, b"")]
 
     @classmethod
     def from_proof(cls, p: Proof) -> DelegationBuilder:

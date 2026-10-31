@@ -23,7 +23,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QPoint, QRect, QRectF, QSize, Qt
@@ -73,7 +72,7 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
 
     def set_results(
         self,
-        results: List[QrCodeResult],
+        results: list[QrCodeResult],
         flip_x: bool,
         validator_results: QrReaderValidatorResult,
     ):

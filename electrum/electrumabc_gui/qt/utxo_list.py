@@ -29,7 +29,7 @@ import json
 from dataclasses import dataclass
 from enum import IntEnum
 from functools import wraps
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QPoint, Qt, Signal
@@ -63,7 +63,7 @@ class CoinDisplayData:
     txid: str
     vout: int
     address: Address
-    slp_token: Tuple[str, int] | None
+    slp_token: tuple[str, int] | None
     is_alp_token: bool
     is_frozen: bool
     is_address_frozen: bool
@@ -261,7 +261,7 @@ class UTXOList(MyTreeWidget, PrintError):
                 output_point_text = self.output_point_prefix_text
             headerItem.setText(self.Col.output_point, output_point_text)
 
-    def get_selected(self) -> List[CoinDisplayData]:
+    def get_selected(self) -> list[CoinDisplayData]:
         """Return a dict of selected coins.
         Keys are outpoints ("txid:n") and values are a combination of the freeze state
         of the coin:
@@ -273,7 +273,7 @@ class UTXOList(MyTreeWidget, PrintError):
         """
         return [x.data(0, Qt.UserRole) for x in self.selectedItems()]
 
-    def get_utxos_by_names(self, selected_names: List[str]) -> List[Dict]:
+    def get_utxos_by_names(self, selected_names: list[str]) -> list[dict]:
         return list(filter(lambda x: self.get_name(x) in selected_names, self.utxos))
 
     @if_not_dead
@@ -290,7 +290,7 @@ class UTXOList(MyTreeWidget, PrintError):
     def create_menu_inner(
         self,
         menu: QtWidgets.QMenu,
-        selected_coins: List[CoinDisplayData],
+        selected_coins: list[CoinDisplayData],
         position: QPoint,
     ):
         if not selected_coins:
@@ -489,7 +489,7 @@ class UTXOList(MyTreeWidget, PrintError):
             label = self.wallet.get_label(coin.txid)
             item.setText(1, label)
 
-    def dump_utxo(self, utxos: List[dict]):
+    def dump_utxo(self, utxos: list[dict]):
         """Dump utxo to a file"""
         if not len(utxos):
             return
@@ -520,7 +520,7 @@ class UTXOList(MyTreeWidget, PrintError):
         d = ConsolidateCoinsWizard(addr, self.wallet, self.main_window, parent=self)
         d.exec_()
 
-    def build_avaproof(self, utxos: List[dict]):
+    def build_avaproof(self, utxos: list[dict]):
         """Open a dialog to generate an Avalanche proof using the coins as
         stakes.
         """

@@ -27,7 +27,7 @@ import sys
 import traceback
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, List, Tuple
+from typing import TYPE_CHECKING, Callable
 
 from qtpy import QtWidgets
 from qtpy.QtCore import (
@@ -118,7 +118,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.payment_request = None
         self.not_enough_funds = False
         self.op_return_toolong = False
-        self.tx_external_keypairs: Dict[bytes, Tuple[bytes, bool]] = {}
+        self.tx_external_keypairs: dict[bytes, tuple[bytes, bool]] = {}
         self.require_fee_update = False
 
         self.completions = QStringListModel()
@@ -971,7 +971,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             if not self.question(msg, title=_("Low Fee")):
                 return
 
-        def broadcast_thread() -> Tuple[bool, str]:
+        def broadcast_thread() -> tuple[bool, str]:
             # non-GUI thread
             pr = self.payment_request
             if not pr:
@@ -1011,7 +1011,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
 
             return status, msg
 
-        def broadcast_done(result: Tuple[bool, str] | None):
+        def broadcast_done(result: tuple[bool, str] | None):
             # GUI thread
             status, msg = result or (False, "")
             if not status:
@@ -1344,7 +1344,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         )
         self.show_message(msg, title=_("Pay to many"))
 
-    def payto_payees(self, payees: List[str]):
+    def payto_payees(self, payees: list[str]):
         """Like payto_contacts except it accepts a list of free-form strings
         rather than requiring a list of Contacts objects"""
         if len(payees) == 1:

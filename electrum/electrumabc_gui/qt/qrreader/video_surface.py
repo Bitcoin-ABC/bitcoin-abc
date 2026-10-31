@@ -23,7 +23,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
 
 import qtpy
 from qtpy.QtCore import QObject, Signal
@@ -104,7 +103,7 @@ class QrReaderVideoSurface(ParentClass):
 
         def supportedPixelFormats(
             self, handle_type: QAbstractVideoBuffer.HandleType
-        ) -> List[QVideoFrame.PixelFormat]:
+        ) -> list[QVideoFrame.PixelFormat]:
             if handle_type == QAbstractVideoBuffer.NoHandle:
                 # We support all pixel formats that can be understood by QImage directly
                 return [

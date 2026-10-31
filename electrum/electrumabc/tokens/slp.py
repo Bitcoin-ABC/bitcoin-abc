@@ -22,7 +22,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List, Set, Tuple
 
 from .. import (
     address,  # for ScriptOutput, OpCodes, ScriptError, Script
@@ -406,7 +405,7 @@ class Message:
     @staticmethod
     def _parseOpreturnToChunks(
         script: bytes, *, allow_op_0: bool, allow_op_number: bool
-    ) -> List[bytes]:
+    ) -> list[bytes]:
         """Extract pushed bytes after opreturn. Returns list of bytes() objects,
         one per push.
 
@@ -575,7 +574,7 @@ class Build:
             raise ValueError()
 
     @staticmethod
-    def chunksToOpreturnOutput(chunks: List[bytes]) -> tuple:
+    def chunksToOpreturnOutput(chunks: list[bytes]) -> tuple:
         """utility for creation"""
         script = bytearray((address.OpCodes.OP_RETURN,))  # start with OP_RETURN
         for c in chunks:
@@ -864,7 +863,7 @@ class WalletData(PrintError):
                 self.add_tx(txid, Transaction(tx.raw))
 
     # --- GETTERS / SETTERS from wallet
-    def token_info_for_txo(self, txo) -> Tuple[str, int]:
+    def token_info_for_txo(self, txo) -> tuple[str, int]:
         """Returns the (token_id_hex, quantity) tuple for a particular
         txo if it has a token sitting on it.  Returns None if there is no
         token for a particular txo. Takes no locks.
@@ -884,14 +883,14 @@ class WalletData(PrintError):
         """Takes no locks."""
         return txo in self.txo_token_id
 
-    def get_addr_txo(self, addr) -> Set[str]:
+    def get_addr_txo(self, addr) -> set[str]:
         """Note this returns the actual reference to the set.  Returns all
         txos (spend and/or unspent) that have ever received tokens for a
         particular address.
         Call this with locks held and/or copy the set if you want to be thread-safe."""
         return self.txo_byaddr.get(addr, set())
 
-    def get_batons(self, token_id_hex, *, ret_class=list) -> List[str]:
+    def get_batons(self, token_id_hex, *, ret_class=list) -> list[str]:
         """Returns the list of txo's containing a token baton for a particular
         token_id_hex, or the empty list if no batons in wallet for said token.
         Takes no locks. Wrap in wallet.lock to make this thread-safe.

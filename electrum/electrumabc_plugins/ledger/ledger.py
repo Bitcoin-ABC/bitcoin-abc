@@ -5,7 +5,6 @@ import inspect
 import sys
 import traceback
 from struct import pack, unpack
-from typing import Tuple
 
 from electrumabc.address import Address
 from electrumabc.bip32 import serialize_xpub
@@ -88,7 +87,7 @@ class UnknownCommandError(Exception):
 
 class LedgerClient(HardwareClientBase):
     def __init__(
-        self, hidDevice, *, product_key: Tuple[int, int], plugin: HWPluginBase
+        self, hidDevice, *, product_key: tuple[int, int], plugin: HWPluginBase
     ):
         HardwareClientBase.__init__(self, plugin=plugin)
         self.device = plugin.device
@@ -812,7 +811,7 @@ class LedgerPlugin(HWPluginBase):
         self.device_manager().register_vendor_ids(self.VENDOR_IDS, plugin=self)
 
     @classmethod
-    def _recognize_device(cls, product_key) -> Tuple[bool, str | None]:
+    def _recognize_device(cls, product_key) -> tuple[bool, str | None]:
         """Returns (can_recognize, model_name) tuple."""
         # legacy product_keys
         if product_key in cls.DEVICE_IDS:

@@ -28,13 +28,12 @@ CashFusion - conf.py - configuration & settings management
 """
 
 from collections import namedtuple
-from typing import List, Tuple
 
 from electrumabc.simple_config import ConfigKey
 
 CashFusionServer = namedtuple("CashFusionServer", ("hostname", "port", "ssl"))
 
-DEFAULT_SERVERS: List[Tuple[str, int, bool]] = [
+DEFAULT_SERVERS: list[tuple[str, int, bool]] = [
     CashFusionServer("fusion.tokamak.cash", 8788, True)
 ]
 
@@ -169,13 +168,13 @@ class Conf:
         self.wallet.storage.put("cashfusion_fuse_depth", i)
 
     @property
-    def selector(self) -> Tuple[str, int | float]:
+    def selector(self) -> tuple[str, int | float]:
         return tuple(
             self.wallet.storage.get("cashfusion_selector", self.Defaults.Selector)
         )
 
     @selector.setter
-    def selector(self, t: Tuple[str, int | float] | None):
+    def selector(self, t: tuple[str, int | float] | None):
         """Optional: Pass None to clear the key"""
         assert t is None or (isinstance(t, (tuple, list)) and len(t) == 2)
         self.wallet.storage.put("cashfusion_selector", t)
@@ -237,11 +236,11 @@ class Global:
         self.config.set_key(self.ConfKeys.HideHistoryTxs, bool(b))
 
     @property
-    def server(self) -> Tuple[str, int, bool]:
+    def server(self) -> tuple[str, int, bool]:
         return tuple(self.config.get(self.ConfKeys.Server))
 
     @server.setter
-    def server(self, t: Tuple[str, int, bool] | None):
+    def server(self, t: tuple[str, int, bool] | None):
         if t is not None:
             assert isinstance(t, (list, tuple)) and len(t) == 3
             t = CashFusionServer(*t)

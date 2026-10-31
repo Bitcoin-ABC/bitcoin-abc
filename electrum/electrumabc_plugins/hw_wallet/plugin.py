@@ -25,7 +25,7 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Sequence, Type
+from typing import TYPE_CHECKING, Any, Iterable, Sequence
 
 from electrumabc.address import OpCodes, Script, ScriptOutput
 from electrumabc.i18n import _, ngettext
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 class HWPluginBase(BasePlugin):
-    keystore_class: Type[HardwareKeyStore]
+    keystore_class: type[HardwareKeyStore]
     libraries_available: bool
 
     DEVICE_IDS: Iterable[Any]

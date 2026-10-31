@@ -65,7 +65,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
 from io import BytesIO
-from typing import List, Tuple
 
 from .serialize import (
     DeserializationError,
@@ -128,7 +127,7 @@ class PSBTKeypair:
         return cls(key_type, key, val)
 
     @classmethod
-    def get_keytype_and_key_from_fullkey(cls, full_key: bytes) -> Tuple[int, bytes]:
+    def get_keytype_and_key_from_fullkey(cls, full_key: bytes) -> tuple[int, bytes]:
         with BytesIO(full_key) as key_stream:
             key_type = read_compact_size(key_stream)
             if key_type is None:
@@ -153,7 +152,7 @@ class PSBTKeypair:
 
 @dataclass
 class PSBTSection:
-    keypairs: List[PSBTKeypair]
+    keypairs: list[PSBTKeypair]
 
     @classmethod
     def deserialize(cls, stream: BytesIO) -> PSBTSection | None:
@@ -173,7 +172,7 @@ class PSBTSection:
 
 @dataclass
 class PSBT:
-    sections: List[PSBTSection]
+    sections: list[PSBTSection]
 
     @classmethod
     def deserialize(cls, stream: BytesIO) -> PSBT:

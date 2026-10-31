@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple
-
 from qtpy import QtWidgets
 
 from electrumabc import address
@@ -99,7 +97,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         self.dg_display.setReadOnly(True)
         layout.addWidget(self.dg_display)
 
-        self.suggested_delegated_key_and_index: Tuple[str, int] | None = None
+        self.suggested_delegated_key_and_index: tuple[str, int] | None = None
 
         # Signals
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)

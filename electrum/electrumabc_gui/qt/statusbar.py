@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import sys
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QSize, Qt
@@ -34,7 +34,7 @@ class NetworkStatus(enum.Enum):
 
 
 # The icons are created and added to this dict when needed
-NETWORK_ICONS: Dict[NetworkStatus, QIcon] = {}
+NETWORK_ICONS: dict[NetworkStatus, QIcon] = {}
 
 
 class StatusBarButton(QtWidgets.QPushButton):
@@ -120,7 +120,7 @@ class StatusBar(QtWidgets.QStatusBar):
         )
         self.addPermanentWidget(self.status_button)
 
-        self.network_icons: Dict[NetworkStatus, QIcon] = {
+        self.network_icons: dict[NetworkStatus, QIcon] = {
             NetworkStatus.DISCONNECTED: QIcon(":icons/status_disconnected.svg"),
             NetworkStatus.UPDATING: QIcon(":icons/status_waiting.svg"),
             NetworkStatus.LAGGING: QIcon(":icons/status_lagging.svg"),

@@ -26,7 +26,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, NamedTuple, Tuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from electrumabc.plugins import daemon_command
 from electrumabc.simple_config import ConfigKeys, SimpleConfig
@@ -53,7 +53,7 @@ def is_password_valid(wallet: AbstractWallet, pwd: str) -> bool:
     return True
 
 
-def find_password_in_list(wallet: AbstractWallet, passwords: List[str]) -> str | None:
+def find_password_in_list(wallet: AbstractWallet, passwords: list[str]) -> str | None:
     for pwd in passwords:
         if is_password_valid(wallet, pwd):
             return pwd
@@ -62,9 +62,9 @@ def find_password_in_list(wallet: AbstractWallet, passwords: List[str]) -> str |
 
 class Plugin(FusionPlugin):
     def _get_fusable_wallets(
-        self, daemon: Daemon, passwords: List[str]
-    ) -> Tuple[int, int, List[WalletToFuse]]:
-        wallets_to_fuse: List[WalletToFuse] = []
+        self, daemon: Daemon, passwords: list[str]
+    ) -> tuple[int, int, list[WalletToFuse]]:
+        wallets_to_fuse: list[WalletToFuse] = []
         num_hardware_wallets = 0
         num_wallets_without_password = 0
         for name, wallet in daemon.wallets.items():

@@ -27,7 +27,7 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, List, Sequence
+from typing import Sequence
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -167,9 +167,9 @@ class ExchangeRateApi:
     JSON data to find the node containing the exchange rate."""
 
     url: str
-    keys: List[str]
+    keys: list[str]
 
-    def to_dict(self) -> Dict[str, str | List[str]]:
+    def to_dict(self) -> dict[str, str | list[str]]:
         return {"url": self.url, "keys": self.keys}
 
     def get_exchange_rate(self) -> Decimal:
@@ -218,7 +218,7 @@ class MultiCurrencyExchangeRateApi:
         url = self.url.replace("%cur%", currency.lower())
         return url.replace("%CUR%", currency.upper())
 
-    def get_keys(self, currency: str) -> List[str]:
+    def get_keys(self, currency: str) -> list[str]:
         """Get keys with occurrences of %cur% and %CUR% replaced with
         respectively lower case or upper case currency symbol.
         """
@@ -234,7 +234,7 @@ class MultiCurrencyExchangeRateApi:
         return ExchangeRateApi(url, keys).get_exchange_rate()
 
 
-APIS: List[MultiCurrencyExchangeRateApi] = [
+APIS: list[MultiCurrencyExchangeRateApi] = [
     MultiCurrencyExchangeRateApi(
         "https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=%cur%",
         ["ecash", "%cur%"],

@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import struct
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING
 
 from mnemonic import Mnemonic
 
@@ -96,7 +96,7 @@ class KeyStore(PrintError):
         """Returns whether the keystore can be encrypted with a password."""
         raise NotImplementedError()
 
-    def get_tx_derivations(self, tx: Transaction) -> Dict[bytes, List[int]]:
+    def get_tx_derivations(self, tx: Transaction) -> dict[bytes, list[int]]:
         """Return a map of {xpubkey: derivation}
         where xpubkey is a hex string in the format described in Xpub.get_xpubkey
         and derivation is a [change_index, address_index] list."""
@@ -318,7 +318,7 @@ class DeterministicKeyStore(SoftwareKeyStore):
         return pw_decode(self.passphrase, password) if self.passphrase else ""
 
     @abstractmethod
-    def get_private_key(self, sequence, password) -> Tuple[bytes, bool]:
+    def get_private_key(self, sequence, password) -> tuple[bytes, bool]:
         """Get private key for a given bip 44  index.
         Index is the last two elements of the bip 44 path (change, address_index).
 
@@ -589,7 +589,7 @@ class OldKeyStore(DeterministicKeyStore):
         return b"\xfe" + self.mpk + s
 
     @classmethod
-    def parse_xpubkey(self, x_pubkey: bytes) -> Tuple[bytes, List[int]]:
+    def parse_xpubkey(self, x_pubkey: bytes) -> tuple[bytes, list[int]]:
         assert x_pubkey[0] == 0xFE
         pk = x_pubkey[1:]
         mpk = pk[0:64]
@@ -722,7 +722,7 @@ def parse_xpubkey(x_pubkey: bytes):
     return BIP32KeyStore.parse_xpubkey(x_pubkey)
 
 
-def xpubkey_to_address(x_pubkey: bytes) -> Tuple[bytes, Address]:
+def xpubkey_to_address(x_pubkey: bytes) -> tuple[bytes, Address]:
     if x_pubkey[0] == 0xFD:
         address = bitcoin.script_to_address(x_pubkey[1:])
         return x_pubkey, address

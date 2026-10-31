@@ -24,7 +24,6 @@
 import ipaddress
 import re
 import warnings
-from typing import Tuple
 
 from qtpy.QtCore import Signal
 from qtpy.QtGui import QIntValidator, QValidator
@@ -83,7 +82,7 @@ class PortValidator(QIntValidator):
         self.accept_zero = accept_zero
         self.stateChanged.connect(self.setRedBorder)
 
-    def validate(self, inputStr: str, pos: int) -> Tuple[QValidator.State, str, int]:
+    def validate(self, inputStr: str, pos: int) -> tuple[QValidator.State, str, int]:
         res = list(super().validate(inputStr, pos))
         if res[0] == QValidator.Acceptable:
             try:
@@ -129,7 +128,7 @@ class HostValidator(QValidator):
     def fixup(self, inputStr: str):
         return inputStr.strip()
 
-    def validate(self, inputStr: str, pos: int) -> Tuple[QValidator.State, str, int]:
+    def validate(self, inputStr: str, pos: int) -> tuple[QValidator.State, str, int]:
         def set_state(state):
             self.stateChanged.emit(state)
             return state, inputStr, pos

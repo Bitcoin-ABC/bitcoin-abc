@@ -29,7 +29,7 @@ import hashlib
 import traceback
 from collections import defaultdict
 from threading import Lock
-from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, Set, Tuple
+from typing import TYPE_CHECKING, Iterable
 
 from . import networks
 from .address import Address
@@ -59,28 +59,28 @@ class Synchronizer(ThreadJob):
         assert self.wallet and self.wallet.storage and self.network
         self.cleaned_up = False
         self._need_release = False
-        self.new_addresses: Set[Address] = set()
+        self.new_addresses: set[Address] = set()
 
-        self.new_addresses_for_change: Dict[Address, type(None)] = {}
+        self.new_addresses_for_change: dict[Address, type(None)] = {}
         """Basically, an ordered set of Addresses
         (this assumes that dictionaries are ordered, so Python > 3.6)
         """
-        self.requested_tx: Dict[str, int] = {}
+        self.requested_tx: dict[str, int] = {}
         """Mapping of tx_hash -> tx_height"""
-        self.requested_tx_by_sh: DefaultDict[str, Set[str]] = defaultdict(set)
+        self.requested_tx_by_sh: defaultdict[str, set[str]] = defaultdict(set)
         """Mapping of scripthash -> set of requested tx_hashes"""
         self.requested_histories = {}
         self.requested_hashes = set()
         self.change_sh_ctr = Monotonic(locking=True)
-        self.change_scripthashes: DefaultDict[str, int] = defaultdict(
+        self.change_scripthashes: defaultdict[str, int] = defaultdict(
             self.change_sh_ctr
         )
         """all known change address scripthashes -> their order seen"""
-        self.change_subs: Set[str] = set()
+        self.change_subs: set[str] = set()
         """set of all change address scripthashes that we are currently subscribed to"""
-        self.change_subs_expiry_candidates: Set[str] = set()
+        self.change_subs_expiry_candidates: set[str] = set()
         """set of all "used", 0 balance change sh's"""
-        self.h2addr: Dict[str, Address] = {}
+        self.h2addr: dict[str, Address] = {}
         """mapping of scripthash -> Address"""
         self.lock = Lock()
         self._tick_ct = 0
@@ -218,7 +218,7 @@ class Synchronizer(ThreadJob):
                 )
 
     @staticmethod
-    def get_status(hist: Iterable[Tuple[str, int]]):
+    def get_status(hist: Iterable[tuple[str, int]]):
         if not hist:
             return None
         status = bytearray()
@@ -227,7 +227,7 @@ class Synchronizer(ThreadJob):
         return hashlib.sha256(status).digest().hex()
 
     @property
-    def change_subs_active(self) -> Set[str]:
+    def change_subs_active(self) -> set[str]:
         return self.change_subs - self.requested_hashes
 
     def _check_change_scripthash(self, sh: str):
@@ -380,7 +380,7 @@ class Synchronizer(ThreadJob):
         self._check_change_scripthash(scripthash)
 
     def _request_missing_txs(
-        self, hist: Iterable[Tuple[str, int]], scripthash: str | None
+        self, hist: Iterable[tuple[str, int]], scripthash: str | None
     ) -> bool:
         # "hist" is a list of [tx_hash, tx_height] lists
         requests = []
@@ -431,7 +431,7 @@ class Synchronizer(ThreadJob):
                     dict.fromkeys(self.wallet.get_change_addresses())
                 )
 
-    def _pop_new_addresses(self) -> Tuple[Set[Address], Iterable[Address]]:
+    def _pop_new_addresses(self) -> tuple[set[Address], Iterable[Address]]:
         with self.lock:
             # Pop all queued receiving
             addresses = self.new_addresses

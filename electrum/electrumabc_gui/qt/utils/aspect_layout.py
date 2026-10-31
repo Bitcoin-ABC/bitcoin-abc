@@ -23,7 +23,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QPoint, QRect, QSize, Qt
@@ -35,7 +34,7 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
     ):
         super().__init__(parent)
         self.aspect_ratio = aspect_ratio
-        self.items: List[QtWidgets.QLayoutItem] = []
+        self.items: list[QtWidgets.QLayoutItem] = []
 
     def set_aspect_ratio(self, aspect_ratio: float = 1.0):
         self.aspect_ratio = aspect_ratio

@@ -28,7 +28,6 @@ import os
 import re
 import sys
 from collections import namedtuple
-from typing import Dict
 
 LOCALE_DIR = os.path.join(os.path.dirname(__file__), "locale")
 language = gettext.translation("electron-cash", LOCALE_DIR, fallback=True)
@@ -118,7 +117,7 @@ def match_language(language_code: str) -> str:
 
 LanguageDef = namedtuple("LanguageDef", ["name", "matches", "excludes"])
 
-languages: Dict[str, LanguageDef] = {
+languages: dict[str, LanguageDef] = {
     "": LanguageDef(
         name=_("System"),
         matches=lambda c: False,

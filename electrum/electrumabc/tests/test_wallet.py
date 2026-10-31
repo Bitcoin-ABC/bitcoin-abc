@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 from io import StringIO
-from typing import Sequence, Tuple
+from typing import Sequence
 
 from ..address import Address
 from ..bitcoin import TYPE_ADDRESS, ScriptType, push_script
@@ -180,7 +180,7 @@ class MockNetwork:
     def __init__(self, use_dust_values: bool = False):
         self._use_dust_values = use_dust_values
 
-    def synchronous_get(self, request: Tuple[str, Sequence]):
+    def synchronous_get(self, request: tuple[str, Sequence]):
         values = [2, 4, 8]
         if not self._use_dust_values:
             values = [1000 * x for x in values]

@@ -31,7 +31,6 @@ import hashlib
 import struct
 from collections import namedtuple
 from enum import Enum
-from typing import List, Tuple
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -619,7 +618,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             net = networks.net
         return self.to_full_string(self.FMT_UI, net=net)
 
-    def to_URI_components(self, *, net=None) -> Tuple[str, str]:
+    def to_URI_components(self, *, net=None) -> tuple[str, str]:
         """Returns a (scheme, path) pair for building a URI."""
         if net is None:
             net = networks.net
@@ -712,7 +711,7 @@ class Script:
     @classmethod
     def get_ops(
         cls, script: bytes, *, synthesize_minimal_data=True
-    ) -> List[Tuple[OpCodes, bytes | None]]:
+    ) -> list[tuple[OpCodes, bytes | None]]:
         """Parse a script and return a list of (opcode, data) tuples.
         If the opcode is not a push operation, data is None.
         """

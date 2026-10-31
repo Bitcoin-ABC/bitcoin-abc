@@ -34,7 +34,7 @@ import warnings
 from collections import defaultdict
 from contextlib import suppress
 from io import BytesIO
-from typing import Any, Dict, List, NamedTuple, Tuple
+from typing import Any, NamedTuple
 
 from . import bitcoin, schnorr
 from .address import (
@@ -168,9 +168,9 @@ class TxInput:
         scriptsig: bytes | None = None,
         script_type: ScriptType | None = None,
         num_required_sigs: int | None = None,
-        pubkeys: List[bytes] | None = None,
-        x_pubkeys: List[bytes] | None = None,
-        signatures: List[bytes] | None = None,
+        pubkeys: list[bytes] | None = None,
+        x_pubkeys: list[bytes] | None = None,
+        signatures: list[bytes] | None = None,
         address: Address | None = None,
         value: int | None = None,
         height: int | None = None,
@@ -183,10 +183,10 @@ class TxInput:
 
         # Properties that are lazily computed on demand if scriptsig is provided
         self._num_required_sigs: int | None = num_required_sigs
-        self._x_pubkeys: List[bytes] | None = x_pubkeys
-        self._pubkeys: List[bytes] | None = pubkeys
+        self._x_pubkeys: list[bytes] | None = x_pubkeys
+        self._pubkeys: list[bytes] | None = pubkeys
         self._type: ScriptType | None = script_type
-        self._signatures: List[bytes | None] | None = signatures
+        self._signatures: list[bytes | None] | None = signatures
         self._address: Address | None = address
 
         # Needed by various tools (coinchooser, consolidate, fusion...).
@@ -241,7 +241,7 @@ class TxInput:
 
     def get_siglist(
         self, estimate_size=False, sign_schnorr=False
-    ) -> Tuple[List[bytes], List[bytes]]:
+    ) -> tuple[list[bytes], list[bytes]]:
         # if we have enough signatures, we use the actual pubkeys
         # otherwise, use extended pubkeys (with bip32 derivation)
         if estimate_size:
@@ -381,7 +381,7 @@ class TxInput:
         return self._type
 
     @property
-    def x_pubkeys(self) -> List[bytes] | None:
+    def x_pubkeys(self) -> list[bytes] | None:
         if self._x_pubkeys is None and self._type not in (
             ScriptType.p2pk,
             ScriptType.coinbase,
@@ -390,7 +390,7 @@ class TxInput:
         return self._x_pubkeys
 
     @property
-    def pubkeys(self) -> List[bytes] | None:
+    def pubkeys(self) -> list[bytes] | None:
         if self._pubkeys is None and self._x_pubkeys is not None:
             self._pubkeys = [xpubkey_to_pubkey(xpub) for xpub in self._x_pubkeys]
         elif self._pubkeys is None and self._type not in (
@@ -409,7 +409,7 @@ class TxInput:
         self._pubkeys[index] = pubkey
 
     @property
-    def signatures(self) -> List[bytes | None]:
+    def signatures(self) -> list[bytes | None]:
         """List of signatures for this input.
 
         For a complete input, the number of signatures is the actual number: M for an
@@ -455,7 +455,7 @@ class TxInput:
             self.parse_scriptsig()
         return self._num_required_sigs
 
-    def get_sorted_pubkeys(self) -> Tuple[List[bytes], List[bytes]]:
+    def get_sorted_pubkeys(self) -> tuple[list[bytes], list[bytes]]:
         """Return sorted pubkeys and xpubkeys, using the order of pubkeys.
 
         Note: this function is CRITICAL to get the correct order of pubkeys in
@@ -480,7 +480,7 @@ class TxInput:
             return True
         return self.num_required_sigs == self.num_valid_sigs
 
-    def to_coin_dict(self) -> Dict[str, Any]:
+    def to_coin_dict(self) -> dict[str, Any]:
         """Return a legacy coin dict for this TxInput"""
         d = {
             "prevout_hash": self.outpoint.txid.get_hex(),
@@ -557,9 +557,9 @@ class TxInput:
         sequence: int,
         script_type: ScriptType,
         num_required_sigs: int,
-        x_pubkeys: List[bytes],
-        signatures: List[bytes | None],
-        pubkeys: List[bytes] | None = None,
+        x_pubkeys: list[bytes],
+        signatures: list[bytes | None],
+        pubkeys: list[bytes] | None = None,
         address: Address | None = None,
         value: int | None = None,
         height: int | None = None,
@@ -591,7 +591,7 @@ class TxInput:
         )
 
     @staticmethod
-    def from_coin_dict(coin: Dict) -> TxInput:
+    def from_coin_dict(coin: dict) -> TxInput:
         outpoint = OutPoint(UInt256.from_hex(coin["prevout_hash"]), coin["prevout_n"])
         sequence = coin.get("sequence", DEFAULT_TXIN_SEQUENCE)
         scriptsig = coin.get("scriptSig")
@@ -832,7 +832,7 @@ def is_push_opcode(opcode: OpCodes | int, min_data_size: int = 0) -> bool:
     return opcode == OpCodes.OP_PUSHDATA4
 
 
-def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> bool:
+def matches_p2pk_scriptsig(script_ops: list[tuple[OpCodes, bytes | None]]) -> bool:
     """Return True if the script operations match a P2PK scriptSig:
 
         PUSH(pubkey)
@@ -844,7 +844,7 @@ def matches_p2pk_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> bo
     return is_push_opcode(script_ops[0][0], min_data_size=COMPRESSED_PUBKEY_NBYTES)
 
 
-def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> bool:
+def matches_p2pkh_scriptsig(script_ops: list[tuple[OpCodes, bytes | None]]) -> bool:
     """Return True if the script operations match a P2PHK scriptSig:
 
         PUSH(signature) PUSH(pubkey)
@@ -861,7 +861,7 @@ def matches_p2pkh_scriptsig(script_ops: List[Tuple[OpCodes, bytes | None]]) -> b
 
 
 def matches_p2sh_ecdsa_multisig_scriptsig(
-    script_ops: List[Tuple[OpCodes, bytes | None]],
+    script_ops: list[tuple[OpCodes, bytes | None]],
 ) -> bool:
     """Return True if the script operations match a P2SH multisig scriptSig:
 
@@ -879,7 +879,7 @@ def matches_p2sh_ecdsa_multisig_scriptsig(
 
 
 def matches_multisig_redeemscript(
-    script_ops: List[Tuple[OpCodes, bytes | None]], num_pubkeys: int
+    script_ops: list[tuple[OpCodes, bytes | None]], num_pubkeys: int
 ) -> bool:
     """Return True if the script operations match a P2SH multisig scriptSig:
 
@@ -909,7 +909,7 @@ def safe_parse_pubkey(x: bytes) -> bytes:
         return x
 
 
-def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], bytes]:
+def parse_redeemScript(s: bytes) -> tuple[int, int, list[bytes], list[bytes], bytes]:
     """
     Returns (M, N, xpubkeys, pubkeys, redeemscript) for a M-of-N multisig script
     """
@@ -935,7 +935,7 @@ def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], by
 
 def get_address_from_output_script(
     script: bytes,
-) -> Tuple[int, PublicKey | DestinationType]:
+) -> tuple[int, PublicKey | DestinationType]:
     """Return the type of the output and the address"""
     scriptlen = len(script)
 
@@ -1003,7 +1003,7 @@ def parse_output(vds: BCDataStream) -> TxOutput:
     return TxOutput(output_type, address, value)
 
 
-def deserialize(raw: bytes) -> Tuple[int, List[TxInput], List[TxOutput], int]:
+def deserialize(raw: bytes) -> tuple[int, list[TxInput], list[TxOutput], int]:
     vds = BCDataStream()
     vds.write(raw)
     version = vds.read_int32()
@@ -1018,7 +1018,7 @@ def deserialize(raw: bytes) -> Tuple[int, List[TxInput], List[TxOutput], int]:
 
 
 # pay & redeem scripts
-def multisig_script(public_keys: List[bytes], m) -> bytes:
+def multisig_script(public_keys: list[bytes], m) -> bytes:
     n = len(public_keys)
     assert n <= 15
     assert m <= n
@@ -1040,8 +1040,8 @@ class Transaction:
     def __init__(self, raw: bytes | None, sign_schnorr=False):
         self.raw: bytes | None = raw
         assert raw is None or isinstance(raw, bytes)
-        self._inputs: List[TxInput] | None = None
-        self._outputs: List[TxOutput] | None = None
+        self._inputs: list[TxInput] | None = None
+        self._outputs: list[TxOutput] | None = None
         self.locktime = 0
         self.version = 2
         self._sign_schnorr = sign_schnorr
@@ -1069,7 +1069,7 @@ class Transaction:
         self._inputs = None
         self.deserialize()
 
-    def inputs(self) -> List[Dict]:
+    def inputs(self) -> list[dict]:
         """Return the list of inputs as a list of legacy coin dictionary.
         This is deprecated and should not be used for new code, except for exporting
         coins as JSON.
@@ -1077,12 +1077,12 @@ class Transaction:
         """
         return [txin.to_coin_dict() for txin in self.txinputs()]
 
-    def txinputs(self) -> List[TxInput]:
+    def txinputs(self) -> list[TxInput]:
         if self._inputs is None:
             self.deserialize()
         return self._inputs
 
-    def outputs(self) -> List[TxOutput]:
+    def outputs(self) -> list[TxOutput]:
         if self._outputs is None:
             self.deserialize()
         return self._outputs
@@ -1101,7 +1101,7 @@ class Transaction:
             txin["x_pubkeys"] = x_pubkeys = list(x_pubkeys)
         return pubkeys, x_pubkeys
 
-    def update_signatures(self, signatures: List[bytes]):
+    def update_signatures(self, signatures: list[bytes]):
         """Add new signatures to a transaction
         `signatures` is expected to be a list of signatures with
         *no* sighash byte at the end (implicitly always 0x41 (SIGHASH_FORKID|SIGHASH_ALL);
@@ -1199,8 +1199,8 @@ class Transaction:
     @classmethod
     def from_io(
         klass,
-        inputs: List[TxInput],
-        outputs: List[TxOutput],
+        inputs: list[TxInput],
+        outputs: list[TxOutput],
         locktime=0,
         sign_schnorr=False,
         version=None,
@@ -1386,12 +1386,12 @@ class Transaction:
     def _txid(raw_hex: bytes) -> str:
         return Hash(raw_hex)[::-1].hex()
 
-    def add_inputs(self, inputs: List[TxInput]):
+    def add_inputs(self, inputs: list[TxInput]):
         assert all(isinstance(txin, TxInput) for txin in inputs)
         self._inputs.extend(inputs)
         self.raw = None
 
-    def set_inputs(self, inputs: List[TxInput]):
+    def set_inputs(self, inputs: list[TxInput]):
         assert all(isinstance(txin, TxInput) for txin in inputs)
         self._inputs = inputs
         self.raw = None
@@ -1401,12 +1401,12 @@ class Transaction:
         assert index < len(self._inputs)
         self._inputs[index] = txin
 
-    def add_outputs(self, outputs: List[TxOutput]):
+    def add_outputs(self, outputs: list[TxOutput]):
         self._assert_outputs_sanity(outputs)
         self._outputs.extend(outputs)
         self.raw = None
 
-    def set_outputs(self, outputs: List[TxOutput]):
+    def set_outputs(self, outputs: list[TxOutput]):
         self._assert_outputs_sanity(outputs)
         self._outputs = outputs
         self.raw = None
@@ -1518,7 +1518,7 @@ class Transaction:
         assert schnorr.verify(pubkey, sig, pre_hash)  # verify what we just signed
         return sig
 
-    def sign(self, keypairs: Dict[bytes, Tuple[bytes, bool]], *, use_cache=False):
+    def sign(self, keypairs: dict[bytes, tuple[bytes, bool]], *, use_cache=False):
         for i, txin in enumerate(self.txinputs()):
             pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for j, (pubkey, x_pubkey) in enumerate(zip(pubkeys, x_pubkeys)):

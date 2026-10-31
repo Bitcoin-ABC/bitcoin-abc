@@ -45,12 +45,8 @@ from enum import Enum, auto
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
     ItemsView,
-    List,
     Sequence,
-    Set,
-    Tuple,
     ValuesView,
 )
 from weakref import ref
@@ -124,16 +120,16 @@ if TYPE_CHECKING:
     from .network import Network
 
 
-HistoryItemType = Tuple[str, int]
+HistoryItemType = tuple[str, int]
 """(tx_hash, block_height)"""
 
-CoinsItemType = Tuple[int, int, bool]
+CoinsItemType = tuple[int, int, bool]
 """(block_height, amount, is_coinbase)"""
 
-UnspentCoinsType = Dict[str, CoinsItemType]
+UnspentCoinsType = dict[str, CoinsItemType]
 """{"tx_hash:prevout": (block_height, amount, is_coinbase), ...}"""
 
-SpendCoinsType = Dict[str, int]
+SpendCoinsType = dict[str, int]
 """{"tx_hash:prevout": block_height, ...}"""
 
 
@@ -145,7 +141,7 @@ def sweep_preparations(
     privkeys,
     network,
     imax=100,
-) -> Tuple[List[TxInput], Dict[bytes, Tuple[bytes, bool]]]:
+) -> tuple[list[TxInput], dict[bytes, tuple[bytes, bool]]]:
     """Returns (utxos, keypairs) for a list of WIF private keys, where utxos is a list
     of dictionaries, and keypairs is a {pubkey_hex: (privkey, is_compressed)} map."""
 
@@ -408,7 +404,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         pass
 
     @abstractmethod
-    def get_keystores(self) -> List[KeyStore]:
+    def get_keystores(self) -> list[KeyStore]:
         pass
 
     @abstractmethod
@@ -867,7 +863,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         Unsigned = auto()
         PartiallySigned = auto()
 
-    def get_tx_extended_info(self, tx) -> Tuple[WalletDelta, TxInfo]:
+    def get_tx_extended_info(self, tx) -> tuple[WalletDelta, TxInfo]:
         """Get extended information for a transaction, combined into 1 call (for performance)"""
         delta = self.get_wallet_delta(tx)
         info = self.get_tx_info(tx, delta)
@@ -938,7 +934,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         )
 
     def get_address_unspent(
-        self, address: Address, address_history: List[HistoryItemType]
+        self, address: Address, address_history: list[HistoryItemType]
     ) -> UnspentCoinsType:
         received = {}
         for tx_hash, height in address_history:
@@ -948,7 +944,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         return received
 
     def get_address_spent(
-        self, address: Address, address_history: List[HistoryItemType]
+        self, address: Address, address_history: list[HistoryItemType]
     ) -> SpendCoinsType:
         sent = {}
         for tx_hash, height in address_history:
@@ -957,13 +953,13 @@ class AbstractWallet(PrintError, SPVDelegate):
                 sent[txi] = height
         return sent
 
-    def get_addr_io(self, address: Address) -> Tuple[UnspentCoinsType, SpendCoinsType]:
+    def get_addr_io(self, address: Address) -> tuple[UnspentCoinsType, SpendCoinsType]:
         history = self.get_address_history(address)
         received = self.get_address_unspent(address, history)
         sent = self.get_address_spent(address, history)
         return received, sent
 
-    def get_addr_utxo(self, address: Address) -> Dict[str, Dict[str, Any]]:
+    def get_addr_utxo(self, address: Address) -> dict[str, dict[str, Any]]:
         """Return a {"tx_hash:prevout_n": dict_of_info, ...} dict"""
         coins, spent = self.get_addr_io(address)
         for txi in spent:
@@ -995,7 +991,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def get_addr_balance(
         self, address: Address, exclude_frozen_coins=False
-    ) -> Tuple[int, int, int]:
+    ) -> tuple[int, int, int]:
         """Returns the balance of a bitcoin address as a tuple of:
         (confirmed_matured, unconfirmed, unmatured)
         Note that 'exclude_frozen_coins = True' only checks for coin-level
@@ -1137,7 +1133,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     @abstractmethod
     def get_receiving_addresses(
         self, *, slice_start=None, slice_stop=None
-    ) -> List[Address]:
+    ) -> list[Address]:
         pass
 
     @abstractmethod
@@ -1147,10 +1143,10 @@ class AbstractWallet(PrintError, SPVDelegate):
     def dummy_address(self) -> Address:
         return self.get_receiving_addresses()[0]
 
-    def get_addresses(self) -> List[Address]:
+    def get_addresses(self) -> list[Address]:
         return self.get_receiving_addresses() + self.get_change_addresses()
 
-    def get_change_addresses(self) -> List[Address]:
+    def get_change_addresses(self) -> list[Address]:
         """Reimplemented in subclasses for wallets that have a change address
         set/derivation path.
         """
@@ -1184,7 +1180,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             xx += x
         return cc, uu, xx
 
-    def get_address_history(self, address: Address) -> List[HistoryItemType]:
+    def get_address_history(self, address: Address) -> list[HistoryItemType]:
         """Returns a list of (tx_hash, block_height) for an address"""
         assert isinstance(address, Address)
         return self._history.get(address, [])
@@ -1592,7 +1588,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                         "payment_received", self, addr, status
                     )
 
-    def receive_history_callback(self, addr, hist: List[Tuple[str, int]], tx_fees):
+    def receive_history_callback(self, addr, hist: list[tuple[str, int]], tx_fees):
         hist_set = frozenset((tx_hash, height) for tx_hash, height in hist)
         with self.lock:
             old_hist = self.get_address_history(addr)
@@ -1651,7 +1647,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     )
 
     @profiler
-    def get_history(self, domain=None, *, reverse=False) -> List[TxHistory]:
+    def get_history(self, domain=None, *, reverse=False) -> list[TxHistory]:
         # get domain
         if domain is None:
             domain = self.get_addresses()
@@ -2068,8 +2064,8 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def make_unsigned_transaction(
         self,
-        inputs: List[Dict],
-        outputs: List[TxOutput],
+        inputs: list[dict],
+        outputs: list[TxOutput],
         config: SimpleConfig,
         fixed_fee=None,
         change_addr=None,
@@ -2098,7 +2094,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             raise RuntimeError("Dynamic fee estimates not available")
 
         # optimization for addresses with many coins: cache unspent coins
-        coins_for_address: Dict[str, UnspentCoinsType] = {}
+        coins_for_address: dict[str, UnspentCoinsType] = {}
         for item in inputs:
             address = item["address"]
             if address not in coins_for_address:
@@ -2208,7 +2204,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def mktx(
         self,
-        outputs: List[TxOutput],
+        outputs: list[TxOutput],
         password,
         config,
         fee=None,
@@ -2229,7 +2225,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         assert isinstance(addr, Address)
         return addr in self.frozen_addresses
 
-    def is_frozen_coin(self, utxo: str | dict | Set[str]) -> bool | Set[str]:
+    def is_frozen_coin(self, utxo: str | dict | set[str]) -> bool | set[str]:
         """'coin' level frozen query. Note: this is set/unset independent of
         address-level freezing.
 
@@ -2485,7 +2481,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
         )
 
-    def add_input_info(self, txin: Dict[str, Any], received: UnspentCoinsType):
+    def add_input_info(self, txin: dict[str, Any], received: UnspentCoinsType):
         address = txin["address"]
         if self.is_mine(address):
             txin["type"] = self.get_txin_type(address)
@@ -2648,7 +2644,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def get_payment_status(
         self, address: Address, amount: int
-    ) -> Tuple[bool, int | None, List[str]]:
+    ) -> tuple[bool, int | None, list[str]]:
         """Return (is_paid, num_confirmations, list_of_tx_hashes)
         is_paid is True if the address received at least the specified amount.
         """
@@ -3091,13 +3087,13 @@ class AbstractWallet(PrintError, SPVDelegate):
     def is_watching_only(self):
         raise NotImplementedError()
 
-    def get_history_values(self) -> ValuesView[Tuple[str, int]]:
+    def get_history_values(self) -> ValuesView[tuple[str, int]]:
         """Returns the an iterable (view) of all the List[tx_hash, height] pairs for
         each address in the wallet.
         """
         return self._history.values()
 
-    def get_history_items(self) -> ItemsView[Address, List[Tuple[str, int]]]:
+    def get_history_items(self) -> ItemsView[Address, list[tuple[str, int]]]:
         return self._history.items()
 
     DEFAULT_CHANGE_ADDR_SUBS_LIMIT = 1000
@@ -3418,7 +3414,7 @@ class DeterministicWallet(AbstractWallet):
         return self.keystore.get_seed(password)
 
     @abstractmethod
-    def get_public_keys(self, address: Address) -> List[str]:
+    def get_public_keys(self, address: Address) -> list[str]:
         """Get a list of public keys (as hexadecimal strings)"""
         pass
 

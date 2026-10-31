@@ -31,7 +31,7 @@ import hashlib
 import hmac
 import os
 from enum import IntEnum
-from typing import TYPE_CHECKING, Literal, Tuple
+from typing import TYPE_CHECKING, Literal
 
 import pyaes
 
@@ -468,7 +468,7 @@ def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) ->
     return EncodeBase58Check(vchIn)
 
 
-def deserialize_privkey(key, *, net=None) -> Tuple[ScriptType, bytes, bool]:
+def deserialize_privkey(key, *, net=None) -> tuple[ScriptType, bytes, bool]:
     """Returns the deserialized key if key is a WIF key (non bip38), raises
     otherwise."""
     # whether the pubkey is compressed should be visible from the keystore
@@ -882,7 +882,7 @@ class Bip38Key:
 
     def decrypt(
         self, passphrase: str
-    ) -> Tuple[str, object]:  # returns the (wifkey string, Address object)
+    ) -> tuple[str, object]:  # returns the (wifkey string, Address object)
         assert isinstance(passphrase, str), "Passphrase must be a string!"
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
         passphrase = self._normalizeNFC(passphrase)
@@ -1020,7 +1020,7 @@ class Bip38Key:
     def createECMult(
         cls,
         passphrase: str,
-        lot_sequence: Tuple[int, int] | None = None,
+        lot_sequence: tuple[int, int] | None = None,
         compressed=True,
         *,
         net=None,

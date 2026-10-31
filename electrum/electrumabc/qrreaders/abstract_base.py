@@ -25,10 +25,9 @@
 
 import ctypes
 from abc import ABC, abstractmethod
-from typing import List, Tuple
 
-QrCodePoint = Tuple[int, int]
-QrCodePointList = List[QrCodePoint]
+QrCodePoint = tuple[int, int]
+QrCodePointList = list[QrCodePoint]
 
 
 class QrCodeResult:
@@ -79,7 +78,7 @@ class AbstractQrCodeReader(ABC):
         width: int,
         height: int,
         frame_id: int = -1,
-    ) -> List[QrCodeResult]:
+    ) -> list[QrCodeResult]:
         """
         Reads a QR code from an image buffer in Y800 / GREY format.
         Returns a list of detected QR codes which includes their data and positions.

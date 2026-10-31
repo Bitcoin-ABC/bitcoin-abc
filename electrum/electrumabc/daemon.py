@@ -29,7 +29,7 @@ import os
 import sys
 import time
 from base64 import b64encode
-from typing import TYPE_CHECKING, Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any
 
 import jsonrpclib
 
@@ -64,7 +64,7 @@ def remove_lockfile(lockfile) -> None:
 
 def get_fd_or_server(
     config: SimpleConfig,
-) -> Tuple[int | None, jsonrpclib.Server | None]:
+) -> tuple[int | None, jsonrpclib.Server | None]:
     """Tries to create the lockfile, using O_EXCL to
     prevent races.  If it succeeds it returns a tuple (fd, None).
     Otherwise try and connect to the server specified in the lockfile.
@@ -181,7 +181,7 @@ class Daemon(DaemonThread):
             self.network.add_jobs([self.fx])
         self.gui = None
         self.server = None
-        self.wallets: Dict[str, AbstractWallet] = {}
+        self.wallets: dict[str, AbstractWallet] = {}
         if listen_jsonrpc:
             # Setup JSONRPC server
             self.init_server(config, fd)
