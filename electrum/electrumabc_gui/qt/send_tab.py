@@ -487,8 +487,8 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             fee = self.fee_e.get_amount() if freeze_fee else None
             outputs = self.payto_e.get_outputs(self.max_button.isChecked())
             if not outputs:
-                _type, addr = self.get_payto_or_dummy()
-                outputs = [TxOutput(_type, addr, amount)]
+                type_, addr = self.get_payto_or_dummy()
+                outputs = [TxOutput(type_, addr, amount)]
             try:
                 opreturn_message = (
                     self.message_opreturn_e.text()

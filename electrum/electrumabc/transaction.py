@@ -934,48 +934,48 @@ def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], by
 
 
 def get_address_from_output_script(
-    _bytes: bytes,
+    script: bytes,
 ) -> Tuple[int, Union[PublicKey, DestinationType]]:
     """Return the type of the output and the address"""
-    scriptlen = len(_bytes)
+    scriptlen = len(script)
 
     if (
         scriptlen == 23
-        and _bytes.startswith(P2SH_prefix)
-        and _bytes.endswith(P2SH_suffix)
+        and script.startswith(P2SH_prefix)
+        and script.endswith(P2SH_suffix)
     ):
         # Pay-to-script-hash
-        return bitcoin.TYPE_ADDRESS, Address.from_P2SH_hash(_bytes[2:22])
+        return bitcoin.TYPE_ADDRESS, Address.from_P2SH_hash(script[2:22])
 
     if (
         scriptlen == 25
-        and _bytes.startswith(P2PKH_prefix)
-        and _bytes.endswith(P2PKH_suffix)
+        and script.startswith(P2PKH_prefix)
+        and script.endswith(P2PKH_suffix)
     ):
         # Pay-to-pubkey-hash
-        return bitcoin.TYPE_ADDRESS, Address.from_P2PKH_hash(_bytes[3:23])
+        return bitcoin.TYPE_ADDRESS, Address.from_P2PKH_hash(script[3:23])
 
     if (
         scriptlen == 35
-        and _bytes[0] == 33
-        and _bytes[1] in (2, 3)
-        and _bytes[34] == OpCodes.OP_CHECKSIG
+        and script[0] == 33
+        and script[1] in (2, 3)
+        and script[34] == OpCodes.OP_CHECKSIG
     ):
         # Pay-to-pubkey (compressed)
-        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:34])
+        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(script[1:34])
 
     if (
         scriptlen == 67
-        and _bytes[0] == 65
-        and _bytes[1] == 4
-        and _bytes[66] == OpCodes.OP_CHECKSIG
+        and script[0] == 65
+        and script[1] == 4
+        and script[66] == OpCodes.OP_CHECKSIG
     ):
         # Pay-to-pubkey (uncompressed)
-        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:66])
+        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(script[1:66])
 
     # note: we don't recognize bare multisigs.
 
-    return bitcoin.TYPE_SCRIPT, ScriptOutput.protocol_factory(bytes(_bytes))
+    return bitcoin.TYPE_SCRIPT, ScriptOutput.protocol_factory(bytes(script))
 
 
 def parse_input(vds) -> TxInput:

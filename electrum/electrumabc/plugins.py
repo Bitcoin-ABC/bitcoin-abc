@@ -1044,8 +1044,8 @@ class DeviceMgr(ThreadJob):
         handler: HardwareHandlerBase,
         devices: Iterable[Device],
     ) -> Optional[HardwareClientBase]:
-        _id = self.xpub_id(xpub)
-        client = self._client_by_id(_id)
+        xpub_id = self.xpub_id(xpub)
+        client = self._client_by_id(xpub_id)
         if client:
             # An unpaired client might have another wallet's handler
             # from a prior scan.  Replace to fix dialog parenting.
@@ -1053,7 +1053,7 @@ class DeviceMgr(ThreadJob):
             return client
 
         for device in devices:
-            if device.id_ == _id:
+            if device.id_ == xpub_id:
                 return self.create_client(device, handler, plugin)
 
     def force_pair_xpub(

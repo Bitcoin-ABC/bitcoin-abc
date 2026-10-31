@@ -2781,19 +2781,19 @@ class AbstractWallet(PrintError, SPVDelegate):
                 " make_payment_request"
             )
         timestamp = int(time.time())
-        _id = Hash(addr.to_storage_string() + "%d" % timestamp).hex()[0:10]
+        id_ = Hash(addr.to_storage_string() + "%d" % timestamp).hex()[0:10]
         d = {
             "time": timestamp,
             "amount": amount,
             "exp": expiration,
             "address": addr,
             "memo": message,
-            "id": _id,
+            "id": id_,
         }
         if payment_url:
-            d["payment_url"] = payment_url + "/" + _id
+            d["payment_url"] = payment_url + "/" + id_
         if index_url:
-            d["index_url"] = index_url + "/" + _id
+            d["index_url"] = index_url + "/" + id_
         if op_return:
             d["op_return"] = op_return
         if op_return_raw:

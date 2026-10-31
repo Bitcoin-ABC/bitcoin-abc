@@ -400,13 +400,13 @@ class ServerListWidget(QtWidgets.QTreeWidget):
         self.clear()
         self.setIndentation(0)
         wl_only = network.is_whitelist_only()
-        for _host, d in sorted(servers.items()):
-            is_onion = _host.lower().endswith(".onion")
+        for host, d in sorted(servers.items()):
+            is_onion = host.lower().endswith(".onion")
             if is_onion and not use_tor:
                 continue
             port = d.get(protocol)
             if port:
-                server = serialize_server(_host, port, protocol)
+                server = serialize_server(host, port, protocol)
 
                 flag = ""
                 flagval = 0
@@ -432,7 +432,7 @@ class ServerListWidget(QtWidgets.QTreeWidget):
                     flag = ServerFlag.Symbol[ServerFlag.Preferred]
                     tt = _("This is a preferred server")
 
-                display_text = _host
+                display_text = host
                 if is_onion and "display" in d:
                     display_text = d["display"] + " (.onion)"
 

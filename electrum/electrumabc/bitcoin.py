@@ -975,13 +975,15 @@ class Bip38Key:
         assert isinstance(passphrase, str), "Passphrase must be a string!"
         if net is None:
             net = networks.net
-        _type, key_bytes, compressed = deserialize_privkey(wif, net=net)  # may raise
-        if _type != ScriptType.p2pkh:
+        script_type, key_bytes, compressed = deserialize_privkey(
+            wif, net=net
+        )  # may raise
+        if script_type != ScriptType.p2pkh:
             raise ValueError(
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
         public_key = ecc.ECPrivkey(key_bytes).get_public_key_bytes(compressed)
-        addr_str = pubkey_to_address(_type, public_key, net=net)
+        addr_str = pubkey_to_address(script_type, public_key, net=net)
         addr_hash = Hash(addr_str)[0:4]
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
         passphrase = cls._normalizeNFC(passphrase)

@@ -111,24 +111,28 @@ class Contacts(PrintError):
         # backward compatibility
         for k, v in d.copy().items():
             try:
-                _type, n = v
+                contact_type, n = v
             except Exception:
                 continue
             # Previous to 1.0 the format was { name : (type, address) }
             #          -> current 1.0 format { address : (type, name) }
-            if _type == "address" and Address.is_valid(n) and not Address.is_valid(k):
+            if (
+                contact_type == "address"
+                and Address.is_valid(n)
+                and not Address.is_valid(k)
+            ):
                 d.pop(k)
                 d[n] = ("address", k)
         # At this point d is the v1 style contacts dict, just put it in data
         for address, tup in d.items():
-            _type, name = tup
-            if _type == "address" and not Address.is_valid(address):
+            contact_type, name = tup
+            if contact_type == "address" and not Address.is_valid(address):
                 # skip invalid v1 entries, for sanity.
                 continue
-            if _type not in contact_types:
+            if contact_type not in contact_types:
                 # not a known type we care about
                 continue
-            data.append(Contact(str(name), str(address), str(_type)))
+            data.append(Contact(str(name), str(address), str(contact_type)))
         return data
 
     @staticmethod

@@ -341,13 +341,13 @@ def get_object_size(obj_0) -> int:
 
     def getsize(obj_0) -> int:
         """Recursively iterate to sum size of object & members."""
-        _seen_ids = set()
+        seen_ids = set()
 
         def inner(obj) -> int:
             obj_id = id(obj)
-            if obj_id in _seen_ids:
+            if obj_id in seen_ids:
                 return 0
-            _seen_ids.add(obj_id)
+            seen_ids.add(obj_id)
             size = sys.getsizeof(obj)
             if isinstance(obj, zero_depth_bases):
                 pass  # bypass remaining control flow and return

@@ -522,12 +522,12 @@ class KeepKeyPlugin(HWPluginBase):
         def create_output_by_address():
             txoutputtype = self.types.TxOutputType()
             txoutputtype.amount = amount
-            if _type == TYPE_SCRIPT:
+            if type_ == TYPE_SCRIPT:
                 txoutputtype.script_type = self.types.PAYTOOPRETURN
                 txoutputtype.op_return_data = validate_op_return_output_and_get_data(
                     o.destination, max_pushes=1
                 )
-            elif _type == TYPE_ADDRESS:
+            elif type_ == TYPE_ADDRESS:
                 txoutputtype.script_type = self.types.PAYTOADDRESS
                 txoutputtype.address = address.to_full_string(
                     Address.Format.CASHADDR_BCH, net=networks.MainNet
@@ -539,7 +539,7 @@ class KeepKeyPlugin(HWPluginBase):
         any_output_on_change_branch = is_any_tx_output_on_change_branch(tx)
 
         for o in tx.outputs():
-            _type, address, amount = o.type, o.destination, o.value
+            type_, address, amount = o.type, o.destination, o.value
             use_create_by_derivation = False
 
             info = tx.output_info.get(address)

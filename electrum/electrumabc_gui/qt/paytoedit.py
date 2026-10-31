@@ -223,8 +223,8 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
             else:
                 amount = self.amount_edit.get_amount()
 
-            _type, addr = self.payto_address
-            self.outputs = [TxOutput(_type, addr, amount)]
+            output_type, addr = self.payto_address
+            self.outputs = [TxOutput(output_type, addr, amount)]
 
         return self.outputs[:]
 

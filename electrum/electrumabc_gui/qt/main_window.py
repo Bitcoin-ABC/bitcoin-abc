@@ -1759,10 +1759,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def get_contact_payto(self, contact: Contact) -> str:
         assert isinstance(contact, Contact)
-        _type, label = contact.type, contact.name
-        if _type == "openalias":
+        if contact.type == "openalias":
             return contact.address
-        return label + "  " + "<" + contact.address + ">"
+        return contact.name + "  " + "<" + contact.address + ">"
 
     def update_completions(self):
         contact_paytos = []

@@ -76,35 +76,35 @@ trust_anchors = [
 ]
 
 
-def _query_signed(ns, sub, _type) -> tuple[dns.rrset.RRset, dns.rrset.RRset]:
+def _query_signed(ns, sub, rdtype) -> tuple[dns.rrset.RRset, dns.rrset.RRset]:
     """Returns the (not yet validated) rrset and its rrsig."""
     name = dns.name.from_text(sub)
-    q = dns.message.make_query(name, _type, want_dnssec=True)
+    q = dns.message.make_query(name, rdtype, want_dnssec=True)
     response = dns.query.tcp(q, ns, timeout=5)
     assert response.rcode() == 0, "No answer"
     # only accept the queried name and type, otherwise any validly signed rrset of the zone could be replayed
-    rrset = response.get_rrset(response.answer, name, dns.rdataclass.IN, _type)
-    assert rrset is not None, ("No DNS record found", sub, _type)
+    rrset = response.get_rrset(response.answer, name, dns.rdataclass.IN, rdtype)
+    assert rrset is not None, ("No DNS record found", sub, rdtype)
     rrsig = response.get_rrset(
-        response.answer, name, dns.rdataclass.IN, dns.rdatatype.RRSIG, _type
+        response.answer, name, dns.rdataclass.IN, dns.rdatatype.RRSIG, rdtype
     )
-    assert rrsig is not None, ("No DNSSEC record found", sub, _type)
+    assert rrsig is not None, ("No DNSSEC record found", sub, rdtype)
     # reject wildcard expansions, we don't verify the NSEC(3) proof that the name itself doesn't exist
     assert all(sig.labels == len(name) - 1 for sig in rrsig), (
         "Wildcard DNS record not supported",
         sub,
-        _type,
+        rdtype,
     )
     return rrset, rrsig
 
 
-def check_query(ns, sub, _type, keys) -> dns.rrset.RRset:
-    rrset, rrsig = _query_signed(ns, sub, _type)
+def check_query(ns, sub, rdtype, keys) -> dns.rrset.RRset:
+    rrset, rrsig = _query_signed(ns, sub, rdtype)
     dns.dnssec.validate(rrset, rrsig, keys)
     return rrset
 
 
-def get_and_validate(ns, url, _type) -> dns.rrset.RRset:
+def get_and_validate(ns, url, rdtype) -> dns.rrset.RRset:
     # get trusted root key
     root_rrset = None
     for dnskey_rr in trust_anchors:
@@ -163,7 +163,7 @@ def get_and_validate(ns, url, _type) -> dns.rrset.RRset:
         # set key for next iteration
         keys = {name: rrset}
     # get TXT record (signed by zone)
-    rrset = check_query(ns, url, _type, keys)
+    rrset = check_query(ns, url, rdtype, keys)
     return rrset
 
 

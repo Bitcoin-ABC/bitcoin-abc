@@ -1074,17 +1074,17 @@ class Network(util.DaemonThread):
             idx = 0
             for item in self.pending_sends.copy():
                 do_delete = False
-                messages, _callback = item
-                if callback == _callback:
+                messages, callback_ = item
+                if callback == callback_:
                     if method is None and params is None:
                         do_delete = True
                         nmsgs += len(messages)
                     else:
                         # Clean out pending sends that match "method" and/or "params"
                         idx2 = 0
-                        for _method, _params in messages.copy():
-                            if (method is None or _method == method) and (
-                                params is None or _params == params
+                        for method_, params_ in messages.copy():
+                            if (method is None or method_ == method) and (
+                                params is None or params_ == params
                             ):
                                 del messages[idx2]
                                 nmsgs += 1
@@ -1135,10 +1135,10 @@ class Network(util.DaemonThread):
         # keep references to an object that declared itself defunct.
         ct = 0
         for message_id, client_req in self.unanswered_requests.copy().items():
-            _method, _params, _callback = client_req
-            if callback == _callback:
-                do_delete = (method is None or _method == method) and (
-                    params is None or _params == params
+            method_, params_, callback_ = client_req
+            if callback == callback_:
+                do_delete = (method is None or method_ == method) and (
+                    params is None or params_ == params
                 )
                 if do_delete:
                     # guard against race conditions here. Note: this usually is called

@@ -148,8 +148,8 @@ class TcpConnection(threading.Thread, PrintError):
                 s.settimeout(SOCKET_TIMEOUT)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 return s
-            except Exception as _e:
-                e = _e
+            except Exception as exc:
+                e = exc
                 continue
         else:
             self.print_error("failed to connect", str(e))
@@ -724,9 +724,14 @@ class Interface(PrintError):
             self.last_send = time.time()
 
             def make_dict(
-                method: str, params: list[Any], _id: int
+                method: str, params: list[Any], request_id: int
             ) -> InterfaceJsonRPCRequest:
-                return {"jsonrpc": "2.0", "method": method, "params": params, "id": _id}
+                return {
+                    "jsonrpc": "2.0",
+                    "method": method,
+                    "params": params,
+                    "id": request_id,
+                }
 
             n = self.num_requests()
             wire_requests = self.unsent_requests[0:n]
