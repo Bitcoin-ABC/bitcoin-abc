@@ -337,7 +337,7 @@ class Plugin(BasePlugin):
             for x_pubkey in txin["x_pubkeys"]:
                 x_pubkey = bytes.fromhex(x_pubkey)
                 if is_xpubkey(x_pubkey):
-                    xpub, s = parse_xpubkey(x_pubkey)
+                    xpub, _s = parse_xpubkey(x_pubkey)
                     xpub_set.add(xpub)
         return cosigner_xpub in xpub_set
 

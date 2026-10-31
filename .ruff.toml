@@ -28,6 +28,7 @@ select = [
     "B006",
     "B008",
     "B912",
+    "RUF059", # unused-unpacked-variable
     "RUF064",
     "UP006", # non-pep585-annotation
     "UP007", # non-pep604-annotation-union

@@ -549,7 +549,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             amount,
             fee,
             height,
-            conf,
+            _conf,
             timestamp,
             exp_n,
             status_enum,
@@ -912,7 +912,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         opret_ct = 0
         for i, tup in enumerate(self.tx.outputs()):
             my_addr_in_script = None
-            typ, addr, v = tup
+            _typ, addr, v = tup
             for fmt in (ext, rec, chg, lnk):
                 fmt.setAnchorNames(
                     [f"output {i}"]
@@ -1081,7 +1081,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         try:
             # figure out which output they right-clicked on .. output lines have an anchor named "output N"
             i = int(name.split()[1])  # split "output N", translate N -> int
-            ignored, addr, value = (self.tx.outputs())[i]
+            _ignored, addr, value = (self.tx.outputs())[i]
             menu.addAction(_("Output") + " #" + str(i)).setDisabled(True)
             menu.addSeparator()
             self._add_addr_to_io_menu_lists_for_widget(

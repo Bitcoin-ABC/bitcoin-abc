@@ -211,7 +211,7 @@ def recover_ems(mnemonics: list[str]) -> EncryptedSeed:
         extendable_backup_flag,
         iteration_exponent,
         group_threshold,
-        group_count,
+        _group_count,
         groups,
     ) = _decode_mnemonics(mnemonics)
 

@@ -252,7 +252,7 @@ class BaseWizard(PrintError):
                     self.go_back()
                     return
                 for b38, tup in decrypted.items():
-                    wif, adr = tup
+                    wif, _adr = tup
                     # kind of a hack.. but works. replace the bip38 key with the wif
                     # key in the text.
                     text = text.replace(b38, wif)

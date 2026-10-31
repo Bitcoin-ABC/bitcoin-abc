@@ -112,7 +112,7 @@ class TrezorKeyStore(HardwareKeyStore):
         # path of the xpubs that are involved
         xpub_path = {}
         for txin in tx.inputs():
-            pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
+            _pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
             x_pubkeys = [bytes.fromhex(xpub) for xpub in x_pubkeys]
             tx_hash = txin["prevout_hash"]
             if txin.get("prev_tx") is None:
@@ -123,7 +123,7 @@ class TrezorKeyStore(HardwareKeyStore):
             for x_pubkey in x_pubkeys:
                 if not is_xpubkey(x_pubkey):
                     continue
-                xpub, s = parse_xpubkey(x_pubkey)
+                xpub, _s = parse_xpubkey(x_pubkey)
                 if xpub == self.get_master_public_key():
                     xpub_path[xpub] = self.get_derivation()
 
@@ -649,7 +649,7 @@ class TrezorPlugin(HWPluginBase):
             use_create_by_derivation = False
             info = tx.output_info.get(address)
             if info is not None and not has_change:
-                index, xpubs, m, script_type = info
+                index, xpubs, m, _script_type = info
                 on_change_branch = index[0] == 1
                 # prioritise hiding outputs on the 'change' branch from user
                 # because no more than one change address allowed

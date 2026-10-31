@@ -362,7 +362,7 @@ class ServerListWidget(QtWidgets.QTreeWidget):
             )
 
     def set_server(self, s):
-        host, port, protocol = deserialize_server(s)
+        host, port, _protocol = deserialize_server(s)
         self.parent.server_host.setText(host)
         self.parent.server_port.setText(port)
         self.parent.autoconnect_cb.setChecked(
@@ -1043,7 +1043,9 @@ class NetworkChoiceLayout(QObject, PrintError):
                 w.setEnabled(False)
 
     def update(self):
-        host, port, protocol, proxy_config, auto_connect = self.network.get_parameters()
+        host, port, protocol, _proxy_config, auto_connect = (
+            self.network.get_parameters()
+        )
         preferred_only = self.network.is_whitelist_only()
         if not self.server_host.hasFocus() and not self.server_port.hasFocus():
             self.server_host.setText(host)
@@ -1158,7 +1160,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.nodes_list_widget.update_servers(self.network, self.servers)
 
     def fill_in_proxy_settings(self):
-        host, port, protocol, proxy_config, auto_connect = self.network.get_parameters()
+        _host, _port, _protocol, proxy_config, _auto_connect = (
+            self.network.get_parameters()
+        )
         if not proxy_config:
             proxy_config = {"mode": "none", "host": "localhost", "port": "9050"}
 
@@ -1376,7 +1380,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         tree = QtWidgets.QTreeWidget()
         tree.setHeaderLabels([_("Host"), _("Port")])
         for s in bl:
-            host, port, protocol = deserialize_server(s)
+            host, port, _protocol = deserialize_server(s)
             item = QtWidgets.QTreeWidgetItem([host, str(port)])
             item.setFlags(Qt.ItemIsEnabled)
             tree.addTopLevelItem(item)

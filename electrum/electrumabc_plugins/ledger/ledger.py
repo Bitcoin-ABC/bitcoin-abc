@@ -253,7 +253,7 @@ class LedgerClient(HardwareClientBase):
                         "Enter your {} PIN - WARNING: LAST ATTEMPT. If the PIN is not"
                         " correct, the {} will be wiped."
                     ).format(self.device, self.device)
-                confirmed, p, pin = self.password_dialog(msg)
+                confirmed, _p, pin = self.password_dialog(msg)
                 if not confirmed:
                     raise Exception(
                         _(
@@ -590,7 +590,7 @@ class LedgerKeyStore(HardwareKeyStore):
             for o in tx.outputs():
                 info = tx.output_info.get(o.destination)
                 if (info is not None) and len(tx.outputs()) > 1 and not has_change:
-                    index, xpubs, m, script_type = info
+                    index, _xpubs, _m, _script_type = info
                     on_change_branch = index[0] == 1
                     # prioritise hiding outputs on the 'change' branch from user
                     # because no more than one change address allowed

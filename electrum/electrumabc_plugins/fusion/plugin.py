@@ -655,10 +655,10 @@ class FusionPlugin(BasePlugin):
                 wallet_conf = Conf(wallet)
                 (
                     eligible,
-                    ineligible,
+                    _ineligible,
                     sum_value,
                     has_unconfirmed,
-                    has_coinbase,
+                    _has_coinbase,
                 ) = select_coins(wallet)
                 target_num_auto, confirmed_only = get_target_params_1(
                     wallet, wallet_conf, active_autofusions, eligible

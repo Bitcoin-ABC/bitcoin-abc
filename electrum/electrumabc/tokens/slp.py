@@ -1028,7 +1028,7 @@ class WalletData(PrintError):
             else so.message.additional_token_quantity
         )
         if baton_vout is not None:
-            b_type, b_addr, _dummy = outputs[baton_vout]  # may raise
+            _b_type, b_addr, _dummy = outputs[baton_vout]  # may raise
             # SLP wallet silently ignored non-TYPE_ADDRESS, so we do same here.
             # assert b_type == bitcoin.TYPE_ADDRESS, f"Token baton vout ({baton_vout}) != TYPE_ADDRESS, ignoring tx"
             self._add_mint_baton(

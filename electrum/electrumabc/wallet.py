@@ -720,7 +720,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         txs = set()
         with self.lock:
             for tx_hash, item in list(self.verified_tx.items()):
-                tx_height, timestamp, pos = item
+                tx_height, timestamp, _pos = item
                 if tx_height >= height:
                     header = blockchain.read_header(tx_height)
                     # fixme: use block hash, not timestamp
@@ -746,7 +746,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         """return the height and timestamp of a verified transaction."""
         with self.lock:
             if tx_hash in self.verified_tx:
-                height, timestamp, pos = self.verified_tx[tx_hash]
+                height, timestamp, _pos = self.verified_tx[tx_hash]
                 conf = max(self.get_local_height() - height + 1, 0)
                 return height, conf, timestamp
             elif tx_hash in self.unverified_tx:
@@ -759,7 +759,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         "return position, even if the tx is unverified"
         with self.lock:
             if tx_hash in self.verified_tx:
-                height, timestamp, pos = self.verified_tx[tx_hash]
+                height, _timestamp, pos = self.verified_tx[tx_hash]
                 return height, pos
             elif tx_hash in self.unverified_tx:
                 height = self.unverified_tx[tx_hash]
@@ -1532,7 +1532,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 for addr, txis_for_addr in dd.items():
                     del_idx = []
                     for idx, (ser, v) in enumerate(txis_for_addr):
-                        prev_hash, prev_n = ser.split(":")
+                        prev_hash, _prev_n = ser.split(":")
                         if prev_hash == tx_hash:
                             self._addr_bal_cache.pop(
                                 addr, None
@@ -2487,7 +2487,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             txin["type"] = self.get_txin_type(address)
             # eCash needs value to sign
             item = received.get(txin["prevout_hash"] + ":%d" % txin["prevout_n"])
-            tx_height, value, is_cb = item
+            _tx_height, value, _is_cb = item
             txin["value"] = value
             self.add_input_sig_info(txin, address)
 
@@ -2550,7 +2550,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 index = self.get_address_index(txout.destination)
                 pubkeys = self.get_public_keys(txout.destination)
                 # sort xpubs using the order of pubkeys
-                sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
+                _sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
                 info[txout.destination] = (
                     index,
                     sorted_xpubs,
@@ -2652,11 +2652,11 @@ class AbstractWallet(PrintError, SPVDelegate):
         received = self.get_address_unspent(address, self.get_address_history(address))
         transactions = []
         for txo, x in received.items():
-            h, v, is_cb = x
-            txid, n = txo.split(":")
+            _h, v, _is_cb = x
+            txid, _n = txo.split(":")
             info = self.verified_tx.get(txid)
             if info:
-                tx_height, timestamp, pos = info
+                tx_height, _timestamp, _pos = info
                 conf = max(local_height - tx_height + 1, 0)
             else:
                 conf = 0

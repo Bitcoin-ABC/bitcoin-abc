@@ -171,7 +171,7 @@ class SatochipClient(HardwareClientBase, PrintError):
                 fingerprint = bytes([0, 0, 0, 0])
                 child_number = bytes([0, 0, 0, 0])
             else:  # get parent info
-                (parentkey, parentchaincode) = self.cc.card_bip32_get_extendedkey(
+                (parentkey, _parentchaincode) = self.cc.card_bip32_get_extendedkey(
                     bytepath[0:-4]
                 )
                 fingerprint = hash_160(parentkey.get_public_key_bytes(compressed=True))[
@@ -353,7 +353,7 @@ class SatochipKeyStore(HardwareKeyStore):
         # check if 2FA is required
         hmac = b""
         if client.cc.needs_2FA is None:
-            (response, sw1, sw2, d) = client.cc.card_get_status()
+            (_response, _sw1, _sw2, d) = client.cc.card_get_status()
         if client.cc.needs_2FA:
             # challenge based on sha256(btcheader+msg)
             # format & encrypt msg
@@ -394,11 +394,11 @@ class SatochipKeyStore(HardwareKeyStore):
         try:
             # path= self.get_derivation() + ("/%d/%d" % sequence)
             keynbr = 0xFF  # for extended key
-            (depth, bytepath) = bip32path2bytes(address_path)
+            (_depth, bytepath) = bip32path2bytes(address_path)
             altcoin = "eCash" if sigtype == SignatureType.ECASH else None
             try:
-                (pubkey, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
-                (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
+                (pubkey, _chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
+                (_response2, _sw1, _sw2, compsig) = client.cc.card_sign_message(
                     keynbr, pubkey, message_byte, hmac, altcoin=altcoin
                 )
             except PinRequiredError:
@@ -406,8 +406,8 @@ class SatochipKeyStore(HardwareKeyStore):
                 # removed and re-inserted): prompt the user for the PIN
                 # (interactive variant) and retry once
                 client.cc.card_verify_PIN()
-                (pubkey, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
-                (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
+                (pubkey, _chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
+                (_response2, _sw1, _sw2, compsig) = client.cc.card_sign_message(
                     keynbr, pubkey, message_byte, hmac, altcoin=altcoin
                 )
 
@@ -428,7 +428,7 @@ class SatochipKeyStore(HardwareKeyStore):
 
         client = self.get_client()
         if client.cc.needs_2FA is None:
-            (response, sw1, sw2, d) = client.cc.card_get_status()
+            (_response, sw1, sw2, d) = client.cc.card_get_status()
 
         # outputs
         txOutputs = serialize_sequence(tx.outputs()).hex()
@@ -443,7 +443,7 @@ class SatochipKeyStore(HardwareKeyStore):
                 # should never happen
                 self.give_error("Coinbase not supported")
 
-            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+            _pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for j, x_pubkey in enumerate(x_pubkeys):
                 self.print_error("sign_transaction(): forforloop: j=", j)
                 if txin.is_complete():
@@ -454,9 +454,9 @@ class SatochipKeyStore(HardwareKeyStore):
                     address_path = "%s/%d/%d" % (self.get_derivation()[2:], s[0], s[1])
 
                     # get corresponing extended key
-                    (depth, bytepath) = bip32path2bytes(address_path)
+                    (_depth, bytepath) = bip32path2bytes(address_path)
                     try:
-                        (key, chaincode) = client.cc.card_bip32_get_extendedkey(
+                        (_key, _chaincode) = client.cc.card_bip32_get_extendedkey(
                             bytepath
                         )
                     except PinRequiredError:
@@ -464,7 +464,7 @@ class SatochipKeyStore(HardwareKeyStore):
                         # removed and re-inserted): prompt the user for the PIN
                         # (interactive variant) and retry once
                         client.cc.card_verify_PIN()
-                        (key, chaincode) = client.cc.card_bip32_get_extendedkey(
+                        (_key, _chaincode) = client.cc.card_bip32_get_extendedkey(
                             bytepath
                         )
 
@@ -681,7 +681,7 @@ class SatochipPlugin(HWPluginBase):
                     + _("Inserted card is not a Satochip!")
                 )
 
-            (response, sw1, sw2, d) = client.cc.card_get_status()
+            (_response, _sw1, _sw2, d) = client.cc.card_get_status()
 
             # check version
             if client.cc.setup_done:
@@ -720,7 +720,7 @@ class SatochipPlugin(HWPluginBase):
                 msg = _("Enter a new PIN for your Satochip:")
                 msg_confirm = _("Please confirm the PIN code for your Satochip:")
                 msg_error = _("The PIN values do not match! Please type PIN again!")
-                (is_PIN, pin_0) = client.PIN_setup_dialog(msg, msg_confirm, msg_error)
+                (_is_PIN, pin_0) = client.PIN_setup_dialog(msg, msg_confirm, msg_error)
                 pin_0 = list(pin_0)
                 client.cc.set_pin(0, pin_0)  # cache PIN value in client
                 pin_tries_0 = 0x05
@@ -741,7 +741,7 @@ class SatochipPlugin(HWPluginBase):
 
                 # setup
 
-                (response, sw1, sw2) = client.cc.card_setup(
+                (_response, sw1, sw2) = client.cc.card_setup(
                     pin_tries_0,
                     ublk_tries_0,
                     pin_0,
@@ -805,7 +805,7 @@ class SatochipPlugin(HWPluginBase):
                         # further communications will require an id and an encryption key (for privacy).
                         # Both are derived from the secret_2FA using a one-way function inside the Satochip
                         amount_limit = 0  # i.e. always use
-                        (response, sw1, sw2) = client.cc.card_set_2FA_key(
+                        (_response, sw1, sw2) = client.cc.card_set_2FA_key(
                             secret_2FA, amount_limit
                         )
                         if sw1 != 0x90 or sw2 != 0x00:

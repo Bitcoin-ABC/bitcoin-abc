@@ -309,7 +309,7 @@ class App(QtWidgets.QWidget):
                 )
 
     def on_package_plugin(self):
-        self.archive_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(
+        self.archive_file_path, _used_filter = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save Plugin Archive", None, "Plugin archive (*.zip)"
         )
         if not len(self.archive_file_path):
@@ -355,7 +355,7 @@ class App(QtWidgets.QWidget):
         write_manifest(metadata, manifest_file_path)
 
     def on_export_manifest_clicked(self):
-        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(
+        self.manifest_file_path, _used_filter = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save Plugin Manifest", None, "Plugin manifest (manifest.json)"
         )
         if not len(self.manifest_file_path):
@@ -376,7 +376,7 @@ class App(QtWidgets.QWidget):
             return
 
     def on_import_clicked(self):
-        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getOpenFileName(
+        self.manifest_file_path, _used_filter = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select Existing Plugin Manifest",
             None,
@@ -403,7 +403,7 @@ class App(QtWidgets.QWidget):
         )
         package_name = str(metadata.get("package_name", "")).strip()
         if len(package_name):
-            manifest_path, manifest_filename = os.path.split(self.manifest_file_path)
+            manifest_path, _manifest_filename = os.path.split(self.manifest_file_path)
             directory_path = os.path.join(manifest_path, package_name)
             if self.have_valid_directory(directory_path):
                 self.directory_path = directory_path

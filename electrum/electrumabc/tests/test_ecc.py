@@ -52,7 +52,7 @@ class TestECC(unittest.TestCase):
         msg2 = b"Electrum"
 
         def sign_message_with_wif_privkey(wif_privkey, msg):
-            txin_type, privkey, compressed = deserialize_privkey(wif_privkey)
+            _txin_type, privkey, compressed = deserialize_privkey(wif_privkey)
             key = ECPrivkey(privkey)
             return key.sign_message(msg, compressed)
 
@@ -125,7 +125,7 @@ class TestECC(unittest.TestCase):
         msg = b"Chancellor on brink of second bailout for banks"
         addr = "15hETetDmcXm1mM4sEf7U2KXC9hDHFMSzz"
 
-        txin_type, privkey, compressed = deserialize_privkey(
+        _txin_type, privkey, compressed = deserialize_privkey(
             "L1TnU2zbNaAqMoVh65Cyvmcjzbrj41Gs9iTLcWbpJCMynXuap6UN"
         )
         key = ECPrivkey(privkey)

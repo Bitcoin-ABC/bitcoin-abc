@@ -61,7 +61,7 @@ class KeepKeyKeyStore(HardwareKeyStore):
         # path of the xpubs that are involved
         xpub_path = {}
         for txin in tx.inputs():
-            pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
+            _pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
             tx_hash = txin["prevout_hash"]
             if txin.get("prev_tx") is None:
                 raise RuntimeError(
@@ -72,7 +72,7 @@ class KeepKeyKeyStore(HardwareKeyStore):
                 x_pubkey = bytes.fromhex(x_pubkey)
                 if not is_xpubkey(x_pubkey):
                     continue
-                xpub, s = parse_xpubkey(x_pubkey)
+                xpub, _s = parse_xpubkey(x_pubkey)
                 if xpub == self.get_master_public_key():
                     xpub_path[xpub] = self.get_derivation()
 
@@ -376,7 +376,7 @@ class KeepKeyPlugin(HWPluginBase):
         client = self.get_client(keystore)
         inputs = self.tx_inputs(tx, True)
         outputs = self.tx_outputs(keystore.get_derivation(), tx)
-        signatures, signed_tx = client.sign_tx(
+        signatures, _signed_tx = client.sign_tx(
             self.get_coin_name(),
             inputs,
             outputs,
@@ -411,7 +411,7 @@ class KeepKeyPlugin(HWPluginBase):
 
             pubkeys = wallet.get_public_keys(address)
             # sort xpubs using the order of pubkeys
-            sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
+            _sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
             pubkeys = list(map(f, sorted_xpubs))
             multisig = self.types.MultisigRedeemScriptType(
                 pubkeys=pubkeys,

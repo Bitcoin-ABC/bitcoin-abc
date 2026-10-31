@@ -304,7 +304,7 @@ class SatochipSettingsDialog(WindowModalDialog):
 
         oldpin = list(oldpin)
         newpin = list(newpin)
-        (response, sw1, sw2) = client.cc.card_change_PIN(0, oldpin, newpin)
+        (_response, sw1, sw2) = client.cc.card_change_PIN(0, oldpin, newpin)
         if sw1 == 0x90 and sw2 == 0x00:
             msg = _("PIN changed successfully!")
             client.handler.show_message(msg)
@@ -338,7 +338,7 @@ class SatochipSettingsDialog(WindowModalDialog):
         # if 2FA is enabled, get challenge-response
         hmac = []
         if client.cc.needs_2FA is None:
-            (response, sw1, sw2, d) = client.cc.card_get_status()
+            (_response, sw1, sw2, d) = client.cc.card_get_status()
         if client.cc.needs_2FA:
             # challenge based on authentikey
             authentikeyx = bytearray(client.cc.parser.authentikey_coordx).hex()
@@ -376,7 +376,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             hmac = list(bytes.fromhex(chalresponse))
 
         # send request
-        (response, sw1, sw2) = client.cc.card_reset_seed(pin, hmac)
+        (_response, sw1, sw2) = client.cc.card_reset_seed(pin, hmac)
         if sw1 == 0x90 and sw2 == 0x00:
             msg = _(
                 "Seed reset successfully!\nYou should close this wallet and launch the"
@@ -437,7 +437,7 @@ class SatochipSettingsDialog(WindowModalDialog):
                 # further communications will require an id and an encryption key (for privacy).
                 # Both are derived from the secret_2FA using a one-way function inside the Satochip
                 amount_limit = 0  # i.e. always use
-                (response, sw1, sw2) = client.cc.card_set_2FA_key(
+                (_response, sw1, sw2) = client.cc.card_set_2FA_key(
                     secret_2FA, amount_limit
                 )
                 if sw1 != 0x90 or sw2 != 0x00:
@@ -482,7 +482,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             hmac = list(bytes.fromhex(chalresponse))
 
             # send request
-            (response, sw1, sw2) = client.cc.card_reset_2FA_key(hmac)
+            (_response, sw1, sw2) = client.cc.card_reset_2FA_key(hmac)
             if sw1 == 0x90 and sw2 == 0x00:
                 msg = _("2FA reset successfully!")
                 client.cc.needs_2FA = False
@@ -587,13 +587,13 @@ class SatochipSettingsDialog(WindowModalDialog):
             client.handler.show_message(_("Operation aborted by user!"))
             return
         try:
-            (response, sw1, sw2) = client.cc.card_set_label(label)
+            (_response, sw1, sw2) = client.cc.card_set_label(label)
         except PinRequiredError:
             # setting the label requires PIN authentication but no PIN is cached:
             # ask the user for the PIN (interactive variant) and retry once
             try:
                 client.cc.card_verify_PIN()
-                (response, sw1, sw2) = client.cc.card_set_label(label)
+                (_response, sw1, sw2) = client.cc.card_set_label(label)
             except Exception as e:
                 print_error("change_card_label: could not set card label:", repr(e))
                 client.handler.show_error(

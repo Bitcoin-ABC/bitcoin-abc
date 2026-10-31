@@ -130,7 +130,7 @@ class Delegation(SerializableObject):
         return self.limited_proofid.compute_proof_id(self.proof_master)
 
     def compute_delegation_id(self) -> DelegationId:
-        success, hash_ = reduce_levels(self.get_proof_id().serialize(), self.levels)
+        _success, hash_ = reduce_levels(self.get_proof_id().serialize(), self.levels)
         return DelegationId(hash_)
 
     def serialize(self) -> bytes:

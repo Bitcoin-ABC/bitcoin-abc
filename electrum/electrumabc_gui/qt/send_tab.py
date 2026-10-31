@@ -1496,7 +1496,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
                 d2.setParent(None)
                 if d2.decoded_keys:
                     for k, tup in d2.decoded_keys.items():
-                        wif, adr = tup
+                        wif, _adr = tup
                         # rewrite the keys they specified with the decrypted WIF in the keys list for sweep_preparations to work below...
                         i = bip38s[k]
                         keys[i] = wif

@@ -1511,7 +1511,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if not alias or not self.alias_info:
             return
 
-        alias_addr, alias_name, validated = self.alias_info
+        alias_addr, _alias_name, _validated = self.alias_info
         if not alias_addr or not self.wallet.is_mine(alias_addr):
             return
         msg = (
@@ -3261,7 +3261,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 d.exec_()
                 d.setParent(None)  # python GC quicker if this happens
                 if d.decoded_keys:
-                    wif, adr = d.decoded_keys[key]
+                    wif, _adr = d.decoded_keys[key]
                     return self.wallet.import_private_key(wif, password)
                 else:
                     raise util.UserCancelled()

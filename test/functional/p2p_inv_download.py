@@ -270,7 +270,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         # One of the peers is asked for the data
         peer2.wait_until(lambda: sum(p.getdata_count for p in [peer1, peer2]) == 1)
         with p2p_lock:
-            peer_expiry, peer_fallback = (
+            _peer_expiry, peer_fallback = (
                 (peer1, peer2) if peer1.getdata_count == 1 else (peer2, peer1)
             )
             assert_equal(peer_fallback.getdata_count, 0)

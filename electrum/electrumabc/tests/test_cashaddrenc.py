@@ -201,11 +201,11 @@ class TestCashAddrAddress(unittest.TestCase):
                 cashaddr.decode(addr)
 
     def test_address_case(self):
-        prefix, kind, hash160 = cashaddr.decode(
+        prefix, _kind, _hash160 = cashaddr.decode(
             "ecash:qzedhq7ktcsvqmgc2q58t97n3c28k762ky5ryvphuu"
         )
         assert prefix == "ecash"
-        prefix, kind, hash160 = cashaddr.decode(
+        prefix, _kind, _hash160 = cashaddr.decode(
             "ECASH:QZEDHQ7KTCSVQMGC2Q58T97N3C28K762KY5RYVPHUU"
         )
         assert prefix == "ECASH"

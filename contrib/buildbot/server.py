@@ -1144,7 +1144,7 @@ def create_server(
                             )
 
         if not isMaster:
-            revisionId, authorPHID = phab.get_revision_info(revisionPHID)
+            revisionId, _authorPHID = phab.get_revision_info(revisionPHID)
 
             properties = buildInfo.getProperties()
             buildConfig = properties.get("env.ABC_BUILD_NAME", None)

@@ -344,7 +344,7 @@ class ECPubkey(object):
         assert_bytes(message)
         h = Hash(msg_magic(message, sigtype))
         try:
-            public_key, compressed = ECPubkey.from_signature65(sig65, h)
+            public_key, _compressed = ECPubkey.from_signature65(sig65, h)
         except Exception:
             return False
         # check public key
@@ -573,7 +573,7 @@ class ECPrivkey(ECPubkey):
             msg_hash,
             sigencode=sig_string_from_r_and_s,
         )
-        sig65, recid = bruteforce_recid(sig_string)
+        sig65, _recid = bruteforce_recid(sig_string)
         return sig65
 
     def decrypt_message(self, encrypted, magic=b"BIE1") -> bytes:

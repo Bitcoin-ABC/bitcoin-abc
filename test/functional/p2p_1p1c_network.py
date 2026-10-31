@@ -112,7 +112,7 @@ class PackageRelayTest(BitcoinTestFramework):
 
         # 3: 2-parent-1-child package. Both parents are above mempool min feerate. No package submission happens.
         # We require packages to be child-with-unconfirmed-parents and only allow 1-parent-1-child packages.
-        package_hex_3, parent_31, parent_32, child_3 = self.create_package_2p1c(
+        package_hex_3, parent_31, _parent_32, child_3 = self.create_package_2p1c(
             self.wallet
         )
 

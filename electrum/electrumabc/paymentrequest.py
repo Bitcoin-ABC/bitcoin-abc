@@ -497,7 +497,7 @@ def check_ssl_config(config: SimpleConfig):
         s = f.read()
     bList = pem.dePemList(s, "CERTIFICATE")
     # verify chain
-    x, ca = verify_cert_chain(bList)
+    x, _ca = verify_cert_chain(bList)
     assert x.modulus == params[0]
     assert x.exponent == params[1]
     # return requestor

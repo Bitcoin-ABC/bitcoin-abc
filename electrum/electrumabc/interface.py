@@ -87,7 +87,7 @@ def Connection(
 
     server is a "<host>:<port>:<protocol>" string
     """
-    host, port, protocol = server.rsplit(":", 2)
+    _host, _port, protocol = server.rsplit(":", 2)
     if protocol not in "st":
         raise Exception("Unknown protocol: %s" % protocol)
     c = TcpConnection(server, queue, config_path)

@@ -29,7 +29,7 @@ class RpcCreateMultiSigTest(BitcoinTestFramework):
     def get_keys(self):
         self.pub = []
         self.priv = []
-        node0, node1, node2 = self.nodes
+        _node0, _node1, node2 = self.nodes
         for _ in range(self.nkeys):
             k = ECKey()
             k.generate()

@@ -105,7 +105,7 @@ class KeyStore(PrintError):
             if txin.is_complete():
                 continue
             x_signatures = txin.signatures
-            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+            _pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for k, xpubk in enumerate(x_pubkeys):
                 if x_signatures[k] is not None:
                     # this pubkey already signed
@@ -141,7 +141,7 @@ class SoftwareKeyStore(KeyStore):
         return key.sign_message(message, compressed, sigtype=sigtype)
 
     def decrypt_message(self, sequence, message, password):
-        privkey, compressed = self.get_private_key(sequence, password)
+        privkey, _compressed = self.get_private_key(sequence, password)
         ec = ECPrivkey(privkey)
         decrypted = ec.decrypt_message(message)
         return decrypted
@@ -461,8 +461,8 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
         self.xpub = xpub_from_xprv(xprv)
 
     def add_xprv_from_seed(self, bip32_seed, xtype, derivation):
-        xprv, xpub = bip32_root(bip32_seed, xtype)
-        xprv, xpub = bip32_private_derivation(xprv, "m/", derivation)
+        xprv, _xpub = bip32_root(bip32_seed, xtype)
+        xprv, _xpub = bip32_private_derivation(xprv, "m/", derivation)
         self.add_xprv(xprv)
         self.derivation = derivation
 
@@ -743,7 +743,7 @@ def xpubkey_to_address(x_pubkey: bytes) -> tuple[bytes, Address]:
 
 
 def xpubkey_to_pubkey(x_pubkey: bytes) -> bytes:
-    pubkey, address = xpubkey_to_address(x_pubkey)
+    pubkey, _address = xpubkey_to_address(x_pubkey)
     return pubkey
 
 

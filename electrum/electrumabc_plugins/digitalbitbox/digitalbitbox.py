@@ -655,7 +655,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
             for o in tx.outputs():
                 info = tx.output_info.get(o.destination)
                 if info is not None:
-                    index, xpubs, m, script_type = info
+                    index, _xpubs, _m, _script_type = info
                     changePath = self.get_derivation() + "/%d/%d" % index
                     changePubkey = self.derive_pubkey(index[0], index[1])
                     pubkeyarray_i = {"pubkey": changePubkey, "keypath": changePath}
@@ -777,7 +777,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
             for i, txin in enumerate(tx.txinputs()):
                 if txin.is_complete():
                     break
-                pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+                pubkeys, _x_pubkeys = txin.get_sorted_pubkeys()
                 for ii, pubkey in enumerate(pubkeys):
                     signed = dbb_signatures[i]
                     if "recid" in signed:

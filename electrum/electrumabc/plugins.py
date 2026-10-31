@@ -217,10 +217,10 @@ class Plugins(DaemonThread):
 
         for file_name in os.listdir(external_plugin_dir):
             plugin_file_path = os.path.join(external_plugin_dir, file_name)
-            leading_name, ext = os.path.splitext(file_name)
+            _leading_name, ext = os.path.splitext(file_name)
             if ext.lower() != ".zip" or not os.path.isfile(plugin_file_path):
                 continue
-            metadata, error_code = self.get_metadata_from_external_plugin_zip_file(
+            metadata, _error_code = self.get_metadata_from_external_plugin_zip_file(
                 plugin_file_path
             )
             if metadata is None:
@@ -469,7 +469,7 @@ class Plugins(DaemonThread):
             return error_code
 
         file_name = os.path.basename(plugin_original_path)
-        leading_name, ext = os.path.splitext(file_name)
+        leading_name, _ext = os.path.splitext(file_name)
         package_name = metadata.get("package_name", leading_name)
         # Ensure it is not already installed.
         if (

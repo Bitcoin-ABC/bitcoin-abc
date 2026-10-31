@@ -79,9 +79,9 @@ class Processor(threading.Thread, PrintError):
             self.M.select()
         except Exception:
             return
-        typ, data = self.M.search(None, "ALL")
+        _typ, data = self.M.search(None, "ALL")
         for num in data[0].split():
-            typ, msg_data = self.M.fetch(num, "(RFC822)")
+            _typ, msg_data = self.M.fetch(num, "(RFC822)")
             if type(msg_data[0][1]) is bytes:
                 msg = email.message_from_bytes(msg_data[0][1])
             else:

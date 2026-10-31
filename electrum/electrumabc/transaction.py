@@ -628,7 +628,7 @@ class TxInput:
         if self.type == ScriptType.p2pkh:
             return self.address.to_script()
         if self.type == ScriptType.p2sh:
-            pubkeys, x_pubkeys = self.get_sorted_pubkeys()
+            pubkeys, _x_pubkeys = self.get_sorted_pubkeys()
             return multisig_script(pubkeys, self.num_required_sigs)
         if self.type == ScriptType.p2pk:
             if self.pubkeys is None:
@@ -1129,7 +1129,7 @@ class Transaction:
                 )
             )
         for i, txin in enumerate(self.txinputs()):
-            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+            pubkeys, _x_pubkeys = txin.get_sorted_pubkeys()
             sig = signatures[i]
             if not isinstance(sig, bytes):
                 raise ValueError("sig was str, expected bytes")

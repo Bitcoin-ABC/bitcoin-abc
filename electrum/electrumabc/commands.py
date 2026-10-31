@@ -459,7 +459,7 @@ class Commands:
             sign_schnorr=self.wallet and self.wallet.is_schnorr_enabled(),
         )
         if privkey:
-            txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
+            _txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
             pubkey = ECPrivkey(privkey2).get_public_key_bytes(compressed)
             tx.sign({pubkey: (privkey2, compressed)})
         else:

@@ -248,7 +248,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.plugin_path = plugin_path
         (
             self.plugin_metadata,
-            result_code,
+            _result_code,
         ) = plugin_manager.get_metadata_from_external_plugin_zip_file(plugin_path)
         self.refresh_plugin()
 

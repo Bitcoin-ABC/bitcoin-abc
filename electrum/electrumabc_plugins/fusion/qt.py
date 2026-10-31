@@ -381,7 +381,7 @@ class Plugin(FusionPlugin, QObject):
         tup = Plugin.find_utxo_list_fusion_column(utxo_list)
         if tup is None:
             return
-        col, header, header_labels = tup
+        col, _header, header_labels = tup
         del header_labels[col]
         utxo_list.update_headers(header_labels)
         delattr(utxo_list, "_fusion_patched_")
@@ -1726,8 +1726,8 @@ class WalletSettingsDialog(WindowModalDialog):
         return idx == idx_custom
 
     def refresh(self):
-        eligible, ineligible, sum_value, has_unconfirmed, has_coinbase = select_coins(
-            self.wallet
+        _eligible, _ineligible, sum_value, _has_unconfirmed, has_coinbase = (
+            select_coins(self.wallet)
         )
 
         select_type, select_amount = self.conf.selector

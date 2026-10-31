@@ -174,7 +174,7 @@ class ClientThread(ClientHandlerThread):
     """Basic thread per connected client."""
 
     def recv(self, *expected_msg_names, timeout=Protocol.STANDARD_TIMEOUT):
-        submsg, mtype = recv_pb(
+        submsg, _mtype = recv_pb(
             self.connection, pb.ClientMessage, *expected_msg_names, timeout=timeout
         )
         return submsg
@@ -682,7 +682,7 @@ class FusionController(threading.Thread, PrintError):
             c.kill(reason)
 
     def run_round(self, covert_server):
-        covert_priv, covert_Upub, covert_Cpub = gen_keypair()
+        covert_priv, _covert_Upub, covert_Cpub = gen_keypair()
         round_pubkey = covert_Cpub
 
         # start to accept covert components
@@ -1040,7 +1040,7 @@ class FusionController(threading.Thread, PrintError):
                             f"bad proof index {blame.which_proof} / {len(proofs)}"
                         )
                         continue
-                    src_commit_blob, src_commit_client_idx, _ = commitment_master_list[
+                    src_commit_blob, _src_commit_client_idx, _ = commitment_master_list[
                         src_commitment_idx
                     ]
                     dest_commit_blob = all_commitments[

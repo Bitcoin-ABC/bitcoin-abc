@@ -1697,7 +1697,7 @@ class Network(util.DaemonThread):
         with self.interface_lock:
             for s, i in self.interfaces.copy().items():
                 try:
-                    r, w, x = select.select(
+                    _r, _w, _x = select.select(
                         [i], [i], [], 0
                     )  # non-blocking select to test if fd's are good.
                 except (OSError, ValueError):

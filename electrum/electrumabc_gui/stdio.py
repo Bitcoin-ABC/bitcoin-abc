@@ -126,7 +126,7 @@ class ElectrumGui:
         messages = []
 
         for item in self.wallet.get_history():
-            tx_hash, height, conf, timestamp, delta, balance = item
+            tx_hash, _height, conf, timestamp, delta, balance = item
             if conf:
                 try:
                     time_str = datetime.datetime.fromtimestamp(timestamp).isoformat(
@@ -272,7 +272,7 @@ class ElectrumGui:
             self.wallet.labels[tx.txid()] = self.str_description
 
         print(_("Please wait..."))
-        status, msg = self.network.broadcast_transaction(tx)
+        status, _msg = self.network.broadcast_transaction(tx)
 
         if status:
             print(_("Payment sent."))

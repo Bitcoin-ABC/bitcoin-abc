@@ -1135,7 +1135,7 @@ class RateLimiterClassLvl(RateLimiter):
         )
 
     def _push_args(self, args, kwargs):
-        objcls, obj = args[0:2]
+        _objcls, obj = args[0:2]
         args = args[2:]
         self.saved_args[obj] = (args, kwargs)
 

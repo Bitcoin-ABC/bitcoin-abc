@@ -474,7 +474,7 @@ def address_to_scriptpubkey(address):
 
 def cashaddr_to_scriptpubkey(address: str) -> CScript:
     """Converts a given CashAddress to the corresponding output script (scriptPubKey)."""
-    prefix, kind, addr_hash = cashaddr.decode(address)
+    _prefix, kind, addr_hash = cashaddr.decode(address)
     if kind == cashaddr.PUBKEY_TYPE:
         return CScript([OP_DUP, OP_HASH160, addr_hash, OP_EQUALVERIFY, OP_CHECKSIG])
     if kind == cashaddr.SCRIPT_TYPE:

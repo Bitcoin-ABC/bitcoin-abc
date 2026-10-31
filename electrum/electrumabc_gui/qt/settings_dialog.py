@@ -715,7 +715,7 @@ class SettingsDialog(WindowModalDialog):
             self.alias_e.setStyleSheet("")
             return
         if alias_info is not None:
-            alias_addr, alias_name, validated = alias_info
+            _alias_addr, _alias_name, validated = alias_info
             self.alias_e.setStyleSheet(
                 (ColorScheme.GREEN if validated else ColorScheme.RED).as_stylesheet(
                     True

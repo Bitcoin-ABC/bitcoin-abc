@@ -197,18 +197,18 @@ class ASN1Node(bytes):
         return self.get_node(0)
 
     def next_node(self, node: NodeT) -> NodeT:
-        ixs, ixf, ixl = node
+        _ixs, _ixf, ixl = node
         return self.get_node(ixl + 1)
 
     def first_child(self, node: NodeT) -> NodeT:
-        ixs, ixf, ixl = node
+        ixs, ixf, _ixl = node
         if self[ixs] & 0x20 != 0x20:
             raise TypeError("Can only open constructed types.", hex(self[ixs]))
         return self.get_node(ixf)
 
     def get_all(self, node: NodeT) -> bytes:
         # return type + length + value
-        ixs, ixf, ixl = node
+        ixs, _ixf, ixl = node
         return self[ixs : ixl + 1]
 
     def get_value_of_type(self, node: NodeT, asn1_type: ASN1TypesT) -> bytes:
@@ -219,7 +219,7 @@ class ASN1Node(bytes):
         return self[ixf : ixl + 1]
 
     def get_value(self, node: NodeT) -> bytes:
-        ixs, ixf, ixl = node
+        _ixs, ixf, ixl = node
         return self[ixf : ixl + 1]
 
     def get_children(self, node: NodeT) -> list[NodeT]:

@@ -244,7 +244,7 @@ def gen_components(num_blanks, inputs, outputs, feerate):
         sum_nonce += pedersencommitment.nonce
         sum_amounts += commitamount
 
-        privkey, pubkeyU, pubkeyC = gen_keypair()
+        privkey, _pubkeyU, pubkeyC = gen_keypair()
 
         commitment = pb.InitialCommitment()
         commitment.salted_component_hash = sha256(salt + compser)
@@ -339,7 +339,7 @@ class Fusion(threading.Thread, PrintError):
         for hpub, priv in keypairs.items():
             assert isinstance(hpub, str)
             assert isinstance(priv, tuple) and len(priv) == 2
-            sec, compressed = priv
+            sec, _compressed = priv
             assert isinstance(sec, bytes) and len(sec) == 32
         self.keypairs.update(keypairs)
         for coin, (pub, value) in coins.items():
@@ -1145,7 +1145,7 @@ class Fusion(threading.Thread, PrintError):
                     mycompidx = mycomponent_idxes.index(cidx)
                 except ValueError:
                     continue  # not my input
-                sec, compressed = self.keypairs[inp["pubkeys"][0]]
+                sec, _compressed = self.keypairs[inp["pubkeys"][0]]
                 sighash = sha256(sha256(tx.serialize_preimage(i, 0x41, use_cache=True)))
                 sig = schnorr.sign(sec, sighash)
 

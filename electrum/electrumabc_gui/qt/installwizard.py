@@ -538,7 +538,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 ),
             ]
         )
-        seed, seed_type, is_ext = self.seed_input(title, message, test, None)
+        seed, _seed_type, _is_ext = self.seed_input(title, message, test, None)
         return seed
 
     @wizard_dialog

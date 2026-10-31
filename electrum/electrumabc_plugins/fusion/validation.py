@@ -157,7 +157,7 @@ def check_covert_component(msg, round_pubkey, component_feerate):
         sort_key = ("i", inp.prev_txid[::-1], inp.prev_index, cmsg.salt_commitment)
     elif ctype == "output":
         out = cmsg.output
-        atype, addr = get_address_from_output_script(out.scriptpubkey)
+        atype, _addr = get_address_from_output_script(out.scriptpubkey)
         check(atype == TYPE_ADDRESS, "output is not address")
         check(out.amount >= dust_limit(len(out.scriptpubkey)), "dust output")
         sort_key = ("o", out.amount, out.scriptpubkey, cmsg.salt_commitment)
@@ -239,7 +239,7 @@ def validate_blame(
     if decrypter == "privkey":
         privkey = blame.privkey
         check(len(privkey) == 32, "bad blame privkey")
-        pubU, pubC = pubkeys_from_privkey(privkey)
+        _pubU, pubC = pubkeys_from_privkey(privkey)
         check(dest_commit.communication_key == pubC, "bad blame privkey")
         try:
             encrypt.decrypt(encproof, privkey)

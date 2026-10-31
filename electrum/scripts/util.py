@@ -53,7 +53,7 @@ def wait_on_interfaces(interfaces, timeout=10):
     while len(result) < len(interfaces) and time.time() < timeout:
         rin = list(interfaces.values())
         win = [i for i in interfaces.values() if i.unsent_requests]
-        rout, wout, xout = select.select(rin, win, [], 1)
+        rout, wout, _xout = select.select(rin, win, [], 1)
         for interface in wout:
             interface.send_requests()
         for interface in rout:
