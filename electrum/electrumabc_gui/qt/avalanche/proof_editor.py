@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import struct
 from enum import IntEnum
-from typing import List, Union
+from typing import List
 
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -115,7 +115,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         # By default sort by descending amount
         self.sortByColumn(2, QtCore.Qt.DescendingOrder)
 
-        self.stakes: List[Union[SignedStake, StakeAndSigningData]] = []
+        self.stakes: List[SignedStake | StakeAndSigningData] = []
 
         # We assume that the tip height is not going to change much during the lifetime
         # of this widget, so we don't have to watch for new blocks and update the
@@ -188,7 +188,7 @@ class StakesWidget(QtWidgets.QTableWidget):
         self.stakes.clear()
         self.clearContents()
 
-    def add_stakes(self, stakes: List[Union[SignedStake, StakeAndSigningData]]):
+    def add_stakes(self, stakes: List[SignedStake | StakeAndSigningData]):
         previous_utxo_count = len(self.stakes)
         self.stakes += stakes
         self.setSortingEnabled(False)

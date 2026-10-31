@@ -29,7 +29,7 @@ import stat
 import threading
 import zlib
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any
 
 from . import ecc
 from .json_db import JsonDB
@@ -83,12 +83,12 @@ class WalletStorage(PrintError):
             # avoid new wallets getting 'upgraded'
             self.db = DB_Class("", manual_upgrades=False)
 
-    def put(self, key: Union[str, StorageKey], value):
+    def put(self, key: str | StorageKey, value):
         if isinstance(key, StorageKey):
             key = key.key
         self.db.put(key, value)
 
-    def get(self, key: Union[str, StorageKey], default=None):
+    def get(self, key: str | StorageKey, default=None):
         if isinstance(key, StorageKey):
             assert default is None
             key, default = key.key, key.default

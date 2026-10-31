@@ -31,7 +31,7 @@ import hashlib
 import hmac
 import os
 from enum import IntEnum
-from typing import TYPE_CHECKING, Literal, Tuple, Union
+from typing import TYPE_CHECKING, Literal, Tuple
 
 import pyaes
 
@@ -257,7 +257,7 @@ def op_push(i: int) -> str:
     return op_push_bytes(i).hex()
 
 
-def push_script_bytes(data: Union[bytearray, bytes], *, minimal=True) -> bytes:
+def push_script_bytes(data: bytearray | bytes, *, minimal=True) -> bytes:
     """Returns pushed data to the script, automatically respecting BIP62 "minimal encoding" rules.
     If `minimal` is False, will not use BIP62 and will just push using OP_PUSHDATA*, etc (this
     non-BIP62 way of pushing is the convention in OP_RETURN scripts such as CashAccounts usually).

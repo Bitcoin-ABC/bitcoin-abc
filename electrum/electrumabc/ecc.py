@@ -30,7 +30,7 @@ import hashlib
 import hmac
 from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, NamedTuple, Tuple, Union
+from typing import TYPE_CHECKING, Callable, NamedTuple, Tuple
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
@@ -419,7 +419,7 @@ POINT_AT_INFINITY = ECPubkey(None)
 
 
 def verify_message_with_address(
-    address: Union[str, Address],
+    address: str | Address,
     sig65: bytes,
     message: bytes,
     *,
@@ -450,7 +450,7 @@ def verify_message_with_address(
     return public_key.verify_message_hash(sig65[1:], h)
 
 
-def is_secret_within_curve_range(secret: Union[int, bytes]) -> bool:
+def is_secret_within_curve_range(secret: int | bytes) -> bool:
     if isinstance(secret, bytes):
         secret = be_bytes_to_number(secret)
     return 0 < secret < CURVE_ORDER

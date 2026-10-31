@@ -29,7 +29,7 @@ import hashlib
 import math
 from collections.abc import Generator
 from enum import IntEnum, auto, unique
-from typing import List, Set, Tuple, Union
+from typing import List, Set, Tuple
 
 import mnemonic
 
@@ -190,7 +190,7 @@ class MnemonicBase(PrintError):
         return list(filenames.keys())
 
     @classmethod
-    def normalize_text(cls, txt: Union[str, bytes], is_passphrase=False) -> str:
+    def normalize_text(cls, txt: str | bytes, is_passphrase=False) -> str:
         if isinstance(txt, bytes):
             txt = txt.decode("utf8")
         elif not isinstance(txt, str):  # noqa: F821

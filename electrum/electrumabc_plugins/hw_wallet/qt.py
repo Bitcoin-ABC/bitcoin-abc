@@ -29,7 +29,7 @@ import queue
 import sys
 import threading
 from functools import partial
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QObject, Signal
@@ -79,7 +79,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
     status_signal = Signal(object)
     wait_signal = Signal(object, object, object)
 
-    def __init__(self, win: Union[ElectrumWindow, InstallWizard], device: str):
+    def __init__(self, win: ElectrumWindow | InstallWizard, device: str):
         super(QtHandlerBase, self).__init__()
         self.clear_signal.connect(self.clear_dialog)
         self.error_signal.connect(self.error_dialog)
@@ -304,7 +304,7 @@ class ThreadJobTaskThreadFacade(TaskThread):
 class QtPluginBase(object):
     @hook
     def load_wallet(
-        self: Union[QtPluginBase, HWPluginBase],
+        self: QtPluginBase | HWPluginBase,
         wallet: AbstractWallet,
         window: ElectrumWindow,
     ):
@@ -337,7 +337,7 @@ class QtPluginBase(object):
             keystore.thread.add(partial(self.get_client, keystore))
 
     def choose_device(
-        self: Union[QtPluginBase, HWPluginBase],
+        self: QtPluginBase | HWPluginBase,
         window: ElectrumWindow,
         keystore: HardwareKeyStore,
     ) -> str | None:
@@ -360,7 +360,5 @@ class QtPluginBase(object):
 
         keystore.thread.add(connect)
 
-    def create_handler(
-        self, window: Union[ElectrumWindow, InstallWizard]
-    ) -> QtHandlerBase:
+    def create_handler(self, window: ElectrumWindow | InstallWizard) -> QtHandlerBase:
         raise NotImplementedError()

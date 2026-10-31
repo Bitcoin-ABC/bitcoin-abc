@@ -5,7 +5,7 @@ import threading
 from copy import deepcopy
 from dataclasses import dataclass
 from decimal import Decimal as PyDecimal
-from typing import Any, Union
+from typing import Any
 
 from . import util
 from .constants import XEC
@@ -202,7 +202,7 @@ class SimpleConfig(PrintError):
             os.remove(obsolete_file)
         return path
 
-    def set_key(self, key: Union[str, ConfigKey], value, save=True):
+    def set_key(self, key: str | ConfigKey, value, save=True):
         if not self.is_modifiable(key):
             self.print_error(
                 "Warning: not changing config key '%s' set on the command line" % key
@@ -210,7 +210,7 @@ class SimpleConfig(PrintError):
             return
         self._set_key_in_user_config(key, value, save)
 
-    def _set_key_in_user_config(self, key: Union[str, ConfigKey], value, save=True):
+    def _set_key_in_user_config(self, key: str | ConfigKey, value, save=True):
         if isinstance(key, ConfigKey):
             key = key.key
         with self.lock:
@@ -221,7 +221,7 @@ class SimpleConfig(PrintError):
             if save:
                 self.save_user_config()
 
-    def get(self, key: Union[str, ConfigKey]):
+    def get(self, key: str | ConfigKey):
         """Return the value of a config key or key.default if the key is not
         set in the config.
         """
@@ -240,7 +240,7 @@ class SimpleConfig(PrintError):
     def is_key_set(self, key: ConfigKey):
         return self._get_internal(key, nodefault=True) is not None
 
-    def _get_internal(self, key: Union[str, ConfigKey], default=None, nodefault=False):
+    def _get_internal(self, key: str | ConfigKey, default=None, nodefault=False):
         # Do not use this directly. Use one of the `get`, `get_or` or
         # `is_key_set` interface methods
         assert not nodefault or default is None
@@ -306,7 +306,7 @@ class SimpleConfig(PrintError):
             )
         return config_version
 
-    def is_modifiable(self, key: Union[str, ConfigKey]) -> bool:
+    def is_modifiable(self, key: str | ConfigKey) -> bool:
         if isinstance(key, ConfigKey):
             key = key.key
         return key not in self.cmdline_options

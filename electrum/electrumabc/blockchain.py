@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 import threading
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List
 
 from . import asert_daa, bitcoin, networks, util
 from .crypto import Hash
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from interface import Interface
     from simple_config import SimpleConfig
 
-    Header = Dict[str, Union[int, str]]
+    Header = Dict[str, int | str]
 
 
 class VerifyError(Exception):

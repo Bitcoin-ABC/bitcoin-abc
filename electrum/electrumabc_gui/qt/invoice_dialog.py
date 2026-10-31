@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from http.client import InvalidURL
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List
 from urllib.error import URLError
 
 from qtpy import QtCore, QtWidgets
@@ -336,12 +336,12 @@ class ExchangeRateWidget(QtWidgets.QWidget):
     def is_fixed_rate(self) -> bool:
         return self.fixed_rate_rb.isChecked()
 
-    def get_rate(self) -> Union[FixedExchangeRate, ExchangeRateApi]:
+    def get_rate(self) -> FixedExchangeRate | ExchangeRateApi:
         if self.is_fixed_rate():
             return FixedExchangeRate(Decimal(f"{self.rate_edit.value():.10f}"))
         return ExchangeRateApi(self.api_widget.get_url(), self.api_widget.get_keys())
 
-    def set_rate(self, exchange_rate: Union[FixedExchangeRate, ExchangeRateApi]):
+    def set_rate(self, exchange_rate: FixedExchangeRate | ExchangeRateApi):
         if isinstance(exchange_rate, FixedExchangeRate):
             self.fixed_rate_rb.setChecked(True)
             self.rate_edit.setValue(float(exchange_rate.rate))

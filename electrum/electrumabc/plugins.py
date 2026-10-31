@@ -43,7 +43,6 @@ from typing import (
     Callable,
     Iterable,
     NamedTuple,
-    Union,
 )
 from warnings import warn
 
@@ -819,7 +818,7 @@ class DeviceUnpairableError(Exception):
 
 
 class Device(NamedTuple):
-    path: Union[str, bytes]
+    path: str | bytes
     interface_number: int
     id_: str
     product_key: Any  # when using hid, often Tuple[int, int]

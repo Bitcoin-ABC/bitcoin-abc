@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
-from typing import Union
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt, Signal
@@ -77,7 +76,7 @@ class AmountEdit(MyLineEdit):
                 self.base_unit,
             )
 
-    def get_amount(self) -> Union[int, Decimal] | None:
+    def get_amount(self) -> int | Decimal | None:
         try:
             return (int if self.is_int else Decimal)(self.text())
         except (ValueError, ArithmeticError):
@@ -105,7 +104,7 @@ class XECAmountEdit(AmountEdit):
         p = pow(10, self.decimal_point)
         return int(p * x)
 
-    def setAmount(self, amount: Union[float, int] | None):
+    def setAmount(self, amount: float | int | None):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")
@@ -131,7 +130,7 @@ class XECSatsByteEdit(XECAmountEdit):
             return None
         return x if x > 0.0 else None
 
-    def setAmount(self, amount: Union[float, int] | None):
+    def setAmount(self, amount: float | int | None):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")

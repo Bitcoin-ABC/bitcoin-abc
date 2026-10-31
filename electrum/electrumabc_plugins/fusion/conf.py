@@ -28,7 +28,7 @@ CashFusion - conf.py - configuration & settings management
 """
 
 from collections import namedtuple
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 from electrumabc.simple_config import ConfigKey
 
@@ -169,13 +169,13 @@ class Conf:
         self.wallet.storage.put("cashfusion_fuse_depth", i)
 
     @property
-    def selector(self) -> Tuple[str, Union[int, float]]:
+    def selector(self) -> Tuple[str, int | float]:
         return tuple(
             self.wallet.storage.get("cashfusion_selector", self.Defaults.Selector)
         )
 
     @selector.setter
-    def selector(self, t: Tuple[str, Union[int, float]] | None):
+    def selector(self, t: Tuple[str, int | float] | None):
         """Optional: Pass None to clear the key"""
         assert t is None or (isinstance(t, (tuple, list)) and len(t) == 2)
         self.wallet.storage.put("cashfusion_selector", t)

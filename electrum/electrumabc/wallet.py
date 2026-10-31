@@ -51,7 +51,6 @@ from typing import (
     Sequence,
     Set,
     Tuple,
-    Union,
     ValuesView,
 )
 from weakref import ref
@@ -2230,7 +2229,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         assert isinstance(addr, Address)
         return addr in self.frozen_addresses
 
-    def is_frozen_coin(self, utxo: Union[str, dict, Set[str]]) -> Union[bool, Set[str]]:
+    def is_frozen_coin(self, utxo: str | dict | Set[str]) -> bool | Set[str]:
         """'coin' level frozen query. Note: this is set/unset independent of
         address-level freezing.
 

@@ -34,7 +34,7 @@ import warnings
 from collections import defaultdict
 from contextlib import suppress
 from io import BytesIO
-from typing import Any, Dict, List, NamedTuple, Tuple, Union
+from typing import Any, Dict, List, NamedTuple, Tuple
 
 from . import bitcoin, schnorr
 from .address import (
@@ -100,7 +100,7 @@ class TxOutput(NamedTuple):
     type: int
     destination: DestinationType
     # str when the output is set to max: '!'
-    value: Union[int, str]
+    value: int | str
 
     def is_opreturn(self) -> bool:
         if not self.type == TYPE_SCRIPT or not isinstance(
@@ -784,7 +784,7 @@ class BCDataStream(object):
         self.write(s)
 
 
-def is_push_opcode(opcode: Union[OpCodes, int], min_data_size: int = 0) -> bool:
+def is_push_opcode(opcode: OpCodes | int, min_data_size: int = 0) -> bool:
     """Return True if opcode is a data PUSH that can handle min_data_size or more bytes.
 
     >>> is_push_opcode(OpCodes.OP_CHECKMULTISIGVERIFY)
@@ -935,7 +935,7 @@ def parse_redeemScript(s: bytes) -> Tuple[int, int, List[bytes], List[bytes], by
 
 def get_address_from_output_script(
     script: bytes,
-) -> Tuple[int, Union[PublicKey, DestinationType]]:
+) -> Tuple[int, PublicKey | DestinationType]:
     """Return the type of the output and the address"""
     scriptlen = len(script)
 

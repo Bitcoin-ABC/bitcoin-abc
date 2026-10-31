@@ -35,7 +35,7 @@ import struct
 from dataclasses import dataclass
 from functools import partial
 from io import BytesIO
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -250,7 +250,7 @@ class Proof(SerializableObject):
             self.signature, self.limitedid.serialize()
         )
 
-    def get_payout_address(self) -> Union[Address, ScriptOutput, address.PublicKey]:
+    def get_payout_address(self) -> Address | ScriptOutput | address.PublicKey:
         _txout_type, addr = get_address_from_output_script(self.payout_script_pubkey)
         return addr
 
@@ -263,7 +263,7 @@ class ProofBuilder:
         self,
         sequence: int,
         expiration_time: int,
-        payout_address: Union[Address, ScriptOutput, address.PublicKey],
+        payout_address: Address | ScriptOutput | address.PublicKey,
         wallet: AbstractWallet,
         master: Key | None = None,
         master_pub: PublicKey | None = None,

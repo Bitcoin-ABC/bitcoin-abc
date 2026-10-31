@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import struct
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from mnemonic import Mnemonic
 
@@ -535,7 +535,7 @@ class OldKeyStore(DeterministicKeyStore):
         return be_bytes_to_number(x)
 
     @classmethod
-    def get_sequence(self, mpk: bytes, for_change: Union[int, bool], n: int):
+    def get_sequence(self, mpk: bytes, for_change: int | bool, n: int):
         return be_bytes_to_number(Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk))
 
     @classmethod

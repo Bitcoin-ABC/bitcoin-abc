@@ -31,7 +31,7 @@ import hashlib
 import struct
 from collections import namedtuple
 from enum import Enum
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -705,7 +705,7 @@ class Script:
         )
 
     @classmethod
-    def push_data(cls, data: Union[bytes, bytearray], *, minimal=True) -> bytes:
+    def push_data(cls, data: bytes | bytearray, *, minimal=True) -> bytes:
         """Returns the OpCodes to push the data on the stack, plus the payload."""
         return push_script_bytes(data, minimal=minimal)
 

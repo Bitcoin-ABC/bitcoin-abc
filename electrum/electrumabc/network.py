@@ -35,7 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Any, Callable, Iterable, Union
+from typing import Any, Callable, Iterable
 
 import socks
 
@@ -300,9 +300,7 @@ class Network(util.DaemonThread):
         # taking looking to get 3 confirmations of the first verification.
         if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
             self.verifications_required = 3
-        self.checkpoint_servers_verified: dict[
-            str, dict[str, Union[int, str | None]]
-        ] = {}
+        self.checkpoint_servers_verified: dict[str, dict[str, int | (str | None)]] = {}
         """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
         where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
         representation of the server's calculated merkle root
