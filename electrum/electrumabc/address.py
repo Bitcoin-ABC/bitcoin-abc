@@ -29,8 +29,9 @@ import abc
 import functools
 import hashlib
 import struct
-from collections import namedtuple
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import ClassVar
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -125,8 +126,11 @@ class UnknownAddress(DestinationType):
         return self.to_ui_string()
 
 
-class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
-    TO_ADDRESS_OPS = [
+@dataclass(frozen=True, eq=True, order=True)
+class PublicKey:
+    pubkey: bytes = field(hash=True, compare=True)
+
+    TO_ADDRESS_OPS: ClassVar[list[int]] = [
         OpCodes.OP_DUP,
         OpCodes.OP_HASH160,
         -1,
@@ -243,7 +247,10 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
         return "<PubKey {}>".format(self.__str__())
 
 
-class ScriptOutput(namedtuple("ScriptAddressTuple", "script"), DestinationType):
+@dataclass(frozen=True, eq=True, order=True)
+class ScriptOutput(DestinationType):
+    script: bytes = field(hash=True, compare=True)
+
     @classmethod
     def from_string(self, string) -> ScriptOutput:
         """Instantiate from a mixture of opcodes and raw data."""
@@ -344,8 +351,21 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script"), DestinationType):
         return __class__.find_protocol_class(script)(script)
 
 
-# A namedtuple for easy comparison and unique hashing
-class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
+@dataclass(frozen=True, eq=True, order=True)
+class Address(DestinationType):
+    hash160: bytes = field(hash=True, compare=True)
+    kind: Type = field(hash=True, compare=True)
+    # Values of a dict inside a frozen dataclass can still be modified.
+    _addr2str_cache: dict[Format, str | None] = field(
+        hash=False,
+        compare=False,
+        default_factory=lambda: {
+            Address.Format.CASHADDR: None,
+            Address.Format.CASHADDR_BCH: None,
+            Address.Format.LEGACY: None,
+        },
+    )
+
     class Format(Enum):
         CASHADDR = 0
         LEGACY = 1
@@ -368,17 +388,8 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     FMT_UI_IDX = FMTS_UI.index(FMT_UI)
     """Index of current format in the list of usable address formats"""
 
-    def __new__(cls, hash160, kind) -> Address:
-        assert kind in (cls.Type.P2PKH, cls.Type.P2SH)
-        hash160 = to_bytes(hash160)
-        assert len(hash160) == 20, "hash must be 20 bytes"
-        ret = super().__new__(cls, hash160, kind)
-        ret._addr2str_cache = {
-            cls.Format.CASHADDR: None,
-            cls.Format.CASHADDR_BCH: None,
-            cls.Format.LEGACY: None,
-        }
-        return ret
+    def __post_init__(self) -> None:
+        assert len(self.hash160) == 20, "hash must be 20 bytes"
 
     @classmethod
     def set_address_format(cls, fmt: Address.Format) -> None:
@@ -506,14 +517,14 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         return cls(hash_160(pubkey), cls.Type.P2PKH)
 
     @classmethod
-    def from_P2PKH_hash(cls, hash160) -> Address:
+    def from_P2PKH_hash(cls, hash160: bytes | bytearray) -> Address:
         """Construct from a P2PKH hash160."""
-        return cls(hash160, cls.Type.P2PKH)
+        return cls(to_bytes(hash160), cls.Type.P2PKH)
 
     @classmethod
-    def from_P2SH_hash(cls, hash160) -> Address:
+    def from_P2SH_hash(cls, hash160: bytes | bytearray) -> Address:
         """Construct from a P2PKH hash160."""
-        return cls(hash160, cls.Type.P2SH)
+        return cls(to_bytes(hash160), cls.Type.P2SH)
 
     @classmethod
     def from_multisig_script(cls, script) -> Address:

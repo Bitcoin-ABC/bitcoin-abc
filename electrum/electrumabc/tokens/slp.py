@@ -22,6 +22,11 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import annotations
+
+import functools
+from dataclasses import dataclass
+from typing import ClassVar, TypeVar
 
 from .. import (
     address,  # for ScriptOutput, OpCodes, ScriptError, Script
@@ -50,42 +55,37 @@ def _i2b(val) -> bytes:
     return bytes((val,))
 
 
+@dataclass(frozen=True, eq=True, order=True)
 class ScriptOutput(address.ScriptOutput):
     """Encapsulates a parsed, valid SLP OP_RETURN output script.
 
     NB: hash(self) just calls superclass hash -- which hashes the script bytes..
     the .message object is ignored from the hash (it is always derived
     from the script bytes anyway in a well formed instance).
+    """
 
-    self.message should *NOT* be written-to by outside code! It should
-    remain immutable after instance construction. While not enforced, it is
-    a required invariant of this class."""
-
-    _protocol_prefix = _i2b(address.OpCodes.OP_RETURN) + _i2b(4) + lokad_id
-
-    attrs_extra = ("message",)
+    _protocol_prefix: ClassVar[bytes] = (
+        _i2b(address.OpCodes.OP_RETURN) + _i2b(4) + lokad_id
+    )
 
     # Optimization. In a normal call path cls.protocol_match parses a message and
     # returns a bool.  We save the parsed message in this cache because __new__
     # will be called very soon after on a True return to re-parse the Script,
     # due to the way the protocol_match system works in Electron Cash.
-    _script_message_cache = caches.ExpiringCache(
+    _script_message_cache: ClassVar[caches.ExpiringCache] = caches.ExpiringCache(
         maxlen=25, name="SLP Script Message Cache", timeout=60.0
     )
 
-    def __new__(cls, script) -> "ScriptOutput":
-        """Instantiate from a script (or address.ScriptOutput) you wish to parse."""
-        script = (
-            script if isinstance(script, (bytes, bytearray)) else script.to_script()
+    def __post_init__(self) -> None:
+        # Needed to cache the property at init and to also validate that
+        # the script can be parsed.
+        self.message
+
+    @functools.cached_property
+    def message(self) -> Message:
+        return self.__class__._script_message_cache.get(self.script) or Message.parse(
+            self
         )
-        script = bytes(script) if isinstance(script, bytearray) else script
-        self = super(__class__, cls).__new__(cls, script)
-        # will return a valid object or None
-        self.message = cls._script_message_cache.get(self.script)
-        if self.message is None:
-            # raises on parse error
-            self.message = Message.parse(self)
-        return self
 
     @classmethod
     def protocol_match(cls, script_bytes: bytes) -> bool:
@@ -120,6 +120,9 @@ class ScriptOutput(address.ScriptOutput):
 # /ScriptOutput
 # register class with Electron Cash script 'protocol factory' system
 address.ScriptOutput.protocol_classes.add(ScriptOutput)
+
+
+T = TypeVar("T")
 
 
 class Message:
@@ -180,7 +183,7 @@ class Message:
             raise RuntimeError("FIXME -- Should not be reached")
 
     @classmethod
-    def parse(cls, script: object) -> object:
+    def parse(cls: type[T], script: bytes | bytearray | address.ScriptOutput) -> T:
         """This method attempts to parse a ScriptOutput or bytes object as an
         SLP message.
 
