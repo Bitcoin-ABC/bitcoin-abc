@@ -137,12 +137,15 @@ def BE_URL(config: SimpleConfig, kind: ExplorerUrlParts, item: str | Address) ->
 
     kind_str = explorer.get_kind_str(kind)
 
+    item_str: str
     if kind == ExplorerUrlParts.ADDR:
         assert isinstance(item, Address)
         if explorer.addr_uses_prefix:
             item_str = item.to_full_string(explorer.addr_fmt)
         else:
             item_str = item.to_string(explorer.addr_fmt)
+    else:
+        item_str = str(item)
     return "/".join(part for part in (explorer.url_base, kind_str, item_str) if part)
 
 
