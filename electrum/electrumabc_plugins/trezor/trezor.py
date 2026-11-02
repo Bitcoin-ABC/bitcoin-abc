@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, NamedTuple
 
 from electrumabc.address import Address
 from electrumabc.avalanche.primitives import PublicKey
-from electrumabc.avalanche.proof import Stake
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bip32 import deserialize_xpub
 from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
@@ -22,6 +21,7 @@ from electrumabc.util import UserCancelled, bfh, versiontuple
 from ..hw_wallet import HWPluginBase
 
 if TYPE_CHECKING:
+    from electrumabc.avalanche.proof import Stake
     from electrumabc.transaction import Transaction
 
 try:

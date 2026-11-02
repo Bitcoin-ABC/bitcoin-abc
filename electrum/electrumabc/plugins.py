@@ -51,7 +51,6 @@ from .bip32 import xpub_type
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
 from .printerror import PrintError, print_error, print_stderr
-from .simple_config import SimpleConfig
 from .util import DaemonThread, ThreadJob, UserCancelled, make_dir, profiler
 
 if TYPE_CHECKING:
@@ -62,6 +61,7 @@ if TYPE_CHECKING:
     )
 
     from .keystore import HardwareKeyStore
+    from .simple_config import SimpleConfig
 
 plugin_loaders = {}
 hooks = defaultdict(list)

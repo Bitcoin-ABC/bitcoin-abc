@@ -40,7 +40,6 @@ from electrumabc.contacts import Contact, contact_types
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
-from electrumabc.simple_config import SimpleConfig
 
 from .tree_widget import MyTreeWidget
 from .util import (
@@ -60,6 +59,7 @@ from .util import (
 
 if TYPE_CHECKING:
     from electrumabc.contacts import Contacts
+    from electrumabc.simple_config import SimpleConfig
     from electrumabc.wallet import AbstractWallet
 
 

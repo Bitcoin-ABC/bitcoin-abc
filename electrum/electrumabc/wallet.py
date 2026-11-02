@@ -49,12 +49,10 @@ from typing import (
     Sequence,
     ValuesView,
 )
-from weakref import ref
 
 from . import avalanche, bitcoin, coinchooser, keystore, mnemo, paymentrequest
 from .address import Address, PublicKey, Script
 from .amount import format_satoshis
-from .avalanche.proof import StakeAndSigningData
 from .bip32 import xpub_type
 from .bitcoin import ScriptType
 from .constants import XEC
@@ -115,10 +113,13 @@ from .util import (
 from .verifier import SPV, SPVDelegate
 
 if TYPE_CHECKING:
+    from weakref import ref
+
     from qtpy.QtCore import QThread
 
     from electrumabc_gui.qt import ElectrumWindow
 
+    from .avalanche.proof import StakeAndSigningData
     from .network import Network
 
 

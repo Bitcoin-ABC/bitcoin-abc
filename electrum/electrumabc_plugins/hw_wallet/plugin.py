@@ -30,7 +30,6 @@ from typing import TYPE_CHECKING, Any, Iterable, Sequence
 from electrumabc.address import OpCodes, Script, ScriptOutput
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import BasePlugin, Device, DeviceInfo, DeviceMgr, hook
-from electrumabc.transaction import Transaction
 from electrumabc.util import finalization_print_error
 
 if TYPE_CHECKING:
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
 
     from electrumabc.base_wizard import BaseWizard
     from electrumabc.keystore import HardwareKeyStore
+    from electrumabc.transaction import Transaction
     from electrumabc.wallet import AbstractWallet
 
 

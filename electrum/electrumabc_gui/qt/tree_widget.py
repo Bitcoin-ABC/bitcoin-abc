@@ -11,10 +11,10 @@ from qtpy import QtWidgets
 from qtpy.QtCore import Qt, QTimer, Signal
 
 from electrumabc.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
-from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak
 
 if TYPE_CHECKING:
+    from electrumabc.simple_config import SimpleConfig
     from electrumabc.storage import WalletStorage
     from electrumabc.wallet import AbstractWallet
 

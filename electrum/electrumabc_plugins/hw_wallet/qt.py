@@ -39,8 +39,6 @@ from electrumabc.i18n import _
 from electrumabc.plugins import hook
 from electrumabc.printerror import PrintError
 from electrumabc.util import UserCancelled
-from electrumabc_gui.qt.installwizard import InstallWizard
-from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
 from electrumabc_gui.qt.statusbar import StatusBarButton
 from electrumabc_gui.qt.util import (
@@ -60,6 +58,8 @@ from .plugin import HardwareHandlerBase, HWPluginBase
 if TYPE_CHECKING:
     from electrumabc.keystore import HardwareKeyStore
     from electrumabc.wallet import AbstractWallet
+    from electrumabc_gui.qt.installwizard import InstallWizard
+    from electrumabc_gui.qt.main_window import ElectrumWindow
 
 
 # The trickiest thing about this handler was getting windows properly

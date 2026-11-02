@@ -32,10 +32,8 @@ the hash of the stakes to prove ownership of the UTXO.
 from __future__ import annotations
 
 import struct
-from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from io import BytesIO
 from typing import TYPE_CHECKING, Any
 
 from ..crypto import Hash as sha256d
@@ -52,6 +50,9 @@ from ..uint256 import UInt256
 from .primitives import Key, PublicKey
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+    from io import BytesIO
+
     from .. import address
     from ..address import Address, ScriptOutput
     from ..wallet import AbstractWallet

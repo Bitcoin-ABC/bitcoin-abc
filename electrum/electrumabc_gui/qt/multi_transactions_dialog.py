@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Sequence
+from typing import TYPE_CHECKING, Sequence
 
 from qtpy import QtGui, QtWidgets
 
@@ -8,9 +8,11 @@ from electrumabc import transaction
 from electrumabc.constants import XEC
 from electrumabc.crypto import sha256
 from electrumabc.i18n import _
-from electrumabc.wallet import AbstractWallet
 
 from .util import MessageBoxMixin, WaitingDialog
+
+if TYPE_CHECKING:
+    from electrumabc.wallet import AbstractWallet
 
 
 class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):

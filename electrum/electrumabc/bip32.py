@@ -28,13 +28,15 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from collections.abc import Generator
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from . import ecc, networks
 from .bitcoin import DecodeBase58Check, EncodeBase58Check
 from .crypto import hash_160
 from .ecc import PRIVATE_KEY_BYTECOUNT, be_bytes_to_number
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 # BIP32
 BIP32_PRIME = 0x80000000

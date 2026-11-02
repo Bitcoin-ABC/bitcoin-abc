@@ -35,14 +35,13 @@ Electrum ABC - lightweight eCash client
 
 from __future__ import annotations
 
-import argparse
 import logging
 import multiprocessing
 import os
 import sys
 import threading
 import warnings
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import electrumabc.web as web
 from electrumabc import daemon, keystore, mnemo, networks, util
@@ -71,6 +70,9 @@ from electrumabc.wallet import (
     Wallet,
     create_new_wallet,
 )
+
+if TYPE_CHECKING:
+    import argparse
 
 # Workaround for PyQt5 5.12.3
 # see https://github.com/pyinstaller/pyinstaller/issues/4293

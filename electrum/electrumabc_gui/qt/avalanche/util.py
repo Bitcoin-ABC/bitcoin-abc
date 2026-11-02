@@ -1,15 +1,19 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from qtpy import QtWidgets
 
 from electrumabc.address import PublicKey
 from electrumabc.bitcoin import is_private_key
 from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.storage import StorageKeys
-from electrumabc.wallet import DeterministicWallet
 
 from ..password_dialog import PasswordDialog
 from ..util import ButtonsLineEdit, PrintError
+
+if TYPE_CHECKING:
+    from electrumabc.wallet import DeterministicWallet
 
 
 def get_auxiliary_privkey(

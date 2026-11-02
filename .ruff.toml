@@ -36,6 +36,7 @@ select = [
     "UP032", # f-string
     "UP037", # quoted-annotation
     "UP045", # non-pep604-annotation-optional
+    "TC", # flake8-type-checking
 ]
 
 ignore = [

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from qtpy import QtWidgets
 
 from electrumabc import address
@@ -14,9 +16,11 @@ from electrumabc.bitcoin import is_private_key
 from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.serialize import DeserializationError
 from electrumabc.storage import StorageKeys
-from electrumabc.wallet import DeterministicWallet
 
 from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
+
+if TYPE_CHECKING:
+    from electrumabc.wallet import DeterministicWallet
 
 
 class AvaDelegationWidget(CachedWalletPasswordWidget):

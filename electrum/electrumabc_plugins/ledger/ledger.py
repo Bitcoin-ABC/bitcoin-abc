@@ -5,6 +5,7 @@ import inspect
 import sys
 import traceback
 from struct import pack, unpack
+from typing import TYPE_CHECKING
 
 from electrumabc.address import Address
 from electrumabc.bip32 import serialize_xpub
@@ -13,10 +14,8 @@ from electrumabc.crypto import hash_160
 from electrumabc.ecc import SignatureType
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
-from electrumabc.plugins import Device
 from electrumabc.printerror import is_verbose, print_error
 from electrumabc.serialize import serialize_sequence
-from electrumabc.transaction import Transaction
 from electrumabc.util import bfh, versiontuple
 
 from ..hw_wallet import HardwareClientBase, HWPluginBase
@@ -24,6 +23,10 @@ from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
+
+if TYPE_CHECKING:
+    from electrumabc.plugins import Device
+    from electrumabc.transaction import Transaction
 
 try:
     import hid

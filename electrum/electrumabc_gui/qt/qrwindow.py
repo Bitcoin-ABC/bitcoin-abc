@@ -32,13 +32,14 @@ from qtpy.QtCore import Qt
 from electrumabc.amount import format_amount
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
-from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak
 
 from .qrcodewidget import QRCodeWidget, copy_to_clipboard, save_to_file
 from .util import Buttons, MessageBoxMixin, WWLabel
 
 if TYPE_CHECKING:
+    from electrumabc.simple_config import SimpleConfig
+
     from .main_window import ElectrumWindow
 
 

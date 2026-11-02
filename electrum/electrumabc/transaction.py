@@ -33,8 +33,7 @@ import time
 import warnings
 from collections import defaultdict
 from contextlib import suppress
-from io import BytesIO
-from typing import Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 from . import bitcoin, schnorr
 from .address import (
@@ -65,6 +64,9 @@ from .serialize import (
 )
 from .uint256 import UInt256
 from .util import profiler, to_bytes
+
+if TYPE_CHECKING:
+    from io import BytesIO
 
 DUST_THRESHOLD: int = 546
 """

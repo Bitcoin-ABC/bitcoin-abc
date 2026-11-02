@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import struct
 from enum import IntEnum
+from typing import TYPE_CHECKING
 
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -25,7 +26,6 @@ from electrumabc.constants import (
 from electrumabc.i18n import _
 from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.serialize import DeserializationError, compact_size, serialize_blob
-from electrumabc.simple_config import SimpleConfig
 from electrumabc.storage import StorageKeys
 from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
@@ -34,6 +34,9 @@ from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog
 from .util import ButtonsLineEdit, CachedWalletPasswordWidget, get_auxiliary_privkey
+
+if TYPE_CHECKING:
+    from electrumabc.simple_config import SimpleConfig
 
 
 class TextColor:

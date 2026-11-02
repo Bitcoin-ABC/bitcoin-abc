@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import struct
-from io import BytesIO
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from .serialize import DeserializationError
+
+if TYPE_CHECKING:
+    from io import BytesIO
 
 # NOTE: When switching to python>=3.11, use typing.Self
 T = TypeVar("T")

@@ -29,7 +29,7 @@ from __future__ import annotations
 import copy
 import sys
 import traceback
-from typing import Any, Callable, NamedTuple
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
@@ -39,9 +39,7 @@ from .bip32 import is_bip32_derivation, xpub_type
 from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
 from .i18n import _
 from .keystore import HardwareKeyStore
-from .plugins import BasePlugin, DeviceInfo
 from .printerror import PrintError
-from .simple_config import SimpleConfig
 from .storage import (
     STO_EV_USER_PW,
     STO_EV_XPUB_PW,
@@ -49,6 +47,10 @@ from .storage import (
     get_derivation_used_for_hw_device_encryption,
 )
 from .wallet import wallet_types
+
+if TYPE_CHECKING:
+    from .plugins import BasePlugin, DeviceInfo
+    from .simple_config import SimpleConfig
 
 # hardware device setup purpose
 HWD_SETUP_NEW_WALLET, HWD_SETUP_DECRYPT_WALLET = range(0, 2)

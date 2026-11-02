@@ -32,13 +32,13 @@ from threading import Lock
 from typing import TYPE_CHECKING, Iterable
 
 from . import networks
-from .address import Address
 from .bip32 import InvalidXKeyFormat
 from .monotonic import Monotonic
 from .transaction import Transaction
 from .util import ThreadJob, profiler
 
 if TYPE_CHECKING:
+    from .address import Address
     from .wallet import AbstractWallet
 
 

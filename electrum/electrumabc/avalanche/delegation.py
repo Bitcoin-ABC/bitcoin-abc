@@ -27,8 +27,7 @@
 from __future__ import annotations
 
 import base64
-from io import BytesIO
-from typing import Callable, Sequence
+from typing import TYPE_CHECKING, Callable, Sequence
 
 from ..crypto import Hash as sha256d
 from ..serialize import (
@@ -40,6 +39,9 @@ from ..serialize import (
 from ..uint256 import UInt256
 from .primitives import Key, PublicKey
 from .proof import LimitedProofId, Proof, ProofId
+
+if TYPE_CHECKING:
+    from io import BytesIO
 
 
 class WrongDelegatorKeyError(Exception):
