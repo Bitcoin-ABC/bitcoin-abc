@@ -202,7 +202,7 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
     @functools.cached_property
     def address(self) -> Address:
         """Convert to an Address object."""
-        return Address(hash_160(self.pubkey), Address.ADDR_P2PKH)
+        return Address(hash_160(self.pubkey), Address.Type.P2PKH)
 
     def is_compressed(self) -> bool:
         """Returns True if the pubkey is compressed."""
@@ -354,9 +354,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         # the "Pay to" field.
         CASHADDR_BCH = 2
 
-    # Address kinds
-    ADDR_P2PKH = 0
-    ADDR_P2SH = 1
+    class Type(Enum):
+        P2PKH = 0
+        P2SH = 1
 
     # Default to CashAddr
     FMT_UI = Format.CASHADDR
@@ -369,7 +369,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     """Index of current format in the list of usable address formats"""
 
     def __new__(cls, hash160, kind) -> Address:
-        assert kind in (cls.ADDR_P2PKH, cls.ADDR_P2SH)
+        assert kind in (cls.Type.P2PKH, cls.Type.P2SH)
         hash160 = to_bytes(hash160)
         assert len(hash160) == 20, "hash must be 20 bytes"
         ret = super().__new__(cls, hash160, kind)
@@ -426,9 +426,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
                 )
 
         if kind == cashaddr.PUBKEY_TYPE:
-            return cls(addr_hash, cls.ADDR_P2PKH)
+            return cls(addr_hash, cls.Type.P2PKH)
         elif kind == cashaddr.SCRIPT_TYPE:
-            return cls(addr_hash, cls.ADDR_P2SH)
+            return cls(addr_hash, cls.Type.P2SH)
         else:
             raise AddressError(f"address has unexpected kind {kind}")
 
@@ -471,9 +471,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
 
         verbyte, hash160 = raw[0], raw[1:]
         if verbyte == net.ADDRTYPE_P2PKH:
-            kind = cls.ADDR_P2PKH
+            kind = cls.Type.P2PKH
         elif verbyte == net.ADDRTYPE_P2SH:
-            kind = cls.ADDR_P2SH
+            kind = cls.Type.P2SH
         else:
             raise AddressError("unknown version byte: {}".format(verbyte))
 
@@ -503,21 +503,21 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         if isinstance(pubkey, str):
             pubkey = hex_to_bytes(pubkey)
         PublicKey.validate(pubkey)
-        return cls(hash_160(pubkey), cls.ADDR_P2PKH)
+        return cls(hash_160(pubkey), cls.Type.P2PKH)
 
     @classmethod
     def from_P2PKH_hash(cls, hash160) -> Address:
         """Construct from a P2PKH hash160."""
-        return cls(hash160, cls.ADDR_P2PKH)
+        return cls(hash160, cls.Type.P2PKH)
 
     @classmethod
     def from_P2SH_hash(cls, hash160) -> Address:
         """Construct from a P2PKH hash160."""
-        return cls(hash160, cls.ADDR_P2SH)
+        return cls(hash160, cls.Type.P2SH)
 
     @classmethod
     def from_multisig_script(cls, script) -> Address:
-        return cls(hash_160(script), cls.ADDR_P2SH)
+        return cls(hash_160(script), cls.Type.P2SH)
 
     @staticmethod
     def is_legacy(address: str, net=None) -> bool:
@@ -540,7 +540,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         """Return address string in CashAddr format (without prefix)"""
         if net is None:
             net = networks.net
-        if self.kind == self.ADDR_P2PKH:
+        if self.kind == self.Type.P2PKH:
             kind = cashaddr.PUBKEY_TYPE
         else:
             kind = cashaddr.SCRIPT_TYPE
@@ -549,7 +549,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     def to_cashaddr_bch(self, *, net=None) -> str:
         if net is None:
             net = networks.net
-        if self.kind == self.ADDR_P2PKH:
+        if self.kind == self.Type.P2PKH:
             kind = cashaddr.PUBKEY_TYPE
         else:
             kind = cashaddr.SCRIPT_TYPE
@@ -580,7 +580,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
                 return cached
 
             if fmt == self.Format.LEGACY:
-                if self.kind == self.ADDR_P2PKH:
+                if self.kind == self.Type.P2PKH:
                     verbyte = net.ADDRTYPE_P2PKH
                 else:
                     verbyte = net.ADDRTYPE_P2SH
@@ -634,7 +634,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
 
     def to_script(self) -> bytes:
         """Return a binary script to pay to the address."""
-        if self.kind == self.ADDR_P2PKH:
+        if self.kind == self.Type.P2PKH:
             return Script.P2PKH_script(self.hash160)
         else:
             return Script.P2SH_script(self.hash160)

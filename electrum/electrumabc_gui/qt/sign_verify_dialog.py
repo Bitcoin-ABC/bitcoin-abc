@@ -171,7 +171,7 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         except Exception:
             self.show_message(_(f"Invalid {CURRENCY} address."))
             return
-        if addr.kind != addr.ADDR_P2PKH:
+        if addr.kind != addr.Type.P2PKH:
             msg_sign = (
                 _(
                     "Signing with an address actually means signing with the"

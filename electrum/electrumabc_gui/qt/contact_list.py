@@ -252,7 +252,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
                     _("Sign/verify message") + "...",
                     lambda: self.sign_verify_message_triggered.emit(signAddr),
                 )
-                if signAddr.kind != Address.ADDR_P2PKH:
+                if signAddr.kind != Address.Type.P2PKH:
                     # We only allow this for P2PKH since it makes no sense for P2SH
                     # (ambiguous public key)
                     a.setDisabled(True)
