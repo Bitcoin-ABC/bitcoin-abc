@@ -28,8 +28,11 @@ the 50th block before the server tip if no height is specified.
 
 import argparse
 import json
+import os
 import sys
 import time
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from electrumabc.printerror import set_verbosity
 from util import get_interfaces
