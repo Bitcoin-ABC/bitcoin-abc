@@ -9044,16 +9044,12 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     }
 
     if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
-        m_avalanche->withPeerManager(
-            [&](avalanche::PeerManager &pm) { pm.setInvalid(proofid); });
         Misbehaving(peer, state.GetRejectReason());
         return false;
     }
 
     // Rate-limit uncached registration failures that still pay for (or follow)
-    // full proof verification. Do not setInvalid: the proof may become
-    // acceptable later (e.g. missing UTXO appears, stakes mature, preferred
-    // conflict is overturned, cooldown elapses).
+    // full proof verification.
     const auto result = state.GetResult();
     if (result == avalanche::ProofRegistrationResult::MISSING_UTXO ||
         result == avalanche::ProofRegistrationResult::IMMATURE ||

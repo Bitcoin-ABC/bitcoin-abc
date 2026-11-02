@@ -592,6 +592,8 @@ private:
         return m_stakingPreConsensus;
     }
 
+    bool isLocalProof(const ProofId &proofid) const;
+
     friend struct ::avalanche::TestPeerManager;
 };
 

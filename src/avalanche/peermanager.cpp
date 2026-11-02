@@ -160,7 +160,7 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
     // There are no more nodes left, we need to clean up. Remove from the radix
     // tree (unless it's our local proof), subtract allocated score and remove
     // from slots.
-    if (!localProof || it->getProofId() != localProof->getId()) {
+    if (!isLocalProof(it->getProofId())) {
         const auto removed = shareableProofs.remove(it->getProofId());
         assert(removed);
     }
@@ -327,7 +327,17 @@ bool PeerManager::registerProof(const ProofRef &proof,
                               "utxo-missing-or-spent");
         }
 
-        // Reject invalid proof.
+        // Reject invalid proof and remember it's rejected so we don't validate
+        // it again, unless it's our local proof.
+        // An invalid signature means the proof is always invalid, but not
+        // necessarily its proofid.
+        if (!isLocalProof(proofid) &&
+            validationState.GetResult() !=
+                ProofValidationResult::INVALID_PROOF_SIGNATURE &&
+            validationState.GetResult() !=
+                ProofValidationResult::INVALID_STAKE_SIGNATURE) {
+            setInvalid(proofid);
+        }
         return invalidate(ProofRegistrationResult::INVALID, "invalid-proof");
     }
 
@@ -425,7 +435,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
     auto inserted = peers.emplace(peerid, proof, nextCooldownTimePoint);
     assert(inserted.second);
 
-    if (localProof && proof->getId() == localProof->getId()) {
+    if (isLocalProof(proofid)) {
         // Add it to the shareable proofs even if there is no node, we are the
         // node. Otherwise it will be inserted after a node is attached to the
         // proof.
@@ -525,8 +535,7 @@ void PeerManager::cleanupDanglingProofs(
     for (const Peer &peer : peers) {
         // If the peer is not our local proof, has been registered for some
         // time and has no node attached, discard it.
-        if ((!localProof || peer.getProofId() != localProof->getId()) &&
-            peer.node_count == 0 &&
+        if (!isLocalProof(peer.getProofId()) && peer.node_count == 0 &&
             (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
             // Check the remotes status to determine if we should set the proof
             // as dangling. This prevents from dropping a proof on our own due
@@ -976,8 +985,7 @@ bool PeerManager::verify() const {
         }
 
         // Check the proof is in the radix tree only if there are nodes attached
-        if (((localProof && p.getProofId() == localProof->getId()) ||
-             p.node_count > 0) &&
+        if ((isLocalProof(p.getProofId()) || p.node_count > 0) &&
             shareableProofs.get(p.getProofId()) == nullptr) {
             return false;
         }
@@ -1232,7 +1240,7 @@ void PeerManager::clearRejectedContenders() {
 }
 
 bool PeerManager::isFlaky(const ProofId &proofid) const {
-    if (localProof && proofid == localProof->getId()) {
+    if (isLocalProof(proofid)) {
         return false;
     }
 
@@ -1294,6 +1302,10 @@ bool PeerManager::isFlaky(const ProofId &proofid) const {
     return (missing_score / total_score) > 0.3;
 }
 
+bool PeerManager::isLocalProof(const ProofId &proofid) const {
+    return localProof && proofid == localProof->getId();
+}
+
 std::optional<bool>
 PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
     auto &remoteProofsView = remoteProofs.get<by_proofid>();
@@ -1324,7 +1336,7 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
         }
 
         uint32_t node_count = pit->node_count;
-        if (localProof && pit->getProofId() == localProof->getId()) {
+        if (isLocalProof(pit->getProofId())) {
             // If that's our local proof, account for ourself
             ++node_count;
         }

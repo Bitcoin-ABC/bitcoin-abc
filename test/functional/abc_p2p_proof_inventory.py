@@ -177,6 +177,44 @@ class ProofInventoryTest(BitcoinTestFramework):
             peer.send_without_ping(msg)
             peer.wait_for_disconnect()
 
+    def test_ban_invalid_signature(self):
+        node = self.nodes[0]
+        self.restart_node(0, self.extra_args[0])
+
+        # Base, valid proof
+        _, valid_proof = self.generate_proof(node)
+
+        # Mutate the master signature
+        bad_master_sig = avalanche_proof_from_hex(valid_proof.serialize().hex())
+        bad_master_sig.signature = bytes(64)
+        bad_master_sig.compute_proof_id()
+
+        # Mutate the stake signature
+        bad_stake_sig = avalanche_proof_from_hex(valid_proof.serialize().hex())
+        bad_stake_sig.stakes[0].sig = bytes(64)
+        bad_stake_sig.compute_proof_id()
+
+        # These proofs share the same proofid
+        assert_equal(valid_proof.proofid, bad_master_sig.proofid)
+        assert_equal(valid_proof.proofid, bad_stake_sig.proofid)
+
+        peer = node.add_p2p_connection(P2PInterface())
+        msg = msg_avaproof()
+        # Peers are whitelisted with noban for this test, so Misbehaving
+        # does not disconnect.
+        with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
+            msg.proof = bad_master_sig
+            peer.send_and_ping(msg)
+        with node.assert_debug_log(["Misbehaving", "invalid-proof"]):
+            msg.proof = bad_stake_sig
+            peer.send_without_ping(msg)
+
+        assert valid_proof.proofid not in get_proof_ids(node)
+        # Now send the valid proof and check it's accepted
+        msg.proof = valid_proof
+        peer.send_and_ping(msg)
+        self.wait_until(lambda: valid_proof.proofid in get_proof_ids(node))
+
     def test_proof_relay(self):
         # This test makes no sense with less than 2 nodes !
         assert_greater_than(self.num_nodes, 2)
@@ -377,6 +415,7 @@ class ProofInventoryTest(BitcoinTestFramework):
         # Run these tests last because they need to disconnect the nodes
         self.test_unbroadcast()
         self.test_ban_invalid_proof()
+        self.test_ban_invalid_signature()
 
 
 if __name__ == "__main__":
