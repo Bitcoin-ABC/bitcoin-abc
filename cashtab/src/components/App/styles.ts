@@ -153,6 +153,10 @@ export const Footer = styled.div`
         & > button:last-of-type {
             display: none;
         }
+        /* Rewards is a desktop left-nav item; keep the mobile tab bar unchanged */
+        & > button.desktop-only {
+            display: none;
+        }
     }
 `;
 

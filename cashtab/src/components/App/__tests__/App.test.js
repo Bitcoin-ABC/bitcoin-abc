@@ -258,6 +258,14 @@ describe('<App />', () => {
         // Now we see the Contacts screen
         expect(screen.getByTitle('Contacts')).toBeInTheDocument();
 
+        // Desktop left nav: Rewards sits between Tools and Settings
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Rewards',
+            }),
+        );
+        expect(screen.getByTitle('Rewards')).toBeInTheDocument();
+
         // Navigate to Settings screen
         await user.click(
             screen.getByRole('button', {
@@ -268,8 +276,8 @@ describe('<App />', () => {
         // Now we see the Settings screen (use Display Currency to avoid multiple Settings matches)
         expect(screen.getByText('Display Currency')).toBeInTheDocument();
 
-        // Footer nav verified: Transactions, Send, Tokens, Agora, Tools, Settings
-        // (Receive, Airdrop, Sign & Verify, Backup, Wallets, Rewards, NFTs are in commented-out hamburger)
+        // Footer nav verified: Transactions, Send, Tokens, Agora, Tools, Rewards, Settings
+        // (Receive, Airdrop, Sign & Verify, Backup, Wallets, NFTs are in commented-out hamburger)
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

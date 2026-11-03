@@ -4,7 +4,12 @@
 
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Tooltip } from 'react-tooltip';
-import { DogeIcon, HomeIcon, TokensIcon } from 'components/Common/CustomIcons';
+import {
+    DogeIcon,
+    HomeIcon,
+    RewardIcon,
+    TokensIcon,
+} from 'components/Common/CustomIcons';
 import { ReactComponent as ToolsIcon } from 'assets/tools.svg';
 import { ReactComponent as SettingsIcon } from 'assets/settings-icon.svg';
 import { ReactComponent as SendReceiveIcon } from 'assets/send-receive.svg';
@@ -528,14 +533,28 @@ const App = () => {
                                         location.pathname === '/contacts' ||
                                         location.pathname ===
                                             '/signverifymsg' ||
-                                        location.pathname === '/airdrop' ||
-                                        location.pathname === '/rewards'
+                                        location.pathname === '/airdrop'
                                     }
                                     onClick={() => navigate('/contacts')}
                                 >
                                     <span>Tools</span>
                                     <ToolsIcon />
                                 </NavButton>
+                                {import.meta.env.VITE_BUILD_ENV !==
+                                    'extension' &&
+                                    import.meta.env.VITE_TESTNET !== 'true' && (
+                                        <NavButton
+                                            aria-label="Rewards"
+                                            className="desktop-only"
+                                            active={
+                                                location.pathname === '/rewards'
+                                            }
+                                            onClick={() => navigate('/rewards')}
+                                        >
+                                            <span>Rewards</span>
+                                            <RewardIcon />
+                                        </NavButton>
+                                    )}
                                 <NavButton
                                     aria-label="Settings"
                                     active={location.pathname === '/configure'}
