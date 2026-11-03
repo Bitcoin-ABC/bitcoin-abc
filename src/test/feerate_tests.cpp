@@ -55,16 +55,21 @@ BOOST_AUTO_TEST_CASE(GetFeeTest) {
     feeRate = CFeeRate(-123 * SATOSHI);
     // Rounds up the result, if not integer
     BOOST_CHECK_EQUAL(feeRate.GetFee(0), Amount::zero());
-    // Special case: returns -1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), -SATOSHI);
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), -SATOSHI);
-    // Back to the normal case
+    BOOST_CHECK_EQUAL(feeRate.GetFee(1), Amount::zero());
+    BOOST_CHECK_EQUAL(feeRate.GetFee(8), Amount::zero());
     BOOST_CHECK_EQUAL(feeRate.GetFee(9), -SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(121), -14 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(122), -15 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(999), -122 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(1000), -123 * SATOSHI);
     BOOST_CHECK_EQUAL(feeRate.GetFee(9000), -1107 * SATOSHI);
+
+    // GetFeePerK rounds down for fractional rates
+    BOOST_CHECK_EQUAL(CFeeRate(SATOSHI, 3).GetFeePerK(), 333 * SATOSHI);
+    BOOST_CHECK_EQUAL(CFeeRate(-SATOSHI, 3).GetFeePerK(), -334 * SATOSHI);
+    // GetFee rounds up, so it can differ from GetFeePerK at 1000 vB
+    BOOST_CHECK_EQUAL(CFeeRate(SATOSHI, 3).GetFee(1000), 334 * SATOSHI);
+    BOOST_CHECK_EQUAL(CFeeRate(-SATOSHI, 3).GetFee(1000), -333 * SATOSHI);
 
     // Check ceiling results
     feeRate = CFeeRate(18 * SATOSHI);

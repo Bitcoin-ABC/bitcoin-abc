@@ -42,16 +42,10 @@ public:
      */
     CFeeRate(const Amount nFeePaid, int32_t virtual_bytes);
 
-    /**
-     * Return the fee in satoshis for the given size in bytes.
-     * If the calculated fee would have fractional satoshis, then the returned
-     * fee will always be rounded up to the nearest satoshi.
-     */
+    /// Return the fee in satoshis for the given size in bytes. (Rounds up)
     Amount GetFee(int32_t virtual_bytes) const;
 
-    /**
-     * Return the fee in satoshis for a size of 1000 bytes
-     */
+    /// Return the fee in satoshis for a size of 1000 bytes. (Rounds down)
     Amount GetFeePerK() const;
 
     friend std::weak_ordering operator<=>(const CFeeRate &a,
