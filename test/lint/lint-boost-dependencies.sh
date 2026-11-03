@@ -11,7 +11,6 @@ export LC_ALL=C
 EXPECTED_BOOST_INCLUDES=(
     boost/mpl/list.hpp
     boost/mpl/size.hpp
-    boost/multiprecision/cpp_int.hpp
     boost/multi_index/composite_key.hpp
     boost/multi_index/hashed_index.hpp
     boost/multi_index/member.hpp

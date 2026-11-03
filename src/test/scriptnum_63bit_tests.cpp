@@ -9,12 +9,11 @@
 #include <test/lcg.h>
 #include <test/util/setup_common.h>
 
-#include <boost/multiprecision/cpp_int.hpp>
 #include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(scriptnum_63bit_tests)
 
-typedef boost::multiprecision::checked_int128_t i128_t;
+using i128_t = __int128;
 typedef std::vector<uint8_t> valtype;
 typedef std::vector<valtype> stacktype;
 
@@ -169,7 +168,7 @@ static void CheckOperators(const valtype &a_i63, const valtype &b_i63) {
     CheckPassOrOverflow({a_i63}, OP_1ADD, a_i128 + 1);
     CheckPassOrOverflow({a_i63}, OP_1SUB, a_i128 - 1);
     CheckPassOrOverflow({a_i63}, OP_NEGATE, -a_i128);
-    CheckPassOrOverflow({a_i63}, OP_ABS, boost::multiprecision::abs(a_i128));
+    CheckPassOrOverflow({a_i63}, OP_ABS, a_i128 < 0 ? -a_i128 : a_i128);
     CheckPassOrOverflow({a_i63}, OP_NOT, !a_i128);
     CheckPassOrOverflow({a_i63}, OP_0NOTEQUAL, a_i128 != 0);
     CheckPassOrOverflow({a_i63, b_i63}, OP_ADD, a_i128 + b_i128);

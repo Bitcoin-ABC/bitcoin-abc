@@ -116,6 +116,14 @@ if(BUILD_CHRONIK)
 	)
 endif()
 
+# These tests need a 128-bit integer oracle; skip when __int128 is unavailable.
+if(HAVE___INT128)
+	set(BITCOIN_INT128_TESTS
+		intmath_tests.cpp
+		scriptnum_63bit_tests.cpp
+	)
+endif()
+
 add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 	fixture.cpp
 	jsonutil.cpp
@@ -184,7 +192,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		httpserver_tests.cpp
 		i2p_tests.cpp
 		interfaces_tests.cpp
-		intmath_tests.cpp
 		inv_tests.cpp
 		key_io_tests.cpp
 		key_tests.cpp
@@ -228,7 +235,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		script_standard_tests.cpp
 		script_tests.cpp
 		scriptnum_tests.cpp
-		scriptnum_63bit_tests.cpp
 		scriptinterpreter_tests.cpp
 		serialize_tests.cpp
 		serialize_intcode_tests.cpp
@@ -273,6 +279,9 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 
 		# Chronik tests
 		${BITCOIN_CHRONIK_TESTS}
+
+		# Tests requiring __int128
+		${BITCOIN_INT128_TESTS}
 )
 
 function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)

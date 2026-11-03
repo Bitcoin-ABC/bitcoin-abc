@@ -9,11 +9,9 @@
 #include <script/intmath.h>
 #include <script/script.h>
 
-#include <boost/multiprecision/cpp_int.hpp>
-
 BOOST_FIXTURE_TEST_SUITE(intmath_tests, BasicTestingSetup)
 
-using i128_t = boost::multiprecision::checked_int128_t;
+using i128_t = __int128;
 
 const i128_t MAX_SCRIPT_63_BIT_INT = 0x7fff'ffff'ffff'ffff;
 const i128_t MIN_SCRIPT_63_BIT_INT = -0x7fff'ffff'ffff'ffff;
@@ -89,7 +87,7 @@ void CheckArithmeticResult(std::string operation_str, bool expect_overflow,
     } else {
         BOOST_CHECK_MESSAGE(!had_overflow,
                             strprintf("%s overflowed", operation_str));
-        BOOST_CHECK_EQUAL(result, expected_result);
+        BOOST_CHECK(i128_t(result) == expected_result);
     }
 }
 
@@ -102,12 +100,12 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
         int64_t result_emulated = uint64_t(1) + a_64 + b_64;
         bool had_overflow_emulated =
             AddInt63OverflowEmulated(a_64, b_64, result_emulated);
-        CheckArithmeticResult(strprintf("%d + %d", a, b), expect_overflow,
+        CheckArithmeticResult(strprintf("%d + %d", a_64, b_64), expect_overflow,
                               had_overflow_emulated, result_emulated, a + b);
         // Test AddInt63Overflow
         int64_t result;
         bool had_overflow = AddInt63Overflow(a_64, b_64, result);
-        CheckArithmeticResult(strprintf("%d + %d", a, b), expect_overflow,
+        CheckArithmeticResult(strprintf("%d + %d", a_64, b_64), expect_overflow,
                               had_overflow_emulated, result_emulated, a + b);
         if (!expect_overflow) {
             BOOST_CHECK_EQUAL(result, result_emulated);
@@ -123,11 +121,12 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
                                   scriptnum_overflow_error,
                                   HasReason("script number overflow"));
         } else {
-            BOOST_CHECK_EQUAL((CScriptNum(a_64) + CScriptNum(b_64)).getint(),
-                              a + b);
+            BOOST_CHECK(
+                i128_t((CScriptNum(a_64) + CScriptNum(b_64)).getint()) ==
+                a + b);
             CScriptNum lhs(a_64);
-            BOOST_CHECK_EQUAL((lhs += CScriptNum(b_64)).getint(), a + b);
-            BOOST_CHECK_EQUAL(lhs.getint(), a + b);
+            BOOST_CHECK(i128_t((lhs += CScriptNum(b_64)).getint()) == a + b);
+            BOOST_CHECK(i128_t(lhs.getint()) == a + b);
         }
     }
     {
@@ -136,12 +135,12 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
         int64_t result_emulated = uint64_t(1) + a_64 - b_64;
         bool had_overflow_emulated =
             SubInt63OverflowEmulated(a_64, b_64, result_emulated);
-        CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
+        CheckArithmeticResult(strprintf("%d - %d", a_64, b_64), expect_overflow,
                               had_overflow_emulated, result_emulated, a - b);
         // Test SubInt63Overflow
         int64_t result;
         bool had_overflow = SubInt63Overflow(a_64, b_64, result);
-        CheckArithmeticResult(strprintf("%d - %d", a, b), expect_overflow,
+        CheckArithmeticResult(strprintf("%d - %d", a_64, b_64), expect_overflow,
                               had_overflow_emulated, result_emulated, a - b);
         if (!expect_overflow) {
             BOOST_CHECK_EQUAL(result, result_emulated);
@@ -157,11 +156,12 @@ void CheckArithmetic(const int64_t a_64, const int64_t b_64) {
                                   scriptnum_overflow_error,
                                   HasReason("script number overflow"));
         } else {
-            BOOST_CHECK_EQUAL((CScriptNum(a_64) - CScriptNum(b_64)).getint(),
-                              a - b);
+            BOOST_CHECK(
+                i128_t((CScriptNum(a_64) - CScriptNum(b_64)).getint()) ==
+                a - b);
             CScriptNum lhs(a_64);
-            BOOST_CHECK_EQUAL((lhs -= CScriptNum(b_64)).getint(), a - b);
-            BOOST_CHECK_EQUAL(lhs.getint(), a - b);
+            BOOST_CHECK(i128_t((lhs -= CScriptNum(b_64)).getint()) == a - b);
+            BOOST_CHECK(i128_t(lhs.getint()) == a - b);
         }
     }
 }
