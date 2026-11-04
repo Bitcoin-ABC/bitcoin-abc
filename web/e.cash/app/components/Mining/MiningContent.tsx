@@ -210,6 +210,16 @@ export default function MiningContent() {
                       BlockForge
                     </a>
                   </li>
+                  <li>
+                    <a
+                      href="https://solohash.co.uk/pool/ecash-solo"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 transition-colors hover:text-blue-300"
+                    >
+                      SoloHash
+                    </a>
+                  </li>
                 </ul>
               </div>
 
