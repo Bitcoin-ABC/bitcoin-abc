@@ -164,18 +164,25 @@ class AlpPluginPlugin(Plugin):
             CTxOut(coinvalue - 10000, P2SH_OP_TRUE),
         ]
         pad_tx(tx1)
-        node.sendrawtransaction(tx1.serialize().hex())
-
-        assert_equal(ws1.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
-
-        # Plugin ran on the mempool tx
-        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         tx1_plugin_outputs = [
             {},
             {"my_plugin": pb.PluginEntry(data=[b"argo"], groups=[b"a"])},
             {"my_plugin": pb.PluginEntry(data=[b"alef"], groups=[b"a"])},
             {"my_plugin": pb.PluginEntry(data=[b"abc"], groups=[b"a"])},
         ]
+        # validate-tx runs plugins without indexing, same as the token preview.
+        pre_tx1 = chronik.validate_tx(tx1.serialize()).ok()
+        assert_equal([inpt.plugins for inpt in pre_tx1.inputs], [{}])
+        assert_equal(
+            [output.plugins for output in pre_tx1.outputs],
+            tx1_plugin_outputs,
+        )
+        node.sendrawtransaction(tx1.serialize().hex())
+
+        assert_equal(ws1.recv(), ws_msg(tx1.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+
+        # Plugin ran on the mempool tx
+        proto_tx1 = chronik.tx(tx1.txid_hex).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
@@ -203,12 +210,6 @@ class AlpPluginPlugin(Plugin):
             CTxOut(coinvalue - 20000, P2SH_OP_TRUE),
         ]
         pad_tx(tx2)
-        node.sendrawtransaction(tx2.serialize().hex())
-
-        assert_equal(ws1.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
-        assert_equal(ws2.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
-
-        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         tx2_plugin_inputs = [tx1_plugin_outputs[3]]
         tx2_plugin_outputs = [
             {},
@@ -216,12 +217,37 @@ class AlpPluginPlugin(Plugin):
             {"my_plugin": pb.PluginEntry(data=[b"borg"], groups=[b"b"])},
             {"my_plugin": pb.PluginEntry(data=[b"bjork"], groups=[b"b"])},
         ]
+        pre_tx2 = chronik.validate_tx(tx2.serialize()).ok()
+        assert_equal(
+            [inpt.plugins for inpt in pre_tx2.inputs],
+            tx2_plugin_inputs,
+        )
+        assert_equal(
+            [output.plugins for output in pre_tx2.outputs],
+            tx2_plugin_outputs,
+        )
+        node.sendrawtransaction(tx2.serialize().hex())
+
+        assert_equal(ws1.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.txid_hex, pb.TX_ADDED_TO_MEMPOOL))
+
+        proto_tx2 = chronik.tx(tx2.txid_hex).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
             tx2_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx2.outputs],
+            tx2_plugin_outputs,
+        )
+        # Indexed txs still report plugin rows through validate-tx.
+        re_tx2 = chronik.validate_tx(tx2.serialize()).ok()
+        assert_equal(
+            [inpt.plugins for inpt in re_tx2.inputs],
+            tx2_plugin_inputs,
+        )
+        assert_equal(
+            [output.plugins for output in re_tx2.outputs],
             tx2_plugin_outputs,
         )
         proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
@@ -267,6 +293,12 @@ class AlpPluginPlugin(Plugin):
         )
         assert_equal(
             [output.plugins for output in proto_tx2.outputs],
+            tx2_plugin_outputs,
+        )
+        # Confirmed txs are indexed in the DB, not the mempool.
+        re_tx2 = chronik.validate_tx(tx2.serialize()).ok()
+        assert_equal(
+            [output.plugins for output in re_tx2.outputs],
             tx2_plugin_outputs,
         )
         proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos

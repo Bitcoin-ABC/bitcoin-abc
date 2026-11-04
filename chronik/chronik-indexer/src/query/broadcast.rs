@@ -3,20 +3,24 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use std::{
-    collections::BTreeSet, collections::HashMap, mem::take, sync::Arc,
-    time::Duration,
+    borrow::Cow, collections::BTreeMap, collections::BTreeSet,
+    collections::HashMap, mem::take, sync::Arc, time::Duration,
 };
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
     error::DataError,
     ser::BitcoinSer,
-    tx::{Tx, TxId, TxMut},
+    tx::{OutPoint, Tx, TxId, TxMut},
 };
+use bitcoinsuite_slp::{token_tx::TokenTx, verify::SpentToken};
 use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::{db::Db, mem::Mempool};
-use chronik_plugin::data::PluginNameMap;
+use chronik_plugin::{
+    context::PluginContext,
+    data::{PluginNameMap, PluginOutput},
+};
 use chronik_proto::proto;
 use thiserror::Error;
 use tokio::{
@@ -28,8 +32,8 @@ use crate::{
     avalanche::Avalanche,
     indexer::Node,
     query::{
-        make_tx_proto, read_plugin_outputs, MakeTxProtoParams, OutputsSpent,
-        QueryBroadcastError::*, TxTokenData,
+        make_tx_proto, MakeTxProtoParams, OutputsSpent, QueryBroadcastError::*,
+        TxTokenData,
     },
     subs::Subs,
     subs_group::{TxMsg, TxMsgType},
@@ -53,6 +57,8 @@ pub struct QueryBroadcast<'a> {
     pub is_token_index_enabled: bool,
     /// Map plugin name <-> plugin idx of all loaded plugins
     pub plugin_name_map: &'a PluginNameMap,
+    /// Loaded plugins. Empty when the plugin system is disabled.
+    pub plugin_ctx: Arc<PluginContext>,
     /// Subscriptions (to receive updates about broadcasts)
     pub subs: Arc<RwLock<Subs>>,
 }
@@ -211,9 +217,14 @@ impl QueryBroadcast<'_> {
         Ok(coins_to_uncache)
     }
 
-    /// Parse the tx and validate it as a token tx without broadcasting,
-    /// returning verified tx data.
-    pub fn validate_tx(&self, raw_tx: Vec<u8>) -> Result<proto::Tx> {
+    /// Parse the tx and load the chain data a preview needs.
+    ///
+    /// Plugin execution is [`ValidatePreview::plugin_outputs`], which does
+    /// not borrow the indexer. Call that after dropping the indexer read lock.
+    pub fn prepare_validate_tx(
+        &self,
+        raw_tx: Vec<u8>,
+    ) -> Result<ValidatePreview> {
         let tx = TxMut::deser(&mut raw_tx.into())?;
         let mut ffi_tx = ffi::Tx::from(tx);
         let mut coins_to_uncache = Vec::new();
@@ -226,33 +237,132 @@ impl QueryBroadcast<'_> {
         let tx = Tx::from(ffi_tx);
         let token = if self.is_token_index_enabled {
             TxTokenData::from_unbroadcast_tx(self.db, self.mempool, &tx)?
+                .map(owned_token)
         } else {
             None
         };
-        let plugin_outputs = read_plugin_outputs(
-            self.db,
-            self.mempool,
-            &tx,
-            None,
-            !self.plugin_name_map.is_empty(),
-        )?;
+        let parent_plugin_outputs = self.fetch_parent_plugin_outputs(&tx)?;
         let is_final_preconsensus = self
             .node
             .bridge
             .is_avalanche_finalized_preconsensus(tx.txid().as_bytes());
-        Ok(make_tx_proto(MakeTxProtoParams {
-            tx: &tx,
+        Ok(ValidatePreview {
+            tx,
+            token,
+            parent_plugin_outputs,
+            plugin_name_map: self.plugin_name_map.clone(),
+            plugin_ctx: Arc::clone(&self.plugin_ctx),
+            is_final_preconsensus,
+        })
+    }
+
+    /// Plugin rows of inputs this tx spends. Empty when no plugins are loaded.
+    /// Does not run plugins and does not write the index.
+    fn fetch_parent_plugin_outputs(
+        &self,
+        tx: &Tx,
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
+        if self.plugin_ctx.plugins().is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        Ok(self.mempool.plugins().fetch_plugin_outputs(
+            tx.inputs.iter().map(|input| (input.prev_out, None)),
+            self.db,
+            |txid| self.mempool.tx(txid).is_some(),
+        )??)
+    }
+}
+
+/// Owned snapshot of an unpublished tx, used to finish `validate-tx`
+/// without holding the indexer lock while plugins run.
+#[derive(Debug)]
+pub struct ValidatePreview {
+    tx: Tx,
+    token: Option<TxTokenData<'static>>,
+    parent_plugin_outputs: BTreeMap<OutPoint, PluginOutput>,
+    plugin_name_map: PluginNameMap,
+    plugin_ctx: Arc<PluginContext>,
+    is_final_preconsensus: bool,
+}
+
+impl ValidatePreview {
+    /// Plugin rows this tx would have if it were indexed.
+    ///
+    /// Same shape as the token preview: compute from the tx and its
+    /// already-indexed parents, and do not write the result. Servers with
+    /// no plugins skip this. Only plugins whose lokad id matches the tx run.
+    pub fn plugin_outputs(&self) -> Result<BTreeMap<OutPoint, PluginOutput>> {
+        if self.plugin_ctx.plugins().is_empty() {
+            return Ok(BTreeMap::new());
+        }
+        let mut plugin_outputs = self.parent_plugin_outputs.clone();
+        self.plugin_ctx.with_py(|py| -> Result<()> {
+            let result = self.plugin_ctx.run_on_tx(
+                py,
+                &self.tx,
+                plugin_token_data(self.token.as_ref()),
+                &plugin_outputs,
+                &self.plugin_name_map,
+            )?;
+            for (out_idx, plugin_output) in result.outputs {
+                plugin_outputs.insert(
+                    OutPoint {
+                        txid: self.tx.txid(),
+                        out_idx,
+                    },
+                    plugin_output,
+                );
+            }
+            Ok(())
+        })?;
+        Ok(plugin_outputs)
+    }
+
+    /// Build the `validate-tx` response from the snapshot and plugin rows.
+    ///
+    /// There is no block on this response, so the shared proto builder's
+    /// Avalanche height is unused.
+    pub fn to_proto(
+        &self,
+        plugin_outputs: &BTreeMap<OutPoint, PluginOutput>,
+    ) -> proto::Tx {
+        let avalanche = Avalanche::default();
+        make_tx_proto(MakeTxProtoParams {
+            tx: &self.tx,
             outputs_spent: &OutputsSpent::default(),
             time_first_seen: 0,
             is_coinbase: false,
             block: None,
-            avalanche: self.avalanche,
-            token: token.as_ref(),
-            plugin_outputs: &plugin_outputs,
-            plugin_name_map: self.plugin_name_map,
-            is_final_preconsensus,
-        }))
+            avalanche: &avalanche,
+            token: self.token.as_ref(),
+            plugin_outputs,
+            plugin_name_map: &self.plugin_name_map,
+            is_final_preconsensus: self.is_final_preconsensus,
+        })
     }
+}
+
+fn owned_token(token: TxTokenData<'_>) -> TxTokenData<'static> {
+    TxTokenData {
+        inputs: Cow::Owned(token.inputs.into_owned()),
+        tx: Cow::Owned(token.tx.into_owned()),
+    }
+}
+
+/// Token data to show plugins, matching mempool indexing: only txs that
+/// actually carry tokens. A non-token tx is `None`.
+fn plugin_token_data<'a>(
+    token: Option<&'a TxTokenData<'a>>,
+) -> Option<(&'a TokenTx, &'a [Option<SpentToken>])> {
+    let token = token?;
+    let is_token_tx = token.inputs.iter().any(|spent| spent.is_some())
+        || !token.tx.entries.is_empty()
+        || !token.tx.failed_parsings.is_empty()
+        || token.tx.outputs.iter().any(|output| output.is_some());
+    if !is_token_tx {
+        return None;
+    }
+    Some((token.tx.as_ref(), token.inputs.as_ref()))
 }
 
 impl BroadcastResult {

@@ -512,12 +512,23 @@ async fn handle_validate_tx(
     Extension(node): Extension<NodeRef>,
     Protobuf(raw_tx): Protobuf<proto::RawTx>,
 ) -> Result<Protobuf<proto::Tx>, ReportError> {
-    let indexer = indexer.read().await;
-    Ok(Protobuf(
+    // Chain lookups stay under the indexer read lock. Plugin code runs on
+    // Tokio's blocking pool: the lock is not held, and an async worker is
+    // not occupied for the duration of the plugin.
+    let preview = {
+        let indexer = indexer.read().await;
         indexer
             .broadcast(node.as_ref())
-            .validate_tx(raw_tx.raw_tx)?,
-    ))
+            .prepare_validate_tx(raw_tx.raw_tx)?
+    };
+    let (preview, plugin_outputs) =
+        tokio::task::spawn_blocking(move || -> Result<_> {
+            let plugin_outputs = preview.plugin_outputs()?;
+            Ok((preview, plugin_outputs))
+        })
+        .await
+        .wrap_err("500: validate-tx plugin preview failed")??;
+    Ok(Protobuf(preview.to_proto(&plugin_outputs)))
 }
 
 async fn handle_raw_tx(
