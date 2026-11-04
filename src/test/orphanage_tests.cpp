@@ -25,13 +25,9 @@ class TxOrphanageTest : public TxOrphanage {
 public:
     TxOrphanageTest(FastRandomContext &rng) : m_rng{rng} {}
 
-    inline size_t CountOrphans() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
-        LOCK(m_mutex);
-        return m_pool_txs.size();
-    }
+    inline size_t CountOrphans() const { return m_pool_txs.size(); }
 
-    CTransactionRef RandomOrphan() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
-        LOCK(m_mutex);
+    CTransactionRef RandomOrphan() {
         std::map<TxId, PoolTx>::iterator it;
         it = m_pool_txs.lower_bound(TxId{m_rng.rand256()});
         if (it == m_pool_txs.end()) {

@@ -13,8 +13,6 @@
 #include <cassert>
 
 bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
-    LOCK(m_mutex);
-
     const TxId &txid = tx->GetId();
     if (m_pool_txs.count(txid)) {
         return false;
@@ -48,12 +46,6 @@ bool TxPool::AddTx(const CTransactionRef &tx, NodeId peer) {
 }
 
 int TxPool::EraseTx(const TxId &txid) {
-    LOCK(m_mutex);
-    return EraseTxNoLock(txid);
-}
-
-int TxPool::EraseTxNoLock(const TxId &txid) {
-    AssertLockHeld(m_mutex);
     std::map<TxId, PoolTx>::iterator it = m_pool_txs.find(txid);
     if (it == m_pool_txs.end()) {
         return 0;
@@ -92,8 +84,6 @@ int TxPool::EraseTxNoLock(const TxId &txid) {
 }
 
 void TxPool::EraseForPeer(NodeId peer) {
-    LOCK(m_mutex);
-
     m_peer_work_set.erase(peer);
 
     int nErased = 0;
@@ -102,7 +92,7 @@ void TxPool::EraseForPeer(NodeId peer) {
         // increment to avoid iterator becoming invalid after erasure
         const auto &[txid, orphan] = *iter++;
         if (orphan.fromPeer == peer) {
-            nErased += EraseTxNoLock(txid);
+            nErased += EraseTx(txid);
         }
     }
     if (nErased > 0) {
@@ -113,8 +103,6 @@ void TxPool::EraseForPeer(NodeId peer) {
 }
 
 unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
-    LOCK(m_mutex);
-
     unsigned int nEvicted = 0;
     auto nNow{Now<NodeSeconds>()};
     if (m_next_sweep <= nNow) {
@@ -125,7 +113,7 @@ unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
         while (iter != m_pool_txs.end()) {
             std::map<TxId, PoolTx>::iterator maybeErase = iter++;
             if (maybeErase->second.nTimeExpire <= nNow) {
-                nErased += EraseTxNoLock(maybeErase->second.tx->GetId());
+                nErased += EraseTx(maybeErase->second.tx->GetId());
             } else {
                 nMinExpTime =
                     std::min(maybeErase->second.nTimeExpire, nMinExpTime);
@@ -142,15 +130,13 @@ unsigned int TxPool::LimitTxs(unsigned int max_txs, FastRandomContext &rng) {
     while (m_pool_txs.size() > max_txs) {
         // Evict a random tx:
         size_t randompos = rng.randrange(m_txs_list.size());
-        EraseTxNoLock(m_txs_list[randompos]->first);
+        EraseTx(m_txs_list[randompos]->first);
         ++nEvicted;
     }
     return nEvicted;
 }
 
 void TxPool::AddChildrenToWorkSet(const CTransaction &tx) {
-    LOCK(m_mutex);
-
     for (size_t i = 0; i < tx.vout.size(); i++) {
         const auto it_by_prev =
             m_outpoint_to_tx_it.find(COutPoint(tx.GetId(), i));
@@ -172,13 +158,10 @@ void TxPool::AddChildrenToWorkSet(const CTransaction &tx) {
 }
 
 bool TxPool::HaveTx(const TxId &txid) const {
-    LOCK(m_mutex);
     return m_pool_txs.count(txid);
 }
 
 CTransactionRef TxPool::GetTx(const TxId &txid) const {
-    LOCK(m_mutex);
-
     const auto tx_it = m_pool_txs.find(txid);
     if (tx_it != m_pool_txs.end()) {
         return tx_it->second.tx;
@@ -189,8 +172,6 @@ CTransactionRef TxPool::GetTx(const TxId &txid) const {
 
 std::vector<CTransactionRef>
 TxPool::GetConflictTxs(const CTransactionRef &tx) const {
-    LOCK(m_mutex);
-
     std::vector<CTransactionRef> conflictingTxs;
     for (const auto &txin : tx->vin) {
         auto itByPrev = m_outpoint_to_tx_it.find(txin.prevout);
@@ -207,8 +188,6 @@ TxPool::GetConflictTxs(const CTransactionRef &tx) const {
 }
 
 CTransactionRef TxPool::GetTxToReconsider(NodeId peer) {
-    LOCK(m_mutex);
-
     auto work_set_it = m_peer_work_set.find(peer);
     if (work_set_it != m_peer_work_set.end()) {
         auto &work_set = work_set_it->second;
@@ -226,8 +205,6 @@ CTransactionRef TxPool::GetTxToReconsider(NodeId peer) {
 }
 
 bool TxPool::HaveTxToReconsider(NodeId peer) {
-    LOCK(m_mutex);
-
     auto work_set_it = m_peer_work_set.find(peer);
     if (work_set_it != m_peer_work_set.end()) {
         auto &work_set = work_set_it->second;
@@ -237,8 +214,6 @@ bool TxPool::HaveTxToReconsider(NodeId peer) {
 }
 
 void TxPool::EraseForBlock(const CBlock &block) {
-    LOCK(m_mutex);
-
     if (m_pool_txs.empty()) {
         return;
     }
@@ -268,7 +243,7 @@ void TxPool::EraseForBlock(const CBlock &block) {
     if (vTxErase.size()) {
         int nErased = 0;
         for (const auto &txid : vTxErase) {
-            nErased += EraseTxNoLock(txid);
+            nErased += EraseTx(txid);
         }
         LogDebug(
             BCLog::TXPACKAGES,
@@ -280,8 +255,6 @@ void TxPool::EraseForBlock(const CBlock &block) {
 std::vector<CTransactionRef>
 TxPool::GetChildrenFromSamePeer(const CTransactionRef &parent,
                                 NodeId nodeid) const {
-    LOCK(m_mutex);
-
     // First construct a vector of iterators to ensure we do not return
     // duplicates of the same tx and so we can sort by nTimeExpire.
     std::vector<PoolTxMap::iterator> iters;
@@ -325,8 +298,6 @@ TxPool::GetChildrenFromSamePeer(const CTransactionRef &parent,
 std::vector<std::pair<CTransactionRef, NodeId>>
 TxPool::GetChildrenFromDifferentPeer(const CTransactionRef &parent,
                                      NodeId nodeid) const {
-    LOCK(m_mutex);
-
     // First construct vector of iterators to ensure we do not return duplicates
     // of the same tx.
     std::vector<PoolTxMap::iterator> iters;

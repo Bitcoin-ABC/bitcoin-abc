@@ -29,16 +29,14 @@ public:
           expireInterval(expireIntervalIn) {}
 
     /** Add a new transaction to the pool */
-    bool AddTx(const CTransactionRef &tx, NodeId peer)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    bool AddTx(const CTransactionRef &tx, NodeId peer);
 
     /** Check if we already have an the transaction */
-    bool HaveTx(const TxId &txid) const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    bool HaveTx(const TxId &txid) const;
 
-    CTransactionRef GetTx(const TxId &txid) const
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
-    std::vector<CTransactionRef> GetConflictTxs(const CTransactionRef &tx) const
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    CTransactionRef GetTx(const TxId &txid) const;
+    std::vector<CTransactionRef>
+    GetConflictTxs(const CTransactionRef &tx) const;
 
     /**
      * Extract a transaction from a peer's work set
@@ -47,41 +45,37 @@ public:
      * Otherwise returns the transaction reference, and removes it from the work
      * set.
      */
-    CTransactionRef GetTxToReconsider(NodeId peer)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    CTransactionRef GetTxToReconsider(NodeId peer);
 
     /** Erase a tx by txid */
-    int EraseTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    int EraseTx(const TxId &txid);
 
     /**
      * Erase all txs announced by a peer (eg, after that peer disconnects)
      */
-    void EraseForPeer(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    void EraseForPeer(NodeId peer);
 
     /** Erase all txs included in or invalidated by a new block */
-    void EraseForBlock(const CBlock &block) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    void EraseForBlock(const CBlock &block);
 
     /** Limit the txs to the given maximum */
-    unsigned int LimitTxs(unsigned int max_txs, FastRandomContext &rng)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    unsigned int LimitTxs(unsigned int max_txs, FastRandomContext &rng);
 
     /**
      * Add any tx that list a particular tx as a parent into the from peer's
      * work set
      */
-    void AddChildrenToWorkSet(const CTransaction &tx)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    void AddChildrenToWorkSet(const CTransaction &tx);
 
     /** Does this peer have any work to do? */
-    bool HaveTxToReconsider(NodeId peer) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    bool HaveTxToReconsider(NodeId peer);
 
     /**
      * Get all children that spend from this tx and were received from nodeid.
      * Sorted from most recent to least recent.
      */
     std::vector<CTransactionRef>
-    GetChildrenFromSamePeer(const CTransactionRef &parent, NodeId nodeid) const
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+    GetChildrenFromSamePeer(const CTransactionRef &parent, NodeId nodeid) const;
 
     /**
      * Get all children that spend from this tx but were not received from
@@ -89,14 +83,10 @@ public:
      */
     std::vector<std::pair<CTransactionRef, NodeId>>
     GetChildrenFromDifferentPeer(const CTransactionRef &parent,
-                                 NodeId nodeid) const
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
+                                 NodeId nodeid) const;
 
     /** Return how many entries exist in the pool */
-    size_t Size() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
-        LOCK(m_mutex);
-        return m_pool_txs.size();
-    }
+    size_t Size() const { return m_pool_txs.size(); }
 
 protected:
     /** The transaction kind as string, used for logging */
@@ -105,9 +95,6 @@ protected:
     const std::chrono::seconds expireTime;
     /** Minimum time between transactions expire time checks */
     const std::chrono::seconds expireInterval;
-
-    /** Guards transactions */
-    mutable Mutex m_mutex;
 
     struct PoolTx {
         CTransactionRef tx;
@@ -120,10 +107,10 @@ protected:
      * Map from txid to pool transaction record. Should be size constrained by
      * calling LimitTxs() with the desired max size.
      */
-    std::map<TxId, PoolTx> m_pool_txs GUARDED_BY(m_mutex);
+    std::map<TxId, PoolTx> m_pool_txs;
 
     /** Which peer provided the transactions that need to be reconsidered */
-    std::map<NodeId, std::set<TxId>> m_peer_work_set GUARDED_BY(m_mutex);
+    std::map<NodeId, std::set<TxId>> m_peer_work_set;
 
     using PoolTxMap = decltype(m_pool_txs);
 
@@ -138,16 +125,13 @@ protected:
      * transactions from the m_pool_txs
      */
     std::map<COutPoint, std::set<PoolTxMap ::iterator, IteratorComparator>>
-        m_outpoint_to_tx_it GUARDED_BY(m_mutex);
+        m_outpoint_to_tx_it;
 
     /** Pool transactions in vector for quick random eviction */
-    std::vector<PoolTxMap::iterator> m_txs_list GUARDED_BY(m_mutex);
-
-    /** Erase a transaction by txid */
-    int EraseTxNoLock(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(m_mutex);
+    std::vector<PoolTxMap::iterator> m_txs_list;
 
     /** Timestamp for the next scheduled sweep of expired transactions */
-    NodeSeconds m_next_sweep GUARDED_BY(m_mutex){0s};
+    NodeSeconds m_next_sweep{0s};
 };
 
 #endif // BITCOIN_TXPOOL_H
