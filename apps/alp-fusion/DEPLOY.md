@@ -19,8 +19,8 @@ This document is the ops target for that model.
 | Pedersen + blind-auth verify                                   | Landed ([D20591](https://reviews.bitcoinabc.org/D20591)) |
 | Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609)) |
 | Shared `FusionClient` (inject Chronik / keys / `runRound`)     | Landed ([D20638](https://reviews.bitcoinabc.org/D20638)) |
-| Coordinator process (`pnpm start:coordinator`)                 | This slice — config from `.env` / `env.sample`           |
-| Node participant CLI                                           | Not yet — punchlist 14 in [README.md](./README.md)       |
+| Coordinator process (`pnpm start:coordinator`)                 | Landed — config from `.env` / `env.sample`               |
+| Node participant CLI (`pnpm start:participant`)                | This slice — mnemonic, Chronik, coordinator host         |
 | Public or staging coordinator                                  | **None deployed**                                        |
 | Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
@@ -86,7 +86,7 @@ advertise the bind host, `minPlayers=8`. Lab (all interfaces): set
 peers to dial `0.0.0.0`. Mocha still starts `FusionCoordinator` on
 `127.0.0.1` in unit tests.
 
-After the participant CLI (14) lands, staging deploy (15) is:
+Staging deploy (15), after this participant CLI:
 
 1. One host: coordinator with `HOST=0.0.0.0`, control `:8788` / covert
    `:8789`, and `COVERT_DOMAIN` set to a hostname/IP clients can reach.

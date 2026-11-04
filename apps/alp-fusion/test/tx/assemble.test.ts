@@ -247,6 +247,22 @@ describe('assembleAlpSend', () => {
         ).to.throw(/atom inflation/);
     });
 
+    it('accepts a surplus below one sat per token input', () => {
+        const params = baseParams();
+        const fuel = params.fuelInputs![0];
+        const over = assembleAlpSend({
+            ...params,
+            fuelInputs: [{ ...fuel, sats: fuel.sats + 1n }],
+        });
+        expect(over.inputSats - over.outputSats).to.equal(over.feeSats + 1n);
+        expect(() =>
+            validateAlpSendAssembly({
+                ...params,
+                fuelInputs: [{ ...fuel, sats: fuel.sats + 2n }],
+            }),
+        ).to.throw(/surplus must be < 2/);
+    });
+
     it('rejects fee mismatch and dust outs', () => {
         const params = baseParams();
         const badFuel = {

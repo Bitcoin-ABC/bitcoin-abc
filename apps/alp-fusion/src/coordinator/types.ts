@@ -6,6 +6,7 @@ import type {
     FusionFuelInput,
     FusionTokenInput,
     FusionTokenOutput,
+    FusionXecOutput,
 } from '../tx/types.js';
 
 /** Player identity for an in-process round (not a network session). */
@@ -21,6 +22,8 @@ export interface PlayerContribution {
     tokenOutputs: FusionTokenOutput[];
     /** Pure-XEC fuel (`atoms: 0n`). Optional if another player funds fees. */
     fuelInputs?: FusionFuelInput[];
+    /** Uncolored change returned to this player. */
+    xecOutputs?: FusionXecOutput[];
 }
 
 export interface RoundConfig {

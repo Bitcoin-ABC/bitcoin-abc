@@ -16,6 +16,7 @@ import type {
     FusionFuelInput,
     FusionTokenInput,
     FusionTokenOutput,
+    FusionXecOutput,
 } from '../tx/types.js';
 
 import { cryptoUnitInterval, mulberry32, shuffleInPlace } from './random.js';
@@ -139,6 +140,7 @@ export class OneShotRound {
             const tokenInputs: FusionTokenInput[] = [];
             const fuelInputs: FusionFuelInput[] = [];
             const tokenOutputs: FusionTokenOutput[] = [];
+            const xecOutputs: FusionXecOutput[] = [];
             const seenOutpoints = new Set<string>();
 
             for (const id of this.playerIds) {
@@ -157,6 +159,9 @@ export class OneShotRound {
                 if (c.fuelInputs) {
                     fuelInputs.push(...c.fuelInputs);
                 }
+                if (c.xecOutputs) {
+                    xecOutputs.push(...c.xecOutputs);
+                }
             }
 
             const rand =
@@ -164,12 +169,14 @@ export class OneShotRound {
                     ? cryptoUnitInterval
                     : mulberry32(this.shuffleSeed);
             shuffleInPlace(tokenOutputs, rand);
+            shuffleInPlace(xecOutputs, rand);
 
             const assembled = assembleAlpSend({
                 tokenId: this.tokenId,
                 tokenInputs,
                 fuelInputs,
                 tokenOutputs,
+                xecOutputs,
                 feePerKb: this.feePerKb,
             });
             this.assembled = assembled;

@@ -48,7 +48,7 @@ Must provide:
 |                    | Electrum ABC CashFusion (XEC)                                                | alp-fusion (ALP)                                                                           |
 | ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Asset              | Native XEC only                                                              | One ALP `tokenId` per pool / round                                                         |
-| Status             | Production in Electrum ABC (and some third-party wallets)                    | Library + coordinator (`env.sample` / `pnpm start:coordinator`). No public coordinator.    |
+| Status             | Production in Electrum ABC (and some third-party wallets)                    | Library, coordinator, and participant CLI (`env.sample`). No public coordinator.           |
 | Token UTXOs        | **Excluded** — ALP/SLP coins are frozen out of fusion so they are not burned | **Target** — fuse ALP deliberately with correct `alpSend` coloring                         |
 | Coordinator        | Public fusion servers; long-lived desktop/daemon clients keep pools warm     | Same role expected; public coordinators + continuous clients required                      |
 | Covert / Tor       | Separate covert channel over Tor                                             | Covert sockets + SOCKS5 hook in-tree; live Tor still required for CashFusion-class privacy |
@@ -116,6 +116,11 @@ fuses ALP without burning tokens.
 12. **Shared client library [D20638](https://reviews.bitcoinabc.org/D20638)** —
     `FusionClient` so wallets inject Chronik / keys / outputs / `runRound`.
     Node TCP is `createNodeFusionClient` in `src/node.ts`.
+13. **Coordinator process** — `pnpm start:coordinator` binds control + covert
+    from `.env`.
+14. **Node participant CLI** — `pnpm start:participant` derives the non-HD
+    wallet key and runs `createNodeFusionClient` until SIGINT. One ALP UTXO
+    per round; XEC change pays an equal fee share.
 
 **Aside:** [PRIVACY.md](./PRIVACY.md) concludes that alp-fusion is worth
 building. One round of 16 inputs has the same source count as a Monero ring.
@@ -124,25 +129,18 @@ common amount. The token supply stays auditable.
 
 ### Remaining (Cashtab launch punchlist)
 
-Each item is one Differential. **13–19** are the lab bar: one opted-in
+Each item is one Differential. **15–19** are the lab bar: one opted-in
 Cashtab Android user completes a round against a staging coordinator.
 **20–25** are public launch. Cashtab HD work is a parallel track
 ([cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P0) and blocks 19.
 
-**No coordinator is deployed.** `cp env.sample .env && pnpm build && pnpm
-start:coordinator` binds locally; mocha also starts `FusionCoordinator` on
-`127.0.0.1`. There is no hostname to ping.
+**No coordinator is deployed.** `pnpm start:coordinator` and
+`pnpm start:participant` bind or dial locally (`env.sample`). Mocha also
+starts `FusionCoordinator` on `127.0.0.1`. There is no hostname to ping.
 
-13. **Coordinator process** — `pnpm start:coordinator` (compiled `dist`;
-    `pnpm dev:coordinator` for source) binds control + covert from `.env`
-    (`CHRONIK_URLS`, `HOST`, `COVERT_DOMAIN`, ports, `MIN_PLAYERS`). See
-    `env.sample`.
-14. **Node participant CLI** — mnemonic + Chronik + coordinator host →
-    `createNodeFusionClient` loop. Needed to smoke a live round and later
-    to warm pools.
-15. **Staging deploy** — run 13+14 on a host; publish control/covert
-    (later WSS) URLs; confirm a 2-player lab round. Ops after 13 and 14
-    land — see [DEPLOY.md](./DEPLOY.md).
+15. **Staging deploy** — run the coordinator and participant CLIs on a host;
+    publish control/covert (later WSS) URLs; confirm a 2-player lab round.
+    See [DEPLOY.md](./DEPLOY.md).
 16. **Coordinator WSS gateway** — framed protobuf over TLS WebSocket so
     the Cashtab Android WebView can join. Raw Node TCP stays daemon-only.
 17. **FusionClient WebSocket `runRound`** — inject WSS transport without

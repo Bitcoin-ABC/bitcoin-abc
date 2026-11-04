@@ -12,6 +12,7 @@ import {
     DEFAULT_COVERT_PORT,
     DEFAULT_MIN_PLAYERS,
 } from '../protocol/constants.js';
+import { parseCsv, parseUint } from './parse.js';
 
 /** Printed for `--help` and missing/invalid env. */
 export const COORDINATOR_ENV_USAGE = `Usage: pnpm start:coordinator
@@ -159,11 +160,8 @@ export function parseCoordinatorEnv(
     };
 }
 
-function parseCsv(value: string | undefined): string[] {
-    return (value ?? '')
-        .split(',')
-        .map(item => item.trim())
-        .filter(item => item.length > 0);
+function fail(message: string): never {
+    throw new CoordinatorConfigError(message);
 }
 
 function parsePort(
@@ -174,7 +172,7 @@ function parsePort(
     if (raw === undefined || raw.trim() === '') {
         return defaultPort;
     }
-    const n = parseUint(name, raw.trim());
+    const n = parseUint(name, raw.trim(), fail);
     if (n > 65535) {
         throw new CoordinatorConfigError(`${name} must be 0-65535, got ${raw}`);
     }
@@ -185,24 +183,11 @@ function parseMinPlayers(raw: string | undefined): number {
     if (raw === undefined || raw.trim() === '') {
         return DEFAULT_MIN_PLAYERS;
     }
-    const n = parseUint('MIN_PLAYERS', raw.trim());
+    const n = parseUint('MIN_PLAYERS', raw.trim(), fail);
     if (n < 2) {
         throw new CoordinatorConfigError(
             `MIN_PLAYERS must be an integer >= 2, got ${raw}`,
         );
-    }
-    return n;
-}
-
-function parseUint(name: string, raw: string): number {
-    if (!/^\d+$/.test(raw)) {
-        throw new CoordinatorConfigError(
-            `${name} must be an integer, got ${raw}`,
-        );
-    }
-    const n = Number(raw);
-    if (!Number.isSafeInteger(n)) {
-        throw new CoordinatorConfigError(`${name} out of range: ${raw}`);
     }
     return n;
 }

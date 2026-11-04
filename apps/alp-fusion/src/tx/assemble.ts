@@ -344,9 +344,13 @@ function planAlpSendAssembly(
 
     if (requireFeeMatch) {
         const actualFee = inputSats - outputSats;
-        if (actualFee !== feeSats) {
+        // Players round an equal share up. With one token input each, the
+        // merged surplus is at most tokenInputs.length - 1 sats. A wider
+        // gap is an underpay or a dropped change output.
+        const surplusLimit = BigInt(tokenInputs.length);
+        if (actualFee < feeSats || actualFee >= feeSats + surplusLimit) {
             throw new Error(
-                `fee mismatch: inputSats - outputSats = ${actualFee}, required feeSats ${feeSats} at ${feePerKb} sat/kB (signedSerSize ${signedSerSize})`,
+                `fee mismatch: inputSats - outputSats = ${actualFee}, required feeSats ${feeSats} (surplus must be < ${surplusLimit}) at ${feePerKb} sat/kB (signedSerSize ${signedSerSize})`,
             );
         }
     }

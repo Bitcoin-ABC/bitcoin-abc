@@ -147,7 +147,7 @@ supply stays auditable.
 
 - Shared TS client (`FusionClient`): wallets inject Chronik, keys, output
   construction, and `runRound`. Node TCP is `createNodeFusionClient` in
-  `src/node.ts`.
+  `src/node.ts`. The daemon entry is `pnpm start:participant`.
 - Cashtab: explicit user control (enable, token allowlist, fee / round caps).
 - Desktop/daemon clients remain first-class for pool liquidity.
 

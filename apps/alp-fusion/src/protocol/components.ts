@@ -25,6 +25,7 @@ import type {
     FusionFuelInput,
     FusionTokenInput,
     FusionTokenOutput,
+    FusionXecOutput,
 } from '../tx/types.js';
 
 import { encodeComponent, decodeComponent } from './messages.js';
@@ -53,6 +54,8 @@ export interface WireContribution {
     tokenInputs: WireTokenInput[];
     tokenOutputs: FusionTokenOutput[];
     fuelInputs?: WireFuelInput[];
+    /** Uncolored XEC change (not colored by the ALP SEND). */
+    xecOutputs?: FusionXecOutput[];
 }
 
 /**
@@ -154,6 +157,17 @@ export function contributionToComponents(contrib: WireContribution): Buffer[] {
             }),
         );
     }
+    for (const xec of contrib.xecOutputs ?? []) {
+        out.push(
+            encodeComponent({
+                saltCommitment: sha256(randomBytes(32)),
+                output: {
+                    scriptpubkey: Buffer.from(xec.script.bytecode),
+                    sats: xec.sats,
+                },
+            }),
+        );
+    }
     return out;
 }
 
@@ -215,6 +229,7 @@ export function componentsToContribution(
     const tokenInputs: FusionTokenInput[] = [];
     const fuelInputs: FusionFuelInput[] = [];
     const tokenOutputs: FusionTokenOutput[] = [];
+    const xecOutputs: FusionXecOutput[] = [];
     for (const raw of componentBytes) {
         const dec = decodeComponent(Buffer.from(raw));
         if (dec.input) {
@@ -238,14 +253,20 @@ export function componentsToContribution(
             if (typeof output.sats !== 'bigint') {
                 throw new Error('output.sats: expected bigint');
             }
-            if (typeof output.tokenAtoms !== 'bigint') {
-                throw new Error(
-                    'output.tokenAtoms: expected bigint token output',
-                );
+            const tokenAtoms = output.tokenAtoms;
+            if (tokenAtoms === undefined || tokenAtoms === 0n) {
+                xecOutputs.push({
+                    script: new Script(scriptpubkey),
+                    sats: output.sats,
+                });
+                continue;
+            }
+            if (typeof tokenAtoms !== 'bigint') {
+                throw new Error('output.tokenAtoms: expected bigint');
             }
             tokenOutputs.push({
                 script: new Script(scriptpubkey),
-                atoms: output.tokenAtoms,
+                atoms: tokenAtoms,
                 sats: output.sats,
             });
             continue;
@@ -257,5 +278,6 @@ export function componentsToContribution(
         tokenInputs,
         tokenOutputs,
         fuelInputs: fuelInputs.length > 0 ? fuelInputs : undefined,
+        xecOutputs: xecOutputs.length > 0 ? xecOutputs : undefined,
     };
 }

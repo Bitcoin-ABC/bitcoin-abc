@@ -27,7 +27,7 @@ import { asBytes, componentsToContribution } from '../protocol/components.js';
 import { decodeComponent } from '../protocol/messages.js';
 
 import { assembleAlpSend, type AssembledAlpSend } from './assemble.js';
-import type { FusionTokenOutput } from './types.js';
+import type { FusionTokenOutput, FusionXecOutput } from './types.js';
 
 /** Compressed pubkey plus the seckey that unlocks a P2PKH fusion input. */
 export interface FusionInputKey {
@@ -82,6 +82,7 @@ export function assembleFromComponents(
         tokenInputs: merged.tokenInputs,
         fuelInputs: merged.fuelInputs,
         tokenOutputs: merged.tokenOutputs,
+        xecOutputs: merged.xecOutputs,
         feePerKb,
     });
     const pubkeys = pubkeysFromComponents(componentBytes);
@@ -120,7 +121,10 @@ function tokenOutKey(script: Script, sats: bigint, atoms: bigint): string {
  */
 export function assertOwnOutputsPresent(
     assembled: AssembledAlpSend,
-    contrib: { tokenOutputs: FusionTokenOutput[] },
+    contrib: {
+        tokenOutputs: FusionTokenOutput[];
+        xecOutputs?: FusionXecOutput[];
+    },
     dustSats: bigint = DEFAULT_DUST_SATS,
 ): void {
     const n = assembled.sendAtomsArray.length;
@@ -144,6 +148,24 @@ export function assertOwnOutputsPresent(
             throw new Error('assembled tx missing contributed output');
         }
         available.set(key, left - 1);
+    }
+    const xecOutputs = contrib.xecOutputs ?? [];
+    if (xecOutputs.length === 0) {
+        return;
+    }
+    const xecAvailable = new Map<string, number>();
+    for (let i = n + 1; i < assembled.tx.outputs.length; i++) {
+        const out = assembled.tx.outputs[i];
+        const key = `${Buffer.from(out.script.bytecode).toString('hex')}:${out.sats}`;
+        xecAvailable.set(key, (xecAvailable.get(key) ?? 0) + 1);
+    }
+    for (const want of xecOutputs) {
+        const key = `${Buffer.from(want.script.bytecode).toString('hex')}:${want.sats}`;
+        const left = xecAvailable.get(key) ?? 0;
+        if (left < 1) {
+            throw new Error('assembled tx missing contributed XEC output');
+        }
+        xecAvailable.set(key, left - 1);
     }
 }
 
