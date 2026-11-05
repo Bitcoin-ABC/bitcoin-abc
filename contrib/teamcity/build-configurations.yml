@@ -120,7 +120,8 @@ templates:
 
             # Generate a summary report
             lcov \
-              --rc lcov_branch_coverage=1 \
+              --ignore-errors corrupt,deprecated,inconsistent \
+              --rc branch_coverage=1 \
               --summary coverage/lcov.info \
               > coverage/lcov-report/coverage-summary.txt 2>&1
 
@@ -184,7 +185,8 @@ templates:
 
             # Generate a summary report
             lcov \
-              --rc lcov_branch_coverage=1 \
+              --ignore-errors corrupt,deprecated,inconsistent \
+              --rc branch_coverage=1 \
               --summary coverage/lcov.info \
               > coverage/lcov-report/coverage-summary.txt 2>&1
 
@@ -849,7 +851,8 @@ builds:
 
             # Generate a summary report
             lcov \
-              --rc lcov_branch_coverage=1 \
+              --ignore-errors corrupt,deprecated,inconsistent \
+              --rc branch_coverage=1 \
               --summary coverage/lcov.info \
               > coverage/lcov-report/coverage-summary.txt 2>&1
 
