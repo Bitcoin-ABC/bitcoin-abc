@@ -174,9 +174,10 @@ class ChronikElectrumClient:
         # sure to restore the previous valus after the message is received
         self.sock.settimeout(timeout or prev_timeout)
 
-        json_reply = self._recv()
-
-        self.sock.settimeout(prev_timeout)
+        try:
+            json_reply = self._recv()
+        finally:
+            self.sock.settimeout(prev_timeout)
 
         # A notification can't be an error
         assert "error" not in json_reply
