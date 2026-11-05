@@ -37,7 +37,7 @@ from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import wraps
 
 from . import alias, bitcoin, util, web
-from .address import Address, AddressError
+from .address import Address, AddressError, DestinationType
 from .amount import format_satoshis
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
@@ -175,7 +175,7 @@ class Commands:
         return result
 
     @staticmethod
-    def _EnsureDictNamedTuplesAreJSONSafe(d):
+    def _prepare_tx_for_json_encoding(d):
         """Address, ScriptOutput and other objects contain bytes.  They cannot be serialized
         using JSON. This makes sure they get serialized properly by calling .to_ui_string() on them.
         See issue #638"""
@@ -183,20 +183,21 @@ class Commands:
         def DoChk(v):
             def ChkList(l_):
                 for i in range(0, len(l_)):
-                    l_[i] = DoChk(l_[i])  # recurse
+                    # recurse
+                    l_[i] = DoChk(l_[i])
                 return l_
 
-            def EncodeNamedTupleObject(nt):
-                if hasattr(nt, "to_ui_string"):
-                    return nt.to_ui_string()
-                return nt
+            def encode_destination_object(nt: DestinationType):
+                return nt.to_ui_string()
 
-            if isinstance(v, tuple):
-                v = EncodeNamedTupleObject(v)
+            if isinstance(v, DestinationType):
+                v = encode_destination_object(v)
             elif isinstance(v, list):
-                v = ChkList(v)  # may recurse
+                # may recurse
+                v = ChkList(v)
             elif isinstance(v, dict):
-                v = Commands._EnsureDictNamedTuplesAreJSONSafe(v)  # recurse
+                # recurse
+                v = Commands._prepare_tx_for_json_encoding(v)
             return v
 
         for k in d.keys():
@@ -481,7 +482,7 @@ class Commands:
             }
             for i, txout in enumerate(tx.outputs())
         ]
-        return self._EnsureDictNamedTuplesAreJSONSafe(
+        return self._prepare_tx_for_json_encoding(
             {
                 "version": tx.version,
                 "inputs": tx.inputs(),
