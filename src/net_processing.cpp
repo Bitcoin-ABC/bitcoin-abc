@@ -1257,11 +1257,12 @@ private:
 
     /**
      * Synchronizes tx download including TxRequestTracker, rejection filters,
-     * and TxOrphanage. Lock invariants:
-     * - A txid in m_txrequest is not also in m_orphanage.
+     * m_mempool.m_orphanage and m_mempool.m_conflicting. Lock invariants:
+     * - A txid in m_txrequest is not also in m_mempool.m_orphanage.
+     * - A txid in m_txrequest is not also in m_mempool.m_conflicting.
      * - A txid in m_txrequest is not also in m_recent_rejects.
      * - A txid in m_txrequest is not also in
-     * m_recent_rejects_package_reconsiderable.
+     *   m_recent_rejects_package_reconsiderable.
      * - A txid in m_txrequest is not also in m_recent_confirmed_transactions.
      * - Each data structure's limits hold (m_orphanage max size, m_txrequest
      * per-peer limits, etc).
@@ -6205,7 +6206,7 @@ void PeerManagerImpl::ProcessMessage(
                              nEvicted);
                 }
             }
-        } // Release cs_main
+        } // Release cs_main and m_tx_download_mutex
 
         return;
     }
@@ -7355,7 +7356,8 @@ void PeerManagerImpl::ProcessMessage(
                         // fallthrough
                     case avalanche::VoteStatus::Accepted: {
                         {
-                            LOCK2(cs_main, m_mempool.cs);
+                            LOCK2(cs_main, m_tx_download_mutex);
+                            LOCK(m_mempool.cs);
                             if (m_mempool.withConflicting(
                                     [&txid](const TxConflicting &conflicting) {
                                         return conflicting.HaveTx(txid);
