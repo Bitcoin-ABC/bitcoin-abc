@@ -60,7 +60,7 @@ source "${TOPLEVEL}"/contrib/source-control-tools/sanitize-conduit-token.sh
 # Stop logging verbosely to prevent leaking CONDUIT_TOKEN
 set +x
 # Check that the revision is ready to land (tests passed, etc.)
-: | arc land --hold --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}"
+: | arc land --hold --revision "${REVISION}" --conduit-token "${CONDUIT_TOKEN}" --
 set -x
 
 # `arc land --hold` still detaches the git HEAD. master should contain the

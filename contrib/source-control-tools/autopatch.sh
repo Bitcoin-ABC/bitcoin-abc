@@ -97,7 +97,7 @@ git pull "${REMOTE}" "${BRANCH}"
 
   # Note: `: | arc ...` pipes an empty string to stdin incase arcanist prompts
   # for user input. This fails and is treated as an error.
-  : | arc patch ${PATCH_ARGS}
+  : | arc patch ${PATCH_ARGS} --
 )
 
 git rebase "${BRANCH}"

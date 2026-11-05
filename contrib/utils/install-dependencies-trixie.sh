@@ -66,6 +66,7 @@ PACKAGES=(
   ninja-build
   nsis
   pandoc
+  php
   php-curl
   pkg-config
   protobuf-compiler
@@ -106,6 +107,8 @@ pushd /opt
 git clone --depth 1 --branch 2026.27 https://github.com/phorgeit/arcanist.git
 git config --system --add safe.directory /opt/arcanist
 echo "export PATH=\"/opt/arcanist/bin:\$PATH\"" >> ~/.bashrc
+# Also link it directly so non interactive shells can use it
+ln -sf /opt/arcanist/bin/arc /usr/local/bin/arc
 popd
 
 # Make sure our specific llvm and clang versions have the highest priority
