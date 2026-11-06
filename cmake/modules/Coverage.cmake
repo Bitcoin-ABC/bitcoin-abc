@@ -99,7 +99,7 @@ function(enable_coverage ENABLE_BRANCH_COVERAGE)
 	)
 
 	if(ENABLE_BRANCH_COVERAGE)
-		string(APPEND LCOV_OPTIONS "--rc branch_coverage=1 --ignore-errors count,deprecated,inconsistent,mismatch")
+		string(APPEND LCOV_OPTIONS "--rc branch_coverage=1 --ignore-errors count,deprecated,inconsistent,mismatch,negative")
 		set(LCOV_OPTIONS "${LCOV_OPTIONS}" CACHE STRING "Lcov options")
 	endif()
 endfunction()
