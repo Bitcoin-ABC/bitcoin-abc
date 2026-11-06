@@ -192,9 +192,13 @@ if(ENABLE_HARDENING)
 	add_linker_flags(-Wl,-z,noexecstack)
 
 	# Enable some buffer overflow checking, except in -O0 builds which
-	# do not support them
+	# do not support them.
+	# Skip _FORTIFY_SOURCE with TSAN: it can cause intermittent feature_init
+	# hangs under the sanitizer (https://github.com/bitcoin/bitcoin/issues/30586).
 	add_compiler_flags(-U_FORTIFY_SOURCE)
-	add_compile_options($<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=2>)
+	if(NOT "thread" IN_LIST ENABLE_SANITIZERS)
+		add_compile_options($<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=2>)
+	endif()
 
 	# Enable ASLR (these flags are primarily targeting MinGw)
 	add_linker_flags(-Wl,--enable-reloc-section -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va)

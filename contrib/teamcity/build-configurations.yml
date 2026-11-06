@@ -539,9 +539,6 @@ builds:
         fail_fast: true
         cmake_flags:
             - '-DENABLE_SANITIZERS=thread'
-            # Disable fortification with -U_FORTIFY_SOURCE to work around https://github.com/bitcoin/bitcoin/issues/30586
-            - '-DCMAKE_C_FLAGS=-U_FORTIFY_SOURCE'
-            - '-DCMAKE_CXX_FLAGS=-U_FORTIFY_SOURCE'
         targets:
             - - all
               - install
