@@ -35,6 +35,7 @@ import sys
 import time
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import wraps
+from typing import Any
 
 from . import alias, bitcoin, util, web
 from .address import Address, AddressError, DestinationType
@@ -175,12 +176,16 @@ class Commands:
         return result
 
     @staticmethod
-    def _prepare_tx_for_json_encoding(d):
+    def _prepare_tx_for_json_encoding(d: dict[str, Any]) -> dict:
         """Address, ScriptOutput and other objects contain bytes.  They cannot be serialized
         using JSON. This makes sure they get serialized properly by calling .to_ui_string() on them.
-        See issue #638"""
+        See issue #638
 
-        def DoChk(v):
+        Multisig redeemScripts are bytes, so we also need to catch this case and
+        convert to a hex string.
+        """
+
+        def DoChk(v, k: str | None = None):
             def ChkList(l_):
                 for i in range(0, len(l_)):
                     # recurse
@@ -198,10 +203,12 @@ class Commands:
             elif isinstance(v, dict):
                 # recurse
                 v = Commands._prepare_tx_for_json_encoding(v)
+            elif isinstance(v, bytes) and k == "redeemScript":
+                v = v.hex()
             return v
 
-        for k in d.keys():
-            d[k] = DoChk(d[k])
+        for k, v in d.items():
+            d[k] = DoChk(v, k)
         return d
 
     @command("")

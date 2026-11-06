@@ -127,7 +127,7 @@ class UnknownAddress(DestinationType):
 
 
 @dataclass(frozen=True, eq=True, order=True)
-class PublicKey:
+class PublicKey(DestinationType):
     pubkey: bytes = field(hash=True, compare=True)
 
     TO_ADDRESS_OPS: ClassVar[list[int]] = [
