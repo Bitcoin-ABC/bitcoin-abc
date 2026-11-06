@@ -120,7 +120,10 @@ class ChronikElectrumClient:
         # We need the initial check because self.data might already contain
         # the messages and we don't want to block on sock.recv() in this case
         while b"\n" not in self.data:
-            self.data += self.sock.recv(1024)
+            chunk = self.sock.recv(1024)
+            if not chunk:
+                raise ConnectionError("Connection closed by peer")
+            self.data += chunk
 
             # Break early, we will check the length of the message
             if b"\n" in self.data:

@@ -2386,7 +2386,13 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             timeout=idle_timeout * 10,
         ):
             self.client = self.node.get_chronik_electrum_client(name="client")
-            self.client.blockchain.scripthash.subscribe(scripthash)
+            try:
+                # This will raise a ConnectionError if the connection is closed
+                # by the server before the subscription response is complete.
+                # In this test this is fine and normal behavior.
+                self.client.blockchain.scripthash.subscribe(scripthash)
+            except ConnectionError:
+                pass
 
         # Restore the default idle timeout for any follow-up work
         self.restart_node(0)
