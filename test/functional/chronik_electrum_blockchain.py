@@ -997,7 +997,12 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
                 },
             )
 
-        self.generate(self.node, 2016)
+        # Mine 2016 blocks in batches of (up to) 100
+        remaining_blocks = 2016
+        while remaining_blocks > 0:
+            num_blocks = min(remaining_blocks, 100)
+            self.generate(self.node, num_blocks)
+            remaining_blocks -= num_blocks
 
         hex_header_len = 160
         for num in [1, 10, 100, 500, 501, 2015]:
