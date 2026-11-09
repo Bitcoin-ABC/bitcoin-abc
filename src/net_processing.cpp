@@ -1267,7 +1267,7 @@ private:
      * - Each data structure's limits hold (m_orphanage max size, m_txrequest
      * per-peer limits, etc).
      */
-    mutable Mutex m_tx_download_mutex ACQUIRED_BEFORE(m_mempool.cs);
+    Mutex m_tx_download_mutex ACQUIRED_BEFORE(m_mempool.cs);
     InvRequestTracker<TxId> m_txrequest GUARDED_BY(m_tx_download_mutex);
 
     Mutex cs_proofrequest;
@@ -1718,7 +1718,7 @@ private:
      * @return               Our current vote for the transaction
      */
     uint32_t GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
-                                   const TxId &id) const
+                                   const TxId &id)
         EXCLUSIVE_LOCKS_REQUIRED(!m_mempool.cs, m_tx_download_mutex);
 
     /**
@@ -4829,7 +4829,7 @@ PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
 
 uint32_t
 PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
-                                       const TxId &id) const {
+                                       const TxId &id) {
     AssertLockHeld(m_tx_download_mutex);
     AssertLockNotHeld(m_mempool.cs);
     // Recently confirmed
