@@ -148,63 +148,23 @@ static constexpr auto AVALANCHE_AVAPROOFS_TIMEOUT{2min};
 /// Maximum number of stalled avalanche txids to store per peer.
 static constexpr size_t MAX_AVALANCHE_STALLED_TXIDS_PER_PEER{100};
 
-struct DataRequestParameters {
-    /**
-     * Maximum number of in-flight data requests from a peer. It is not a hard
-     * limit, but the threshold at which point the overloaded_peer_delay kicks
-     * in.
-     */
-    const size_t max_peer_request_in_flight;
-
-    /**
-     * Maximum number of inventories to consider for requesting, per peer. It
-     * provides a reasonable DoS limit to per-peer memory usage spent on
-     * announcements, while covering peers continuously sending INVs at the
-     * maximum rate (by our own policy, see INVENTORY_BROADCAST_PER_SECOND) for
-     * several minutes, while not receiving the actual data (from any peer) in
-     * response to requests for them.
-     */
-    const size_t max_peer_announcements;
-
-    /** How long to delay requesting data from non-preferred peers */
-    const std::chrono::seconds nonpref_peer_delay;
-
-    /**
-     * How long to delay requesting data from overloaded peers (see
-     * max_peer_request_in_flight).
-     */
-    const std::chrono::seconds overloaded_peer_delay;
-
-    /**
-     * How long to wait (in microseconds) before a data request from an
-     * additional peer.
-     */
-    const std::chrono::microseconds getdata_interval;
-
-    /**
-     * Permission flags a peer requires to bypass the request limits tracking
-     * limits and delay penalty.
-     */
-    const NetPermissionFlags bypass_request_limits_permissions;
-};
-
 static constexpr DataRequestParameters TX_REQUEST_PARAMS{
-    100,                       // max_peer_request_in_flight
-    5000,                      // max_peer_announcements
-    std::chrono::seconds(2),   // nonpref_peer_delay
-    std::chrono::seconds(2),   // overloaded_peer_delay
-    std::chrono::seconds(60),  // getdata_interval
-    NetPermissionFlags::Relay, // bypass_request_limits_permissions
+    .max_peer_request_in_flight = 100,
+    .max_peer_announcements = 5000,
+    .nonpref_peer_delay = 2s,
+    .overloaded_peer_delay = 2s,
+    .getdata_interval = 60s,
+    .bypass_request_limits_permissions = NetPermissionFlags::Relay,
 };
 
 static constexpr DataRequestParameters PROOF_REQUEST_PARAMS{
-    100,                      // max_peer_request_in_flight
-    5000,                     // max_peer_announcements
-    std::chrono::seconds(2),  // nonpref_peer_delay
-    std::chrono::seconds(2),  // overloaded_peer_delay
-    std::chrono::seconds(60), // getdata_interval
-    NetPermissionFlags::
-        BypassProofRequestLimits, // bypass_request_limits_permissions
+    .max_peer_request_in_flight = 100,
+    .max_peer_announcements = 5000,
+    .nonpref_peer_delay = 2s,
+    .overloaded_peer_delay = 2s,
+    .getdata_interval = 60s,
+    .bypass_request_limits_permissions =
+        NetPermissionFlags::BypassProofRequestLimits,
 };
 
 /**
@@ -2203,44 +2163,6 @@ void PeerManagerImpl::FindNextBlocks(std::vector<const CBlockIndex *> &vBlocks,
 
 } // namespace
 
-template <class InvId>
-static bool TooManyAnnouncements(const CNode &node,
-                                 const InvRequestTracker<InvId> &requestTracker,
-                                 const DataRequestParameters &requestParams) {
-    return !node.HasPermission(
-               requestParams.bypass_request_limits_permissions) &&
-           requestTracker.Count(node.GetId()) >=
-               requestParams.max_peer_announcements;
-}
-
-/**
- * Compute the request time for this announcement, current time plus delays for:
- *   - nonpref_peer_delay for announcements from non-preferred connections
- *   - overloaded_peer_delay for announcements from peers which have at least
- *     max_peer_request_in_flight requests in flight (and don't have
- * NetPermissionFlags::Relay).
- */
-template <class InvId>
-static std::chrono::microseconds
-ComputeRequestTime(const CNode &node,
-                   const InvRequestTracker<InvId> &requestTracker,
-                   const DataRequestParameters &requestParams,
-                   std::chrono::microseconds current_time, bool preferred) {
-    auto delay = std::chrono::microseconds{0};
-
-    if (!preferred) {
-        delay += requestParams.nonpref_peer_delay;
-    }
-
-    if (!node.HasPermission(requestParams.bypass_request_limits_permissions) &&
-        requestTracker.CountInFlight(node.GetId()) >=
-            requestParams.max_peer_request_in_flight) {
-        delay += requestParams.overloaded_peer_delay;
-    }
-
-    return current_time + delay;
-}
-
 void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
                                       const Peer &peer) {
     uint64_t my_services{peer.m_our_services};
@@ -2290,15 +2212,17 @@ void PeerManagerImpl::AddTxAnnouncement(
     // For m_txrequest
     AssertLockHeld(m_tx_download_mutex);
 
-    if (TooManyAnnouncements(node, m_txdownloadman.GetTxRequestRef(),
-                             TX_REQUEST_PARAMS)) {
+    const bool bypass_limits =
+        node.HasPermission(TX_REQUEST_PARAMS.bypass_request_limits_permissions);
+    if (TooManyAnnouncements(m_txdownloadman.GetTxRequestRef(), node.GetId(),
+                             TX_REQUEST_PARAMS, bypass_limits)) {
         return;
     }
 
     const bool preferred = isPreferredDownloadPeer(node);
-    auto reqtime =
-        ComputeRequestTime(node, m_txdownloadman.GetTxRequestRef(),
-                           TX_REQUEST_PARAMS, current_time, preferred);
+    auto reqtime = ComputeRequestTime(m_txdownloadman.GetTxRequestRef(),
+                                      node.GetId(), TX_REQUEST_PARAMS,
+                                      current_time, preferred, bypass_limits);
 
     m_txdownloadman.GetTxRequestRef().ReceivedInv(node.GetId(), txid, preferred,
                                                   reqtime);
@@ -2310,12 +2234,16 @@ void PeerManagerImpl::AddProofAnnouncement(
     // For m_proofrequest
     AssertLockHeld(cs_proofrequest);
 
-    if (TooManyAnnouncements(node, m_proofrequest, PROOF_REQUEST_PARAMS)) {
+    const bool bypass_limits = node.HasPermission(
+        PROOF_REQUEST_PARAMS.bypass_request_limits_permissions);
+    if (TooManyAnnouncements(m_proofrequest, node.GetId(), PROOF_REQUEST_PARAMS,
+                             bypass_limits)) {
         return;
     }
 
-    auto reqtime = ComputeRequestTime(
-        node, m_proofrequest, PROOF_REQUEST_PARAMS, current_time, preferred);
+    auto reqtime =
+        ComputeRequestTime(m_proofrequest, node.GetId(), PROOF_REQUEST_PARAMS,
+                           current_time, preferred, bypass_limits);
 
     m_proofrequest.ReceivedInv(node.GetId(), proofid, preferred, reqtime);
 }

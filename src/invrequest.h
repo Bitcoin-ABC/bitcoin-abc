@@ -6,6 +6,7 @@
 #define BITCOIN_INVREQUEST_H
 
 #include <net.h> // For NodeId
+#include <net_permissions.h>
 
 #include <chrono>
 #include <cstdint>
@@ -333,5 +334,87 @@ public:
         m_impl->PostGetRequestableSanityCheck(now);
     }
 };
+
+struct DataRequestParameters {
+    /**
+     * Maximum number of in-flight data requests from a peer. It is not a hard
+     * limit, but the threshold at which point the overloaded_peer_delay kicks
+     * in.
+     */
+    const size_t max_peer_request_in_flight;
+
+    /**
+     * Maximum number of inventories to consider for requesting, per peer. It
+     * provides a reasonable DoS limit to per-peer memory usage spent on
+     * announcements, while covering peers continuously sending INVs at the
+     * maximum rate (by our own policy, see INVENTORY_BROADCAST_PER_SECOND) for
+     * several minutes, while not receiving the actual data (from any peer) in
+     * response to requests for them.
+     */
+    const size_t max_peer_announcements;
+
+    /** How long to delay requesting data from non-preferred peers */
+    const std::chrono::seconds nonpref_peer_delay;
+
+    /**
+     * How long to delay requesting data from overloaded peers (see
+     * max_peer_request_in_flight).
+     */
+    const std::chrono::seconds overloaded_peer_delay;
+
+    /**
+     * How long to wait (in microseconds) before a data request from an
+     * additional peer.
+     */
+    const std::chrono::microseconds getdata_interval;
+
+    /**
+     * Permission flags a peer requires to bypass the request limits tracking
+     * limits and delay penalty.
+     */
+    const NetPermissionFlags bypass_request_limits_permissions;
+};
+
+/**
+ * Whether the peer already has too many announcements tracked to accept a new
+ * one. Peers with the bypass_request_limits_permissions permission
+ * (bypass_limits = true) are not limited.
+ */
+template <class InvId>
+bool TooManyAnnouncements(const InvRequestTracker<InvId> &requestTracker,
+                          NodeId nodeid,
+                          const DataRequestParameters &requestParams,
+                          bool bypass_limits) {
+    return !bypass_limits &&
+           requestTracker.Count(nodeid) >= requestParams.max_peer_announcements;
+}
+
+/**
+ * Compute the request time for this announcement, current time plus delays for:
+ *   - nonpref_peer_delay for announcements from non-preferred connections
+ *   - overloaded_peer_delay for announcements from peers which have at least
+ *     max_peer_request_in_flight requests in flight (and don't have the
+ *     bypass_request_limits_permissions permission, i.e. bypass_limits is
+ *     false).
+ */
+template <class InvId>
+std::chrono::microseconds
+ComputeRequestTime(const InvRequestTracker<InvId> &requestTracker,
+                   NodeId nodeid, const DataRequestParameters &requestParams,
+                   std::chrono::microseconds current_time, bool preferred,
+                   bool bypass_limits) {
+    auto delay = std::chrono::microseconds{0};
+
+    if (!preferred) {
+        delay += requestParams.nonpref_peer_delay;
+    }
+
+    if (!bypass_limits && requestTracker.CountInFlight(nodeid) >=
+                              requestParams.max_peer_request_in_flight) {
+        delay += requestParams.overloaded_peer_delay;
+    }
+
+    return current_time + delay;
+}
 
 #endif // BITCOIN_INVREQUEST_H
