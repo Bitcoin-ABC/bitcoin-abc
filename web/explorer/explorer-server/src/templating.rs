@@ -126,3 +126,53 @@ pub struct ErrorTemplate {
     pub network_selector: bool,
     pub hashes: FileHashes,
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use askama::Template;
+
+    use crate::{file_hashes::FileHashes, templating::AddressTemplate};
+
+    /// A minimal AddressTemplate that renders the token section
+    /// (token_dust > 0) without needing token/balance fixtures: the Tokens
+    /// toggle and its container render outside the json_balances loop.
+    fn address_template(token_dust: i64) -> AddressTemplate<'static> {
+        AddressTemplate {
+            tokens: HashMap::new(),
+            token_dust,
+            total_xec: 0,
+            address_num_txs: 0,
+            address: "",
+            sats_address: "",
+            token_address: "",
+            legacy_address: String::new(),
+            json_balances: HashMap::new(),
+            encoded_tokens: "{}".to_string(),
+            encoded_balances: "{}".to_string(),
+            token_icon_url: "",
+            network_selector: false,
+            hashes: FileHashes::default(),
+        }
+    }
+
+    #[test]
+    fn token_list_is_collapsed_by_default() {
+        let html = address_template(1).render().unwrap();
+
+        // The token section renders when there is token dust
+        assert!(html.contains("etoken-table-ctn"));
+
+        // Its container is hidden by default, like the XEC "Coins" section, so
+        // the user expands the token list on demand instead of it defaulting
+        // open
+        assert!(html.contains(
+            r#"<div class="etoken-table-ctn" style="display: none">"#
+        ));
+
+        // The "Tokens" toggle chevron is therefore not pre-rotated to the open
+        // state (rotate-arrow is added on click)
+        assert!(!html.contains("rotate-arrow"));
+    }
+}

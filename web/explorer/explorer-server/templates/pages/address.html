@@ -80,9 +80,9 @@
                         <a class="show-coins"
                            onclick="$('.etoken-table-ctn').toggle(); rotateArrow(this);">
                             Tokens
-                            <i class="icon chevron circle down rotate-arrow"></i>
+                            <i class="icon chevron circle down"></i>
                         </a>
-                        <div class="etoken-table-ctn">
+                        <div class="etoken-table-ctn" style="display: none">
                             {% for (token_id, json_balance) in json_balances %}
                                 {% if token_id != "main" %}
                                     {% let token = tokens|get_token(token_id) %}
