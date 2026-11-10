@@ -20,7 +20,8 @@ This document is the ops target for that model.
 | Chronik sync + covert sign + broadcast                         | Landed ([D20609](https://reviews.bitcoinabc.org/D20609)) |
 | Shared `FusionClient` (inject Chronik / keys / `runRound`)     | Landed ([D20638](https://reviews.bitcoinabc.org/D20638)) |
 | Coordinator process (`pnpm start:coordinator`)                 | Landed — config from `.env` / `env.sample`               |
-| Node participant CLI (`pnpm start:participant`)                | This slice — mnemonic, Chronik, coordinator host         |
+| Node participant CLI (`pnpm start:participant`)                | Landed                                                   |
+| WebSocket gateway (`WSS_PORT`, `/control` and `/covert`)       | This slice — same frames as TCP; TLS via cert and key    |
 | Public or staging coordinator                                  | **None deployed**                                        |
 | Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
@@ -86,19 +87,22 @@ advertise the bind host, `minPlayers=8`. Lab (all interfaces): set
 peers to dial `0.0.0.0`. Mocha still starts `FusionCoordinator` on
 `127.0.0.1` in unit tests.
 
-Staging deploy (15), after this participant CLI:
+Staging deploy (15):
 
 1. One host: coordinator with `HOST=0.0.0.0`, control `:8788` / covert
    `:8789`, and `COVERT_DOMAIN` set to a hostname/IP clients can reach.
-   Lab: `MIN_PLAYERS=2`. Chronik URL(s) in `CHRONIK_URLS`.
+   Lab: `MIN_PLAYERS=2`. Chronik URL(s) in `CHRONIK_URLS`. Optional:
+   `WSS_PORT=8790` plus `WSS_CERT` / `WSS_KEY` so browsers can dial
+   `/control` and `/covert`.
 2. N Node participant CLIs, each with a **unique** mnemonic, same
    `tokenId`, overlapping atom tiers, and enough XEC for fees/dust.
 3. Participants in **loop / continuous** mode so pools refill.
 4. Confirm: two lab wallets complete a round; txid visible on Chronik.
-5. Publish the control/covert (later WSS) URLs. Until then Cashtab has
-   nothing to dial.
+5. Publish the TCP ports and, when `WSS_PORT` is set, the WebSocket URL.
+   Until then Cashtab has nothing to dial.
 
-Public launch (23) additionally requires TLS (21), WSS (16),
+Public launch (23) additionally requires TLS on TCP (21), TLS on the
+WebSocket gateway, the FusionClient WebSocket transport (17),
 `minPlayers >= 8`, and warm-pool daemons (22) for each advertised
 `(tokenId, atomTier)`.
 

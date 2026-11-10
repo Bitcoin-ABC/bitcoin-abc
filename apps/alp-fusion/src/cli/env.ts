@@ -27,6 +27,10 @@ Optional:
   CONTROL_PORT          Control TCP port (default ${DEFAULT_CONTROL_PORT})
   COVERT_PORT           Covert TCP port (default ${DEFAULT_COVERT_PORT})
   MIN_PLAYERS           Players to start a round (default ${DEFAULT_MIN_PLAYERS})
+  WSS_PORT              WebSocket gateway port (unset = TCP only).
+                        Paths /control and /covert.
+  WSS_CERT              PEM cert path. Requires WSS_PORT and WSS_KEY.
+  WSS_KEY               PEM key path. Requires WSS_PORT and WSS_CERT.
 `;
 
 /** Parse / start failure. `exitCode` 0 is `--help`. */
@@ -49,6 +53,13 @@ export interface CoordinatorConfig {
     controlPort: number;
     covertPort: number;
     minPlayers: number;
+    /**
+     * WebSocket gateway port. Unset keeps the process TCP-only.
+     * `wssCert` and `wssKey` are PEM paths; both or neither.
+     */
+    wssPort?: number;
+    wssCert?: string;
+    wssKey?: string;
 }
 
 /** Unspecified bind addresses (IPv4 + IPv6 any), via Node `net.BlockList`. */
@@ -157,7 +168,52 @@ export function parseCoordinatorEnv(
             DEFAULT_COVERT_PORT,
         ),
         minPlayers: parseMinPlayers(env.MIN_PLAYERS),
+        ...parseWss(env),
     };
+}
+
+function parseWss(
+    env: NodeJS.Dict<string>,
+): Pick<CoordinatorConfig, 'wssPort' | 'wssCert' | 'wssKey'> {
+    const cert = optionalPath('WSS_CERT', env.WSS_CERT);
+    const key = optionalPath('WSS_KEY', env.WSS_KEY);
+    const portRaw = env.WSS_PORT;
+    const portUnset = portRaw === undefined || portRaw.trim() === '';
+    if (portUnset) {
+        if (cert !== undefined || key !== undefined) {
+            throw new CoordinatorConfigError(
+                `WSS_CERT and WSS_KEY require WSS_PORT\n\n${COORDINATOR_ENV_USAGE}`,
+            );
+        }
+        return {};
+    }
+    if ((cert === undefined) !== (key === undefined)) {
+        throw new CoordinatorConfigError(
+            'WSS_CERT and WSS_KEY must both be set for TLS',
+        );
+    }
+    const parsed: Pick<CoordinatorConfig, 'wssPort' | 'wssCert' | 'wssKey'> = {
+        wssPort: parsePort('WSS_PORT', portRaw, 0),
+    };
+    if (cert !== undefined && key !== undefined) {
+        parsed.wssCert = cert;
+        parsed.wssKey = key;
+    }
+    return parsed;
+}
+
+function optionalPath(
+    name: string,
+    raw: string | undefined,
+): string | undefined {
+    if (raw === undefined) {
+        return undefined;
+    }
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) {
+        throw new CoordinatorConfigError(`${name} must be non-empty`);
+    }
+    return trimmed;
 }
 
 function fail(message: string): never {

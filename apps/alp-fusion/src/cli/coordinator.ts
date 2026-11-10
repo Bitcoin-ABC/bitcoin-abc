@@ -34,6 +34,8 @@ export interface StartedCoordinator {
     coordinator: FusionCoordinator;
     controlPort: number;
     covertPort: number;
+    /** Set when `WSS_PORT` is configured. */
+    wssPort?: number;
 }
 
 /**
@@ -61,6 +63,15 @@ export async function startCoordinator(
         covertDomain: config.covertDomain,
         minPlayers: config.minPlayers,
         chronik,
+        ...(config.wssPort === undefined
+            ? {}
+            : {
+                  wss: {
+                      port: config.wssPort,
+                      cert: config.wssCert,
+                      key: config.wssKey,
+                  },
+              }),
     });
 
     try {
@@ -74,6 +85,7 @@ export async function startCoordinator(
                 `bind=${config.host} ` +
                 `control=${ports.controlPort} ` +
                 `covert=${ports.covertPort} ` +
+                (ports.wssPort === undefined ? '' : `wss=${ports.wssPort} `) +
                 `advertise=${config.covertDomain} ` +
                 `minPlayers=${config.minPlayers}`,
         );
@@ -82,6 +94,7 @@ export async function startCoordinator(
             coordinator,
             controlPort: ports.controlPort,
             covertPort: ports.covertPort,
+            ...(ports.wssPort === undefined ? {} : { wssPort: ports.wssPort }),
         };
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

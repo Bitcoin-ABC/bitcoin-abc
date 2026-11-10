@@ -29,6 +29,7 @@ import {
     PROTOCOL_VERSION,
 } from '../protocol/constants.js';
 import { listen, type FusionConnection } from '../protocol/connection.js';
+import { listenWebSocket } from '../protocol/websocket.js';
 import { serveCovertPeer } from '../protocol/covert.js';
 import { asBytes, componentCommitment } from '../protocol/components.js';
 import {
@@ -84,6 +85,15 @@ export interface FusionCoordinatorOptions {
      * the signed rawTx + local txid.
      */
     chronik?: FusionIndexer;
+    /**
+     * Also accept the framed control and covert channels over WebSocket.
+     * Omit to stay TCP-only. `cert` and `key` together serve WSS.
+     */
+    wss?: {
+        port: number;
+        cert?: string | Buffer;
+        key?: string | Buffer;
+    };
 }
 
 interface Session {
@@ -383,6 +393,7 @@ export class FusionCoordinator {
     private signedBroadcast = new WeakMap<ActiveRound, Promise<RoundResult>>();
     private control: { port: number; close: () => Promise<void> } | undefined;
     private covert: { port: number; close: () => Promise<void> } | undefined;
+    private wss: { port: number; close: () => Promise<void> } | undefined;
     private closed = false;
 
     constructor(opts: FusionCoordinatorOptions = {}) {
@@ -417,19 +428,29 @@ export class FusionCoordinator {
         return this.covert.port;
     }
 
+    /** Bound WebSocket port, or unset when the gateway is off. */
+    get wssPort(): number | undefined {
+        return this.wss?.port;
+    }
+
     /** Live control sessions (waiting or in-round). */
     get sessionCount(): number {
         return this.sessions.size;
     }
 
     /**
-     * Bind control + covert sockets. Port `0` picks an ephemeral port.
+     * Bind control + covert TCP sockets. When `wss` is set, also bind the
+     * WebSocket gateway. Port `0` picks an ephemeral port.
      */
     async start(
         host = this.opts.host ?? '127.0.0.1',
         controlPort = 0,
         covertPort = 0,
-    ): Promise<{ controlPort: number; covertPort: number }> {
+    ): Promise<{
+        controlPort: number;
+        covertPort: number;
+        wssPort?: number;
+    }> {
         await initProto();
         this.types = await getTypes();
         this.closed = false;
@@ -445,9 +466,44 @@ export class FusionCoordinator {
                 conn.close();
             });
         });
+        const wss = this.opts.wss;
+        if (wss) {
+            try {
+                if ((wss.cert === undefined) !== (wss.key === undefined)) {
+                    throw new Error('WebSocket TLS requires both cert and key');
+                }
+                const tls =
+                    wss.cert !== undefined && wss.key !== undefined
+                        ? { ssl: true as const, cert: wss.cert, key: wss.key }
+                        : {};
+                this.wss = await listenWebSocket(
+                    host,
+                    wss.port,
+                    {
+                        control: conn => {
+                            void this.handleSession(conn).catch(() => {
+                                conn.close();
+                            });
+                        },
+                        covert: conn => {
+                            void serveCovertPeer(conn, (field, payload) =>
+                                this.onCovert(field, payload),
+                            ).catch(() => {
+                                conn.close();
+                            });
+                        },
+                    },
+                    tls,
+                );
+            } catch (err) {
+                await this.close().catch(() => undefined);
+                throw err;
+            }
+        }
         return {
             controlPort: this.control.port,
             covertPort: this.covert.port,
+            ...(this.wss ? { wssPort: this.wss.port } : {}),
         };
     }
 
@@ -463,9 +519,11 @@ export class FusionCoordinator {
         this.sessions.clear();
         const control = this.control;
         const covert = this.covert;
+        const wss = this.wss;
         this.control = undefined;
         this.covert = undefined;
-        await Promise.all([control?.close(), covert?.close()]);
+        this.wss = undefined;
+        await Promise.all([control?.close(), covert?.close(), wss?.close()]);
     }
 
     private requireTypes(): ProtoTypes {

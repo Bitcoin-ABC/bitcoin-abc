@@ -202,6 +202,64 @@ describe('parseCoordinatorEnv', () => {
             'Unexpected argument',
         );
     });
+
+    it('leaves the WebSocket gateway off unless WSS_PORT is set', () => {
+        const config = parseCoordinatorEnv({ CHRONIK_URLS: CHRONIK });
+        expect(config.wssPort).to.equal(undefined);
+        expect(config.wssCert).to.equal(undefined);
+        expect(config.wssKey).to.equal(undefined);
+    });
+
+    it('accepts a plain WebSocket port and a TLS pair', () => {
+        expect(
+            parseCoordinatorEnv({
+                CHRONIK_URLS: CHRONIK,
+                WSS_PORT: '8790',
+            }).wssPort,
+        ).to.equal(8790);
+        expect(
+            parseCoordinatorEnv({
+                CHRONIK_URLS: CHRONIK,
+                WSS_PORT: '8790',
+                WSS_CERT: ' certs/server.crt ',
+                WSS_KEY: 'certs/server.key',
+            }),
+        ).to.include({
+            wssPort: 8790,
+            wssCert: 'certs/server.crt',
+            wssKey: 'certs/server.key',
+        });
+    });
+
+    it('rejects a half-specified WebSocket TLS config', () => {
+        expectConfigError(
+            () =>
+                parseCoordinatorEnv({
+                    CHRONIK_URLS: CHRONIK,
+                    WSS_CERT: 'certs/server.crt',
+                }),
+            'require WSS_PORT',
+        );
+        expectConfigError(
+            () =>
+                parseCoordinatorEnv({
+                    CHRONIK_URLS: CHRONIK,
+                    WSS_PORT: '8790',
+                    WSS_CERT: 'certs/server.crt',
+                }),
+            'must both be set',
+        );
+        expectConfigError(
+            () =>
+                parseCoordinatorEnv({
+                    CHRONIK_URLS: CHRONIK,
+                    WSS_PORT: '8790',
+                    WSS_CERT: '  ',
+                    WSS_KEY: 'certs/server.key',
+                }),
+            'WSS_CERT must be non-empty',
+        );
+    });
 });
 
 describe('startCoordinator', () => {
@@ -261,6 +319,32 @@ describe('startCoordinator', () => {
             expect(started.config.covertDomain).to.equal('127.0.0.1');
             expect(lines[0]).to.include('bind=0.0.0.0');
             expect(lines[0]).to.include('advertise=127.0.0.1');
+        } finally {
+            await started.coordinator.close();
+        }
+    });
+
+    it('binds the WebSocket gateway when WSS_PORT is set', async () => {
+        const lines: string[] = [];
+        const started = await startCoordinator(
+            parseCoordinatorEnv({
+                CHRONIK_URLS: CHRONIK,
+                CONTROL_PORT: '0',
+                COVERT_PORT: '0',
+                WSS_PORT: '0',
+                MIN_PLAYERS: '2',
+            }),
+            {
+                createChronik: () => new MockChronikClient(),
+                log: line => {
+                    lines.push(line);
+                },
+            },
+        );
+        try {
+            expect(started.wssPort).to.be.greaterThan(0);
+            expect(lines[0]).to.include(`wss=${started.wssPort}`);
+            expect(lines[0]).to.include(`control=${started.controlPort}`);
         } finally {
             await started.coordinator.close();
         }

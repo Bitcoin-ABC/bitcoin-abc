@@ -112,6 +112,12 @@ export const DEFAULT_CONTROL_PORT = 8788;
  */
 export const DEFAULT_COVERT_PORT = 8789;
 
+/** WebSocket path for the framed control channel. */
+export const WSS_CONTROL_PATH = '/control';
+
+/** WebSocket path for the framed covert channel. */
+export const WSS_COVERT_PATH = '/covert';
+
 /**
  * Electrum `Protocol` covert timescales (`electrumabc_plugins/fusion/protocol.py`)
  * and `TIMEOUT_INACTIVE_CONNECTION` / `TOR_COOLDOWN_TIME` from `covert.py`.

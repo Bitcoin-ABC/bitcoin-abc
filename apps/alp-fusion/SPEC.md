@@ -167,5 +167,5 @@ for example:
 ## Open questions
 
 1. Default `minPlayers`, component count, and tier ladder for mainnet.
-2. Mobile transport: WebSocket gateway vs TLS-only; how much Tor is realistic
-   inside Cashtab.
+2. How much Tor is realistic inside Cashtab. The coordinator already
+   speaks the framed protocol on WebSocket `/control` and `/covert`.
