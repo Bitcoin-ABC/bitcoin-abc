@@ -355,6 +355,55 @@ class PackageRelayTest(BitcoinTestFramework):
             package_sender.wait_for_disconnect()
 
     @cleanup
+    def test_parent_from_different_peer(self):
+        # Bitcoin ABC checks the scripts before the feerate, so a
+        # consensus-invalid parent is always rejected by itself (see
+        # test_parent_consensus_failure) and cannot be used to check that the
+        # package is not evaluated. Use a valid parent instead: the package
+        # would be accepted if it was evaluated.
+        self.log.info(
+            "Check opportunistic 1p1c logic is not attempted with a valid parent from a different peer"
+        )
+        node = self.nodes[0]
+        low_fee_parent = self.create_tx_below_mempoolminfee(self.wallet)
+        high_fee_child = self.wallet.create_self_transfer(
+            utxo_to_spend=low_fee_parent["new_utxo"], fee_rate=999 * FEERATE_1SAT_VB
+        )
+
+        package_sender = node.add_p2p_connection(P2PInterface())
+        other_parent_sender = node.add_p2p_connection(P2PInterface())
+
+        # 1. Child is received first. It is missing an input.
+        child_txid_int = int(high_fee_child["txid"], 16)
+        package_sender.send_and_ping(msg_inv([CInv(t=MSG_TX, h=child_txid_int)]))
+        package_sender.wait_for_getdata([child_txid_int])
+        package_sender.send_and_ping(msg_tx(high_fee_child["tx"]))
+
+        # 2. Node requests the missing parent by txid.
+        parent_txid_int = int(low_fee_parent["txid"], 16)
+        package_sender.wait_for_getdata([parent_txid_int])
+
+        # 3. A different peer relays the parent. It is rejected by itself for
+        # being too low feerate. It is not evaluated as a package because the
+        # child was sent by a different peer.
+        other_parent_sender.send_and_ping(msg_tx(low_fee_parent["tx"]))
+
+        # 4. Transactions should not be in mempool.
+        node_mempool = node.getrawmempool()
+        assert low_fee_parent["txid"] not in node_mempool
+        assert high_fee_child["txid"] not in node_mempool
+
+        # 5. Nobody is punished.
+        other_parent_sender.sync_with_ping()
+        package_sender.sync_with_ping()
+
+        # 6. The child sender sends the parent, and the package is accepted.
+        package_sender.send_and_ping(msg_tx(low_fee_parent["tx"]))
+        node_mempool = node.getrawmempool()
+        assert low_fee_parent["txid"] in node_mempool
+        assert high_fee_child["txid"] in node_mempool
+
+    @cleanup
     def test_multiple_parents(self):
         self.log.info(
             "Check that node does not request more than 1 previously-rejected low feerate parent"
@@ -491,6 +540,7 @@ class PackageRelayTest(BitcoinTestFramework):
 
         self.test_orphan_consensus_failure()
         self.test_parent_consensus_failure()
+        self.test_parent_from_different_peer()
         self.test_multiple_parents()
         self.test_other_parent_in_mempool()
 
