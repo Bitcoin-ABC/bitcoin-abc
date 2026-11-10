@@ -192,16 +192,6 @@ export default function MiningContent() {
                   </li>
                   <li>
                     <a
-                      href="https://mkpool.com/xec/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-400 transition-colors hover:text-blue-300"
-                    >
-                      mkpool
-                    </a>
-                  </li>
-                  <li>
-                    <a
                       href="https://blockforgepool.com/xec.html?coin=XEC"
                       target="_blank"
                       rel="noopener noreferrer"
