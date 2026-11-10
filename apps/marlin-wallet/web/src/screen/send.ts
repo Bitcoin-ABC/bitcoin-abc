@@ -69,6 +69,8 @@ export class SendScreen {
     private amountDigits: number = 2;
     private minSpendablePrimary: number = MIN_AMOUNT_XEC;
     private maxSpendablePrimary: number = MIN_AMOUNT_XEC;
+    /** Prevents concurrent build/broadcast from a second click or hold. */
+    private isSending: boolean = false;
     private ui: {
         recipientInput: HTMLInputElement;
         sendAmountInput: HTMLInputElement;
@@ -243,6 +245,7 @@ export class SendScreen {
     ): Promise<void> {
         webViewLog('Showing send screen');
 
+        this.isSending = false;
         this.returnToBrowser = returnToBrowser;
 
         if (
@@ -792,6 +795,12 @@ export class SendScreen {
 
     // Amount validation functions
     private validateAmountField(): void {
+        // Do not re-enable the button while a send is in flight
+        if (this.isSending) {
+            this.ui.confirmSendBtn.disabled = true;
+            return;
+        }
+
         // Input is in primary currency, convert to XEC for validation
         const amountPrimary = parseFloat(this.ui.sendAmountInput.value);
 
@@ -890,8 +899,8 @@ export class SendScreen {
         const startHold = (e: Event) => {
             e.preventDefault();
 
-            // Check if button is disabled
-            if (button.disabled) {
+            // Check if button is disabled or a send is already in flight
+            if (button.disabled || this.isSending) {
                 return;
             }
 
@@ -981,6 +990,11 @@ export class SendScreen {
      * @returns true if the transaction was broadcast successfully
      */
     private async validateAndSend(): Promise<boolean> {
+        // Reject concurrent sends before any build/broadcast work
+        if (this.isSending) {
+            return false;
+        }
+
         const address = this.ui.recipientInput.value.trim();
 
         // Validate address
@@ -995,7 +1009,10 @@ export class SendScreen {
             return false; // Amount validation failed
         }
 
-        // All validations passed, proceed with sending
+        // Lock before build(): UTXO selection is sync and must not overlap
+        this.isSending = true;
+        this.ui.confirmSendBtn.disabled = true;
+
         try {
             const amountPrimary = parseFloat(this.ui.sendAmountInput.value);
 
@@ -1080,6 +1097,10 @@ export class SendScreen {
                 error instanceof Error ? error.message : `${error}`,
             );
             return false;
+        } finally {
+            this.isSending = false;
+            // Restore disabled state from current amount validity
+            this.validateAmountField();
         }
     }
 }
