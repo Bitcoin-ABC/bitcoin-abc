@@ -693,6 +693,72 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'MinersMe',
     },
+    // KrakenM - parsed from payout script
+    {
+        height: '974846',
+        coinbaseHex: '03fedf0e0d2f4b72616b656e4d2f5845432f7eb6230a34000000',
+        payoutOutputScript:
+            '76a914d062aedf445ec7ceacd954016fd1dd956fa1d88088ac',
+        parsed: 'KrakenM',
+    },
+    // KrakenM - parsed from coinbase hex fragment
+    {
+        height: '974846',
+        coinbaseHex: '03fedf0e0d2f4b72616b656e4d2f5845432f7eb6230a34000000',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'KrakenM',
+    },
+    // kardanpool.com - parsed from the stable fee output
+    {
+        height: '974862',
+        coinbaseHex:
+            '030ee00e1813490599846aec53562b7a4c31fc36098679000000000000100000011b000000000000000a4d696e696e67636f7265',
+        payoutOutputScript:
+            '76a914ff1e6caea9c00203d8961db5beaab4dff5849dff88ac',
+        parsed: 'kardanpool.com',
+    },
+    // kardanpool.com - parsed from coinbase hex fragment
+    {
+        height: '974862',
+        coinbaseHex:
+            '030ee00e1813490599846aec53562b7a4c31fc36098679000000000000100000011b000000000000000a4d696e696e67636f7265',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'kardanpool.com',
+    },
+    // fenixpool.com - parsed from the stable 0-sat marker output
+    {
+        height: '974928',
+        coinbaseHex:
+            '0350e00e0c0ec96f87000000000000001f0066656e6978706f6f6c2e636f6d',
+        payoutOutputScript:
+            '76a914e8bd8b2d799bdbc968ad50a2b94edbabe8823eba88ac',
+        parsed: 'fenixpool.com',
+    },
+    // fenixpool.com - parsed from coinbase hex fragment
+    {
+        height: '974928',
+        coinbaseHex:
+            '0350e00e0c0ec96f87000000000000001f0066656e6978706f6f6c2e636f6d',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'fenixpool.com',
+    },
+    // HashRoute - parsed from payout script
+    {
+        height: '974948',
+        coinbaseHex:
+            '0364e00e0b2f48617368526f7574652f002cfabe6d6dd75e03b36ffa23907c0d8e196194b1c1cab3659df1a551dde7a4148c1773ac6740000000000000000810c895b83a180600',
+        payoutOutputScript:
+            '76a914011aab41f19aef06b7ba85f0a412d324f33027fa88ac',
+        parsed: 'HashRoute',
+    },
+    // HashRoute - parsed from coinbase hex fragment
+    {
+        height: '974948',
+        coinbaseHex:
+            '0364e00e0b2f48617368526f7574652f002cfabe6d6dd75e03b36ffa23907c0d8e196194b1c1cab3659df1a551dde7a4148c1773ac6740000000000000000810c895b83a180600',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'HashRoute',
+    },
 ];
 
 export default minerTestFixtures;

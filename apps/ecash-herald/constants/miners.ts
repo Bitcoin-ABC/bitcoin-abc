@@ -295,6 +295,36 @@ const miners: Miners = {
                 coinbaseHexFragment: '4d696e6572734d65', // ascii MinersMe
             },
         ],
+        [
+            '76a914d062aedf445ec7ceacd954016fd1dd956fa1d88088ac',
+            {
+                miner: 'KrakenM',
+                coinbaseHexFragment: '2f4b72616b656e4d2f5845432f', // ascii /KrakenM/XEC/
+            },
+        ],
+        [
+            // Solo finder address rotates. This output is the stable 1.5% fee.
+            '76a914ff1e6caea9c00203d8961db5beaab4dff5849dff88ac',
+            {
+                miner: 'kardanpool.com',
+                coinbaseHexFragment: '4d696e696e67636f7265', // ascii Miningcore
+            },
+        ],
+        [
+            // Solo finder address rotates. This 0-sat output is stable.
+            '76a914e8bd8b2d799bdbc968ad50a2b94edbabe8823eba88ac',
+            {
+                miner: 'fenixpool.com',
+                coinbaseHexFragment: '66656e6978706f6f6c2e636f6d', // ascii fenixpool.com
+            },
+        ],
+        [
+            '76a914011aab41f19aef06b7ba85f0a412d324f33027fa88ac',
+            {
+                miner: 'HashRoute',
+                coinbaseHexFragment: '2f48617368526f7574652f', // ascii /HashRoute/
+            },
+        ],
     ],
 };
 

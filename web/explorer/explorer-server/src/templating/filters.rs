@@ -162,7 +162,10 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "SoloHash.co.uk",
         "White Walker",
         "MinersMe",
-        // Jackpool is not identifiable by a substring in the coinbase data
+        "KrakenM",
+        "fenixpool.com",
+        "HashRoute",
+        // Jackpool is not identifiable by a substring in the coinbase data.
     ];
 
     for &str_to_match in &self_identified_miners {
@@ -173,7 +176,11 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
 
     // Miners with identifying coinbase data substring that must be clarified
     // for the user
-    let partial_string_miners = [("Hath", "Hathor-MM")];
+    let partial_string_miners = [
+        ("Hath", "Hathor-MM"),
+        // kardanpool.com stamps the Miningcore software default.
+        ("Miningcore", "kardanpool.com"),
+    ];
 
     for &(str_to_match, str_to_show) in &partial_string_miners {
         if contains_subslice(coinbase_data, str_to_match.as_bytes()) {
@@ -623,6 +630,37 @@ mod tests {
         let minersme_coinbase_hex =
             b"\x03\xea\xc9\x0e/MinersMe/\x00\x00\x03Y)oO\xcbf\x18W+";
         assert_eq!(render_miner(minersme_coinbase_hex).unwrap(), "MinersMe");
+
+        // KrakenM 974846
+        let krakenm_coinbase_hex =
+            b"\x03\xfe\xdf\x0e\x0d/KrakenM/XEC/\x7e\xb6#\n4\x00\x00\x00";
+        assert_eq!(render_miner(krakenm_coinbase_hex).unwrap(), "KrakenM");
+
+        // kardanpool.com 974862
+        let miningcore_coinbase_hex = b"\x03\x0e\xe0\x0e\x18\x13I\x05\x99\
+            \x84j\xecSV+zL1\xfc6\t\x86y\x00\x00\x00\x00\x00\x00\x10\x00\x00\
+            \x01\x1b\x00\x00\x00\x00\x00\x00\x00\nMiningcore";
+        assert_eq!(
+            render_miner(miningcore_coinbase_hex).unwrap(),
+            "kardanpool.com"
+        );
+
+        // fenixpool.com 974928
+        let fenixpool_coinbase_hex = b"\x03\x50\xe0\x0e\x0c\x0e\xc9\x6f\x87\
+            \x00\x00\x00\x00\x00\x00\x00\x1f\x00\x66\x65\x6e\x69\x78\x70\x6f\
+            \x6f\x6c\x2e\x63\x6f\x6d";
+        assert_eq!(
+            render_miner(fenixpool_coinbase_hex).unwrap(),
+            "fenixpool.com"
+        );
+
+        // HashRoute 974948
+        let hashroute_coinbase_hex = b"\x03\x64\xe0\x0e\x0b\x2f\x48\x61\x73\
+            \x68\x52\x6f\x75\x74\x65\x2f\x00\x2c\xfa\xbe\x6d\x6d\xd7\x5e\x03\
+            \xb3\x6f\xfa\x23\x90\x7c\x0d\x8e\x19\x61\x94\xb1\xc1\xca\xb3\x65\
+            \x9d\xf1\xa5\x51\xdd\xe7\xa4\x14\x8c\x17\x73\xac\x67\x40\x00\x00\
+            \x00\x00\x00\x00\x00\x08\x10\xc8\x95\xb8\x3a\x18\x06\x00";
+        assert_eq!(render_miner(hashroute_coinbase_hex).unwrap(), "HashRoute");
 
         // Unknown miner
         // genesis block 0
