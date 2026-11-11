@@ -1119,7 +1119,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
 
     def on_pr(self, request):
         self.payment_request = request
-        if self.payment_request.verify(self.wallet.contacts):
+        if self.payment_request.verify():
             self.payment_request_ok_signal.emit()
         else:
             self.payment_request_error_signal.emit()
@@ -1360,7 +1360,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.payment_request = pr
         self.prepare_for_payment_request()
         pr.error = None  # this forces verify() to re-run
-        if pr.verify(self.wallet.contacts):
+        if pr.verify():
             self.payment_request_ok()
         else:
             self.payment_request_error()

@@ -1961,7 +1961,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def show_invoice(self, key):
         pr = self.wallet.invoices.get(key)
-        pr.verify(self.wallet.contacts)
+        pr.verify()
         self.show_pr_details(pr)
 
     def show_pr_details(self, pr):
