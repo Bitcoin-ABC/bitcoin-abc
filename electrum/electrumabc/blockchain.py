@@ -34,8 +34,8 @@ from .printerror import PrintError
 from .uint256 import UInt256
 
 if TYPE_CHECKING:
-    from interface import Interface
-    from simple_config import SimpleConfig
+    from .interface import Interface
+    from .simple_config import SimpleConfig
 
     Header = dict[str, int | str]
 

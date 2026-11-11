@@ -42,7 +42,7 @@ from .completion_text_edit import CompletionTextEdit
 from .qrtextedit import ScanQRTextEdit
 
 if TYPE_CHECKING:
-    from send_tab import SendTab
+    from .send_tab import SendTab
 
 RE_ALIAS = r"^(.*?)\s*<\s*([0-9A-Za-z:]{26,})\s*>$"
 RE_AMT = r"^.*\s*,\s*([0-9,.]*)\s*$"
