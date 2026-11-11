@@ -84,7 +84,9 @@ class PeerTxRelayer(P2PTxInvStore):
             last_getdata = self.last_message.get("getdata")
             if not last_getdata:
                 return False
-            return len(last_getdata.inv) == len(txids)
+            return len(last_getdata.inv) == len(txids) and all(
+                item.hash in txids for item in last_getdata.inv
+            )
 
         self.wait_until(test_function, timeout=10)
 
