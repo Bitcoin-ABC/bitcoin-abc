@@ -1390,7 +1390,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
             return
 
         amount_str = format_satoshis_plain(
-            int(xec_amount * 100), self.get_decimal_point()
+            int(xec_amount * 100), self.config.get_decimal_point()
         )
         computed_rate = invoice.amount / xec_amount
         self.show_tab_signal.emit()
