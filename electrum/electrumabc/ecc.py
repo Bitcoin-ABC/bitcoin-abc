@@ -85,10 +85,10 @@ def _x_and_y_from_pubkey_bytes(pubkey: bytes) -> tuple[int, int]:
         pubkey_ptr,
         SECP256K1_EC_UNCOMPRESSED,
     )
-    pubkey_serialized = bytes(pubkey_serialized)
-    assert pubkey_serialized[0] == 0x04, pubkey_serialized
-    x = int.from_bytes(pubkey_serialized[1:33], byteorder="big", signed=False)
-    y = int.from_bytes(pubkey_serialized[33:65], byteorder="big", signed=False)
+    pubkey_serialized_b = bytes(pubkey_serialized)
+    assert pubkey_serialized_b[0] == 0x04, pubkey_serialized_b
+    x = int.from_bytes(pubkey_serialized_b[1:33], byteorder="big", signed=False)
+    y = int.from_bytes(pubkey_serialized_b[33:65], byteorder="big", signed=False)
     return x, y
 
 
@@ -120,8 +120,7 @@ def der_sig_from_r_and_s(r: int, s: int) -> bytes:
     )
     if not ret:
         raise Exception("failed to serialize DER sig")
-    der_sig_size = der_sig_size.value
-    return bytes(der_sig)[:der_sig_size]
+    return bytes(der_sig)[: der_sig_size.value]
 
 
 def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> tuple[int, int]:
@@ -214,7 +213,7 @@ class ECPubkey(object):
         return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey)
 
     @classmethod
-    def from_signature65(cls, sig: bytes, msg_hash: bytes) -> ECPubkey:
+    def from_signature65(cls, sig: bytes, msg_hash: bytes) -> tuple[ECPubkey, bool]:
         if len(sig) != 65:
             raise Exception("Wrong encoding")
         nV = sig[0]
@@ -542,8 +541,7 @@ class ECPrivkey(ECPubkey):
         sig_string = sig_string_from_r_and_s(r, s)
         self.verify_message_hash(sig_string, msg_hash)
 
-        sig = sigencode(r, s)
-        return sig
+        return sigencode(r, s)
 
     def sign_transaction(self, hashed_preimage) -> bytes:
         return self.sign(

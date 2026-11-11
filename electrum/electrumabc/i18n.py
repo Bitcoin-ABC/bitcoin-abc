@@ -75,8 +75,10 @@ def set_language(x: str) -> str | None:
         )
         return x  # indicate to caller what code was actually used, if anything.
 
+    return None
 
-def get_system_language_match() -> str:
+
+def get_system_language_match() -> str | None:
     """
     Returns the language code best matching the systems default language or None
     if no match.
@@ -99,7 +101,7 @@ def get_system_language_match() -> str:
     return match_language(default_locale)
 
 
-def match_language(language_code: str) -> str:
+def match_language(language_code: str) -> str | None:
     """
     Returns the language code from the languages dictionary that most closely
     matches the given language code or None if no match.

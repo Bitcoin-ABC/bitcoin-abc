@@ -180,7 +180,7 @@ class EncryptedSeed:
         here, because passphrase function is symmetric in SLIP-39. We are using the terms
         "encrypt" and "decrypt" instead.
         """
-        passphrase = (passphrase or "").encode("utf-8")
+        passphrase_b = (passphrase or "").encode("utf-8")
         ems_len = len(self.encrypted_master_secret)
         ll = self.encrypted_master_secret[: ems_len // 2]
         rr = self.encrypted_master_secret[ems_len // 2 :]
@@ -190,7 +190,7 @@ class EncryptedSeed:
                 rr,
                 _xor(
                     ll,
-                    _round_function(i, passphrase, self.iteration_exponent, salt, rr),
+                    _round_function(i, passphrase_b, self.iteration_exponent, salt, rr),
                 ),
             )
         return rr + ll

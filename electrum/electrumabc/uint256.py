@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from io import BytesIO
 
 # NOTE: When switching to python>=3.11, use typing.Self
-T = TypeVar("T")
+T = TypeVar("T", bound="BaseBlob")
 
 
 class BaseBlob:

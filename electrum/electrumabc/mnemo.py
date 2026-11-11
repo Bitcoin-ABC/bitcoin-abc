@@ -117,8 +117,8 @@ def is_old_seed(seed: str) -> bool:
     except Exception:
         uses_electrum_words = False
     try:
-        seed = bytes.fromhex(seed)
-        is_hex = len(seed) == 16 or len(seed) == 32
+        seed_bytes = bytes.fromhex(seed)
+        is_hex = len(seed_bytes) == 16 or len(seed_bytes) == 32
     except Exception:
         is_hex = False
     return is_hex or (uses_electrum_words and (len(words) == 12 or len(words) == 24))
@@ -131,6 +131,7 @@ def seed_type(seed: str) -> SeedType | None:
         return SeedType.Electrum
     elif is_bip39_seed(seed):
         return SeedType.BIP39
+    return None
 
 
 def seed_type_name(seed: str) -> str:

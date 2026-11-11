@@ -152,6 +152,7 @@ def sweep_preparations(
         pass
 
     def append_utxos_to_inputs(inputs, pubkey: str, txin_type: bitcoin.ScriptType):
+        address: Address | PublicKey
         if txin_type == txin_type.p2pkh:
             address = Address.from_pubkey(pubkey)
         else:
@@ -176,8 +177,8 @@ def sweep_preparations(
         append_utxos_to_inputs(inputs, pubkey.hex(), txin_type)
         keypairs[pubkey] = privkey, compressed
 
-    inputs = []
-    keypairs = {}
+    inputs: list[TxInput] = []
+    keypairs: dict[bytes, tuple[bytes, bool]] = {}
     try:
         for sec in privkeys:
             txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
@@ -2494,6 +2495,9 @@ class AbstractWallet(PrintError, SPVDelegate):
             _tx_height, value, _is_cb = item
             txin["value"] = value
             self.add_input_sig_info(txin, address)
+
+    @abstractmethod
+    def add_input_sig_info(self, txin, address) -> None: ...
 
     def can_sign(self, tx):
         if tx.is_complete():

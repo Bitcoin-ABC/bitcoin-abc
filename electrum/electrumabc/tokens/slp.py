@@ -715,7 +715,7 @@ class Build:
 
     @staticmethod
     def SendOpReturnOutput_V1(
-        token_id_hex: str, output_qty_array: [int], token_type: int = 1
+        token_id_hex: str, output_qty_array: list[int], token_type: int = 1
     ) -> tuple:
         """Type 1 Token SEND Message"""
         chunks = []

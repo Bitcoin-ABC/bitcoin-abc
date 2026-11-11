@@ -46,7 +46,7 @@ TOR_BINARY_NAMES = {
 }
 DOWNLOAD_DIR = os.path.join(get_user_dir(), "tor")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
-TOR_BINARY_PATH = None
+TOR_BINARY_PATH: str | None = None
 if sys.platform in TOR_BINARY_URLS:
     TOR_BINARY_PATH = os.path.join(DOWNLOAD_DIR, TOR_BINARY_NAMES[sys.platform])
 
@@ -93,7 +93,7 @@ class Downloader:
         self.make_executable = make_executable
         self.expected_sha256sum = sha256sum
 
-        self.queue = multiprocessing.Queue()
+        self.queue: multiprocessing.Queue[str] = multiprocessing.Queue()
 
     def run_download(self):
         self.queue.put("@started@")

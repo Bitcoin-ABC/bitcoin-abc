@@ -42,6 +42,7 @@ from .util import InvalidPassword, assert_bytes, to_bytes
 
 if TYPE_CHECKING:
     from .address import Address
+    from .networks import AbstractNetProtocol
 
 # Ensure Python interpreter is not running with -O, since this entire
 # codebase depends on "assert" not being a no-op.
@@ -348,10 +349,12 @@ def pubkey_to_address(txin_type: ScriptType, pubkey: bytes, *, net=None) -> str:
 
 
 def script_to_address(script: bytes) -> Address:
+    # Circular import
+    from .address import Address
     from .transaction import get_address_from_output_script
 
-    t, addr = get_address_from_output_script(script)
-    assert t == TYPE_ADDRESS
+    _, addr = get_address_from_output_script(script)
+    assert isinstance(addr, Address)
     return addr
 
 
@@ -399,7 +402,7 @@ def base_decode(v: str, length, base) -> bytes | None:
     """decode v into a string of len bytes. May raise ValueError on bad chars
     in string."""
     # assert_bytes(v)
-    v = to_bytes(v, "ascii")
+    v_bytes = to_bytes(v, "ascii")
     if base not in (58, 43):
         raise ValueError(f"not supported base: {base}")
     chars = __b58chars
@@ -407,7 +410,7 @@ def base_decode(v: str, length, base) -> bytes | None:
         chars = __b43chars
     long_value = 0
     power_of_base = 1
-    for c in v[::-1]:
+    for c in v_bytes[::-1]:
         digit = chars.find(bytes((c,)))
         if digit < 0:
             raise ValueError(
@@ -423,7 +426,7 @@ def base_decode(v: str, length, base) -> bytes | None:
         long_value = div
     result.append(long_value)
     nPad = 0
-    for c in v:
+    for c in v_bytes:
         if c == chars[0]:
             nPad += 1
         else:
@@ -678,7 +681,7 @@ class Bip38Key:
     class PasswordError(Error, InvalidPassword):
         pass
 
-    def __init__(self, enc: str, *, net=None):
+    def __init__(self, enc: str, *, net: type[AbstractNetProtocol] | None = None):
         if isinstance(enc, (bytearray, bytes)):
             enc = enc.decode("ascii")
         assert isinstance(enc, str), (
@@ -691,11 +694,12 @@ class Bip38Key:
             )
         self.net = networks.net if net is None else net
         self.enc = enc
-        self.dec = DecodeBase58Check(self.enc)
-        if not self.dec:
+        dec = DecodeBase58Check(self.enc)
+        if not dec:
             raise Bip38Key.DecodeError(
                 "Cannot decode bip38 key: Failed Base58 Decode Check"
             )
+        self.dec = dec
         if len(self.dec) != 39:
             raise Bip38Key.DecodeError(
                 "Cannot decode bip38 key: Resulting decoded bytes are of the wrong"
@@ -739,6 +743,7 @@ class Bip38Key:
         """Returns the 'lot' number if 'hasLotSequence' or None otherwise."""
         if self.dec and self.hasLotSequence:
             return self.entropy[4] * 4096 + self.entropy[5] * 16 + self.entropy[6] // 16
+        return None
 
     @property
     def sequence(self) -> int | None:
@@ -746,6 +751,7 @@ class Bip38Key:
         otherwise."""
         if self.dec and self.hasLotSequence:
             return (self.entropy[6] & 0x0F) * 256 + self.entropy[7]
+        return None
 
     def typeString(self) -> Bip38KeyTypeStringT:
         if self.typ == Bip38Key.Type.NonECMult:
@@ -845,11 +851,11 @@ class Bip38Key:
         k1 = h.decrypt(encryptedHalf1)
         k2 = h.decrypt(encryptedHalf2)
 
-        keyBytes = bytearray(32)
+        keyBytesArr = bytearray(32)
         for i in range(16):
-            keyBytes[i] = k1[i] ^ derivedHalf1[i]
-            keyBytes[i + 16] = k2[i] ^ derivedHalf1[i + 16]
-        keyBytes = bytes(keyBytes)
+            keyBytesArr[i] = k1[i] ^ derivedHalf1[i]
+            keyBytesArr[i + 16] = k2[i] ^ derivedHalf1[i + 16]
+        keyBytes = bytes(keyBytesArr)
 
         pubKey = ecc.ECPrivkey(keyBytes).get_public_key_bytes(self.compressed)
 
@@ -942,11 +948,9 @@ class Bip38Key:
             privKey % 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
         )
 
-        int_to_bytes = Bip38Key._int_to_bytes
+        privKeyBytes = Bip38Key._int_to_bytes(privKey, 32)
 
-        privKey = int_to_bytes(privKey, 32)
-
-        eckey = ecc.ECPrivkey(privKey)
+        eckey = ecc.ECPrivkey(privKeyBytes)
 
         pubKey = eckey.get_public_key_bytes(self.compressed)
 
@@ -962,7 +966,9 @@ class Bip38Key:
                 )
 
         return (
-            serialize_privkey(privKey, self.compressed, ScriptType.p2pkh, net=self.net),
+            serialize_privkey(
+                privKeyBytes, self.compressed, ScriptType.p2pkh, net=self.net
+            ),
             addr,
         )
 
@@ -1047,9 +1053,7 @@ class Bip38Key:
             net = networks.net
         passphrase = cls._normalizeNFC(passphrase)
 
-        has_lot_seq = lot_sequence is not None
-
-        if not has_lot_seq:
+        if lot_sequence is None:
             # No lot_sequence
             ownersalt = ownerentropy = to_bytes(os.urandom(8))
             magic = cls._ec_mult_magic_prefix + bytes((0x53,))
@@ -1065,7 +1069,7 @@ class Bip38Key:
 
         prefactor = cls._scrypt(passphrase, salt=ownersalt, N=16384, r=8, p=8, dkLen=32)
 
-        if has_lot_seq:
+        if lot_sequence is not None:
             passfactor = Hash(prefactor + ownerentropy)
         else:
             passfactor = prefactor
@@ -1086,6 +1090,7 @@ class Bip38Key:
         bip38 spec and generates a random and encrypted key, returning a newly
         constructed Bip38Key instance."""
         ips = DecodeBase58Check(enc_ips)
+        assert ips is not None, "Bad intermediate string"
         assert ips.startswith(cls._ec_mult_magic_prefix), "Bad intermediate string"
         hls_byte = ips[7]
         assert hls_byte in (0x51, 0x53), "Bad has_lot_seq byte"

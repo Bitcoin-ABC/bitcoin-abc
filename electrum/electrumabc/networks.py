@@ -29,21 +29,16 @@ import re
 from collections.abc import Sequence
 from typing import Any, ClassVar, Protocol, TypeVar
 
+from . import constants
 from .asert_daa import Anchor, ASERTDaa
-from .constants import (
-    CASHADDR_PREFIX,
-    CASHADDR_PREFIX_BCH,
-    CASHADDR_REGTEST_PREFIX,
-    CASHADDR_REGTEST_PREFIX_BCH,
-    CASHADDR_TESTNET_PREFIX,
-    CASHADDR_TESTNET_PREFIX_BCH,
-)
 from .printerror import print_error
 
 
 def _read_json_dict(filename: str) -> Any:
     try:
         data = pkgutil.get_data(__name__, filename)
+        if data is None:
+            return {}
         r = json.loads(data.decode("utf-8"))
     except Exception:
         r = {}
@@ -52,6 +47,11 @@ def _read_json_dict(filename: str) -> Any:
 
 class AbstractNetProtocol(Protocol):
     TESTNET: ClassVar[bool]
+    REGTEST: ClassVar[bool]
+
+    LEGACY_POW_TARGET_TIMESPAN: ClassVar[int]
+    LEGACY_POW_TARGET_INTERVAL: ClassVar[int]
+    LEGACY_POW_RETARGET_BLOCKS: ClassVar[int]
 
     CASHADDR_PREFIX: ClassVar[str]
     CASHADDR_PREFIX_BCH: ClassVar[str]
@@ -80,7 +80,7 @@ class AbstractNetProtocol(Protocol):
 
 class AbstractNet:
     TESTNET: ClassVar[bool] = False
-    REGTEST = False
+    REGTEST: ClassVar[bool] = False
     # 2 weeks
     LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60
     # 10 minutes
@@ -91,13 +91,13 @@ class AbstractNet:
     )
 
 
-class MainNet(AbstractNetProtocol, AbstractNet):
+class MainNet(AbstractNet, AbstractNetProtocol):
     TESTNET: ClassVar[bool] = False
     WIF_PREFIX = 0x80
     ADDRTYPE_P2PKH = 0
     ADDRTYPE_P2SH = 5
-    CASHADDR_PREFIX = CASHADDR_PREFIX
-    CASHADDR_PREFIX_BCH = CASHADDR_PREFIX_BCH
+    CASHADDR_PREFIX = constants.CASHADDR_PREFIX
+    CASHADDR_PREFIX_BCH = constants.CASHADDR_PREFIX_BCH
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     DEFAULT_PORTS = {"t": "50001", "s": "50002"}
     # DO NOT MODIFY IN CLIENT CODE
@@ -142,14 +142,14 @@ class MainNet(AbstractNetProtocol, AbstractNet):
     }
 
 
-class TestNet(AbstractNetProtocol, AbstractNet):
-    TESTNET = True
+class TestNet(AbstractNet, AbstractNetProtocol):
+    TESTNET: ClassVar[bool] = True
 
     WIF_PREFIX = 0xEF
     ADDRTYPE_P2PKH = 111
     ADDRTYPE_P2SH = 196
-    CASHADDR_PREFIX = CASHADDR_TESTNET_PREFIX
-    CASHADDR_PREFIX_BCH = CASHADDR_TESTNET_PREFIX_BCH
+    CASHADDR_PREFIX = constants.CASHADDR_TESTNET_PREFIX
+    CASHADDR_PREFIX_BCH = constants.CASHADDR_TESTNET_PREFIX_BCH
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
     DEFAULT_PORTS = {"t": "51001", "s": "51002"}
     # DO NOT MODIFY IN CLIENT CODE
@@ -184,11 +184,12 @@ class TestNet(AbstractNetProtocol, AbstractNet):
 
 
 class RegtestNet(TestNet):
+    REGTEST: ClassVar[bool] = True
+
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
     TITLE = "Electrum ABC Regtest"
-    CASHADDR_PREFIX = CASHADDR_REGTEST_PREFIX
-    CASHADDR_PREFIX_BCH = CASHADDR_REGTEST_PREFIX_BCH
-    REGTEST = True
+    CASHADDR_PREFIX = constants.CASHADDR_REGTEST_PREFIX
+    CASHADDR_PREFIX_BCH = constants.CASHADDR_REGTEST_PREFIX_BCH
 
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 0
     BITCOIN_CASH_FORK_BLOCK_HASH = GENESIS

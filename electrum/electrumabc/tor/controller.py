@@ -199,7 +199,7 @@ class TorController(PrintError):
             return res, TorController.BinaryType.SYSTEM
 
         # Use the automatically downloaded tor
-        if os.path.isfile(TOR_BINARY_PATH):
+        if TOR_BINARY_PATH is not None and os.path.isfile(TOR_BINARY_PATH):
             return TOR_BINARY_PATH, TorController.BinaryType.DOWNLOADED
 
         return "", TorController.BinaryType.MISSING

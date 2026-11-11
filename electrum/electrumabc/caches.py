@@ -329,15 +329,12 @@ def get_object_size(obj_0) -> int:
     sys.getsizeof as a result)."""
     import sys
     import warnings
-    from collections import Mapping, Set, deque
+    from collections import deque
+    from collections.abc import Mapping
     from numbers import Number
 
-    try:  # Python 2
-        zero_depth_bases = (basestring, Number, xrange, bytearray)
-        iteritems = "iteritems"
-    except NameError:  # Python 3
-        zero_depth_bases = (str, bytes, Number, range, bytearray)
-        iteritems = "items"
+    zero_depth_bases = (str, bytes, Number, range, bytearray)
+    iteritems = "items"
 
     def getsize(obj_0) -> int:
         """Recursively iterate to sum size of object & members."""
@@ -351,7 +348,7 @@ def get_object_size(obj_0) -> int:
             size = sys.getsizeof(obj)
             if isinstance(obj, zero_depth_bases):
                 pass  # bypass remaining control flow and return
-            elif isinstance(obj, (tuple, list, Set, deque)):
+            elif isinstance(obj, (tuple, list, set, deque)):
                 size += sum(inner(i) for i in obj)
             elif isinstance(obj, Mapping) or hasattr(obj, iteritems):
                 try:

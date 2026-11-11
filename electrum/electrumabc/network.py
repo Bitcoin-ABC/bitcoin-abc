@@ -35,7 +35,8 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Any, Callable, Iterable
+from collections.abc import Callable, Iterable
+from typing import Any
 
 import socks
 
@@ -245,7 +246,7 @@ class Network(util.DaemonThread):
     # the server can fill memory with garbage data.
     MAX_MESSAGE_BYTES = 1024 * 1024 * 32
 
-    tor_controller: TorController = None
+    tor_controller: TorController
 
     def __init__(self, config: SimpleConfig):
         util.DaemonThread.__init__(self)
@@ -1026,15 +1027,14 @@ class Network(util.DaemonThread):
     def request_scripthash_history(self, sh, callback):
         self.send([("blockchain.scripthash.get_history", [sh])], callback)
 
-    def send(self, messages, callback):
+    def send(self, messages: list[tuple[str, list[Any]]], callback):
         """Messages is a list of (method, params) tuples"""
-        messages = list(messages)
         # Guard against empty message-list which is a no-op and just wastes CPU to
         # enque/dequeue (not even callback is called). I've seen the code send empty
         # message lists before in synchronizer.py
         if messages:
             with self.pending_sends_lock:
-                self.pending_sends.append((messages, callback))
+                self.pending_sends.append((list(messages), callback))
 
     def process_pending_sends(self):
         # Requests needs connectivity.  If we don't have an interface,
@@ -1815,7 +1815,6 @@ class Network(util.DaemonThread):
 
         self.tor_controller.active_port_changed.remove(self.on_tor_port_changed)
         self.tor_controller.stop()
-        self.tor_controller = None
 
         self.on_stop()
 

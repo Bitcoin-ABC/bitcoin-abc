@@ -23,6 +23,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import annotations
+
 import argparse
 import ast
 import base64
@@ -61,7 +63,7 @@ from .util import to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
 
-known_commands = {}
+known_commands: dict[str, Command] = {}
 
 
 def satoshis(amount):
@@ -75,8 +77,8 @@ def assertOutpoint(out: str):
     separated by a colon."""
     prevoutParts = out.split(":")
     assert len(prevoutParts) == 2, "invalid outpoint"
-    prevout_hash, prevout_n = prevoutParts
-    prevout_hash = bytes.fromhex(prevout_hash)
+    prevout_hash_s, prevout_n = prevoutParts
+    prevout_hash = bytes.fromhex(prevout_hash_s)
     assert len(prevout_hash) == 32, f"{prevout_hash.hex()} should be a 32-byte hash"
     assert int(prevout_n) >= 0, f"invalid output index {prevout_n}"
 
@@ -515,14 +517,12 @@ class Commands:
     @command("w")
     def freeze(self, address: str):
         """Freeze address. Freeze the funds at one of your wallet\'s addresses"""
-        address = Address.from_string(address)
-        return self.wallet.set_frozen_state([address], True)
+        return self.wallet.set_frozen_state([Address.from_string(address)], True)
 
     @command("w")
     def unfreeze(self, address: str):
         """Unfreeze address. Unfreeze the funds at one of your wallet\'s address"""
-        address = Address.from_string(address)
-        return self.wallet.set_frozen_state([address], False)
+        return self.wallet.set_frozen_state([Address.from_string(address)], False)
 
     @command("w")
     def freeze_utxo(self, coin: str):
@@ -1537,16 +1537,14 @@ def get_parser():
     return parser
 
 
-def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str:
+def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str | None:
     """Get password routine"""
     password = getpass.getpass(prompt, stream=None)
     if password and confirm:
         password2 = getpass.getpass("Confirm: ")
         if password != password2:
             sys.exit("Error: Passwords do not match.")
-    if not password:
-        password = None
-    return password
+    return password or None
 
 
 def preprocess_cmdline_args(args):

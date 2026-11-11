@@ -46,12 +46,12 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
     def count(self) -> int:
         return len(self.items)
 
-    def itemAt(self, index: int) -> QtWidgets.QLayoutItem:
+    def itemAt(self, index: int) -> QtWidgets.QLayoutItem | None:
         if index >= len(self.items):
             return None
         return self.items[index]
 
-    def takeAt(self, index: int) -> QtWidgets.QLayoutItem:
+    def takeAt(self, index: int) -> QtWidgets.QLayoutItem | None:
         if index >= len(self.items):
             return None
         return self.items.pop(index)

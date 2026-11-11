@@ -60,7 +60,7 @@ class AddressConsolidator:
         min_height: int | None = None,
         max_height: int | None = None,
         output_address: Address | None = None,
-        max_tx_size: int | None = MAX_STANDARD_TX_SIZE,
+        max_tx_size: int = MAX_STANDARD_TX_SIZE,
     ):
         # output address defaults to input address if unspecified
         self.output_address = output_address or address

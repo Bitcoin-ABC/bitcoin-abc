@@ -76,7 +76,7 @@ def _CKD_priv(k, c, s, is_prime) -> tuple[bytes, bytes]:
 # n = index of key we want to derive
 # This function allows us to find the nth public key, as long as n is
 #  non-negative. If n is negative, we need the master private key to find it.
-def CKD_pub(cK, c, n) -> tuple[bytes, bytes:]:
+def CKD_pub(cK, c, n) -> tuple[bytes, bytes]:
     if n & BIP32_PRIME:
         raise ValueError(
             f"hardened child key derivation (index >= {BIP32_PRIME}) is not allowed"

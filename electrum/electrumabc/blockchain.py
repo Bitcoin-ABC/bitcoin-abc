@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 import threading
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from . import asert_daa, bitcoin, networks, util
 from .crypto import Hash
@@ -34,10 +34,19 @@ from .printerror import PrintError
 from .uint256 import UInt256
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from .interface import Interface
     from .simple_config import SimpleConfig
 
-    Header = dict[str, int | str]
+    class Header(TypedDict):
+        version: int
+        prev_block_hash: str
+        merkle_root: str
+        timestamp: int
+        bits: int
+        nonce: int
+        block_height: int
 
 
 class VerifyError(Exception):
@@ -164,7 +173,7 @@ def deserialize_header(s: bytes, height: int) -> Header:
     }
 
 
-def hash_header(header: Header) -> str:
+def hash_header(header: Header | None) -> str:
     if header is None:
         return NULL_HASH_HEX
     if header.get("prev_block_hash") is None:
@@ -181,7 +190,9 @@ def read_blockchains(config: SimpleConfig) -> dict[int, Blockchain]:
     fdir = os.path.join(util.get_headers_dir(config), "forks")
     if not os.path.exists(fdir):
         os.mkdir(fdir)
-    fork_filenames = filter(lambda x: x.startswith("fork_"), os.listdir(fdir))
+    fork_filenames: Iterable[str] = filter(
+        lambda x: x.startswith("fork_"), os.listdir(fdir)
+    )
     fork_filenames = sorted(fork_filenames, key=lambda x: int(x.split("_")[1]))
     for filename in fork_filenames:
         parent_base_height = int(filename.split("_")[1])
@@ -191,7 +202,7 @@ def read_blockchains(config: SimpleConfig) -> dict[int, Blockchain]:
     return blockchains
 
 
-def get_chain_for_header(header: dict) -> Blockchain | None:
+def get_chain_for_header(header: Header) -> Blockchain | None:
     """Return a blockchain that contains this header, or None."""
     if not isinstance(header, dict):
         return None
@@ -339,7 +350,7 @@ class Blockchain(PrintError):
         self._size = os.path.getsize(p) // HEADER_SIZE if os.path.exists(p) else 0
 
     def verify_header(
-        self, header: Header, prev_header: Header, bits: int | None = None
+        self, header: Header, prev_header: Header | None, bits: int | None = None
     ) -> None:
         """Raises VerifyError when failing to verify the header"""
         prev_header_hash = hash_header(prev_header)
@@ -485,11 +496,11 @@ class Blockchain(PrintError):
 
         assert self.parent_base_height != self.base_height
         if height < 0:
-            return
+            return None
         if height < self.base_height:
             return self.parent().read_header(height)
         if height > self.height():
-            return
+            return None
         delta = height - self.base_height
         name = self.path()
         if os.path.exists(name):
@@ -500,6 +511,8 @@ class Blockchain(PrintError):
             if h == NULL_HEADER:
                 return None
             return deserialize_header(h, height)
+
+        return None
 
     def get_hash(self, height: int) -> str:
         if height == -1:

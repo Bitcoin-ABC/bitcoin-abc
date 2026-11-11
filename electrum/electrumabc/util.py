@@ -108,7 +108,7 @@ class DebugMem(ThreadJob):
     """A handy class for debugging GC memory leaks"""
 
     def __init__(self, classes, interval: int = 30):
-        self.next_time = 0
+        self.next_time: float = 0
         self.classes = classes
         self.interval = interval
 
@@ -346,7 +346,7 @@ def get_user_dir(prefer_local=False) -> str:
         app_dir = os.environ.get("APPDATA")
         localapp_dir = os.environ.get("LOCALAPPDATA")
         # Prefer APPDATA, but may get LOCALAPPDATA if present and req'd.
-        if localapp_dir is not None and prefer_local or app_dir is None:
+        if localapp_dir is not None and (prefer_local or app_dir is None):
             app_dir = localapp_dir
         return os.path.join(app_dir, PROJECT_NAME_NO_SPACES)
     else:
@@ -480,7 +480,7 @@ class ServerError(Exception):
     phishing attacks from the untrusted server.
     See: https://github.com/spesmilo/electrum/issues/4968"""
 
-    def __init__(self, msg: str, server_msg: str = None):
+    def __init__(self, msg: str, server_msg: str | None = None):
         super().__init__(msg)
         self.server_msg = server_msg or ""  # prefer empty string if none supplied
 

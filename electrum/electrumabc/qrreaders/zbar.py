@@ -40,6 +40,8 @@ elif sys.platform in ("windows", "win32"):
 else:
     LIBNAME = "libzbar.so.0"
 
+LIBZBAR: ctypes.CDLL | None
+
 try:
     try:
         LIBZBAR = ctypes.cdll.LoadLibrary(
