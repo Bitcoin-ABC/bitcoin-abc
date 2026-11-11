@@ -1755,7 +1755,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             """Can happen in rare circumstances if wallet history is being
             radically reorged by network thread while we are in this code."""
 
-        def get_tx(tx_hash):
+        def get_tx(tx_hash) -> Transaction:
             """Try to get a tx from wallet, then from the Transaction class
             cache if that fails. In either case it deserializes the copy and
             puts the deserialized tx in local stack dict local_tx_cache. The

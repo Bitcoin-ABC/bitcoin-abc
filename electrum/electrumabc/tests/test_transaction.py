@@ -76,20 +76,6 @@ class TestBCDataStream(unittest.TestCase):
         with self.assertRaises(transaction.SerializationError):
             s.read_compact_size()
 
-    def test_string(self):
-        s = transaction.BCDataStream()
-        with self.assertRaises(transaction.SerializationError):
-            s.read_string()
-
-        msgs = ["Hello", " ", "World", "", "!"]
-        for msg in msgs:
-            s.write_string(msg)
-        for msg in msgs:
-            self.assertEqual(s.read_string(), msg)
-
-        with self.assertRaises(transaction.SerializationError):
-            s.read_string()
-
     def test_bytes(self):
         s = transaction.BCDataStream()
         s.write(b"foobar")
