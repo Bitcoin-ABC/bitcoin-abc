@@ -171,8 +171,15 @@ mod tests {
             r#"<div class="etoken-table-ctn" style="display: none">"#
         ));
 
-        // The "Tokens" toggle chevron is therefore not pre-rotated to the open
-        // state (rotate-arrow is added on click)
-        assert!(!html.contains("rotate-arrow"));
+        // The Tokens toggle chevron is not pre-rotated. rotate-arrow is
+        // added on click. base.html's script also contains that class name,
+        // so check this toggle instead of the whole page.
+        let onclick = "$('.etoken-table-ctn').toggle(); rotateArrow(this);";
+        let start = html.find(onclick).unwrap();
+        let end = start + html[start..].find("</a>").unwrap();
+        let toggle = &html[start..end];
+        assert!(toggle.contains("Tokens"));
+        assert!(toggle.contains(r#"class="icon chevron circle down""#));
+        assert!(!toggle.contains("rotate-arrow"));
     }
 }
