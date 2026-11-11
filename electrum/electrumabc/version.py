@@ -1,4 +1,5 @@
 import re
+from typing import Any, NoReturn
 
 # version of the client package
 VERSION_TUPLE = (5, 5, 3)
@@ -10,7 +11,7 @@ PROTOCOL_VERSION = "1.4"
 SEED_PREFIX = "01"  # Standard wallet, Electrum seed
 
 
-def seed_prefix(seed_type):
+def seed_prefix(seed_type: str) -> str:
     assert seed_type in ("standard", "electrum")
     return SEED_PREFIX
 
@@ -19,12 +20,13 @@ _RX_NORMALIZER = re.compile(r"(\.0+)*$")
 _RX_VARIANT_TOKEN_PARSE = re.compile(r"^(\d+)(.+)$")
 
 
-def normalize_version(v):
+def normalize_version(v: str) -> tuple[int, ...]:
     """Used for PROTOCOL_VERSION normalization, e.g '1.4.0' -> (1,4)"""
     return tuple(int(x) for x in _RX_NORMALIZER.sub("", v.strip()).split("."))
 
 
-def parse_package_version(pvstr):
+# In python 3.11+, the return type could be improved to: tuple[*tuple[int, ...], str]
+def parse_package_version(pvstr: str) -> Any:
     """Basically returns a tuple of the normalized version plus the 'variant'
     string at the end. Eg '3.3.0' -> (3, 3, ''), '3.2.2CS' -> (3, 2, 2, 'CS'),
     etc.
@@ -47,12 +49,11 @@ def parse_package_version(pvstr):
     (or just use normalize_version above).
     """
 
-    def raise_(e=None):
+    def raise_(e: Exception | None = None) -> NoReturn:
         exc = ValueError('Failed to parse package version for: "{}"'.format(pvstr))
         if e:
             raise exc from e
-        else:
-            raise exc
+        raise exc
 
     toks = [x.strip() for x in pvstr.split(".")]
     if not toks:
