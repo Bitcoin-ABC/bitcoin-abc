@@ -937,7 +937,7 @@ def parse_redeemScript(s: bytes) -> tuple[int, int, list[bytes], list[bytes], by
 
 def get_address_from_output_script(
     script: bytes | bytearray,
-) -> tuple[int, PublicKey | DestinationType]:
+) -> tuple[int, DestinationType]:
     """Return the type of the output and the address"""
     scriptlen = len(script)
 

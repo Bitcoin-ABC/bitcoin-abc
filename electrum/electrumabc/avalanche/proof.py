@@ -53,8 +53,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from io import BytesIO
 
-    from .. import address
-    from ..address import Address, ScriptOutput
+    from ..address import Address, DestinationType
     from ..wallet import AbstractWallet
 
 
@@ -256,7 +255,7 @@ class Proof(SerializableObject):
             self.signature, self.limitedid.serialize()
         )
 
-    def get_payout_address(self) -> Address | ScriptOutput | address.PublicKey:
+    def get_payout_address(self) -> DestinationType:
         _txout_type, addr = get_address_from_output_script(self.payout_script_pubkey)
         return addr
 
@@ -269,7 +268,7 @@ class ProofBuilder:
         self,
         sequence: int,
         expiration_time: int,
-        payout_address: Address | ScriptOutput | address.PublicKey,
+        payout_address: DestinationType,
         wallet: AbstractWallet,
         master: Key | None = None,
         master_pub: PublicKey | None = None,

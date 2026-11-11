@@ -55,6 +55,9 @@ class DestinationType(abc.ABC):
     def to_ui_string(self) -> str:
         pass
 
+    @abc.abstractmethod
+    def to_script(self) -> bytes: ...
+
 
 class AddressError(Exception):
     """Exception used for Address errors."""
@@ -116,6 +119,9 @@ def double_sha256(x) -> bytes:
 
 
 class UnknownAddress(DestinationType):
+    def to_script(self) -> bytes:
+        return b""
+
     def to_ui_string(self) -> str:
         return "<UnknownAddress>"
 
