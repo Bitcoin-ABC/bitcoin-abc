@@ -172,6 +172,13 @@ export class TransactionManager {
             // We already have the transaction in our pending amounts, so we can
             // just update the state
             tx = this.pendingAmounts[txid];
+            // Duplicate pre-consensus WS: already applied to available balance
+            if (tx.state === 'finalized') {
+                webViewLog(
+                    `Pre-consensus finalized transaction ${txid} already applied, ignoring duplicate`,
+                );
+                return;
+            }
             tx.state = 'finalized';
         } else {
             const pending_tx = await this.addPendingAmount(txid, 'finalized');

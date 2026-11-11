@@ -359,6 +359,23 @@ describe('transaction-manager.ts', function () {
             );
             expect(onBalanceChange.called).to.equal(false);
         });
+
+        it('Should be idempotent if already finalized pre-consensus', async function () {
+            const txid = '78'.repeat(32);
+            const amountSats = 45000;
+
+            mockChronik.setTx(txid, createIncomingTx(txid, amountSats, wallet));
+
+            await transactionManager.finalizePreConsensus(txid);
+            onBalanceChange.resetHistory();
+
+            await transactionManager.finalizePreConsensus(txid);
+
+            expect(transactionManager.getAvailableBalanceSats()).to.equal(
+                1000000 + amountSats,
+            );
+            expect(onBalanceChange.called).to.equal(false);
+        });
     });
 
     describe('finalizePostConsensus', function () {
