@@ -22,11 +22,17 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from . import networks
 from .bitcoin import hash_decode, hash_encode
 from .crypto import Hash
+from .network import Network
 from .util import ThreadJob
+
+if TYPE_CHECKING:
+    from .blockchain import Blockchain
 
 
 class BadResponse(Exception):
@@ -66,7 +72,7 @@ class SPVDelegate(ABC):
         have more work for the SPV to do in the near future."""
 
     @abstractmethod
-    def save_verified_tx(self, write: bool = False):
+    def save_verified_tx(self, write: bool = False) -> None:
         """Called if is_up_to_date returns True to tell wallet to save verified
         tx's"""
 
@@ -77,32 +83,37 @@ class SPVDelegate(ABC):
         were undone."""
 
     @abstractmethod
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         """Make sure delegate classes have this method (PrintError interface)."""
 
 
 class SPV(ThreadJob):
     """Simple Payment Verification"""
 
-    def __init__(self, network, wallet):
+    def __init__(self, network: Network, wallet: SPVDelegate):
         assert isinstance(wallet, SPVDelegate), (
             "Verifier instance needs to be passed a wallet that is an object"
             " implementing the SPVDelegate interface."
         )
         self.wallet = wallet  # despite the name, might not always be a wallet instance, may be SPVDelete (CashAcct)
-        self.network = network
-        self.blockchain = network.blockchain()
-        self.merkle_roots = {}  # txid -> merkle root (once it has been verified)
-        self.requested_merkle = set()  # txid set of pending requests
+        self.network: Network = network
+        self.blockchain: Blockchain = network.blockchain()
+
+        self.merkle_roots: dict[str, str] = {}
+        """txid -> merkle root (once it has been verified)"""
+
+        self.requested_merkle: set[str] = set()
+        """txid set of pending requests"""
+
         self.qbusy = False
         self.cleaned_up = False
         self._need_release = False
         self._tick_ct = 0
 
-    def diagnostic_name(self):
+    def diagnostic_name(self) -> str:
         return f"{__class__.__name__}/{self.wallet.diagnostic_name()}"
 
-    def _release(self):
+    def _release(self) -> None:
         """Called from the Network (DaemonThread) -- to prevent race conditions
         with network, we remove data structures related to the network and
         unregister ourselves as a job from within the Network thread itself."""
@@ -111,12 +122,12 @@ class SPV(ThreadJob):
         self.network.cancel_requests(self.verify_merkle)
         self.network.remove_jobs([self])
 
-    def release(self):
+    def release(self) -> None:
         """Called from main thread, enqueues a 'release' to happen in the
         Network thread."""
         self._need_release = True
 
-    def run(self):
+    def run(self) -> None:
         if self._need_release:
             self._release()
         if self.cleaned_up:
@@ -176,7 +187,7 @@ class SPV(ThreadJob):
             self.blockchain = self.network.blockchain()
             self.undo_verifications()
 
-    def verify_merkle(self, response):
+    def verify_merkle(self, response: dict[str, Any]) -> None:
         if self.cleaned_up:
             return  # we have been killed, this was just a delayed callback
         try:
@@ -240,7 +251,9 @@ class SPV(ThreadJob):
             self.network.trigger_callback("wallet_updated", self.wallet)
 
     @classmethod
-    def hash_merkle_root(cls, merkle_s, target_hash, pos):
+    def hash_merkle_root(
+        cls, merkle_s: Iterable[str], target_hash: str, pos: int
+    ) -> str:
         h = hash_decode(target_hash)
         for i, item in enumerate(merkle_s):
             h = (
@@ -271,7 +284,7 @@ class SPV(ThreadJob):
             # Check git history if you're really curious. :)
         return hash_encode(h)
 
-    def undo_verifications(self):
+    def undo_verifications(self) -> None:
         height = self.blockchain.get_base_height()
         tx_hashes = self.wallet.undo_verifications(self.blockchain, height)
         for tx_hash in tx_hashes:
@@ -279,9 +292,9 @@ class SPV(ThreadJob):
             self.remove_spv_proof_for_tx(tx_hash)
         self.qbusy = False
 
-    def remove_spv_proof_for_tx(self, tx_hash):
+    def remove_spv_proof_for_tx(self, tx_hash: str) -> None:
         self.merkle_roots.pop(tx_hash, None)
         self.requested_merkle.discard(tx_hash)
 
-    def is_up_to_date(self):
+    def is_up_to_date(self) -> bool:
         return not self.requested_merkle
