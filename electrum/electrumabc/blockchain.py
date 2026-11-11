@@ -64,7 +64,7 @@ NULL_HASH_BYTES = bytes([0]) * 32
 NULL_HASH_HEX = NULL_HASH_BYTES.hex()
 
 
-def bits_to_work(bits) -> int:
+def bits_to_work(bits: int) -> int:
     target = bits_to_target(bits)
     if not (0 < target < (1 << 256)):
         return 0
@@ -454,7 +454,7 @@ class Blockchain(PrintError):
         blockchains[self.base_height] = self
         blockchains[parent.base_height] = parent
 
-    def write(self, data: bytes, offset: int, truncate=True) -> None:
+    def write(self, data: bytes, offset: int, truncate: bool = True) -> None:
         filename = self.path()
         with self.lock:
             with open(filename, "rb+") as f:
@@ -718,7 +718,7 @@ class Blockchain(PrintError):
             return MAX_BITS
         return target_to_bits(new_target)
 
-    def can_connect(self, header: Header, check_height=True) -> bool:
+    def can_connect(self, header: Header, check_height: bool = True) -> bool:
         """Return True if header is the next header on this chain."""
         height = header["block_height"]
         if check_height and self.height() != height - 1:
@@ -744,7 +744,7 @@ class Blockchain(PrintError):
         return True
 
     def connect_chunk(
-        self, base_height: int, data: bytes, proof_was_provided=False
+        self, base_height: int, data: bytes, proof_was_provided: bool = False
     ) -> ChunkStatus:
         chunk = HeaderChunk(base_height, data)
 
