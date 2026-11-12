@@ -66,6 +66,12 @@ def poll_for_answer(
     raise TimeoutError("Timed out waiting for an answer")
 
 
+def rpc(method: str, **params: Any) -> Any:
+    """Call a RPC method of the Electrum ABC daemon and return its result.
+    Raise a RuntimeError if the daemon returns an error."""
+    return poll_for_answer(EC_DAEMON_RPC_URL, request(method, params=params))
+
+
 # Creates a temp directory on disk for wallet storage
 # Starts a daemon, creates and loads a wallet
 def start_ec_daemon(datadir: str) -> None:
