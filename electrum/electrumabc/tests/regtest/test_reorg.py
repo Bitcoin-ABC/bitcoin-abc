@@ -35,6 +35,7 @@ from .util import (
     COINBASE_MATURITY,
     EC_DAEMON_RPC_URL,
     poll_for_answer,
+    rpc,
     wait_for_len,
     wait_until,
 )
@@ -51,7 +52,7 @@ class TestReorg(ElectrumABCTestCase):
         The server_height field returned by the `getinfo` RPC is usually fulcrum's tip,
         but it could be 0 if Electrum ABC is not connected to any server.
         """
-        info = poll_for_answer(EC_DAEMON_RPC_URL, request("getinfo"))
+        info = rpc("getinfo")
         return (
             self.node.getblockchaininfo()["blocks"],
             info["server_height"],
@@ -100,7 +101,7 @@ class TestReorg(ElectrumABCTestCase):
         happening on the chain and properly updates the transaction history.
         """
         # Get a wallet address
-        addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
+        addr = rpc("getunusedaddress")
 
         poll_for_answer(
             EC_DAEMON_RPC_URL,
@@ -124,29 +125,19 @@ class TestReorg(ElectrumABCTestCase):
         self.generatetoaddress(COINBASE_MATURITY, ADDRESS_NOT_MINE)
         # Note that the "confirmations" field in the history is the number of confirmations
         # for the tx, not for the block. The block containing the tx counts for +1.
-        wait_until(
-            lambda: (
-                poll_for_answer(EC_DAEMON_RPC_URL, request("history"))[0][
-                    "confirmations"
-                ]
-                == COINBASE_MATURITY + 1
-            )
-        )
+        wait_until(lambda: rpc("history")[0]["confirmations"] == COINBASE_MATURITY + 1)
 
         # Mine 2 empty blocks. The first one will be invalidated
         blockhash_to_park = self.generatetoaddress(2, ADDRESS_NOT_MINE)[0]
 
         # Add another transaction to the wallet's history, spending the previous UTXO
-        tx_hex = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "payto",
-                params={"destination": addr, "amount": 1_000, "addtransaction": True},
-            ),
+        tx_hex = rpc(
+            "payto",
+            destination=addr,
+            amount=1_000,
+            addtransaction=True,
         )["hex"]
-        success, txid = poll_for_answer(
-            EC_DAEMON_RPC_URL, request("broadcast", params={"tx": tx_hex})
-        )
+        success, txid = rpc("broadcast", tx=tx_hex)
         assert success
 
         hist = wait_for_len(request("history"), 2)
@@ -169,7 +160,7 @@ class TestReorg(ElectrumABCTestCase):
         assert blockheight == parent_height + COINBASE_MATURITY + 3
 
         def is_block_height_set_for_tx() -> bool:
-            hist = poll_for_answer(EC_DAEMON_RPC_URL, request("history"))
+            hist = rpc("history")
             return hist[0]["height"] == blockheight
 
         wait_until(is_block_height_set_for_tx)

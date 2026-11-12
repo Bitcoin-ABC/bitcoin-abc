@@ -35,6 +35,7 @@ from .util import (  # noqa: F401
     EC_DAEMON_RPC_URL,
     get_block_subsidy,
     poll_for_answer,
+    rpc,
     wait_for_len,
     wait_until,
 )
@@ -43,7 +44,7 @@ from .util import (  # noqa: F401
 class TestRPCMisc(ElectrumABCTestCase):
     def test_getunusedaddress(self):
         """Verify the `getunusedaddress` RPC"""
-        result = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
+        result = rpc("getunusedaddress")
 
         # The daemon returns an address with a prefix.
         prefix = "ecregtest:"
@@ -53,14 +54,14 @@ class TestRPCMisc(ElectrumABCTestCase):
 
     def test_getservers(self):
         """Verify the `getservers` RPC"""
-        result = poll_for_answer(EC_DAEMON_RPC_URL, request("getservers"))
+        result = rpc("getservers")
 
         # Only one server in this setup
         assert len(result) == 1
 
     def test_balance(self):
         """Verify the `getbalance` RPC"""
-        addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
+        addr = rpc("getunusedaddress")
 
         tip_height = self.node.getblockchaininfo()["blocks"]
         coinbase_amount = XEC.satoshis_to_unit(get_block_subsidy(tip_height + 1))
@@ -72,7 +73,7 @@ class TestRPCMisc(ElectrumABCTestCase):
             The amount is in XEC.
             amount_status can be one of "unmatured", "unconfirmed" or "confirmed"
             """
-            result = poll_for_answer(EC_DAEMON_RPC_URL, request("getbalance"))
+            result = rpc("getbalance")
             return amount_status in result and Decimal(result[amount_status]) == amount
 
         wait_until(lambda: wallet_has_expected_amount("unmatured", coinbase_amount))
@@ -122,42 +123,36 @@ class TestRPCMisc(ElectrumABCTestCase):
     def test_payto_broadcast_getaddresshistory(self):
         """Use the payto and broadcast commands and check the resulting  wallet UTXOs
         with getaddresshistory"""
-        addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
+        addr = rpc("getunusedaddress")
 
         self.node.sendtoaddress(addr, 10_000_000)
 
         hist = wait_for_len(request("getaddresshistory", params={"address": addr}), 1)
         txid0 = hist[0]["tx_hash"]
 
-        tx_hex = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "payto",
-                params={"destination": addr, "amount": 1_000, "addtransaction": True},
-            ),
+        tx_hex = rpc(
+            "payto",
+            destination=addr,
+            amount=1_000,
+            addtransaction=True,
         )["hex"]
-        success, txid1 = poll_for_answer(
-            EC_DAEMON_RPC_URL, request("broadcast", params={"tx": tx_hex})
-        )
+        success, txid1 = rpc("broadcast", tx=tx_hex)
         assert success
 
-        tx_hex = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "payto",
-                params={"destination": addr, "amount": 2_000, "addtransaction": True},
-            ),
+        tx_hex = rpc(
+            "payto",
+            destination=addr,
+            amount=2_000,
+            addtransaction=True,
         )["hex"]
-        success, txid2 = poll_for_answer(
-            EC_DAEMON_RPC_URL, request("broadcast", params={"tx": tx_hex})
-        )
+        success, txid2 = rpc("broadcast", tx=tx_hex)
         assert success
 
         hist = wait_for_len(request("getaddresshistory", params={"address": addr}), 3)
         assert {txid0, txid1, txid2} == {h["tx_hash"] for h in hist}
 
         total_fee = sum(XEC.satoshis_to_unit(tx["fee"]) for tx in hist[1:])
-        coins = poll_for_answer(EC_DAEMON_RPC_URL, request("listunspent"))
+        coins = rpc("listunspent")
         assert {Decimal(coin["value"]) for coin in coins} == {
             Decimal(1000),
             Decimal(2000),
@@ -166,21 +161,16 @@ class TestRPCMisc(ElectrumABCTestCase):
 
     def test_deserialize_p2pkh(self):
         # txid f8c9d5fea8bda2ba3514c5d316a68d7439c04de29b0404eaa197e2da871712f6
-        tx = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "deserialize",
-                params={
-                    "tx": (
-                        "0100000001f184f3128dc56f6575cf876c77657af21888fab6e602d1e3df7aa24"
-                        "d1d36c632010000006a47304402207f0066e8c48bc73fbd58045b9ce7272d5cd7"
-                        "1fdd86ab1debdd0628f5cc14a77d02207b2c92f785dd89387eadc37cfaa825392"
-                        "c2dfa8e24b7673546b5ed02050639a8412103562731a08eb23e6260b516c4564f"
-                        "746033e9080bc9f61ad2158a63927500b8b1ffffffff02a6ca360c00000000197"
-                        "6a9142560d750b51eebd180cef831b4a5c7aafc487bbd88acc2b64d0300000000"
-                        "1976a914231f7087937684790d1049294f3aef9cfb7b05dd88ac00000000"
-                    )
-                },
+        tx = rpc(
+            "deserialize",
+            tx=(
+                "0100000001f184f3128dc56f6575cf876c77657af21888fab6e602d1e3df7aa24"
+                "d1d36c632010000006a47304402207f0066e8c48bc73fbd58045b9ce7272d5cd7"
+                "1fdd86ab1debdd0628f5cc14a77d02207b2c92f785dd89387eadc37cfaa825392"
+                "c2dfa8e24b7673546b5ed02050639a8412103562731a08eb23e6260b516c4564f"
+                "746033e9080bc9f61ad2158a63927500b8b1ffffffff02a6ca360c00000000197"
+                "6a9142560d750b51eebd180cef831b4a5c7aafc487bbd88acc2b64d0300000000"
+                "1976a914231f7087937684790d1049294f3aef9cfb7b05dd88ac00000000"
             ),
         )
         assert tx == {
@@ -227,24 +217,19 @@ class TestRPCMisc(ElectrumABCTestCase):
     def test_deserialize_p2pk(self):
         # txid f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16
         # (first non-coinbase p2pk transaction)
-        tx = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "deserialize",
-                params={
-                    "tx": (
-                        "0100000001c997a5e56e104102fa209c6a852dd90660a20b2d9c352423ed"
-                        "ce25857fcd3704000000004847304402204e45e16932b8af514961a1d3a1"
-                        "a25fdf3f4f7732e9d624c6c61548ab5fb8cd410220181522ec8eca07de48"
-                        "60a4acdd12909d831cc56cbbac4622082221a8768d1d0901ffffffff0200"
-                        "ca9a3b00000000434104ae1a62fe09c5f51b13905f07f06b99a2f7159b22"
-                        "25f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a"
-                        "0626f1baded5c72a704f7e6cd84cac00286bee0000000043410411db93e1"
-                        "dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0"
-                        "eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3"
-                        "ac00000000"
-                    )
-                },
+        tx = rpc(
+            "deserialize",
+            tx=(
+                "0100000001c997a5e56e104102fa209c6a852dd90660a20b2d9c352423ed"
+                "ce25857fcd3704000000004847304402204e45e16932b8af514961a1d3a1"
+                "a25fdf3f4f7732e9d624c6c61548ab5fb8cd410220181522ec8eca07de48"
+                "60a4acdd12909d831cc56cbbac4622082221a8768d1d0901ffffffff0200"
+                "ca9a3b00000000434104ae1a62fe09c5f51b13905f07f06b99a2f7159b22"
+                "25f374cd378d71302fa28414e7aab37397f554a7df5f142c21c1b7303b8a"
+                "0626f1baded5c72a704f7e6cd84cac00286bee0000000043410411db93e1"
+                "dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0"
+                "eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3"
+                "ac00000000"
             ),
         )
         assert tx == {
@@ -287,22 +272,17 @@ class TestRPCMisc(ElectrumABCTestCase):
     def test_deserialize_p2sh(self):
         # txid a0f1aaa2fb4582c89e0511df0374a5a2833bf95f7314f4a51b55b7b71e90ce0f
         # (first p2sh transaction to also be spent later)
-        tx = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "deserialize",
-                params={
-                    "tx": (
-                        "01000000014ce7153d92e3b24d9eea31f8cf391c3fb4c39f7742b341b2d3"
-                        "6c6367e7546474000000006c493046022100c554360535b2ad3b1cb1b966"
-                        "a87807f7a7e45fa485348d662a1e7413dced8471022100d6bcfc4385b7ac"
-                        "41ca3968a73c4a28e38879192c3db1286b36e59ec9fce52bbd012103c96e"
-                        "3a9e63986801269d5f278246ed7cdc2d392595d0a25b102e04598f4b4fa9"
-                        "ffffffff02cb871a00000000001976a914c02ebae82202119f23f330781f"
-                        "f26b303edb7dbd88ac809698000000000017a914748284390f9e263a4b76"
-                        "6a75d0633c50426eb8758700000000"
-                    )
-                },
+        tx = rpc(
+            "deserialize",
+            tx=(
+                "01000000014ce7153d92e3b24d9eea31f8cf391c3fb4c39f7742b341b2d3"
+                "6c6367e7546474000000006c493046022100c554360535b2ad3b1cb1b966"
+                "a87807f7a7e45fa485348d662a1e7413dced8471022100d6bcfc4385b7ac"
+                "41ca3968a73c4a28e38879192c3db1286b36e59ec9fce52bbd012103c96e"
+                "3a9e63986801269d5f278246ed7cdc2d392595d0a25b102e04598f4b4fa9"
+                "ffffffff02cb871a00000000001976a914c02ebae82202119f23f330781f"
+                "f26b303edb7dbd88ac809698000000000017a914748284390f9e263a4b76"
+                "6a75d0633c50426eb8758700000000"
             ),
         )
         assert tx == {
@@ -348,33 +328,28 @@ class TestRPCMisc(ElectrumABCTestCase):
 
         # txid 4d8eabfc8e6c266fb0ccd815d37dd69246da634df0effd5a5c922e4ec37880f6
         # spends the above p2sh output,  1-of-2 multisig
-        tx = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "deserialize",
-                params={
-                    "tx": (
-                        "0100000003a5ee1a0fd80dfbc3142df136ab56e082b799c13aa977c048bd"
-                        "f8f61bd158652c000000006b48304502203b0160de302cded63589a88214"
-                        "fe499a25aa1d86a2ea09129945cd632476a12c022100c77727daf0718307"
-                        "e184d55df620510cf96d4b5814ae3258519c0482c1ca82fa0121024f4102"
-                        "c1f1cf662bf99f2b034eb03edd4e6c96793cb9445ff519aab580649120ff"
-                        "ffffff0fce901eb7b7551ba5f414735ff93b83a2a57403df11059ec88245"
-                        "fba2aaf1a0000000006a47304402204089adb8a1de1a9e22aa43b94d54f1"
-                        "e54dc9bea745d57df1a633e03dd9ede3c2022037d1e53e911ed721218602"
-                        "8f2e085f70524930e22eb6184af090ba4ab779a5b90121030644cb394bf3"
-                        "81dbec91680bdf1be1986ad93cfb35603697353199fb285a119effffffff"
-                        "0fce901eb7b7551ba5f414735ff93b83a2a57403df11059ec88245fba2aa"
-                        "f1a0010000009300493046022100a07b2821f96658c938fa9c68950af0e6"
-                        "9f3b2ce5f8258b3a6ad254d4bc73e11e022100e82fab8df3f7e7a28e91b3"
-                        "609f91e8ebf663af3a4dc2fd2abd954301a5da67e701475121022afc20bf"
-                        "379bc96a2f4e9e63ffceb8652b2b6a097f63fbee6ecec2a49a48010e2103"
-                        "a767c7221e9f15f870f1ad9311f5ab937d79fcaeee15bb2c722bca515581"
-                        "b4c052aeffffffff02a3b81b00000000001976a914ea00917f128f569cbd"
-                        "f79da5efcd9001671ab52c88ac80969800000000001976a9143dec0ead28"
-                        "9be1afa8da127a7dbdd425a05e25f688ac00000000"
-                    )
-                },
+        tx = rpc(
+            "deserialize",
+            tx=(
+                "0100000003a5ee1a0fd80dfbc3142df136ab56e082b799c13aa977c048bd"
+                "f8f61bd158652c000000006b48304502203b0160de302cded63589a88214"
+                "fe499a25aa1d86a2ea09129945cd632476a12c022100c77727daf0718307"
+                "e184d55df620510cf96d4b5814ae3258519c0482c1ca82fa0121024f4102"
+                "c1f1cf662bf99f2b034eb03edd4e6c96793cb9445ff519aab580649120ff"
+                "ffffff0fce901eb7b7551ba5f414735ff93b83a2a57403df11059ec88245"
+                "fba2aaf1a0000000006a47304402204089adb8a1de1a9e22aa43b94d54f1"
+                "e54dc9bea745d57df1a633e03dd9ede3c2022037d1e53e911ed721218602"
+                "8f2e085f70524930e22eb6184af090ba4ab779a5b90121030644cb394bf3"
+                "81dbec91680bdf1be1986ad93cfb35603697353199fb285a119effffffff"
+                "0fce901eb7b7551ba5f414735ff93b83a2a57403df11059ec88245fba2aa"
+                "f1a0010000009300493046022100a07b2821f96658c938fa9c68950af0e6"
+                "9f3b2ce5f8258b3a6ad254d4bc73e11e022100e82fab8df3f7e7a28e91b3"
+                "609f91e8ebf663af3a4dc2fd2abd954301a5da67e701475121022afc20bf"
+                "379bc96a2f4e9e63ffceb8652b2b6a097f63fbee6ecec2a49a48010e2103"
+                "a767c7221e9f15f870f1ad9311f5ab937d79fcaeee15bb2c722bca515581"
+                "b4c052aeffffffff02a3b81b00000000001976a914ea00917f128f569cbd"
+                "f79da5efcd9001671ab52c88ac80969800000000001976a9143dec0ead28"
+                "9be1afa8da127a7dbdd425a05e25f688ac00000000"
             ),
         )
 
@@ -468,35 +443,22 @@ class TestRPCMisc(ElectrumABCTestCase):
 
     def test_signtransaction(self):
         """Create an unsigned transaction, sign and broadcast it"""
-        addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
+        addr = rpc("getunusedaddress")
 
         self.node.sendtoaddress(addr, 1_100)
 
         wait_for_len(request("history"), 1)
 
-        unsigned_tx_hex = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "payto",
-                params={"destination": addr, "amount": 1_000, "unsigned": True},
-            ),
+        unsigned_tx_hex = rpc(
+            "payto",
+            destination=addr,
+            amount=1_000,
+            unsigned=True,
         )["hex"]
 
-        signed_tx_hex = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "signtransaction",
-                params={"tx": unsigned_tx_hex},
-            ),
-        )["hex"]
+        signed_tx_hex = rpc("signtransaction", tx=unsigned_tx_hex)["hex"]
 
-        success, _ = poll_for_answer(
-            EC_DAEMON_RPC_URL,
-            request(
-                "broadcast",
-                params={"tx": signed_tx_hex},
-            ),
-        )
+        success, _ = rpc("broadcast", tx=signed_tx_hex)
         assert success
 
     def test_addressconvert(self):
@@ -505,10 +467,7 @@ class TestRPCMisc(ElectrumABCTestCase):
         cashaddr_bch = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt"
         legacy_addr = "mfWxJ45yp2SFn7UciZyNpvDKrzbhyfKrY8"
         for addr_str in (cashaddr, cashaddr_no_prefix, cashaddr_bch, legacy_addr):
-            res = poll_for_answer(
-                EC_DAEMON_RPC_URL,
-                request("addressconvert", params={"address": addr_str}),
-            )
+            res = rpc("addressconvert", address=addr_str)
             assert res == {
                 "cashaddr": cashaddr,
                 "bitcoincashaddr": cashaddr_bch,

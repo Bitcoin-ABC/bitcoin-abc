@@ -27,18 +27,16 @@ import unittest
 from jsonrpcclient import request
 
 from .framework import ElectrumABCTestCase
-from .util import EC_DAEMON_RPC_URL, poll_for_answer
+from .util import EC_DAEMON_RPC_URL, poll_for_answer, rpc
 
 
 class TestAddrRequest(ElectrumABCTestCase):
     def test_addrequest(self):
         """Verify the `addrequest` RPC by creating a request, pay it and remove it"""
-        result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
+        result = rpc("listrequests")
         assert len(result) == 0
 
-        result = poll_for_answer(
-            EC_DAEMON_RPC_URL, request("addrequest", params={"amount": 2_500_000})
-        )
+        result = rpc("addrequest", amount=2_500_000)
         assert result["status"] == "Pending"
         assert result["amount"] == 250_000_000
         addr = result["address"]
@@ -61,8 +59,8 @@ class TestAddrRequest(ElectrumABCTestCase):
         )
         assert result[0]["status"] == "Paid"
 
-        poll_for_answer(EC_DAEMON_RPC_URL, request("clearrequests"))
-        result = poll_for_answer(EC_DAEMON_RPC_URL, request("listrequests"))
+        rpc("clearrequests")
+        result = rpc("listrequests")
         assert len(result) == 0
 
 
