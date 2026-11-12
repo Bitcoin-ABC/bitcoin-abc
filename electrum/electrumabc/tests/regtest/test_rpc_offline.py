@@ -73,6 +73,25 @@ class TestRPCOffline(ElectrumABCTestCase):
         with self.assertRaisesRegex(RuntimeError, "check_seed has been removed"):
             rpc("check_seed", seed=seed)
 
+    def test_make_electrum_seed(self):
+        """Create legacy Electrum seeds and check them with check_electrum_seed"""
+        seed = rpc("make_electrum_seed")
+        # 132 bits of entropy by default, 11 bits per word
+        assert len(seed.split()) == 12
+        assert rpc("check_electrum_seed", seed=seed) is True
+
+        # The seed encodes a multiple of the custom entropy
+        entropy = 1_234_567
+        seed = rpc("make_electrum_seed", entropy=entropy)
+        # Make sure the seed doesn't also happen to encode a multiple of
+        # entropy + 1, so the negative check below is deterministic. This
+        # almost never needs a second iteration.
+        while mnemo.MnemonicElectrum().mnemonic_decode(seed) % (entropy + 1) == 0:
+            seed = rpc("make_electrum_seed", entropy=entropy)
+
+        assert rpc("check_electrum_seed", seed=seed, entropy=entropy) is True
+        assert rpc("check_electrum_seed", seed=seed, entropy=entropy + 1) is False
+
     def test_dumpprivkeys(self):
         """This command is deprecated and only returns a message"""
         assert "getprivatekeys" in rpc("dumpprivkeys")

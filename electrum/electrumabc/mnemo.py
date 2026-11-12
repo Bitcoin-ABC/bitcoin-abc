@@ -31,7 +31,7 @@ from enum import IntEnum, auto, unique
 
 import mnemonic
 
-from . import old_mnemonic, version
+from . import old_mnemonic
 from .bitcoin import hmac_sha_512
 from .printerror import PrintError
 from .util import randrange
@@ -66,9 +66,7 @@ seed_type_names_inv = {
 }
 
 
-def autodetect_seed_type(
-    seed: str, lang: str | None = None, *, prefix: str = version.SEED_PREFIX
-) -> set[SeedType]:
+def autodetect_seed_type(seed: str, lang: str | None = None) -> set[SeedType]:
     """Given a mnemonic seed phrase, auto-detect the possible seed types it can
     be. Note that some lucky seed phrases match all three types. Electron Cash
     will never generate a seed that matches more than one type, but it is
@@ -77,7 +75,7 @@ def autodetect_seed_type(
     ret = set()
     if is_bip39_seed(seed):
         ret.add(SeedType.BIP39)
-    if is_electrum_seed(seed, prefix):
+    if is_electrum_seed(seed):
         ret.add(SeedType.Electrum)
     if is_old_seed(seed):
         ret.add(SeedType.Old)
@@ -95,13 +93,13 @@ def is_bip39_seed(seed: str) -> bool:
     return mnemo.check(seed)
 
 
-def is_electrum_seed(seed: str, prefix: str = version.SEED_PREFIX) -> bool:
+def is_electrum_seed(seed: str) -> bool:
     """Checks if `seed` is a valid Electrum seed phrase.
 
     Returns True if the text in question matches the checksum for Electrum
     seeds. Does not depend on any particular word list, just checks unicode
     data.  Very fast."""
-    return MnemonicElectrum.verify_checksum_only(seed, prefix)
+    return MnemonicElectrum.verify_checksum_only(seed)
 
 
 def is_old_seed(seed: str) -> bool:
@@ -211,7 +209,7 @@ class MnemonicBase(PrintError):
             f"mnemonic_to_seed is not implemented in {cls.__name__}"
         )
 
-    def make_seed(self, seed_type=None, num_bits=128, custom_entropy=1) -> str:
+    def make_seed(self, num_bits=128, custom_entropy=1) -> str:
         raise NotImplementedError(
             f"make_seed is not implemented in {type(self).__name__}"
         )
@@ -265,6 +263,9 @@ class MnemonicElectrum(MnemonicBase):
     The Electrum seed phrase format uses a hash based checksum of the normalized
     text data, instead of a wordlist-dependent checksum."""
 
+    SEED_PREFIX = "01"
+    """The hex encoded HMAC-SHA512 of an Electrum seed must begin with this"""
+
     @classmethod
     def mnemonic_to_seed(cls, mnemonic, passphrase) -> bytes:
         """Electrum format"""
@@ -295,7 +296,7 @@ class MnemonicElectrum(MnemonicBase):
             i = i * n + k
         return i
 
-    def make_seed(self, seed_type=None, num_bits=132, custom_entropy=1) -> str:
+    def make_seed(self, num_bits=132, custom_entropy=1) -> str:
         """Electrum format"""
         if self.lang not in ("en", "es", "pt"):
             raise NotImplementedError(
@@ -303,16 +304,13 @@ class MnemonicElectrum(MnemonicBase):
                 + "Only English, Spanish, and Portuguese are supported as seed"
                 " generation languages in this implementation"
             )
-        if seed_type is None:
-            seed_type = "electrum"
-        prefix = version.seed_prefix(seed_type)
         # increase num_bits in order to obtain a uniform distibution for the last word
         bpw = math.log(len(self.wordlist), 2)
         num_bits = int(math.ceil(num_bits / bpw) * bpw)
         # handle custom entropy; make sure we add at least 16 bits
         n_custom = int(math.ceil(math.log(custom_entropy, 2)))
         n = max(16, num_bits - n_custom)
-        self.print_error("make_seed", prefix, "adding %d bits" % n)
+        self.print_error("make_seed", "adding %d bits" % n)
         my_entropy = 1
         while my_entropy < pow(2, n - bpw):
             # try again if seed would not contain enough words
@@ -325,9 +323,7 @@ class MnemonicElectrum(MnemonicBase):
             if i != self.mnemonic_decode(seed):
                 raise Exception("Cannot extract same entropy from mnemonic!")
             # avoid ambiguity between old-style seeds and new-style, as well as avoid clashes with BIP39 seeds
-            if autodetect_seed_type(seed, self.lang, prefix=prefix) == {
-                SeedType.Electrum
-            }:
+            if autodetect_seed_type(seed, self.lang) == {SeedType.Electrum}:
                 break
         self.print_error(
             "{nwords} words, {nonce} iterations".format(
@@ -341,20 +337,14 @@ class MnemonicElectrum(MnemonicBase):
         i = self.mnemonic_decode(seed)
         return i % custom_entropy == 0
 
-    def is_checksum_valid(
-        self, mnemonic: str, *, prefix: str = version.SEED_PREFIX
-    ) -> tuple[bool, bool]:
-        return self.verify_checksum_only(mnemonic, prefix), self.verify_wordlist(
-            mnemonic
-        )
+    def is_checksum_valid(self, mnemonic: str) -> tuple[bool, bool]:
+        return self.verify_checksum_only(mnemonic), self.verify_wordlist(mnemonic)
 
     @classmethod
-    def verify_checksum_only(
-        cls, mnemonic: str, prefix: str = version.SEED_PREFIX
-    ) -> bool:
+    def verify_checksum_only(cls, mnemonic: str) -> bool:
         x = cls.normalize_text(mnemonic)
         s = hmac_sha_512(b"Seed version", x.encode("utf8")).hex()
-        return s.startswith(prefix)
+        return s.startswith(cls.SEED_PREFIX)
 
     def is_seed(self, mnemonic: str) -> bool:
         """Overrides super, skips the wordlist check which is not needed to

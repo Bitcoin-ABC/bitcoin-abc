@@ -7,14 +7,6 @@ PACKAGE_VERSION = ".".join(map(str, VERSION_TUPLE))
 # protocol version requested
 PROTOCOL_VERSION = "1.4"
 
-# The hash of the Electrum mnemonic seed must begin with this
-SEED_PREFIX = "01"  # Standard wallet, Electrum seed
-
-
-def seed_prefix(seed_type: str) -> str:
-    assert seed_type in ("standard", "electrum")
-    return SEED_PREFIX
-
 
 _RX_NORMALIZER = re.compile(r"(\.0+)*$")
 _RX_VARIANT_TOKEN_PARSE = re.compile(r"^(\d+)(.+)$")
