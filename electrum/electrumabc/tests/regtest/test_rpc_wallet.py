@@ -142,6 +142,16 @@ class TestRPCWallet(ElectrumABCTestCase):
             "Error: This type of wallet cannot import private keys."
         )
 
+    def test_getunusedaddress(self):
+        """Verify the `getunusedaddress` RPC"""
+        result = rpc("getunusedaddress")
+
+        # The daemon returns an address with a prefix.
+        prefix = "ecregtest:"
+        # Check that the length is 42 and starts with 'q'
+        assert len(result) == len(prefix) + 42
+        assert result.startswith(prefix + "q")
+
 
 if __name__ == "__main__":
     unittest.main()
