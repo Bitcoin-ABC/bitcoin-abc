@@ -49,7 +49,6 @@ VALID_HASHES = [
 ]
 
 BCH_PREFIX = "bitcoincash"
-BCH_TESTNET_PREFIX = "bchtest"
 
 VALID_PUBKEY_ADDRESSES_BCH = [
     "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a",

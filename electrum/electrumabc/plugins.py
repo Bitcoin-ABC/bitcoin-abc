@@ -166,7 +166,9 @@ class Plugins(DaemonThread):
             return cls._all_found_plugins
 
         cls._all_found_plugins = {}
-        for loader, name, ispkg in pkgutil.iter_modules([cls.internal_plugins_pkgpath]):
+        for loader, name, _ispkg in pkgutil.iter_modules(
+            [cls.internal_plugins_pkgpath]
+        ):
             # we don't  have a server for cosigner_pool
             if name == "cosigner_pool":
                 continue

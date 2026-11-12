@@ -27,7 +27,6 @@
 # SOFTWARE.
 import hashlib
 import math
-from collections.abc import Generator
 from enum import IntEnum, auto, unique
 
 import mnemonic
@@ -179,11 +178,6 @@ class MnemonicBase(PrintError):
         self.print_error("loading wordlist for:", lang)
         filename = filenames[lang]
         self.wordlist = Wordlist.from_file(filename)
-
-    def get_suggestions(self, prefix: str) -> Generator[str]:
-        for w in self.wordlist:
-            if w.startswith(prefix):
-                yield w
 
     @classmethod
     def list_languages(cls) -> list[str]:

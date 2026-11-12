@@ -35,23 +35,10 @@ import stem.control
 import stem.process
 import stem.socket
 
-from .. import version
 from ..printerror import PrintError, is_verbose
 from ..simple_config import ConfigKeys, SimpleConfig
 from ..tor_downloader import TOR_BINARY_PATH
 from ..utils import Event
-
-# Python 3.10 workaround for stem package which is using collections.Iterable
-# (removed in 3.10)
-if sys.version_info >= (3, 10):
-    if hasattr(stem, "__version__") and version.parse_package_version(stem.__version__)[
-        :2
-    ] <= (1, 8):
-        import collections.abc
-
-        # monkey-patch collections.Iterable back since stem.control expects to see
-        # this name
-        stem.control.collections.Iterable = collections.abc.Iterable
 
 
 def check_proxy_bypass_tor_control(*args, **kwargs) -> bool:

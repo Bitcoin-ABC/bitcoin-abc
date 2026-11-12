@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# -*- mode: python3 -*-
 """
 secp256k1 - Maintain a single global secp256k1 context. ecc.py and
 schnorr.py make use of this context to do fast ECDSA signing or Schnorr signing,

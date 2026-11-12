@@ -264,18 +264,6 @@ def assert_datadir_available(config_path) -> None:
         )
 
 
-def assert_file_in_datadir_available(path, config_path) -> None:
-    if os.path.exists(path):
-        return
-    else:
-        assert_datadir_available(config_path)
-        raise FileNotFoundError(
-            "Cannot find file but datadir is there."
-            + "\n"
-            + "Should be at {}".format(path)
-        )
-
-
 def standardize_path(path):
     if path is not None:
         path = os.path.normcase(os.path.realpath(os.path.abspath(path)))
@@ -305,14 +293,6 @@ def assert_bytes(*args) -> None:
         raise
 
 
-def assert_str(*args) -> None:
-    """
-    porting helper, assert args type
-    """
-    for x in args:
-        assert isinstance(x, str)
-
-
 def to_string(x, enc="utf8") -> str:
     if isinstance(x, (bytes, bytearray)):
         return x.decode(enc)
@@ -332,8 +312,8 @@ def to_bytes(something, encoding="utf8") -> bytes:
         return something.encode(encoding)
     elif isinstance(something, bytearray):
         return bytes(something)
-    else:
-        raise TypeError("Not a string or bytes like object")
+
+    raise TypeError("Not a string or bytes like object")
 
 
 bfh = bytes.fromhex

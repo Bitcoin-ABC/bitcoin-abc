@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# -*- mode: python3 -*-
 # This file (c) 2019 Mark Lundeberg & Calin Culianu
 # Part of the Electron Cash SPV Wallet
 # License: MIT

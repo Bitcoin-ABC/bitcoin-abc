@@ -102,7 +102,6 @@ class MainNet(AbstractNet, AbstractNetProtocol):
     DEFAULT_PORTS = {"t": "50001", "s": "50002"}
     # DO NOT MODIFY IN CLIENT CODE
     DEFAULT_SERVERS = _read_json_dict("servers.json")
-    TITLE = "Electrum ABC"
 
     # Bitcoin Cash fork block specification
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 478559
@@ -154,7 +153,6 @@ class TestNet(AbstractNet, AbstractNetProtocol):
     DEFAULT_PORTS = {"t": "51001", "s": "51002"}
     # DO NOT MODIFY IN CLIENT CODE
     DEFAULT_SERVERS = _read_json_dict("servers_testnet.json")
-    TITLE = "Electrum ABC Testnet"
 
     # Nov 13. 2017 HF to CW144 DAA height (height of last block mined on old DAA)
     CW144_HEIGHT = 1188697
@@ -187,7 +185,6 @@ class RegtestNet(TestNet):
     REGTEST: ClassVar[bool] = True
 
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
-    TITLE = "Electrum ABC Regtest"
     CASHADDR_PREFIX = constants.CASHADDR_REGTEST_PREFIX
     CASHADDR_PREFIX_BCH = constants.CASHADDR_REGTEST_PREFIX_BCH
 

@@ -1,4 +1,3 @@
-# -*- mode: python3 -*-
 # Electron Cash - (C) 2019 The Electron Cash Developers and Electron Cash LLC
 #
 import threading

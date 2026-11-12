@@ -31,7 +31,6 @@ import hashlib
 import struct
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import ClassVar
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -135,14 +134,6 @@ class UnknownAddress(DestinationType):
 @dataclass(frozen=True, eq=True, order=True)
 class PublicKey(DestinationType):
     pubkey: bytes = field(hash=True, compare=True)
-
-    TO_ADDRESS_OPS: ClassVar[list[int]] = [
-        OpCodes.OP_DUP,
-        OpCodes.OP_HASH160,
-        -1,
-        OpCodes.OP_EQUALVERIFY,
-        OpCodes.OP_CHECKSIG,
-    ]
 
     @classmethod
     def from_pubkey(cls, pubkey) -> PublicKey:
@@ -272,7 +263,7 @@ class ScriptOutput(DestinationType):
                 script.extend(Script.push_data(bytes.fromhex(word)))
         return ScriptOutput.protocol_factory(bytes(script))
 
-    def to_ui_string(self, ignored=None) -> str:
+    def to_ui_string(self) -> str:
         """Convert to user-readable OP-codes (plus pushdata as text if possible)
         eg OP_RETURN (12) "Hello there!"
         """
@@ -320,7 +311,7 @@ class ScriptOutput(DestinationType):
         return bool(self.script and self.script[0] == OpCodes.OP_RETURN)
 
     def __str__(self) -> str:
-        return self.to_ui_string(True)
+        return self.to_ui_string()
 
     def __repr__(self) -> str:
         return "<ScriptOutput {}>".format(self.__str__())
@@ -673,19 +664,6 @@ class Address(DestinationType):
 
     def __repr__(self) -> str:
         return "<Address {}>".format(self.__str__())
-
-
-def _match_ops(ops, pattern) -> bool:
-    if len(ops) != len(pattern):
-        return False
-    for op, pop in zip(ops, pattern):
-        if pop != op:
-            # -1 means 'data push', whose op is an (op, data) tuple
-            if pop == -1 and isinstance(op, tuple):
-                continue
-            return False
-
-    return True
 
 
 class Script:

@@ -42,12 +42,6 @@ try:
 except ImportError:
     BTCHIP = False
 
-MSG_NEEDS_FW_UPDATE_CASHADDR = _(
-    'Firmware version (or "Bitcoin Cash" app) too old for CashAddr support. '
-) + _("Please update at https://www.ledgerwallet.com")
-MSG_NEEDS_SW_UPDATE_CASHADDR = _("python-btchip is too old for CashAddr support. ") + _(
-    "Please update to v0.1.27 or greater"
-)
 BITCOIN_CASH_SUPPORT_HW1 = (1, 0, 4)
 BITCOIN_CASH_SUPPORT = (1, 1, 8)
 CASHADDR_SUPPORT = (1, 2, 5)

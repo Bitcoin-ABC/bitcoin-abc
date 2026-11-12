@@ -62,9 +62,7 @@ class Synchronizer(ThreadJob):
         self.new_addresses: set[Address] = set()
 
         self.new_addresses_for_change: dict[Address, type(None)] = {}
-        """Basically, an ordered set of Addresses
-        (this assumes that dictionaries are ordered, so Python > 3.6)
-        """
+        """An ordered set of Addresses. Since python 3.6 dict are always ordered"""
         self.requested_tx: dict[str, int] = {}
         """Mapping of tx_hash -> tx_height"""
         self.requested_tx_by_sh: defaultdict[str, set[str]] = defaultdict(set)

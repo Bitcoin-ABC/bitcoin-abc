@@ -296,11 +296,6 @@ class Network(util.DaemonThread):
         self.verified_checkpoint = False
         """Flag set to True if the checkpoint header is in the local blockchain
         or when an interface checks the checkpoint."""
-        self.verifications_required = 1
-        # If the height is cleared from the network constants, we're
-        # taking looking to get 3 confirmations of the first verification.
-        if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
-            self.verifications_required = 3
         self.checkpoint_servers_verified: dict[str, dict[str, int | (str | None)]] = {}
         """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
         where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
@@ -537,7 +532,7 @@ class Network(util.DaemonThread):
         # Resend unanswered requests
         old_reqs = self.unanswered_requests
         self.unanswered_requests = {}
-        for m_id, request in old_reqs.items():
+        for _m_id, request in old_reqs.items():
             message_id = self.queue_request(request[0], request[1], callback=request[2])
             assert message_id is not None
         self.queue_request("server.banner", [])
@@ -1747,14 +1742,10 @@ class Network(util.DaemonThread):
                     # Sleep to prevent busy looping
                     time.sleep(timeout)
         except socket.error as e:
-            code = None
-            # Should always be the case unless ancient python3
-            if isinstance(e, OSError):
-                code = e.errno
-            if code == errno.EINTR:
+            if e.errno == errno.EINTR:
                 # calling loop will try again later
                 return
-            elif code == errno.EBADF:
+            elif e.errno == errno.EBADF:
                 # A filedescriptor was closed from underneath us because we have race
                 # conditions in this class. :(
                 # Note that due to race conditions with the gui thread even with the

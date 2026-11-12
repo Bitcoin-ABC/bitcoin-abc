@@ -677,7 +677,3 @@ class InvoiceStore(object):
 """ BitPay 2.0 JSON-based HTTP Payment Protocol, replaces BIP70 for BitPay only.
 Includes a scheme to verify the payment request using Bitcoin public keys
 rather than x509 which is what BIP70 used. """
-
-
-class ResponseError(Exception):
-    """Contains the exact text of the bad response error message from BitPay"""

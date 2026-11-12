@@ -1,5 +1,3 @@
-# -*- mode: python3 -*-
-#
 # Electrum ABC - lightweight eCash client
 # Copyright (C) 2020 The Electrum ABC developers
 # Copyright (C) 2016  The Electrum developers
@@ -672,9 +670,6 @@ class HardwareKeyStore(KeyStore, Xpub):
         called in any thread context."""
         self.print_error("paired")
 
-    def can_export(self):
-        return False
-
     def is_watching_only(self):
         """The wallet is not watching-only; the user will be prompted for
         pin and passphrase as appropriate when needed."""
@@ -820,10 +815,6 @@ def get_private_keys(text, *, allow_bip38=False):
 
 def is_private_key_list(text, *, allow_bip38=False):
     return bool(get_private_keys(text, allow_bip38=allow_bip38))
-
-
-def is_private(text: str) -> bool:
-    return mnemo.is_seed(text) or is_xprv(text) or is_private_key_list(text)
 
 
 def is_master_key(text: str) -> bool:

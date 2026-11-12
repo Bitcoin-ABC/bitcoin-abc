@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import platform
 import sys
-from collections import OrderedDict
 from typing import TYPE_CHECKING
 
 import qtpy
@@ -656,12 +655,10 @@ class SettingsDialog(WindowModalDialog):
                 pgettext("The preferences -> Fees,misc tab", "Fees && Misc."),
             ),
             (
-                OrderedDict(
-                    [
-                        (_("App-Global Options"), global_tx_widgets),
-                        (_("Per-Wallet Options"), per_wallet_tx_widgets),
-                    ]
-                ),
+                {
+                    _("App-Global Options"): global_tx_widgets,
+                    _("Per-Wallet Options"): per_wallet_tx_widgets,
+                },
                 _("Transactions"),
             ),
             (fiat_widgets, _("Fiat")),

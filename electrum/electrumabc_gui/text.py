@@ -85,12 +85,6 @@ class ElectrumGui:
         except Exception:
             pass
 
-    def restore_or_create(self):
-        pass
-
-    def verify_seed(self):
-        pass
-
     def get_string(self, y, x):
         self.set_cursor(1)
         curses.echo()

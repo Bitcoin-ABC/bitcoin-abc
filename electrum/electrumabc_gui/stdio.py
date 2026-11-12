@@ -60,7 +60,6 @@ class ElectrumGui:
             _("[b] - print server banner"),
             _("[q] - quit"),
         ]
-        self.num_commands = len(self.commands)
 
     def on_network(self, event, *args):
         if event.endswith("updated"):  # blockchain_updated & wallet_updated

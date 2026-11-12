@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# -*- mode: python3 -*-
-#
 # Electrum ABC - lightweight eCash client
 # Copyright (C) 2020 The Electrum ABC developers
 # Copyright (C) 2016 Thomas Voegtlin

@@ -41,7 +41,7 @@ dialogs = []
 
 
 # https://docs.python.org/3/library/gettext.html#deferred-translations
-def _(message):
+def _(message: str) -> str:
     return message
 
 
