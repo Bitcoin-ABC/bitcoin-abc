@@ -508,9 +508,9 @@ class Commands:
     def createmultisig(self, num, pubkeys):
         """Create multisig address"""
         assert isinstance(pubkeys, list), (type(num), type(pubkeys))
-        redeem_script = multisig_script(pubkeys, num)
+        redeem_script = multisig_script([bytes.fromhex(k) for k in pubkeys], num)
         address = bitcoin.hash160_to_p2sh(hash_160(redeem_script))
-        return {"address": address, "redeemScript": redeem_script}
+        return {"address": address, "redeemScript": redeem_script.hex()}
 
     @command("w")
     def freeze(self, address: str):
