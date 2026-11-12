@@ -26,6 +26,7 @@
 import time
 from base64 import b64decode
 
+import jsonrpclib.config
 from jsonrpclib.SimpleJSONRPCServer import (
     SimpleJSONRPCRequestHandler,
     SimpleJSONRPCServer,
@@ -77,8 +78,21 @@ class VerifyingJSONRPCServer(SimpleJSONRPCServer):
                         myself.send_error(500, str(e))
                 return False
 
+        # Since jsonrpclib-pelix 1.2.0, the server only sends a reference to the
+        # error when a RPC method raises an exception, unless it is configured to
+        # describe the exception. The command line client relies on this
+        # description to show the error to the user. Older versions ignore this
+        # option and always describe the exception.
+        # Don't modify jsonrpclib.config.DEFAULT, which is shared with the clients.
+        config = jsonrpclib.config.Config()
+        config.send_exception_details = True
+
         SimpleJSONRPCServer.__init__(
-            self, requestHandler=VerifyingRequestHandler, *args, **kwargs
+            self,
+            requestHandler=VerifyingRequestHandler,
+            config=config,
+            *args,
+            **kwargs,
         )
 
     def authenticate(self, headers) -> None:
