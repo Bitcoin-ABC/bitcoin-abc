@@ -21,7 +21,8 @@ This document is the ops target for that model.
 | Shared `FusionClient` (inject Chronik / keys / `runRound`)     | Landed ([D20638](https://reviews.bitcoinabc.org/D20638)) |
 | Coordinator process (`pnpm start:coordinator`)                 | Landed — config from `.env` / `env.sample`               |
 | Node participant CLI (`pnpm start:participant`)                | Landed                                                   |
-| WebSocket gateway (`WSS_PORT`, `/control` and `/covert`)       | This slice — same frames as TCP; TLS via cert and key    |
+| WebSocket gateway (`WSS_PORT`, `/control` and `/covert`)       | Landed — same frames as TCP; TLS via cert and key        |
+| FusionClient WebSocket `runRound` (`createWebSocketRunRound`)  | Landed — dials `/control` and `/covert`                  |
 | Public or staging coordinator                                  | **None deployed**                                        |
 | Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
@@ -98,13 +99,15 @@ Staging deploy (15):
    `tokenId`, overlapping atom tiers, and enough XEC for fees/dust.
 3. Participants in **loop / continuous** mode so pools refill.
 4. Confirm: two lab wallets complete a round; txid visible on Chronik.
-5. Publish the TCP ports and, when `WSS_PORT` is set, the WebSocket URL.
-   Until then Cashtab has nothing to dial.
+5. Publish the TCP ports and, when `WSS_PORT` is set, the WebSocket URL
+   (`createWebSocketRunRound`). Cashtab still needs the wallet adapter (19)
+   before it dials that URL. WebSocket rounds are correctness-only: the
+   platform socket has no SOCKS5 or Tor hook, so the coordinator sees one
+   client IP on `/control` and `/covert` until a covert path hides it.
 
 Public launch (23) additionally requires TLS on TCP (21), TLS on the
-WebSocket gateway, the FusionClient WebSocket transport (17),
-`minPlayers >= 8`, and warm-pool daemons (22) for each advertised
-`(tokenId, atomTier)`.
+WebSocket gateway, `minPlayers >= 8`, and warm-pool daemons (22) for each
+advertised `(tokenId, atomTier)`.
 
 Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
 `run` / `stop`) once the CLIs exist. Expect roughly:
@@ -125,8 +128,10 @@ Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
 - Covert/Tor is required before claiming CashFusion-class network privacy —
   plain TCP control channels are correctness-only. `CovertSubmitter` +
   SOCKS5 are the hook; participants point `socks5` at a Tor SOCKS port
-  (typically `127.0.0.1:9050`) when they dial a public coordinator. The
-  coordinator side still needs an inbound Tor path (onion service).
+  (typically `127.0.0.1:9050`) when they dial a public coordinator. That
+  hook is Node TCP only. `createWebSocketRunRound` cannot set it, so it
+  does not cover browser rounds. The coordinator side still needs an
+  inbound Tor path (onion service).
 - Covert components now carry a real blind-Schnorr signature, but reveal is
   **not yet unlinkable to the coordinator**: `saltedComponentHash` is still
   `sha256(component)`, so the coordinator maps every revealed component to

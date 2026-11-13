@@ -6,7 +6,8 @@
  * Node TCP helper. Import {@link FusionClient} from `fusionClient.ts`;
  * this file only binds {@link runWireRound} as the default `runRound`.
  *
- * Browser / Cashtab must not import this file.
+ * Browser / Cashtab must not import this file. Use
+ * `createWebSocketRunRound` in `client/websocket.ts`.
  */
 import {
     FusionClient,

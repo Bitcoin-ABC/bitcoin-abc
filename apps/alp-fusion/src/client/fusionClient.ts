@@ -7,7 +7,9 @@
  * construction, and {@link FusionClientOptions.runRound}.
  *
  * Node daemons use `createNodeFusionClient` in `src/node.ts` to supply
- * the TCP `runWireRound` default.
+ * the TCP `runWireRound` default. WebSocket wallets pass
+ * `createWebSocketRunRound` from `websocket.ts` and do not import
+ * `src/node.ts`.
  */
 import { loadWireInputsFromChronik, type FusionChronik } from './chronik.js';
 import {
@@ -57,7 +59,8 @@ export interface FusionClientOptions extends ContinuousClientOptions {
     buildContribution: (coins: LoadedCoins) => WireContribution;
     /**
      * One networked (or test) round. Required so this module never imports
-     * Node TCP. Use `createNodeFusionClient` for the default wire path.
+     * Node TCP. Use `createNodeFusionClient` for TCP, or
+     * `createWebSocketRunRound` for the gateway.
      */
     runRound: (args: FusionRoundArgs) => Promise<FusionRoundResult>;
     /**

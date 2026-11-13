@@ -68,6 +68,17 @@ export interface RunWireRoundOptions {
      * check lets a peer over-claim atoms and burn the round.
      */
     chronik?: FusionChain;
+    /**
+     * Dial the control channel. Default is TCP `connect(host, port)`.
+     * WebSocket clients pass a `/control` socket and do not use `host` /
+     * `port`.
+     */
+    dialControl?: () => Promise<FusionConnection>;
+    /**
+     * Dial one covert slot. Default is TCP to the host and port in
+     * FusionBegin. WebSocket clients dial `/covert` on the gateway instead.
+     */
+    dialCovert?: () => Promise<FusionConnection>;
 }
 
 export interface WireRoundResult {
@@ -86,7 +97,9 @@ export async function runWireRound(
     await initProto();
     const types = await getTypes();
     const recvMs = opts.recvTimeoutMs ?? 15_000;
-    const conn = await connect(opts.host, opts.port, opts.connect);
+    const conn = opts.dialControl
+        ? await opts.dialControl()
+        : await connect(opts.host, opts.port, opts.connect);
     const covertSlots: CovertSubmitter[] = [];
     try {
         await sendClient(conn, types, 'clienthello', {
@@ -198,6 +211,7 @@ export async function runWireRound(
             rejectUnauthorized: opts.connect?.rejectUnauthorized,
             servername: opts.connect?.servername,
             ca: opts.connect?.ca,
+            dial: opts.dialCovert,
         });
         covertSlots.push(covert);
         covert.scheduleConnections(Date.now(), 0, 0);

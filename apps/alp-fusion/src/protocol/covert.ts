@@ -154,6 +154,11 @@ export interface CovertSubmitterOptions {
     servername?: string;
     ca?: string | Buffer | Array<string | Buffer>;
     now?: () => number;
+    /**
+     * Open one covert socket. When set, TCP `connect(destHost, destPort)`
+     * is not used (WebSocket clients dial `/covert` here).
+     */
+    dial?: () => Promise<FusionConnection>;
 }
 
 /**
@@ -179,6 +184,7 @@ export class CovertSubmitter {
     readonly socksLogins: string[] = [];
 
     private readonly now: () => number;
+    private readonly dial: (() => Promise<FusionConnection>) | undefined;
     private readonly connectOpts: {
         rejectUnauthorized?: boolean;
         servername?: string;
@@ -202,6 +208,7 @@ export class CovertSubmitter {
         this.connectTimeoutMs =
             opts.connectTimeoutMs ?? COVERT.connectTimeoutMs;
         this.now = opts.now ?? Date.now;
+        this.dial = opts.dial;
         this.connectOpts = {
             rejectUnauthorized: opts.rejectUnauthorized,
             servername: opts.servername,
@@ -434,24 +441,28 @@ export class CovertSubmitter {
         }
 
         try {
-            const socks5 = this.socks5
-                ? {
-                      host: this.socks5.host,
-                      port: this.socks5.port,
-                      username: `AF${this.randtag}_${cov.connNumber}`,
-                      password: `AF${this.randtag}_${cov.connNumber}`,
-                  }
-                : undefined;
-            if (socks5) {
-                this.socksLogins.push(socks5.username);
-                torLimiter.bump(this.now());
+            if (this.dial) {
+                cov.connection = await this.dial();
+            } else {
+                const socks5 = this.socks5
+                    ? {
+                          host: this.socks5.host,
+                          port: this.socks5.port,
+                          username: `AF${this.randtag}_${cov.connNumber}`,
+                          password: `AF${this.randtag}_${cov.connNumber}`,
+                      }
+                    : undefined;
+                if (socks5) {
+                    this.socksLogins.push(socks5.username);
+                    torLimiter.bump(this.now());
+                }
+                cov.connection = await connect(this.destHost, this.destPort, {
+                    ssl: this.ssl,
+                    timeoutMs: this.connectTimeoutMs,
+                    socks5,
+                    ...this.connectOpts,
+                });
             }
-            cov.connection = await connect(this.destHost, this.destPort, {
-                ssl: this.ssl,
-                timeoutMs: this.connectTimeoutMs,
-                socks5,
-                ...this.connectOpts,
-            });
             this.countEstablished += 1;
         } catch (err) {
             this.countFailed += 1;

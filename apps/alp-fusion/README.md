@@ -125,6 +125,9 @@ fuses ALP without burning tokens.
 - **16. Coordinator WebSocket gateway** — `WSS_PORT` binds `/control` and
   `/covert` with the same frames as TCP. `WSS_CERT` and `WSS_KEY` turn that
   listener into TLS. Node daemons keep the TCP ports.
+- **17. FusionClient WebSocket `runRound`** — `createWebSocketRunRound` dials
+  `/control` and `/covert` with the platform WebSocket. Wallets pass it as
+  `runRound` and do not import `src/node.ts`.
 
 **Aside:** [PRIVACY.md](./PRIVACY.md) concludes that alp-fusion is worth
 building. One round of 16 inputs has the same source count as a Monero ring.
@@ -133,7 +136,7 @@ common amount. The token supply stays auditable.
 
 ### Remaining (Cashtab launch punchlist)
 
-Each item is one Differential. **15 and 17–19** are the lab bar: one
+Each item is one Differential. **15 and 18–19** are the lab bar: one
 opted-in Cashtab Android user completes a round against a staging
 coordinator.
 **20–25** are public launch. Cashtab HD work is a parallel track
@@ -146,8 +149,6 @@ starts `FusionCoordinator` on `127.0.0.1`. There is no hostname to ping.
 - **15. Staging deploy** — run the coordinator and participant CLIs on a
   host; publish control/covert/WebSocket URLs; confirm a 2-player lab round.
   See [DEPLOY.md](./DEPLOY.md).
-- **17. FusionClient WebSocket `runRound`** — dial `/control` and `/covert`
-  without importing `src/node.ts`.
 - **18. Cashtab HD wallets** — fresh receive/change per round. Hard blocker;
   several Cashtab diffs ([cashtab/ROADMAP.md](../../cashtab/ROADMAP.md) P0).
 - **19. Cashtab wallet adapter** — `buildContribution` + keys + UTXO lock
