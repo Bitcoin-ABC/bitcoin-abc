@@ -275,7 +275,9 @@ export function sortExchanges<T extends ScoreableItem>(
 }
 
 async function fetchScorecardJson(url: string) {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: { "Strapi-Response-Format": "v4" },
+  });
   if (!res.ok) {
     throw new Error(`Failed to fetch scorecard data: ${res.statusText}`);
   }

@@ -25,6 +25,7 @@ interface StrapiProductResponse {
 export async function getProducts(): Promise<Product[]> {
   const response = await fetch(
     process.env.NEXT_PUBLIC_STRAPI_URL + "/api/products-built-withs",
+    { headers: { "Strapi-Response-Format": "v4" } },
   );
 
   if (!response.ok) {

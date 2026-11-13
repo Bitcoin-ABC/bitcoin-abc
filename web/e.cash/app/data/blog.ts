@@ -43,7 +43,9 @@ export interface BlogPost {
 }
 
 export async function getPageCount(): Promise<number> {
-  const res = await fetch(process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts");
+  const res = await fetch(process.env.NEXT_PUBLIC_STRAPI_URL + "/api/posts", {
+    headers: { "Strapi-Response-Format": "v4" },
+  });
   if (!res.ok) {
     throw new Error(`Failed to fetch blog page count: ${res.statusText}`);
   }
@@ -62,6 +64,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
     const res = await fetch(
       process.env.NEXT_PUBLIC_STRAPI_URL +
         `/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`,
+      { headers: { "Strapi-Response-Format": "v4" } },
     );
     if (!res.ok) {
       throw new Error(
