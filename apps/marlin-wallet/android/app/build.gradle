@@ -145,7 +145,7 @@ android {
     buildTypes {
         release {
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
     
@@ -171,9 +171,6 @@ dependencies {
     
     // Wearable Data Layer
     implementation "com.google.android.gms:play-services-wearable:18.1.0"
-    
-    // Embed WearOS companion app
-    wearApp project(':wear')
 }
 
 project.ext.react = [

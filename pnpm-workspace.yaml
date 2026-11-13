@@ -14,6 +14,11 @@ allowBuilds:
     protobufjs: true
     styled-components: false
     unrs-resolver: true
+minimumReleaseAgeExclude:
+    - fast-xml-builder@1.3.2
+    - fast-xml-parser@5.12.1
+    - ws@8.23.0
+    - cypress@15.21.2
 overrides:
     'tar': '>=7.5.21'
     'undici@>=5.0.0 <6.28.0': '6.28.0'
