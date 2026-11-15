@@ -1497,7 +1497,6 @@ class Network(util.DaemonThread):
             interface.print_error(
                 "disconnecting server for sending unsolicited header, no request,"
                 f" params={response['params']}",
-                blacklist=True,
             )
             self.connection_down(interface.server)
             return
