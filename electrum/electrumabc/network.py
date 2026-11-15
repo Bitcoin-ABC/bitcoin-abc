@@ -35,7 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast, get_args
 
 import socks
 
@@ -54,7 +54,9 @@ from .utils import Event
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
 
+    from .blockchain import Blockchain
     from .interface import (
+        ConnectionQueueT,
         InterfaceMessageResponseT,
         InterfaceRequest,
         MessageMethodT,
@@ -69,6 +71,12 @@ if TYPE_CHECKING:
     Method and params are passed to the interface with a unique request id. Callback is
     called and takes the interface's response as a parameter.
     """
+
+    ServerProtocolT = Literal["s", "t", "st"]
+
+    class CheckpointServer(TypedDict, total=False):
+        root: str | None
+        height: int
 
 
 # Rate-limit the get_merkle requests sent to fulcrum servers.
@@ -94,7 +102,7 @@ def filter_version(servers):
     return {k: v for k, v in servers.items() if is_recent(v.get("version"))}
 
 
-def filter_protocol(hostmap, protocol="s"):
+def filter_protocol(hostmap, protocol: ServerProtocolT = "s"):
     """Filters the hostmap for those implementing protocol.
     Protocol may be: 's', 't', or 'st' for both.
     The result is a list in serialized form."""
@@ -103,18 +111,24 @@ def filter_protocol(hostmap, protocol="s"):
         for proto in protocol:
             port = portmap.get(proto)
             if port:
-                eligible.append(serialize_server(host, port, proto))
+                eligible.append(
+                    serialize_server(host, port, cast("ServerProtocolT", proto))
+                )
     return eligible
 
 
-def get_eligible_servers(hostmap=None, protocol="s", exclude_set: set | None = None):
+def get_eligible_servers(
+    hostmap=None, protocol: ServerProtocolT = "s", exclude_set: set | None = None
+):
     if hostmap is None:
         hostmap = networks.net.DEFAULT_SERVERS
     exclude_set = exclude_set or set()
     return list(set(filter_protocol(hostmap, protocol)) - exclude_set)
 
 
-def pick_random_server(hostmap=None, protocol="s", exclude_set: set | None = None):
+def pick_random_server(
+    hostmap=None, protocol: ServerProtocolT = "s", exclude_set: set | None = None
+):
     exclude_set = exclude_set or set()
     eligible = get_eligible_servers(hostmap, protocol, exclude_set)
     return random.choice(eligible) if eligible else None
@@ -170,12 +184,12 @@ def serialize_proxy(p):
     )
 
 
-def deserialize_proxy(s):
+def deserialize_proxy(s: str | None) -> dict[str, str | int] | None:
     if not isinstance(s, str):
         return None
     if s.lower() == "none":
         return None
-    proxy = {"mode": "socks5", "host": "localhost"}
+    proxy: dict[str, str | int] = {"mode": "socks5", "host": "localhost"}
     args = s.split(":")
     n = 0
     if proxy_modes.count(args[n]) == 1:
@@ -202,15 +216,15 @@ def deserialize_proxy(s):
     return proxy
 
 
-def deserialize_server(server_str):
+def deserialize_server(server_str: str) -> tuple[str, str, ServerProtocolT]:
     host, port, protocol = str(server_str).rsplit(":", 2)
-    if protocol not in "st":
+    if protocol not in get_args(ServerProtocolT):
         raise ValueError("invalid network protocol: {}".format(protocol))
     int(port)  # Throw if cannot be converted to int
-    return host, port, protocol
+    return host, port, cast("ServerProtocolT", protocol)
 
 
-def serialize_server(host, port, protocol):
+def serialize_server(host: str, port: str | int, protocol: ServerProtocolT) -> str:
     return str(f"{host}:{port}:{protocol}")
 
 
@@ -245,7 +259,7 @@ class Network(util.DaemonThread):
     """
 
     # Only 1 Network instance is ever alive during app lifetime (it's a singleton)
-    INSTANCE = None
+    INSTANCE: Network | None = None
 
     # These defaults are decent for the desktop app. Other platforms may
     # override these at any time (iOS sets these to lower values).
@@ -280,7 +294,9 @@ class Network(util.DaemonThread):
         if self.blockchain_index not in self.blockchains.keys():
             self.blockchain_index = 0
         # Server for addresses and transactions
-        self.blacklisted_servers = set(self.config.get(ConfigKeys.SERVER_BLACKLIST))
+        self.blacklisted_servers: set[str] = set(
+            self.config.get(ConfigKeys.SERVER_BLACKLIST)
+        )
         (
             self.whitelisted_servers,
             self.whitelisted_servers_hostmap,
@@ -311,7 +327,7 @@ class Network(util.DaemonThread):
         self.verified_checkpoint = False
         """Flag set to True if the checkpoint header is in the local blockchain
         or when an interface checks the checkpoint."""
-        self.checkpoint_servers_verified: dict[str, dict[str, int | (str | None)]] = {}
+        self.checkpoint_servers_verified: dict[str, CheckpointServer] = {}
         """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
         where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
         representation of the server's calculated merkle root
@@ -368,7 +384,7 @@ class Network(util.DaemonThread):
         """Set of indices of header chunks requested from the interface.
         The blockchain is cut in chunks of 2016 blocks, and the index of a chunk is
         base_height // 2016."""
-        self.socket_queue = queue.Queue()
+        self.socket_queue: ConnectionQueueT = queue.Queue()
         if Network.INSTANCE:
             # This happens on iOS which kills and restarts the daemon on app sleep/wake
             self.print_error("A new instance has started and is replacing the old one.")
@@ -415,7 +431,7 @@ class Network(util.DaemonThread):
             super().__del__()
 
     @staticmethod
-    def get_instance() -> Network:
+    def get_instance() -> Network | None:
         """Returns the extant Network singleton, if any, or None if in offline mode"""
         return Network.INSTANCE
 
@@ -798,7 +814,7 @@ class Network(util.DaemonThread):
             server = pick_random_server(hostmap, exclude_set=self.blacklisted_servers)
         return server
 
-    def switch_to_random_interface(self):
+    def switch_to_random_interface(self) -> None:
         """Switch to a random connected server other than the current one"""
         servers = self.get_interfaces()  # Those in connected state
         if self.default_server in servers:
@@ -806,7 +822,7 @@ class Network(util.DaemonThread):
         if servers:
             self.switch_to_interface(random.choice(servers))
 
-    def switch_lagging_interface(self):
+    def switch_lagging_interface(self) -> None:
         """If auto_connect and lagging, switch interface"""
         if not self.server_is_lagging() or not self.auto_connect:
             return
@@ -828,7 +844,9 @@ class Network(util.DaemonThread):
     SWITCH_FOLLOW_CHAIN = "SWITCH_FOLLOW_CHAIN"
     SWITCH_SET_PARAMETERS = "SWITCH_SET_PARAMETERS"
 
-    def switch_to_interface(self, server, switch_reason=None):
+    def switch_to_interface(
+        self, server: str, switch_reason: str | None = None
+    ) -> None:
         """Switch to server as our interface.  If no connection exists nor
         being opened, start a thread to connect.  The actual switch will
         happen on receipt of the connection notification.  Do nothing
@@ -850,7 +868,7 @@ class Network(util.DaemonThread):
         self.set_status("connected")
         self.notify("blockchain_updated")
 
-    def close_interface(self, interface):
+    def close_interface(self, interface: Interface | None) -> None:
         if not interface:
             return
         with self.interface_lock:
@@ -1063,7 +1081,7 @@ class Network(util.DaemonThread):
             with self.pending_sends_lock:
                 self.pending_sends.append((list(messages), callback))
 
-    def process_pending_sends(self):
+    def process_pending_sends(self) -> None:
         # Requests needs connectivity.  If we don't have an interface,
         # we cannot process them.
         if not self.interface:
@@ -1129,7 +1147,7 @@ class Network(util.DaemonThread):
                     idx += 1
         return ct, nmsgs
 
-    def unsubscribe(self, callback):
+    def unsubscribe(self, callback) -> None:
         """Unsubscribe a callback to free object references to enable GC.
         It is advised that this function only be called from the network thread
         to avoid race conditions."""
@@ -1189,7 +1207,7 @@ class Network(util.DaemonThread):
                 f" pending sends (nmsgs={ct3}) for callback: {qname}"
             )
 
-    def connection_down(self, server, blacklist=False):
+    def connection_down(self, server: str, blacklist: bool = False) -> None:
         """A connection to server either went down, or was never made.
         We distinguish by whether it is in self.interfaces."""
         if blacklist:
@@ -1207,7 +1225,7 @@ class Network(util.DaemonThread):
             if b.catch_up == server:
                 b.catch_up = None
 
-    def new_interface(self, server_key, socket):
+    def new_interface(self, server_key: str, socket: socket.socket) -> None:
         self.add_recent_server(server_key)
 
         interface = Interface(
@@ -1230,7 +1248,7 @@ class Network(util.DaemonThread):
         if server_key == self.default_server:
             self.switch_to_interface(server_key, self.SWITCH_DEFAULT)
 
-    def maintain_sockets(self):
+    def maintain_sockets(self) -> None:
         """Socket maintenance."""
         # Responses to connection attempts?
         while not self.socket_queue.empty():
@@ -1281,7 +1299,7 @@ class Network(util.DaemonThread):
                         self.default_server, self.SWITCH_SOCKET_LOOP
                     )
 
-    def request_chunk(self, interface: Interface, chunk_index: int):
+    def request_chunk(self, interface: Interface, chunk_index: int) -> bool:
         if chunk_index in self.requested_chunks:
             return False
         self.requested_chunks.add(chunk_index)
@@ -1293,7 +1311,13 @@ class Network(util.DaemonThread):
             interface, chunk_base_height, chunk_count, silent=True
         )
 
-    def request_headers(self, interface, base_height, count, silent=False):
+    def request_headers(
+        self,
+        interface: Interface,
+        base_height: int,
+        count: int,
+        silent: bool = False,
+    ) -> bool:
         if not silent:
             interface.print_error(
                 "requesting multiple consecutive headers, from {} count {}".format(
@@ -1426,7 +1450,7 @@ class Network(util.DaemonThread):
 
         verification_top_height = self.checkpoint_servers_verified.get(
             interface.server, {}
-        ).get("height", None)
+        ).get("height")
         was_verification_request = False
         if verification_top_height is not None:
             if not networks.net.REGTEST:
@@ -1441,6 +1465,7 @@ class Network(util.DaemonThread):
                 )
 
         initial_interface_mode = interface.mode
+        target_blockchain: Blockchain | None
         if interface.mode == Interface.Mode.VERIFICATION:
             if not was_verification_request:
                 interface.print_error(
@@ -1519,7 +1544,7 @@ class Network(util.DaemonThread):
                 interface.blockchain.catch_up = None
         self.notify("blockchain_updated")
 
-    def request_header(self, interface, height):
+    def request_header(self, interface: Interface, height: int) -> bool:
         """
         This works for all modes except for 'default'.
 
@@ -1748,18 +1773,20 @@ class Network(util.DaemonThread):
         # refresh network dialog
         self.notify("interfaces")
 
-    def find_bad_fds_and_kill(self):
+    def find_bad_fds_and_kill(self) -> list[Interface]:
         bad = []
         with self.interface_lock:
-            for s, i in self.interfaces.copy().items():
+            for server, interface in self.interfaces.copy().items():
                 try:
                     _r, _w, _x = select.select(
-                        [i], [i], [], 0
+                        [interface], [interface], [], 0
                     )  # non-blocking select to test if fd's are good.
                 except (OSError, ValueError):
-                    i.print_error("Bad file descriptor {}, closing".format(i.fileno()))
-                    self.connection_down(s)
-                    bad.append(i)
+                    interface.print_error(
+                        "Bad file descriptor {}, closing".format(interface.fileno())
+                    )
+                    self.connection_down(server)
+                    bad.append(interface)
         if bad:
             self.print_error(
                 "{} bad file descriptors detected and shut down: {}".format(
@@ -1768,8 +1795,8 @@ class Network(util.DaemonThread):
             )
         return bad
 
-    def wait_on_sockets(self):
-        def try_to_recover(err):
+    def wait_on_sockets(self) -> None:
+        def try_to_recover(err: str) -> None:
             self.print_error(
                 f"wait_on_sockets: {err} raised by select() call. trying to recover..."
             )
@@ -1795,10 +1822,13 @@ class Network(util.DaemonThread):
 
         try:
             # Python docs say Windows doesn't like empty selects.
+            rout: list[Interface]
+            wout: list[Interface]
+            xout: list[Interface]
             if win or rin:
                 rout, wout, xout = select.select(rin, win, [], timeout)
             else:
-                rout = wout = xout = ()
+                rout, wout, xout = [], [], []
                 if timeout:
                     # Sleep to prevent busy looping
                     time.sleep(timeout)
@@ -1834,7 +1864,7 @@ class Network(util.DaemonThread):
         for interface in rout:
             self.process_responses(interface)
 
-    def init_headers_file(self):
+    def init_headers_file(self) -> None:
         b = self.blockchains[0]
         filename = b.path()
         # NB: HEADER_SIZE = 80 bytes
@@ -1848,7 +1878,7 @@ class Network(util.DaemonThread):
         with b.lock:
             b.update_size()
 
-    def run(self):
+    def run(self) -> None:
         b = self.blockchains[0]
         header = None
         if networks.net.VERIFICATION_BLOCK_HEIGHT is not None:
@@ -1870,10 +1900,10 @@ class Network(util.DaemonThread):
 
         self.on_stop()
 
-    def on_server_version(self, interface, version_data):
+    def on_server_version(self, interface: Interface, version_data: list[Any]) -> None:
         interface.server_version = version_data
 
-    def on_notify_header(self, interface, header_dict):
+    def on_notify_header(self, interface: Interface, header_dict) -> None:
         """
         When we subscribe for 'blockchain.headers.subscribe', a server will send
         us it's topmost header.  After that, it will forward on any additional
@@ -1922,10 +1952,11 @@ class Network(util.DaemonThread):
 
         self._process_latest_tip(interface)
 
-    def _process_latest_tip(self, interface):
+    def _process_latest_tip(self, interface: Interface) -> None:
         if interface.mode != Interface.Mode.DEFAULT:
             return
 
+        assert interface.tip_header is not None
         header = interface.tip_header
         height = interface.tip
 
@@ -1975,7 +2006,7 @@ class Network(util.DaemonThread):
             else:
                 interface.print_error("chain already catching up with", chain.catch_up)
 
-    def request_initial_proof_and_headers(self, interface):
+    def request_initial_proof_and_headers(self, interface: Interface) -> None:
         # This will be the initial topmost header response.  But we might get new blocks.
         if interface.server not in self.checkpoint_servers_verified:
             interface.print_error("request_initial_proof_and_headers pending")
@@ -2011,8 +2042,8 @@ class Network(util.DaemonThread):
             self._process_latest_tip(interface)
 
     def apply_successful_verification(
-        self, interface, checkpoint_height, checkpoint_root
-    ):
+        self, interface: Interface, checkpoint_height: int, checkpoint_root: str
+    ) -> bool:
         """Check that the merkle_root served by an interface is consistent.
         Return False and disconnect the interface if it isn't."""
         known_roots = [
@@ -2083,23 +2114,26 @@ class Network(util.DaemonThread):
         )
         return False
 
-    def blockchain(self):
+    def blockchain(self) -> Blockchain:
         with self.interface_lock:
             if self.interface and self.interface.blockchain is not None:
                 self.blockchain_index = self.interface.blockchain.base_height
         return self.blockchains[self.blockchain_index]
 
-    def get_blockchains(self):
-        out = {}
-        for k, b in self.blockchains.items():
-            r = list(
-                filter(lambda i: i.blockchain == b, list(self.interfaces.values()))
+    def get_blockchains(self) -> dict[int, list[Interface]]:
+        out: dict[int, list[Interface]] = {}
+        for blockchain_height, blockchain_ in self.blockchains.items():
+            interfaces = list(
+                filter(
+                    lambda interface: interface.blockchain == blockchain_,
+                    list(self.interfaces.values()),
+                )
             )
-            if r:
-                out[k] = r
+            if interfaces:
+                out[blockchain_height] = interfaces
         return out
 
-    def follow_chain(self, index):
+    def follow_chain(self, index: int) -> None:
         blockchain = self.blockchains.get(index)
         if blockchain:
             self.blockchain_index = index
@@ -2120,7 +2154,7 @@ class Network(util.DaemonThread):
                 host, port, protocol = server.split(":")
                 self.set_parameters(host, port, protocol, proxy, auto_connect)
 
-    def get_local_height(self):
+    def get_local_height(self) -> int:
         return self.blockchain().height()
 
     def synchronous_get(self, request: MessageSendT, timeout: float = 30) -> Any:
@@ -2134,7 +2168,7 @@ class Network(util.DaemonThread):
             raise util.ServerError(r.get("error"))
         return r.get("result")
 
-    def get_raw_tx_for_txid(self, txid, timeout=30) -> tuple[bool, str]:
+    def get_raw_tx_for_txid(self, txid: str, timeout: float = 30) -> tuple[bool, str]:
         """Used by UI code to retrieve a transaction from the blockchain by
         txid.  (Qt Gui: Tools -> Load transaction -> From the blockchain)
 
@@ -2174,7 +2208,7 @@ class Network(util.DaemonThread):
             return False, msg
 
     @staticmethod
-    def __wait_for(it, timeout=30):
+    def __wait_for(it, timeout: float = 30) -> Any:
         """Wait for the result of calling lambda `it`.
         Will raise util.TimeoutException or util.ServerErrorResponse on failure."""
         q = queue.Queue()
@@ -2194,7 +2228,9 @@ class Network(util.DaemonThread):
         return result.get("result")
 
     @staticmethod
-    def __with_default_synchronous_callback(invocation, callback):
+    def __with_default_synchronous_callback(
+        invocation: Callable[[Callable], None], callback: Callable | None
+    ):
         """Use this method if you want to make the network request
         synchronous."""
         if not callback:
@@ -2261,7 +2297,7 @@ class Network(util.DaemonThread):
         return out
 
     @staticmethod
-    def transmogrify_broadcast_response_for_gui(server_msg):
+    def transmogrify_broadcast_response_for_gui(server_msg) -> str:
         # NB: the server_msg is usually a dict but not always.
         # Unfortunately, ElectrumX doesn't return a good error code. It's always '1'.
         # So, we must use substring matching to grok the error message.
@@ -2432,7 +2468,7 @@ class Network(util.DaemonThread):
         return _("An error occurred broadcasting the transaction")
 
     # Used by the verifier job.
-    def get_merkle_for_transaction(self, tx_hash, tx_height, callback):
+    def get_merkle_for_transaction(self, tx_hash: str, tx_height: int, callback):
         """Asynchronously enqueue a request for a merkle proof for a tx.
         Note that the callback param is required.
         May return None if too many requests were enqueued (max_qlen) or
@@ -2445,7 +2481,7 @@ class Network(util.DaemonThread):
             max_qlen=MAX_QLEN_GET_MERKLE_REQUESTS,
         )
 
-    def get_proxies(self):
+    def get_proxies(self) -> dict[str, Any] | None:
         """Returns a proxies dictionary suitable to be passed to the requests
         module, or None if no proxy is set for this instance."""
         # retain a copy in case another thread messes with it
@@ -2471,19 +2507,19 @@ class Network(util.DaemonThread):
         proxies = {"http": socks, "https": socks}
         return proxies
 
-    def on_bad_certificate(self, server, certificate):
+    def on_bad_certificate(self, server: str, certificate) -> None:
         if server in self.bad_certificate_servers:
             return
         self.bad_certificate_servers[server] = certificate
         self.server_list_updated()
 
-    def remove_bad_certificate(self, server):
+    def remove_bad_certificate(self, server: str) -> None:
         if server not in self.bad_certificate_servers:
             return
         del self.bad_certificate_servers[server]
         self.server_list_updated()
 
-    def remove_pinned_certificate(self, server):
+    def remove_pinned_certificate(self, server: str) -> bool:
         cert_file = self.bad_certificate_servers.get(server)
         if not cert_file:
             return False
@@ -2499,33 +2535,41 @@ class Network(util.DaemonThread):
         self.remove_bad_certificate(server)
         return True
 
-    def server_is_bad_certificate(self, server):
+    def server_is_bad_certificate(self, server: str) -> bool:
         return server in self.bad_certificate_servers
 
-    def server_set_blacklisted(self, server, b, save=True, skip_connection_logic=False):
+    def server_set_blacklisted(
+        self,
+        server: str,
+        value: bool,
+        save: bool = True,
+        skip_connection_logic: bool = False,
+    ) -> None:
         assert isinstance(server, str)
-        if b:
+        if value:
             self.blacklisted_servers |= {server}
         else:
             self.blacklisted_servers -= {server}
         self.config.set_key(
             ConfigKeys.SERVER_BLACKLIST, list(self.blacklisted_servers), save
         )
-        if b and not skip_connection_logic and server in self.interfaces:
+        if value and not skip_connection_logic and server in self.interfaces:
             # if blacklisting, this disconnects (if we were connected)
             self.connection_down(server, False)
 
-    def server_is_blacklisted(self, server):
+    def server_is_blacklisted(self, server: str) -> bool:
         return server in self.blacklisted_servers
 
-    def server_set_whitelisted(self, server, b, save=True):
+    def server_set_whitelisted(
+        self, server: str, value: bool, save: bool = True
+    ) -> None:
         assert isinstance(server, str)
         adds = set(self.config.get(ConfigKeys.SERVER_WHITELIST_ADDED))
         rems = set(self.config.get(ConfigKeys.SERVER_WHITELIST_REMOVED))
         is_hardcoded = server in self._hardcoded_whitelist
         s = {server}  # make a set so |= and -= work
         len0 = len(self.whitelisted_servers)
-        if b:
+        if value:
             # the below logic keeps the adds list from containing redundant
             # 'whitelisted' servers that are already defined in servers.json
             # it also makes it so that if the developers remove a server from
@@ -2560,7 +2604,7 @@ class Network(util.DaemonThread):
         self.config.set_key(ConfigKeys.SERVER_WHITELIST_ADDED, list(adds), save)
         self.config.set_key(ConfigKeys.SERVER_WHITELIST_REMOVED, list(rems), save)
 
-    def server_is_whitelisted(self, server):
+    def server_is_whitelisted(self, server: str) -> bool:
         return server in self.whitelisted_servers
 
     def _compute_whitelist(self):
@@ -2573,15 +2617,15 @@ class Network(util.DaemonThread):
         ret -= set(self.config.get(ConfigKeys.SERVER_WHITELIST_REMOVED))
         return ret, servers_to_hostmap(ret)
 
-    def is_whitelist_only(self):
+    def is_whitelist_only(self) -> bool:
         return bool(self.config.get(ConfigKeys.WHITHELIST_SERVERS_ONLY))
 
-    def set_whitelist_only(self, b):
-        if bool(b) == self.is_whitelist_only():
+    def set_whitelist_only(self, value: bool) -> None:
+        if bool(value) == self.is_whitelist_only():
             # disallow redundant/noop calls
             return
-        self.config.set_key(ConfigKeys.WHITHELIST_SERVERS_ONLY, b, True)
-        if not b:
+        self.config.set_key(ConfigKeys.WHITHELIST_SERVERS_ONLY, value, True)
+        if not value:
             return
         with self.interface_lock:
             # now, disconnect from all non-whitelisted servers

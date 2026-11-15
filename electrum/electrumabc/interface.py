@@ -41,7 +41,6 @@ from pathvalidate import sanitize_filename
 
 from . import pem, util, x509
 from .printerror import PrintError, is_verbose, print_error, print_msg
-from .simple_config import SimpleConfig
 from .util import TimeoutException
 from .utils import Event
 
@@ -49,6 +48,7 @@ if TYPE_CHECKING:
     from queue import Queue
 
     from .blockchain import Blockchain, Header
+    from .simple_config import SimpleConfig
 
     MessageMethodT = str
     MessageParamsT = list[Any]
@@ -642,6 +642,8 @@ class Interface(PrintError):
         self.bad: int = 0
         self.bad_header: Header = {}
 
+        self.server_version: list[Any] | None = None
+
     def __repr__(self) -> str:
         return "<{}.{} {}>".format(__name__, type(self).__name__, self.format_address())
 
@@ -861,6 +863,8 @@ def check_cert(host: str, cert: str) -> None:
 
 
 def test_certificates() -> None:
+    from .simple_config import SimpleConfig
+
     config = SimpleConfig()
     mydir: str = os.path.join(config.path, "certs")
     certs = os.listdir(mydir)
