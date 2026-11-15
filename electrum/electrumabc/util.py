@@ -443,14 +443,11 @@ builtin_raw_input = builtins.input
 builtins.input = raw_input
 
 
-class timeout(Exception):
+class TimeoutException(Exception):
     """Server timed out on broadcast tx (normally due to a bad connection).
     Exception string is the translated error string."""
 
     pass
-
-
-TimeoutException = timeout  # Future compat. with Electrum codebase/cherrypicking
 
 
 class ServerError(Exception):

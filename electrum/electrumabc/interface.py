@@ -42,7 +42,7 @@ from pathvalidate import sanitize_filename
 from . import pem, util, x509
 from .printerror import PrintError, is_verbose, print_error, print_msg
 from .simple_config import SimpleConfig
-from .util import timeout
+from .util import TimeoutException
 from .utils import Event
 
 if TYPE_CHECKING:
@@ -430,7 +430,7 @@ class JSONSocketPipe(PrintError):
         """Attempt to read out a message, possibly saving additional messages in
         a receive buffer.
 
-        If no message is currently available, this raises util.timeout and you
+        If no message is currently available, this raises util.TimeoutException and you
         should retry once data becomes available to read. If connection is bad for
         some known reason, raises .Closed; other errors will raise other exceptions.
         """
@@ -442,11 +442,11 @@ class JSONSocketPipe(PrintError):
             try:
                 data = self.socket.recv(1024)
             except (socket.timeout, BlockingIOError, ssl.SSLWantReadError):
-                raise timeout
+                raise TimeoutException
             except OSError as exc:
                 if exc.errno in (11, 35, 60, 10035):
                     # some OSes might give these ways of indicating a would-block error.
-                    raise timeout
+                    raise TimeoutException
                 if exc.errno == 9:
                     # EBADF. Someone called close() locally so FD is bad.
                     raise self.Closed("closed by local")
@@ -488,11 +488,11 @@ class JSONSocketPipe(PrintError):
             try:
                 sent = self.socket.send(send_buf)
             except (socket.timeout, BlockingIOError, ssl.SSLWantWriteError):
-                raise timeout
+                raise TimeoutException
             except OSError as exc:
                 if exc.errno in (11, 35, 60, 10035):
                     # some OSes might give these ways of indicating a would-block error.
-                    raise timeout
+                    raise TimeoutException
                 if exc.errno == 9:
                     # EBADF. Someone called close() locally so FD is bad.
                     raise self.Closed("closed by local")
@@ -503,7 +503,7 @@ class JSONSocketPipe(PrintError):
             if sent == 0:
                 # shouldn't happen, but just in case, we don't want to infinite
                 # loop.
-                raise timeout
+                raise TimeoutException
             del send_buf[:sent]
 
 
@@ -712,7 +712,7 @@ class Interface(PrintError):
         try:
             try:
                 self.pipe.send_flush()
-            except util.timeout:
+            except util.TimeoutException:
                 if self.debug:
                     self.print_error(
                         "still flushing send data... [{}]".format(
@@ -737,7 +737,7 @@ class Interface(PrintError):
             wire_requests = self.unsent_requests[0:n]
 
             self.pipe.send_all([make_dict(*r) for r in wire_requests])
-        except util.timeout:
+        except util.TimeoutException:
             # this is OK, the send is in the pipe and we'll flush it out
             # eventually.
             pass
@@ -785,7 +785,7 @@ class Interface(PrintError):
             response = None
             try:
                 response = self.pipe.get()
-            except util.timeout:
+            except util.TimeoutException:
                 break
             except self.pipe.Closed as e:
                 self.print_error(str(e))
