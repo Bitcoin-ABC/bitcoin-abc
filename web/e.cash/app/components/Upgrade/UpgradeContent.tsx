@@ -24,6 +24,30 @@ export default function UpgradeContent({
     <div className="relative w-full py-20">
       <ContentContainer className="max-w-[700px]">
         <div className="space-y-12">
+          {/* What happened Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <PlusHeader text="What happened?" />
+            <p>
+              The planned upgrade of the eCash network has successfully been
+              completed. The first post-upgrade block is block number{" "}
+              <Link
+                href="https://explorer.e.cash/block/00000000000000003b5bb8987d07d211f553b736022d3edde78aca472ddcf048"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 transition-colors hover:text-blue-300"
+              >
+                975611
+              </Link>
+              .
+            </p>
+          </motion.div>
+
           {/* Who needs to upgrade Section */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -47,26 +71,6 @@ export default function UpgradeContent({
                 Releases Page
               </Link>
               .
-            </p>
-          </motion.div>
-
-          {/* When will it activate Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-            viewport={{ once: true }}
-            className="space-y-6"
-          >
-            <PlusHeader text="Exactly when will the upgrade activate?" />
-            <p>
-              In order to activate reliably at a predictable time, the network
-              upgrade uses the &ldquo;Median Time Past&rdquo; mechanism. The
-              upgrade activates when the median of the last 11 blocks reaches
-              timestamp 1794744000 (12:00:00 UTC on November 15th, 2026). This
-              means that the upgrade does not actually activate exactly at that
-              time, but typically about one hour later, when 6 blocks with
-              timestamps greater than the activation time have been produced.
             </p>
           </motion.div>
 
