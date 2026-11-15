@@ -36,7 +36,6 @@ from .uint256 import UInt256
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from .interface import Interface
     from .simple_config import SimpleConfig
 
     class Header(TypedDict):
@@ -290,7 +289,9 @@ class Blockchain(PrintError):
 
     def __init__(self, config: SimpleConfig, base_height: int, parent_base_height: int):
         self.config = config
-        self.catch_up: Interface | None = None
+        self.catch_up: str | None = None
+        """Interface server"""
+
         self.base_height = base_height
         self.parent_base_height = parent_base_height
 

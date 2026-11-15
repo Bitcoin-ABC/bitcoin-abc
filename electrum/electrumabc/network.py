@@ -1904,7 +1904,7 @@ class Network(util.DaemonThread):
             )
             chain = self.blockchains[0]
             if chain.catch_up is None:
-                chain.catch_up = interface
+                chain.catch_up = interface.server
                 interface.set_mode(Interface.Mode.CATCH_UP)
                 interface.blockchain = chain
                 interface.print_error("switching to catchup mode", tip)
@@ -1912,9 +1912,7 @@ class Network(util.DaemonThread):
                     interface, networks.net.VERIFICATION_BLOCK_HEIGHT + 1
                 )
             else:
-                interface.print_error(
-                    "chain already catching up with", chain.catch_up.server
-                )
+                interface.print_error("chain already catching up with", chain.catch_up)
 
     def request_initial_proof_and_headers(self, interface):
         # This will be the initial topmost header response.  But we might get new blocks.
