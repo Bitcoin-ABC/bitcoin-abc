@@ -9,6 +9,7 @@ import webbrowser
 from collections import namedtuple
 from functools import partial, wraps
 from locale import atof
+from typing import Any
 
 import qtpy
 from qtpy import QtWidgets
@@ -271,7 +272,9 @@ class MessageBoxMixin:
             icon = QtWidgets.QMessageBox.Warning
         return self.msg_box(icon, parent, title or _("Warning"), msg, **kwargs)
 
-    def show_error(self, msg, parent=None, title=None, **kwargs):
+    def show_error(
+        self, msg: str, parent=None, title: str | None = None, **kwargs: Any
+    ):
         icon = kwargs.pop("icon", None)  # may be 0
         if icon is None:
             icon = QtWidgets.QMessageBox.Warning
@@ -572,7 +575,7 @@ class ChoicesLayout(object):
     def layout(self):
         return self.vbox
 
-    def selected_index(self):
+    def selected_index(self) -> int:
         return self.group.checkedId()
 
 

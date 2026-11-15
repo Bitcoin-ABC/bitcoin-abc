@@ -83,7 +83,7 @@ def seed_warning_msg(seed, has_der=False, has_ext=False):
 
 class SeedLayout(QtWidgets.QVBoxLayout):
     # options
-    is_ext = False
+    is_ext: bool = False
 
     def seed_options(self):
         dialog = QtWidgets.QDialog()

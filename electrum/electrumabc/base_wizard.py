@@ -75,7 +75,7 @@ class BaseWizard(PrintError):
         super(BaseWizard, self).__init__()
         self.config = config
         self.data = {}
-        self.pw_args = None
+        self.pw_args: tuple[str | None, bool, int] | None = None
         self._stack: list[WizardStackItem] = []
         self.plugin: BasePlugin | None = None
         self.keystores = []
@@ -292,7 +292,7 @@ class BaseWizard(PrintError):
         self.run(action)
 
     def choose_multisig(self) -> None:
-        def on_multisig(m, n) -> None:
+        def on_multisig(m: int, n: int) -> None:
             multisig_type = "%dof%d" % (m, n)
             self.data["wallet_type"] = multisig_type
             self.n = n
@@ -840,11 +840,11 @@ class BaseWizard(PrintError):
 
     def on_password(
         self,
-        password,
+        password: str | None,
         *,
-        encrypt_storage,
-        storage_enc_version=STO_EV_USER_PW,
-        encrypt_keystore,
+        encrypt_storage: bool,
+        storage_enc_version: int = STO_EV_USER_PW,
+        encrypt_keystore: bool,
     ) -> None:
         for k in self.keystores:
             if k.may_have_password():
@@ -870,7 +870,7 @@ class BaseWizard(PrintError):
 
     def create_storage(self, path) -> WalletStorage | None:
         if not self.pw_args:
-            return
+            return None
         password, encrypt_storage, storage_enc_version = self.pw_args
         storage = WalletStorage(path)
         storage.set_keystore_encryption(bool(password))  # and encrypt_keystore)
@@ -909,7 +909,8 @@ class BaseWizard(PrintError):
         self.opt_bip39 = False
         self.opt_slip39 = False
         self.show_seed_dialog(
-            run_next=lambda x: self.request_passphrase(seed, x), seed_text=seed
+            run_next=lambda x: self.request_passphrase(seed, x),
+            seed_text=seed,
         )
 
     def request_passphrase(self, seed, opt_passphrase) -> None:

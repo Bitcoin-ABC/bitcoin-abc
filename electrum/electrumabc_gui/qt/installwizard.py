@@ -458,15 +458,21 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.refresh_gui()
         return result
 
-    def refresh_gui(self):
+    def refresh_gui(self) -> None:
         # For some reason, to refresh the GUI this needs to be called twice
         self.app.processEvents()
         self.app.processEvents()
 
-    def remove_from_recently_open(self, filename):
+    def remove_from_recently_open(self, filename) -> None:
         self.config.remove_from_recently_open(filename)
 
-    def text_input(self, title, message, is_valid, allow_multi=False):
+    def text_input(
+        self,
+        title: str,
+        message: str,
+        is_valid: Callable[[str], bool],
+        allow_multi: bool = False,
+    ) -> str:
         slayout = KeysLayout(
             self.config,
             parent=self,
@@ -493,11 +499,23 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         return d.decoded_keys  # dict will be empty if user cancelled
 
     @wizard_dialog
-    def add_xpub_dialog(self, title, message, is_valid, run_next, allow_multi=False):
+    def add_xpub_dialog(
+        self,
+        title: str,
+        message: str,
+        is_valid: Callable[[str], bool],
+        run_next: Callable[[str], None],
+        allow_multi: bool = False,
+    ) -> str:
         return self.text_input(title, message, is_valid, allow_multi)
 
     @wizard_dialog
-    def add_cosigner_dialog(self, run_next, index, is_valid):
+    def add_cosigner_dialog(
+        self,
+        index: int,
+        run_next: Callable[[str], None],
+        is_valid: Callable[[str], bool],
+    ) -> str:
         title = _("Add Cosigner") + " %d" % index
         message = " ".join(
             [
@@ -541,7 +559,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         return seed
 
     @wizard_dialog
-    def show_seed_dialog(self, run_next, seed_text, editable=True):
+    def show_seed_dialog(
+        self, run_next: Callable[[bool], None], seed_text: str, editable: bool = True
+    ) -> bool:
         title = _("Your wallet generation seed is:")
         slayout = SeedLayout(
             seed=seed_text, title=title, msg=True, options=["ext"], editable=False
@@ -561,14 +581,18 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         return playout.new_password(), playout.encrypt_cb.isChecked()
 
     @wizard_dialog
-    def request_password(self, run_next, force_disable_encrypt_cb=False):
+    def request_password(
+        self,
+        run_next: Callable[[str | None, bool], None],
+        force_disable_encrypt_cb: bool = False,
+    ) -> tuple[str | None, bool]:
         """Request the user enter a new password and confirm it.  Return
         the password or None for no password.  Note that this dialog screen
         cannot go back, and instead the user can only cancel."""
         return self.pw_layout(MSG_ENTER_PASSWORD, PW_NEW, force_disable_encrypt_cb)
 
     @wizard_dialog
-    def request_storage_encryption(self, run_next):
+    def request_storage_encryption(self, run_next: Callable[[bool], None]) -> bool:
         playout = PasswordLayoutForHW(MSG_HW_STORAGE_ENCRYPTION)
         playout.encrypt_cb.setChecked(True)
         self.exec_layout(playout.layout())
@@ -588,7 +612,13 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         but.clicked.connect(but_action)
 
     @wizard_dialog
-    def confirm_dialog(self, title, message, run_next, extra_button=None):
+    def confirm_dialog(
+        self,
+        title: str,
+        message: str,
+        run_next: Callable[[Any], None],
+        extra_button: tuple[str, Callable] | None = None,
+    ) -> None:
         self.confirm(message, title, extra_button=extra_button)
 
     def confirm(self, message, title, extra_button=None):
@@ -640,7 +670,12 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         else:
             raise exc
 
-    def waiting_dialog(self, task, msg, on_finished=None):
+    def waiting_dialog(
+        self,
+        task: Callable[..., Any],
+        msg: str,
+        on_finished: Callable[..., Any] | None = None,
+    ) -> None:
         label = WWLabel(msg)
         vbox = QtWidgets.QVBoxLayout()
         vbox.addSpacing(100)
@@ -662,7 +697,14 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             on_finished()
 
     @wizard_dialog
-    def choice_dialog(self, title, message, choices, run_next, extra_button=None):
+    def choice_dialog(
+        self,
+        title: str,
+        message: str,
+        choices: list[tuple[int | str, str]],
+        run_next: Callable[[int | str], None],
+        extra_button: tuple[str, Callable] | None = None,
+    ) -> int | str:
         c_values = [x[0] for x in choices]
         c_titles = [x[1] for x in choices]
         clayout = ChoicesLayout(message, c_titles)
@@ -683,13 +725,21 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         return clayout.selected_index()
 
     @wizard_dialog
-    def line_dialog(self, run_next, title, message, default, test, warning=""):
+    def line_dialog(
+        self,
+        title: str,
+        message: str,
+        run_next: Callable,
+        default: str,
+        test: Callable[[str], bool],
+        warning: str = "",
+    ) -> str:
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(message))
         line = QtWidgets.QLineEdit()
         line.setText(default)
 
-        def f(text):
+        def f(text: str) -> None:
             self.next_button.setEnabled(test(text))
 
         line.textEdited.connect(f)
@@ -701,15 +751,15 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
     @wizard_dialog
     def derivation_path_dialog(
         self,
-        run_next,
-        title,
-        message,
-        default,
-        test,
-        warning="",
+        title: str,
+        message: str,
+        run_next: Callable[[str], None],
+        default: str,
+        test: Callable[[str], bool],
+        warning: str = "",
         bip32_seed: bytes = b"",
-        scannable=False,
-    ):
+        scannable: bool = False,
+    ) -> str:
         def on_derivation_scan(derivation_line):
             derivation_scan_dialog = DerivationDialog(
                 self, bip32_seed, DerivationPathScanner.DERIVATION_PATHS
@@ -725,7 +775,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         line = QtWidgets.QLineEdit()
         line.setText(default)
 
-        def f(text):
+        def f(text: str) -> None:
             self.next_button.setEnabled(test(text))
 
         line.textEdited.connect(f)
@@ -745,7 +795,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         return " ".join(line.text().split())
 
     @wizard_dialog
-    def show_xpub_dialog(self, xpub, run_next):
+    def show_xpub_dialog(self, xpub, run_next: Callable[[Any], None]):
         msg = " ".join(
             [
                 _("Here is your master public key."),
@@ -781,7 +831,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 nlayout.accept()
 
     @wizard_dialog
-    def multisig_dialog(self, run_next):
+    def multisig_dialog(self, run_next: Callable[[int, int], None]) -> tuple[int, int]:
         cw = CosignWidget(2, 2)
         m_edit = QtWidgets.QSlider(Qt.Horizontal, self)
         n_edit = QtWidgets.QSlider(Qt.Horizontal, self)
