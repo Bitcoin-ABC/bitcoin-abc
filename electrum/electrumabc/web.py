@@ -78,17 +78,6 @@ class Blockchair(BlockchainExplorer):
     addr_uses_prefix = False
 
 
-class CoinexExplorer(BlockchainExplorer):
-    name = "CoinEx"
-    url_base = "https://explorer.coinex.com/xec"
-    addr_uses_prefix: bool = False
-
-
-class BeCash(BlockchainExplorer):
-    name = "be.cash"
-    url_base = "https://explorer.be.cash"
-
-
 class ECash(BlockchainExplorer):
     name = "eCash"
     url_base = "https://explorer.e.cash"
@@ -102,7 +91,7 @@ DEFAULT_EXPLORER = ECash
 
 BlockChainExplorerDictT = dict[str, type[BlockchainExplorer]]
 mainnet_block_explorers: BlockChainExplorerDictT = {
-    explorer.name: explorer for explorer in [ECash, Blockchair, CoinexExplorer, BeCash]
+    explorer.name: explorer for explorer in [ECash, Blockchair]
 }
 
 DEFAULT_EXPLORER_TESTNET = ECashTestnet
