@@ -373,6 +373,9 @@ class Network(util.DaemonThread):
             return
 
         proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
+        if proxy is None:
+            return
+
         port = str(controller.active_socks_port)
         if proxy["port"] == port:
             return
@@ -1455,6 +1458,7 @@ class Network(util.DaemonThread):
             # the file.
             pass
         else:
+            assert interface.blockchain is not None
             if interface.blockchain.height() < interface.tip:
                 self.request_headers(
                     interface, request_base_height + actual_header_count, 2016
@@ -1567,6 +1571,9 @@ class Network(util.DaemonThread):
                     )
 
         elif interface.mode == Interface.Mode.BINARY:
+            # BACKWARD sets the blockchain before switching to BINARY, and it is
+            # only ever reassigned to another chain while in BINARY mode.
+            assert interface.blockchain is not None
             if chain:
                 interface.good = height
                 interface.blockchain = chain
@@ -1647,8 +1654,8 @@ class Network(util.DaemonThread):
                 self.notify("blockchain_updated")
 
         elif interface.mode == Interface.Mode.CATCH_UP:
-            can_connect = interface.blockchain.can_connect(header)
-            if can_connect:
+            assert interface.blockchain is not None
+            if interface.blockchain.can_connect(header):
                 interface.blockchain.save_header(header)
                 next_height = height + 1 if height < interface.tip else None
             else:
