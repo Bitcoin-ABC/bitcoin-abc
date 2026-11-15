@@ -50,15 +50,22 @@ if TYPE_CHECKING:
 
     from .blockchain import Blockchain, Header
 
-    InterfaceRequest = tuple[str, list[Any], int]
+    MessageMethodT = str
+    MessageParamsT = list[Any]
+
+    InterfaceRequest = tuple[MessageMethodT, MessageParamsT, int]
     """(method, params, id)"""
 
-    InterfaceResponse = tuple[InterfaceRequest | None, dict | None]
+    InterfaceMessageResponseT = dict[str, Any]
+
+    InterfaceResponse = (
+        tuple[None, None] | tuple[InterfaceRequest | None, InterfaceMessageResponseT]
+    )
 
     class InterfaceJsonRPCRequest(TypedDict):
         jsonrpc: str
-        method: str
-        params: list[Any]
+        method: MessageMethodT
+        params: MessageParamsT
         id: int
 
     ConnectionQueueT = Queue[tuple[str, socket.socket | None]]
@@ -662,7 +669,9 @@ class Interface(PrintError):
         except Exception:
             pass
 
-    def queue_request(self, method: str, params: list[Any], id_: int) -> None:
+    def queue_request(
+        self, method: MessageMethodT, params: MessageParamsT, id_: int
+    ) -> None:
         """Queue a request, later to be sent with send_requests when the
         socket is available for writing."""
         self.request_time = time.time()

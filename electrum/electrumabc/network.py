@@ -35,8 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from collections.abc import Callable, Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import socks
 
@@ -52,11 +51,25 @@ from .tor import TorController, check_proxy_bypass_tor_control
 from .transaction import DUST_THRESHOLD
 from .utils import Event
 
-NetworkRequest = tuple[str, list[Any], Callable]
-"""(method, params, callback)
-Method and params are passed to the interface with a unique request id. Callback is
-called and takes the interface's response as a parameter.
-"""
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+
+    from .interface import (
+        InterfaceMessageResponseT,
+        InterfaceRequest,
+        MessageMethodT,
+        MessageParamsT,
+    )
+
+    MessageSendT = tuple[MessageMethodT, MessageParamsT]
+    NetworkResponseCallbackT = Callable[[InterfaceMessageResponseT], Any]
+
+    NetworkRequest = tuple[MessageMethodT, MessageParamsT, NetworkResponseCallbackT]
+    """(method, params, callback)
+    Method and params are passed to the interface with a unique request id. Callback is
+    called and takes the interface's response as a parameter.
+    """
+
 
 # Rate-limit the get_merkle requests sent to fulcrum servers.
 # This affects the speed of the initial verification of transactions in a wallet with
@@ -291,7 +304,9 @@ class Network(util.DaemonThread):
         self.interface_lock = threading.RLock()  # <- re-entrant
         self.pending_sends_lock = threading.Lock()
 
-        self.pending_sends = []
+        self.pending_sends: list[
+            tuple[list[MessageSendT], NetworkResponseCallbackT]
+        ] = []
         self.message_id = Monotonic(locking=True)
         self.verified_checkpoint = False
         """Flag set to True if the checkpoint header is in the local blockchain
@@ -479,11 +494,11 @@ class Network(util.DaemonThread):
 
     def queue_request(
         self,
-        method: str,
-        params: list[Any],
+        method: MessageMethodT,
+        params: MessageParamsT,
         interface: Interface | None = None,
         *,
-        callback: Callable | None = None,
+        callback: NetworkResponseCallbackT | None = None,
         max_qlen: int | None = None,
     ):
         """If you want to queue a request on any interface it must go through
@@ -853,7 +868,13 @@ class Network(util.DaemonThread):
         self.recent_servers = self.recent_servers[0:20]
         self.save_recent_servers()
 
-    def process_response(self, interface, request, response, callbacks):
+    def process_response(
+        self,
+        interface: Interface,
+        request: InterfaceRequest | None,
+        response: InterfaceMessageResponseT,
+        callbacks: list[NetworkResponseCallbackT],
+    ):
         if self.debug:
             self.print_error("<--", response)
         error = response.get("error")
@@ -911,19 +932,19 @@ class Network(util.DaemonThread):
             callback(response)
 
     @staticmethod
-    def check_params(params, min_len):
+    def check_params(params: MessageParamsT, min_len: int) -> bool:
         return isinstance(params, (list, tuple)) and len(params) >= min_len
 
-    def get_index(self, method, params):
+    def get_index(self, method: MessageMethodT, params: MessageParamsT) -> str:
         """hashable index for subscriptions and cache"""
         return str(method) + (
             ":" + str(params[0]) if self.check_params(params, 1) else ""
         )
 
-    def process_responses(self, interface: Interface):
+    def process_responses(self, interface: Interface) -> None:
         responses = interface.get_responses()
         for request, response in responses:
-            if request is None and response is None:
+            if response is None:
                 # Closed remotely / misbehaving
                 self.connection_down(interface.server)
                 break
@@ -983,11 +1004,15 @@ class Network(util.DaemonThread):
             # Response is now in canonical form
             self.process_response(interface, request, response, callbacks)
 
-    def subscribe_to_scripthashes(self, scripthashes: Iterable[str], callback):
+    def subscribe_to_scripthashes(
+        self, scripthashes: Iterable[str], callback: NetworkResponseCallbackT
+    ) -> None:
         msgs = [("blockchain.scripthash.subscribe", [sh]) for sh in scripthashes]
         self.send(msgs, callback)
 
-    def unsubscribe_from_scripthashes(self, scripthashes: Iterable[str], callback):
+    def unsubscribe_from_scripthashes(
+        self, scripthashes: Iterable[str], callback: NetworkResponseCallbackT
+    ) -> None:
         method_sub = "blockchain.scripthash.subscribe"
         msgs = []
         for sh in scripthashes:
@@ -1013,7 +1038,7 @@ class Network(util.DaemonThread):
         if not msgs:
             return
 
-        def unsub_callback(response):
+        def unsub_callback(response: InterfaceMessageResponseT) -> None:
             method = response.get("method")
             result = response.get("result")
             sh = response.get("params", [None])[0]
@@ -1022,10 +1047,14 @@ class Network(util.DaemonThread):
         self.print_error(f"Sending unsub for {len(msgs)} scripthash(es) ...")
         self.send(msgs, unsub_callback)
 
-    def request_scripthash_history(self, sh, callback):
+    def request_scripthash_history(
+        self, sh: str, callback: NetworkResponseCallbackT
+    ) -> None:
         self.send([("blockchain.scripthash.get_history", [sh])], callback)
 
-    def send(self, messages: list[tuple[str, list[Any]]], callback):
+    def send(
+        self, messages: list[MessageSendT], callback: NetworkResponseCallbackT
+    ) -> None:
         """Messages is a list of (method, params) tuples"""
         # Guard against empty message-list which is a no-op and just wastes CPU to
         # enque/dequeue (not even callback is called). I've seen the code send empty
@@ -1062,7 +1091,11 @@ class Network(util.DaemonThread):
                     self.queue_request(method, params, callback=callback)
 
     def _cancel_pending_sends(
-        self, callback, *, method=None, params=None
+        self,
+        callback,
+        *,
+        method: MessageMethodT | None = None,
+        params: MessageParamsT | None = None,
     ) -> tuple[int, int]:
         ct = 0
         nmsgs = 0
@@ -1122,7 +1155,13 @@ class Network(util.DaemonThread):
                 f"(nmsgs={ct3}) for callback: {qname}"
             )
 
-    def cancel_requests(self, callback, *, method=None, params=None):
+    def cancel_requests(
+        self,
+        callback: NetworkResponseCallbackT,
+        *,
+        method: MessageMethodT | None = None,
+        params: MessageParamsT | None = None,
+    ) -> None:
         """Remove a callback to free object references to enable GC.
         It is advised that this function only be called from the network thread
         to avoid race conditions."""
@@ -1295,14 +1334,25 @@ class Network(util.DaemonThread):
             networks.net.VERIFICATION_BLOCK_HEIGHT,
         )
 
-    def _request_headers(self, interface, base_height, count, checkpoint_height=0):
+    def _request_headers(
+        self,
+        interface: Interface | None,
+        base_height: int,
+        count: int,
+        checkpoint_height: int = 0,
+    ) -> bool:
         params = [base_height, count, checkpoint_height]
         return (
             self.queue_request("blockchain.block.headers", params, interface)
             is not None
         )
 
-    def on_block_headers(self, interface, request, response):
+    def on_block_headers(
+        self,
+        interface: Interface,
+        request: InterfaceRequest | None,
+        response: InterfaceMessageResponseT,
+    ) -> None:
         """Handle receiving a chunk of block headers"""
         error = response.get("error")
         result = response.get("result")
@@ -1489,7 +1539,12 @@ class Network(util.DaemonThread):
         self.queue_request("blockchain.block.header", params, interface)
         return True
 
-    def on_header(self, interface, request, response):
+    def on_header(
+        self,
+        interface: Interface,
+        request: InterfaceRequest | None,
+        response: InterfaceMessageResponseT,
+    ) -> None:
         """Handle receiving a single block header"""
         result = response.get("result")
         if not result:
@@ -2068,11 +2123,11 @@ class Network(util.DaemonThread):
     def get_local_height(self):
         return self.blockchain().height()
 
-    def synchronous_get(self, request, timeout=30):
-        q = queue.Queue()
+    def synchronous_get(self, request: MessageSendT, timeout: float = 30) -> Any:
+        q: queue.Queue[InterfaceMessageResponseT] = queue.Queue()
         self.send([request], q.put)
         try:
-            r = q.get(True, timeout)
+            r = q.get(block=True, timeout=timeout)
         except queue.Empty:
             raise util.TimeoutException("Server did not answer")
         if r.get("error"):
