@@ -26,14 +26,15 @@ from __future__ import annotations
 import copy
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple
+from abc import abstractmethod
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, TypeVar
 
 from electrumabc_plugins.hw_wallet import HWPluginBase
 
 from . import bitcoin, keystore, mnemo, networks, slip39, util
 from .address import Address
 from .bip32 import is_bip32_derivation, xpub_type
-from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
+from .constants import CURRENCY, REPOSITORY_URL
 from .i18n import _
 from .keystore import HardwareKeyStore
 from .printerror import PrintError
@@ -46,7 +47,7 @@ from .storage import (
 from .wallet import wallet_types
 
 if TYPE_CHECKING:
-    from .plugins import BasePlugin, DeviceInfo
+    from .plugins import BasePlugin, DeviceInfo, Plugins
     from .simple_config import SimpleConfig
 
 # hardware device setup purpose
@@ -64,7 +65,12 @@ class WizardStackItem(NamedTuple):
     storage_data: dict
 
 
+T = TypeVar("T")
+
+
 class BaseWizard(PrintError):
+    plugins: Plugins
+
     def __init__(self, config: SimpleConfig):
         super(BaseWizard, self).__init__()
         self.config = config
@@ -73,7 +79,130 @@ class BaseWizard(PrintError):
         self._stack: list[WizardStackItem] = []
         self.plugin: BasePlugin | None = None
         self.keystores = []
-        self.seed_type = None
+        self.seed_type: str | None = None
+
+    @abstractmethod
+    def add_cosigner_dialog(
+        self,
+        run_next: Callable[[str], None],
+        index: int,
+        is_valid: Callable[[str], bool],
+    ) -> str: ...
+
+    @abstractmethod
+    def add_xpub_dialog(
+        self,
+        title: str,
+        message: str,
+        is_valid: Callable[[str], bool],
+        run_next: Callable[[str], None],
+        allow_multi: bool = False,
+    ) -> str: ...
+
+    @abstractmethod
+    def choice_dialog(
+        self,
+        title: str,
+        message: str,
+        choices: list[tuple[T, str]],
+        run_next: Callable[[T], None],
+        extra_button: tuple[str, Callable] | None = None,
+    ) -> T: ...
+
+    @abstractmethod
+    def confirm_dialog(
+        self,
+        title: str,
+        message: str,
+        run_next: Callable[[Any], None],
+        extra_button: tuple[str, Callable] | None = None,
+    ) -> None: ...
+
+    @abstractmethod
+    def confirm_seed_dialog(
+        self,
+        run_next: Callable[[str | slip39.EncryptedSeed], None],
+        test: Callable[[str | slip39.EncryptedSeed], bool],
+    ) -> str | slip39.EncryptedSeed: ...
+
+    @abstractmethod
+    def derivation_path_dialog(
+        self,
+        run_next: Callable[[str], None],
+        title: str,
+        message: str,
+        default: str,
+        test: Callable[[str], bool],
+        warning: str = "",
+        bip32_seed: bytes = b"",
+        scannable: bool = False,
+    ) -> str: ...
+
+    @abstractmethod
+    def line_dialog(
+        self,
+        run_next: Callable[[str], None],
+        title: str,
+        message: str,
+        default: str,
+        test: Callable[[str], bool],
+        warning: str = "",
+    ) -> str: ...
+
+    @abstractmethod
+    def multisig_dialog(
+        self,
+        run_next: Callable[[int, int], None],
+    ) -> tuple[int, int]: ...
+
+    @abstractmethod
+    def restore_seed_dialog(
+        self,
+        run_next: Callable[[str | slip39.EncryptedSeed, str, bool], None],
+        test: Callable[[str], bool],
+    ) -> Any: ...
+
+    @abstractmethod
+    def request_password(
+        self,
+        run_next: Callable[[str | None, bool], None],
+        force_disable_encrypt_cb: bool = False,
+    ) -> tuple[str | None, bool]: ...
+
+    @abstractmethod
+    def request_storage_encryption(self, run_next: Callable[[bool], Any]) -> bool: ...
+
+    @abstractmethod
+    def show_error(
+        self,
+        msg: str,
+        parent: Any | None = None,
+        title: str | None = None,
+        **kwargs: Any,
+    ) -> Any: ...
+
+    @abstractmethod
+    def show_seed_dialog(
+        self,
+        run_next: Callable[[bool], None],
+        seed_text: str,
+        editable: bool = True,
+    ) -> bool: ...
+
+    @abstractmethod
+    def show_xpub_dialog(
+        self,
+        xpub: Any,
+        run_next: Callable[[Any], None],
+    ) -> None: ...
+
+    @abstractmethod
+    def waiting_dialog(
+        self,
+        task: Callable[..., Any],
+        msg: str,
+        on_finished: Callable[..., Any] | None = None,
+    ) -> None: ...
 
     def run(self, *args, **kwargs) -> None:
         action = args[0]
@@ -813,12 +942,3 @@ class BaseWizard(PrintError):
             )
         else:
             self.run("create_keystore", seed, "")
-
-    def create_addresses(self) -> None:
-        def task() -> None:
-            self.wallet.synchronize()
-            self.wallet.storage.write()
-            self.terminate()
-
-        msg = _(f"{PROJECT_NAME} is generating your addresses, please wait...")
-        self.waiting_dialog(task, msg)
