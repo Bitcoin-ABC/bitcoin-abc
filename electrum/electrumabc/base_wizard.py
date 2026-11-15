@@ -72,7 +72,7 @@ class BaseWizard(PrintError):
     plugins: Plugins
 
     def __init__(self, config: SimpleConfig):
-        super(BaseWizard, self).__init__()
+        super().__init__()
         self.config = config
         self.data = {}
         self.pw_args: tuple[str | None, bool, int] | None = None
@@ -887,10 +887,6 @@ class BaseWizard(PrintError):
 
     def show_xpub_and_add_cosigners(self, xpub) -> None:
         self.show_xpub_dialog(xpub=xpub, run_next=lambda x: self.run("choose_keystore"))
-
-    def on_cosigner(self, text, password, i) -> None:
-        k = keystore.from_master_key(text, password)
-        self.on_keystore(k)
 
     def create_standard_seed(self) -> None:
         # we now generate bip39 by default; changing the below back to
