@@ -27,6 +27,7 @@ import os
 import queue
 import threading
 from collections import defaultdict
+from typing import Any
 
 from electrumabc.network import Network
 
@@ -61,12 +62,14 @@ class ElectrumWebSocket(WebSocket, PrintError):
 
 
 class WsClientThread(util.DaemonThread):
-    def __init__(self, config: SimpleConfig, network: Network | None):
+    def __init__(self, config: SimpleConfig, network: Network):
         super().__init__()
         self.network = network
         self.config = config
-        self.response_queue = queue.Queue()
-        self.subscriptions: dict[Address, tuple[WebSocket, float]] = defaultdict(list)
+        self.response_queue: queue.Queue[dict[str, Any]] = queue.Queue()
+        self.subscriptions: dict[Address, list[tuple[WebSocket, float]]] = defaultdict(
+            list
+        )
         self.sh2addr: dict[str, Address] = {}
 
     def make_request(self, request_id: str) -> tuple[str, float]:
@@ -89,13 +92,13 @@ class WsClientThread(util.DaemonThread):
             except queue.Empty:
                 continue
             try:
-                addr, amount = self.make_request(request_id)
+                addr_str, amount = self.make_request(request_id)
             except Exception:
                 continue
             try:
-                addr = Address.from_string(addr)
+                addr = Address.from_string(addr_str)
             except Exception as e:
-                self.print_error("Error parsing address", addr, repr(e))
+                self.print_error("Error parsing address", addr_str, repr(e))
                 continue
             # defaultdict will create empty list if not already there.
             subs = self.subscriptions[addr]
@@ -139,7 +142,7 @@ class WsClientThread(util.DaemonThread):
 
 
 class WebSocketServer(threading.Thread):
-    def __init__(self, config: SimpleConfig, ns: Network | None):
+    def __init__(self, config: SimpleConfig, ns: Network):
         threading.Thread.__init__(self)
         self.config = config
         self.net_server = ns

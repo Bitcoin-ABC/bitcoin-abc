@@ -429,11 +429,16 @@ def run_start(config: SimpleConfig, config_options: dict, subcommand: str):
         daemon_thread.start()
         # TODO: switch this to using config.is_key_set(ConfigKey.WEBSOCKET_SERVER)
         if config.get("websocket_server"):
-            # The websockets module relies on an optional module that isn't
-            # always available: SimpleWebSocketServer
-            from electrumabc import websockets  # pylint: disable=C0415
+            if daemon_thread.network is None:
+                print_stderr(
+                    "Warning: the websocket server is not started in offline mode"
+                )
+            else:
+                # The websockets module relies on an optional module that isn't
+                # always available: SimpleWebSocketServer
+                from electrumabc import websockets  # pylint: disable=C0415
 
-            websockets.WebSocketServer(config, daemon_thread.network).start()
+                websockets.WebSocketServer(config, daemon_thread.network).start()
         if config.get(ConfigKeys.PAYMENTREQUESTS_DIR):
             requests_path = os.path.join(
                 config.get(ConfigKeys.PAYMENTREQUESTS_DIR), "index.html"
