@@ -107,6 +107,10 @@ static CCheckpointData mainNetCheckpointData = {
         {949200,
          *BlockHash::FromHex("000000000000000098694560815190dba8bbe2f06c"
                              "08a7c23837df3c4886cba2")},
+        // Menger activation.
+        {975611,
+         *BlockHash::FromHex("00000000000000003b5bb8987d07d211f553b73602"
+                             "2d3edde78aca472ddcf048")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -180,7 +184,11 @@ static CCheckpointData testNetCheckpointData = {
         // Obolensky activation.
         {1713793,
          *BlockHash::FromHex("000000000008b5b5579ca088a51dd7ed18923e150"
-                             "23f7a296bb248d0eda80f84")}}};
+                             "23f7a296bb248d0eda80f84")},
+        // Menger activation.
+        {1740286,
+         *BlockHash::FromHex("000000000002ca2f45b12bc8b12dd3bdcac0569ba"
+                             "6ab77a580c562675f8f3220")}}};
 
 static CCheckpointData regTestCheckpointData = {
     .mapCheckpoints = {
