@@ -2164,8 +2164,9 @@ class Network(util.DaemonThread):
             r = q.get(block=True, timeout=timeout)
         except queue.Empty:
             raise util.TimeoutException("Server did not answer")
-        if r.get("error"):
-            raise util.ServerError(r.get("error"))
+        error = r.get("error")
+        if error:
+            raise util.ServerError(error)
         return r.get("result")
 
     def get_raw_tx_for_txid(self, txid: str, timeout: float = 30) -> tuple[bool, str]:
