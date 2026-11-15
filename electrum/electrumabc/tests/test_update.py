@@ -171,6 +171,29 @@ class TestUpdate(unittest.TestCase):
 
     @patch("electrumabc.update.read_user_config")
     @patch("electrumabc.update.save_user_config", side_effect=mock_save_user_config)
+    def test_exchange_update(self, mock_save, mock_read):
+        """The removed exchanges are replaced by the default CoinGecko exchange"""
+        for removed_exchange in ("CoinGeckoBcha", "CryptoCompare"):
+            config = {
+                "latest_version_used": VERY_OLD_VERSION,
+                "use_exchange": removed_exchange,
+            }
+            mock_read.return_value = config
+            update_config()
+            self.assertEqual(saved_config["use_exchange"], "CoinGecko")
+            self.assertEqual(saved_config["latest_version_used"], VERSION_TUPLE)
+
+        # Other exchanges are untouched
+        config = {
+            "latest_version_used": VERY_OLD_VERSION,
+            "use_exchange": "CoinPaprika",
+        }
+        mock_read.return_value = config
+        update_config()
+        self.assertEqual(saved_config["use_exchange"], "CoinPaprika")
+
+    @patch("electrumabc.update.read_user_config")
+    @patch("electrumabc.update.save_user_config", side_effect=mock_save_user_config)
     def test_tor_update(self, mock_save, mock_read):
         """After 5.5.0, we no longer store the downloaded_tor_path in the config file
         and we delete the previous tor binary from the data directory so users are

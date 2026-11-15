@@ -8,7 +8,7 @@ import sys
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 # Qt 5.12 also exports Decimal
 from decimal import Decimal as PyDecimal
@@ -298,47 +298,171 @@ class CoinGecko(ExchangeBase):
         }
 
 
-class CryptoCompare(ExchangeBase):
-    def get_rates(self, ccy) -> dict[str, PyDecimal]:
-        price = self.get_json(
-            "min-api.cryptocompare.com",
-            f"/data/price?fsym=XEC&tsyms={ccy}",
+def _utc_date_str(timestamp: float) -> str:
+    """Format a unix timestamp (in seconds) as a '%Y-%m-%d' UTC date string, which
+    is the key format used for the historical rates."""
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%d")
+
+
+class CoinPaprika(ExchangeBase):
+    """CoinPaprika aggregator. The free API is limited to a few quote currencies per
+    request with a low rate limit, and the daily history is only available in USD
+    for the past year."""
+
+    # The fixed list of quote currencies supported by the API. An unsupported
+    # currency makes the whole request fail.
+    QUOTE_CURRENCIES = [
+        "ARS",
+        "AUD",
+        "BOB",
+        "BRL",
+        "BTC",
+        "CAD",
+        "CHF",
+        "CLP",
+        "CNY",
+        "COP",
+        "CZK",
+        "DKK",
+        "ETH",
+        "EUR",
+        "GBP",
+        "HKD",
+        "HUF",
+        "IDR",
+        "ILS",
+        "INR",
+        "ISK",
+        "JPY",
+        "KRW",
+        "MXN",
+        "MYR",
+        "NGN",
+        "NOK",
+        "NZD",
+        "PEN",
+        "PHP",
+        "PKR",
+        "PLN",
+        "RUB",
+        "SEK",
+        "SGD",
+        "THB",
+        "TRY",
+        "TWD",
+        "UAH",
+        "USD",
+        "VND",
+        "ZAR",
+    ]
+
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
+        ccys = ["USD"]
+        if ccy != "USD" and ccy in self.QUOTE_CURRENCIES:
+            ccys.append(ccy)
+        json_data = self.get_json(
+            "api.coinpaprika.com",
+            f"/v1/tickers/xec-ecash?quotes={','.join(ccys)}",
         )
-        return price
+        return {
+            quote_ccy.upper(): PyDecimal(str(quote["price"]))
+            for quote_ccy, quote in json_data["quotes"].items()
+            if quote.get("price") is not None
+        }
 
     def get_currencies(self) -> list[str]:
+        # Don't probe the API: the rate limit is too low to query all the currencies
+        return sorted(self.QUOTE_CURRENCIES)
+
+    def history_ccys(self) -> list[str]:
+        return ["USD"]
+
+    def request_history(self, ccy: str) -> dict[str, float]:
+        # The free plan rejects requests starting more than 365 days ago
+        start = (datetime.now(timezone.utc) - timedelta(days=364)).strftime("%Y-%m-%d")
+        history = self.get_json(
+            "api.coinpaprika.com",
+            f"/v1/tickers/xec-ecash/historical?start={start}&interval=1d"
+            f"&quote={ccy.lower()}",
+        )
+        return {h["timestamp"][:10]: float(h["price"]) for h in history}
+
+
+class Binance(ExchangeBase):
+    """Binance exchange. The XEC/USDT pair is used as a proxy for USD."""
+
+    SYMBOLS = {"USD": "XECUSDT", "TRY": "XECTRY"}
+
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
+        symbols = ",".join(f'"{s}"' for s in self.SYMBOLS.values())
+        tickers = self.get_json(
+            "api.binance.com", f"/api/v3/ticker/price?symbols=[{symbols}]"
+        )
+        ccy_by_symbol = {s: c for c, s in self.SYMBOLS.items()}
+        return {
+            ccy_by_symbol[t["symbol"]]: PyDecimal(t["price"])
+            for t in tickers
+            if t["symbol"] in ccy_by_symbol
+        }
+
+    def history_ccys(self) -> list[str]:
+        return list(self.SYMBOLS.keys())
+
+    def request_history(self, ccy: str) -> dict[str, float]:
+        # Candles: [open time (ms), open, high, low, close, ...]
+        candles = self.get_json(
+            "api.binance.com",
+            f"/api/v3/klines?symbol={self.SYMBOLS[ccy]}&interval=1d&limit=1000",
+        )
+        return {_utc_date_str(c[0] / 1000): float(c[4]) for c in candles}
+
+
+class KuCoin(ExchangeBase):
+    """KuCoin exchange. The fiat prices are converted by KuCoin from the XEC/USDT
+    market, and the history uses the XEC/USDT pair as a proxy for USD."""
+
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
+        ccy = ccy or "USD"
+        json_data = self.get_json(
+            "api.kucoin.com", f"/api/v1/prices?base={ccy}&currencies=XEC"
+        )
+        price = json_data["data"]["XEC"]
+        return {ccy: PyDecimal(price)}
+
+    def get_currencies(self) -> list[str]:
+        # The API only accepts one base currency per request, so probing all the
+        # currencies would waste a lot of the free requests for a list that rarely
+        # changes. An unsupported base currency returns no data.
         return [
             "AED",
             "ARS",
             "AUD",
-            "BCH",
-            "BTD",
+            "BDT",
             "BHD",
-            "BMD",
             "BRL",
-            "BTC",
             "CAD",
             "CHF",
             "CLP",
             "CNY",
+            "COP",
             "CZK",
             "DKK",
-            "ETH",
             "EUR",
             "GBP",
+            "GEL",
             "HKD",
             "HUF",
             "IDR",
             "ILS",
             "INR",
+            "ISK",
             "JPY",
             "KRW",
             "KWD",
             "LKR",
-            "LTC",
-            "MMK",
-            "MXH",
+            "MXN",
             "MYR",
+            "NGN",
             "NOK",
             "NZD",
             "PHP",
@@ -351,13 +475,65 @@ class CryptoCompare(ExchangeBase):
             "THB",
             "TRY",
             "TWD",
+            "UAH",
             "USD",
-            "VEF",
-            "XAG",
-            "XAU",
-            "XDR",
+            "VND",
             "ZAR",
         ]
+
+    def history_ccys(self) -> list[str]:
+        return ["USD"]
+
+    def request_history(self, ccy: str) -> dict[str, float]:
+        # The API returns at most 1500 candles per request
+        end = int(time.time())
+        start = end - 1500 * 24 * 3600
+        # Candles: [open time (s), open, close, high, low, volume, turnover]
+        json_data = self.get_json(
+            "api.kucoin.com",
+            f"/api/v1/market/candles?type=1day&symbol=XEC-USDT&startAt={start}"
+            f"&endAt={end}",
+        )
+        return {_utc_date_str(int(c[0])): float(c[2]) for c in json_data["data"]}
+
+
+class GateIo(ExchangeBase):
+    """Gate.io exchange. The XEC/USDT pair is used as a proxy for USD."""
+
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
+        tickers = self.get_json(
+            "api.gateio.ws", "/api/v4/spot/tickers?currency_pair=XEC_USDT"
+        )
+        return {"USD": PyDecimal(tickers[0]["last"])}
+
+    def history_ccys(self) -> list[str]:
+        return ["USD"]
+
+    def request_history(self, ccy: str) -> dict[str, float]:
+        # Candles: [open time (s), quote volume, close, high, low, open, ...]
+        candles = self.get_json(
+            "api.gateio.ws",
+            "/api/v4/spot/candlesticks?currency_pair=XEC_USDT&interval=1d&limit=1000",
+        )
+        return {_utc_date_str(int(c[0])): float(c[2]) for c in candles}
+
+
+class MEXC(ExchangeBase):
+    """MEXC exchange. The XEC/USDT pair is used as a proxy for USD."""
+
+    def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
+        ticker = self.get_json("api.mexc.com", "/api/v3/ticker/price?symbol=XECUSDT")
+        return {"USD": PyDecimal(ticker["price"])}
+
+    def history_ccys(self) -> list[str]:
+        return ["USD"]
+
+    def request_history(self, ccy: str) -> dict[str, float]:
+        # Candles: [open time (ms), open, high, low, close, ...]
+        candles = self.get_json(
+            "api.mexc.com", "/api/v3/klines?symbol=XECUSDT&interval=1d&limit=1000"
+        )
+        return {_utc_date_str(c[0] / 1000): float(c[4]) for c in candles}
 
 
 K = TypeVar("K")

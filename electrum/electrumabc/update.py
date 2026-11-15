@@ -87,6 +87,11 @@ def update_config() -> None:
         _logger.info("Updating the fiat exchange from CoinGeckoBcha to CoinGecko")
         config["use_exchange"] = "CoinGecko"
 
+    # The CryptoCompare API now requires an API key
+    if config.get("use_exchange") == "CryptoCompare":
+        _logger.info("Updating the fiat exchange from CryptoCompare to CoinGecko")
+        config["use_exchange"] = "CoinGecko"
+
     if config.get("block_explorer") == "ViaWallet":
         _logger.info("Updating the block explorer from ViaWallet to CoinEx")
         config["block_explorer"] = "CoinEx"
