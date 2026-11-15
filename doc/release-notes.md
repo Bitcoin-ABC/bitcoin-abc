@@ -1,8 +1,7 @@
-# Bitcoin ABC 0.34.3 Release Notes
+# Bitcoin ABC 0.34.4 Release Notes
 
-Bitcoin ABC version 0.34.3 is now available from:
+Bitcoin ABC version 0.34.4 is now available from:
 
-  <https://download.bitcoinabc.org/0.34.3/>
+  <https://download.bitcoinabc.org/0.34.4/>
 
-This release contains several bug fixes and performance improvements. Node
-operators are encouraged to update.
+This is a maintenance release with no user-visible change.
