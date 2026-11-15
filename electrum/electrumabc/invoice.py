@@ -248,7 +248,7 @@ APIS: list[MultiCurrencyExchangeRateApi] = [
         ["price"],
     ),
     MultiCurrencyExchangeRateApi(
-        "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD",
-        ["price"],
+        "https://api.kucoin.com/api/v1/prices?base=%CUR%&currencies=XEC",
+        ["data", "XEC"],
     ),
 ]
