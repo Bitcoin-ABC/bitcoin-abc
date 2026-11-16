@@ -31,6 +31,7 @@ import hashlib
 import struct
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING, ClassVar
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -42,6 +43,9 @@ from .bitcoin import (
 )
 from .crypto import hash_160
 from .ecc import ECPrivkey
+
+if TYPE_CHECKING:
+    from .networks import AbstractNetProtocol
 
 _sha256 = hashlib.sha256
 hex_to_bytes = bytes.fromhex
@@ -75,7 +79,7 @@ P2SH_suffix = bytes([OpCodes.OP_EQUAL])
 # Utility functions
 
 
-def to_bytes(x) -> bytes:
+def to_bytes(x: bytes | bytearray) -> bytes:
     """Convert to bytes which is hashable."""
     if isinstance(x, bytes):
         return x
@@ -84,7 +88,7 @@ def to_bytes(x) -> bytes:
     raise TypeError("{} is not bytes ({})".format(x, type(x)))
 
 
-def hash_to_hex_str(x) -> str:
+def hash_to_hex_str(x: bytes) -> str:
     """Convert a big-endian binary hash to displayed hex string.
 
     Display form of a binary hash is reversed and converted to hex.
@@ -92,27 +96,27 @@ def hash_to_hex_str(x) -> str:
     return bytes(reversed(x)).hex()
 
 
-def hex_str_to_hash(x) -> bytes:
+def hex_str_to_hash(x: str) -> bytes:
     """Convert a displayed hex string to a binary hash."""
     return bytes(reversed(hex_to_bytes(x)))
 
 
-def bytes_to_int(be_bytes) -> int:
+def bytes_to_int(be_bytes: bytes) -> int:
     """Interprets a big-endian sequence of bytes as an integer"""
     return int.from_bytes(be_bytes, "big")
 
 
-def int_to_bytes(value) -> bytes:
+def int_to_bytes(value: int) -> bytes:
     """Converts an integer to a big-endian sequence of bytes"""
     return value.to_bytes((value.bit_length() + 7) // 8, "big")
 
 
-def sha256(x) -> bytes:
+def sha256(x: bytes) -> bytes:
     """Simple wrapper of hashlib sha256."""
     return _sha256(x).digest()
 
 
-def double_sha256(x) -> bytes:
+def double_sha256(x: bytes) -> bytes:
     """SHA-256 of SHA-256, as used extensively in bitcoin."""
     return sha256(sha256(x))
 
@@ -136,7 +140,7 @@ class PublicKey(DestinationType):
     pubkey: bytes = field(hash=True, compare=True)
 
     @classmethod
-    def from_pubkey(cls, pubkey) -> PublicKey:
+    def from_pubkey(cls, pubkey: str | bytes | bytearray) -> PublicKey:
         """Create from a public key expressed as binary bytes."""
         if isinstance(pubkey, str):
             pubkey = hex_to_bytes(pubkey)
@@ -144,7 +148,9 @@ class PublicKey(DestinationType):
         return cls(to_bytes(pubkey))
 
     @classmethod
-    def privkey_from_WIF_privkey(cls, WIF_privkey, *, net=None) -> tuple[bytes, bool]:
+    def privkey_from_WIF_privkey(
+        cls, WIF_privkey: str, *, net: type[AbstractNetProtocol] | None = None
+    ) -> tuple[bytes, bool]:
         """Given a WIF private key (or minikey), return the private key as
         binary and a boolean indicating whether it was encoded to
         indicate a compressed public key or not.
@@ -160,6 +166,7 @@ class PublicKey(DestinationType):
         if raw[0] != net.WIF_PREFIX:
             # try and generate a helpful error message as this propagates up to the UI if they are creating a new wallet.
             extra = ""
+            # NOTE: In python3.12+, we can directly check `if int(...) in ScriptType`
             if int(raw[0] - net.WIF_PREFIX) in iter(ScriptType):
                 extra = (
                     "; this corresponds to a key of type: '{}' which is unsupported for"
@@ -178,7 +185,7 @@ class PublicKey(DestinationType):
         raise ValueError("invalid private key")
 
     @classmethod
-    def from_WIF_privkey(cls, WIF_privkey) -> PublicKey:
+    def from_WIF_privkey(cls, WIF_privkey: str) -> PublicKey:
         """Create a compressed or uncompressed public key from a private
         key."""
         privkey, compressed = cls.privkey_from_WIF_privkey(WIF_privkey)
@@ -186,19 +193,19 @@ class PublicKey(DestinationType):
         return cls.from_pubkey(ec_key.get_public_key_bytes(compressed))
 
     @classmethod
-    def from_string(cls, string) -> PublicKey:
+    def from_string(cls, string: str) -> PublicKey:
         """Create from a hex string."""
         return cls.from_pubkey(hex_to_bytes(string))
 
     @classmethod
-    def validate(cls, pubkey) -> None:
+    def validate(cls, pubkey: bytes | bytearray) -> None:
         if not isinstance(pubkey, (bytes, bytearray)):
             raise TypeError("pubkey must be of bytes type, not {}".format(type(pubkey)))
         if len(pubkey) == 33 and pubkey[0] in (2, 3):
             return  # Compressed
         if len(pubkey) == 65 and pubkey[0] == 4:
             return  # Uncompressed
-        raise AddressError("invalid pubkey {}".format(pubkey))
+        raise AddressError(f"invalid pubkey {pubkey.hex()}")
 
     @functools.cached_property
     def address(self) -> Address:
@@ -249,7 +256,7 @@ class ScriptOutput(DestinationType):
     script: bytes = field(hash=True, compare=True)
 
     @classmethod
-    def from_string(self, string) -> ScriptOutput:
+    def from_string(self, string: str) -> ScriptOutput:
         """Instantiate from a mixture of opcodes and raw data."""
         script = bytearray()
         for word in string.split():
@@ -273,13 +280,14 @@ class ScriptOutput(DestinationType):
             # Truncated script -- so just default to hex string.
             return "Invalid script: " + self.script.hex()
 
-        def lookup(x) -> str:
+        def lookup(x: int) -> str:
             try:
                 return OpCodes(x).name
             except ValueError:
                 return "(" + str(x) + ")"
 
         parts = []
+        friendlystring: str | None
         for op, data in ops:
             if data is not None:
                 # Attempt to make a friendly string, or fail to hex
@@ -320,6 +328,10 @@ class ScriptOutput(DestinationType):
     # Protocol system methods and class attrs #
     ###########################################
 
+    @classmethod
+    def protocol_match(cls, script_bytes: bytes) -> bool:
+        raise NotImplementedError()
+
     # subclasses of ScriptOutput that handle protocols. Currently this will
     # contain a cashacct.ScriptOutput instance.
     #
@@ -327,14 +339,14 @@ class ScriptOutput(DestinationType):
     # __hash__ for any subclasses. (This is because our is_mine cache in
     # wallet.py assumes all possible types that pass through it are hashable).
     #
-    protocol_classes = set()
+    protocol_classes: ClassVar[set[type[ScriptOutput]]] = set()
 
     def is_complete(self) -> bool:
         """Subclasses implement this, noop here."""
         return True
 
     @classmethod
-    def find_protocol_class(cls, script_bytes) -> type[ScriptOutput]:
+    def find_protocol_class(cls, script_bytes: bytes) -> type[ScriptOutput]:
         """Scans the protocol_classes set, and if the passed-in script matches
         a known protocol, returns that class, otherwise returns our class."""
         for c in cls.protocol_classes:
@@ -343,7 +355,7 @@ class ScriptOutput(DestinationType):
         return __class__
 
     @staticmethod
-    def protocol_factory(script) -> ScriptOutput:
+    def protocol_factory(script: bytes) -> ScriptOutput:
         """One shot -- find the right class and construct object based on script"""
         return __class__.find_protocol_class(script)(script)
 
@@ -488,7 +500,9 @@ class Address(DestinationType):
         return cls(hash160, kind)
 
     @classmethod
-    def is_valid(cls, string, *, net=None) -> bool:
+    def is_valid(
+        cls, string: str, *, net: type[AbstractNetProtocol] | None = None
+    ) -> bool:
         if net is None:
             net = networks.net
         try:
@@ -498,14 +512,16 @@ class Address(DestinationType):
             return False
 
     @classmethod
-    def from_strings(cls, strings, *, net=None) -> list[Address]:
+    def from_strings(
+        cls, strings: list[str], *, net: type[AbstractNetProtocol] | None = None
+    ) -> list[Address]:
         """Construct a list from an iterable of strings."""
         if net is None:
             net = networks.net
         return [cls.from_string(string, net=net) for string in strings]
 
     @classmethod
-    def from_pubkey(cls, pubkey) -> Address:
+    def from_pubkey(cls, pubkey: str | bytes) -> Address:
         """Returns a P2PKH address from a public key.  The public key can
         be bytes or a hex string."""
         if isinstance(pubkey, str):
@@ -524,11 +540,11 @@ class Address(DestinationType):
         return cls(to_bytes(hash160), cls.Type.P2SH)
 
     @classmethod
-    def from_multisig_script(cls, script) -> Address:
+    def from_multisig_script(cls, script: bytes) -> Address:
         return cls(hash_160(script), cls.Type.P2SH)
 
     @staticmethod
-    def is_legacy(address: str, net=None) -> bool:
+    def is_legacy(address: str, net: type[AbstractNetProtocol] | None = None) -> bool:
         """Find if the string of the address is in legacy format"""
         if net is None:
             net = networks.net
@@ -544,7 +560,7 @@ class Address(DestinationType):
         legacy_formats = (net.ADDRTYPE_P2PKH, net.ADDRTYPE_P2SH)
         return verbyte in legacy_formats
 
-    def to_cashaddr(self, *, net=None) -> str:
+    def to_cashaddr(self, *, net: type[AbstractNetProtocol] | None = None) -> str:
         """Return address string in CashAddr format (without prefix)"""
         if net is None:
             net = networks.net
@@ -554,7 +570,7 @@ class Address(DestinationType):
             kind = cashaddr.SCRIPT_TYPE
         return cashaddr.encode(net.CASHADDR_PREFIX, kind, self.hash160)
 
-    def to_cashaddr_bch(self, *, net=None) -> str:
+    def to_cashaddr_bch(self, *, net: type[AbstractNetProtocol] | None = None) -> str:
         if net is None:
             net = networks.net
         if self.kind == self.Type.P2PKH:
@@ -563,7 +579,9 @@ class Address(DestinationType):
             kind = cashaddr.SCRIPT_TYPE
         return cashaddr.encode(net.CASHADDR_PREFIX_BCH, kind, self.hash160)
 
-    def to_string(self, fmt: Address.Format, *, net=None) -> str:
+    def to_string(
+        self, fmt: Address.Format, *, net: type[AbstractNetProtocol] | None = None
+    ) -> str:
         """Converts to a string of the given format.
         CashAddr formats are produced without prefix.
         """
@@ -602,7 +620,9 @@ class Address(DestinationType):
             if cached is not None and net is networks.net:
                 self._addr2str_cache[fmt] = cached
 
-    def to_full_string(self, fmt: Address.Format, *, net=None) -> str:
+    def to_full_string(
+        self, fmt: Address.Format, *, net: type[AbstractNetProtocol] | None = None
+    ) -> str:
         """Convert to text, with a URI prefix for cashaddr format."""
         if net is None:
             net = networks.net
@@ -613,20 +633,24 @@ class Address(DestinationType):
             text = f"{net.CASHADDR_PREFIX_BCH}:{text}"
         return text
 
-    def to_ui_string_without_prefix(self, *, net=None) -> str:
+    def to_ui_string_without_prefix(
+        self, *, net: type[AbstractNetProtocol] | None = None
+    ) -> str:
         """Convert to text in the current UI format choice.
         If the format is CashAddr, it is produced without the prefix."""
         if net is None:
             net = networks.net
         return self.to_string(self.FMT_UI, net=net)
 
-    def to_ui_string(self, *, net=None) -> str:
+    def to_ui_string(self, *, net: type[AbstractNetProtocol] | None = None) -> str:
         """Convert to text, with a URI prefix if cashaddr."""
         if net is None:
             net = networks.net
         return self.to_full_string(self.FMT_UI, net=net)
 
-    def to_URI_components(self, *, net=None) -> tuple[str, str]:
+    def to_URI_components(
+        self, *, net: type[AbstractNetProtocol] | None = None
+    ) -> tuple[str, str]:
         """Returns a (scheme, path) pair for building a URI."""
         if net is None:
             net = networks.net
@@ -634,7 +658,7 @@ class Address(DestinationType):
         path = self.to_string(self.FMT_UI, net=net)
         return scheme, path
 
-    def to_storage_string(self, *, net=None) -> str:
+    def to_storage_string(self, *, net: type[AbstractNetProtocol] | None = None) -> str:
         """Convert to text in the storage format."""
         if net is None:
             net = networks.net
@@ -668,21 +692,21 @@ class Address(DestinationType):
 
 class Script:
     @classmethod
-    def P2SH_script(cls, hash160) -> bytes:
+    def P2SH_script(cls, hash160: bytes) -> bytes:
         assert len(hash160) == 20
         return P2SH_prefix + hash160 + P2SH_suffix
 
     @classmethod
-    def P2PKH_script(cls, hash160) -> bytes:
+    def P2PKH_script(cls, hash160: bytes) -> bytes:
         assert len(hash160) == 20
         return P2PKH_prefix + hash160 + P2PKH_suffix
 
     @classmethod
-    def P2PK_script(cls, pubkey) -> bytes:
+    def P2PK_script(cls, pubkey: bytes) -> bytes:
         return cls.push_data(pubkey) + bytes([OpCodes.OP_CHECKSIG])
 
     @classmethod
-    def multisig_script(cls, m, pubkeys) -> bytes:
+    def multisig_script(cls, m: int, pubkeys: list[bytes]) -> bytes:
         """Returns the script for a pay-to-multisig transaction."""
         n = len(pubkeys)
         if not 1 <= m <= n <= 15:
@@ -699,14 +723,14 @@ class Script:
         )
 
     @classmethod
-    def push_data(cls, data: bytes | bytearray, *, minimal=True) -> bytes:
+    def push_data(cls, data: bytes | bytearray, *, minimal: bool = True) -> bytes:
         """Returns the OpCodes to push the data on the stack, plus the payload."""
         return push_script_bytes(data, minimal=minimal)
 
     @classmethod
     def get_ops(
-        cls, script: bytes, *, synthesize_minimal_data=True
-    ) -> list[tuple[OpCodes, bytes | None]]:
+        cls, script: bytes, *, synthesize_minimal_data: bool = True
+    ) -> list[tuple[int, bytes | None]]:
         """Parse a script and return a list of (opcode, data) tuples.
         If the opcode is not a push operation, data is None.
         """
@@ -771,14 +795,14 @@ class Base58:
     cmap = {c: n for n, c in enumerate(chars)}
 
     @staticmethod
-    def char_value(c) -> int:
+    def char_value(c: str) -> int:
         val = Base58.cmap.get(c)
         if val is None:
             raise Base58Error('invalid base 58 character "{}"'.format(c))
         return val
 
     @staticmethod
-    def decode(txt) -> bytes:
+    def decode(txt: str) -> bytes:
         """Decodes txt into a big-endian bytearray."""
         if not isinstance(txt, str):
             raise TypeError("a string is required")
@@ -804,7 +828,7 @@ class Base58:
         return result
 
     @staticmethod
-    def encode(be_bytes) -> str:
+    def encode(be_bytes: bytes) -> str:
         """Converts a big-endian bytearray into a base58 string."""
         value = bytes_to_int(be_bytes)
 
@@ -821,7 +845,7 @@ class Base58:
         return txt[::-1]
 
     @staticmethod
-    def decode_check(txt) -> bytes:
+    def decode_check(txt: str) -> bytes:
         """Decodes a Base58Check-encoded string to a payload.  The version
         prefixes it."""
         be_bytes = Base58.decode(txt)
@@ -831,7 +855,7 @@ class Base58:
         return result
 
     @staticmethod
-    def encode_check(payload) -> str:
+    def encode_check(payload: bytes) -> str:
         """Encodes a payload bytearray (which includes the version byte(s))
         into a Base58Check string."""
         be_bytes = payload + double_sha256(payload)[:4]
