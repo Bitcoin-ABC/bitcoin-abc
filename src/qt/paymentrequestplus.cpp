@@ -159,7 +159,7 @@ bool PaymentRequestPlus::getMerchant(X509_STORE *certStore,
                             "-allowselfsignedrootcertificates is true.";
             }
         }
-        const X509_NAME *certname = X509_get_subject_name(signing_cert);
+        auto *certname = X509_get_subject_name(signing_cert);
 
         // Valid cert; check signature:
         // Copy
