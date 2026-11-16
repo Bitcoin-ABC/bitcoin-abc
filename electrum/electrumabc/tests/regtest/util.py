@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
@@ -12,7 +13,9 @@ from jsonrpcclient import Ok as rpc_Ok
 from jsonrpcclient import parse as rpc_parse
 from jsonrpcclient import request
 
-EC_DAEMON_RPC_URL = "http://user:pass@localhost:12342"
+# Must match the rpcport in configs/electrum-abc-config
+EC_DAEMON_RPC_PORT = 12342
+EC_DAEMON_RPC_URL = f"http://user:pass@localhost:{EC_DAEMON_RPC_PORT}"
 
 ELECTRUM_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
@@ -71,6 +74,31 @@ def rpc(method: str, **params: Any) -> Any:
     """Call a RPC method of the Electrum ABC daemon and return its result.
     Raise a RuntimeError if the daemon returns an error."""
     return poll_for_answer(EC_DAEMON_RPC_URL, request(method, params=params))
+
+
+def is_rpc_port_free() -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        # Like the daemon's RPC server, so connections of a previous daemon in the
+        # TIME_WAIT state don't count. Binding still fails if a socket listens.
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind(("127.0.0.1", EC_DAEMON_RPC_PORT))
+        except OSError:
+            return False
+    return True
+
+
+def assert_rpc_port_free() -> None:
+    """Raise if the daemon RPC port is already in use.
+
+    A daemon that cannot bind its RPC port keeps running without a RPC server, so
+    it could not be stopped by stop_ec_daemon.
+    """
+    if not is_rpc_port_free():
+        raise RuntimeError(
+            f"RPC port {EC_DAEMON_RPC_PORT} is already in use. Is another "
+            "Electrum ABC daemon running?"
+        )
 
 
 def start_ec_daemon(
@@ -136,10 +164,12 @@ def start_ec_daemon(
 
 
 def stop_ec_daemon(datadir) -> None:
-    """Stops the daemon"""
+    """Stop the daemon, and wait until it has released the RPC port"""
     subprocess.run(
         [ELECTRUMABC_COMMAND, "--regtest", "-D", datadir, "daemon", "stop"], check=True
     )
+    # The stop command returns before the daemon is done shutting down
+    wait_until(is_rpc_port_free, interval=0.1)
 
 
 def make_tmp_electrum_data_dir() -> str:

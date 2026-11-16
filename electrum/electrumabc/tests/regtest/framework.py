@@ -29,6 +29,7 @@ import tempfile
 import unittest
 
 from .util import (
+    assert_rpc_port_free,
     make_tmp_electrum_data_dir,
     start_ec_daemon,
     stop_ec_daemon,
@@ -75,6 +76,9 @@ class ElectrumABCTestCase(unittest.TestCase):
         if self.NEEDS_NETWORK:
             self._start_node()
 
+        # A daemon unable to bind the RPC port could not be stopped, so don't
+        # start it at all.
+        assert_rpc_port_free()
         # Registered before starting the daemon, so it is stopped even if it
         # fails to get ready.
         self.addCleanup(stop_ec_daemon, self.electrum_data_dir)
@@ -125,8 +129,14 @@ class ElectrumABCTestCase(unittest.TestCase):
         return self.node.generatetoaddress(nblocks, addr, invalid_call=False)
 
     def _stop_node(self):
-        self.node.stop_node()
-        self.node.wait_until_stopped()
+        if not self.node.running:
+            return
+        if self.node.rpc_connected:
+            self.node.stop_node()
+        else:
+            # The node can't be stopped with the stop RPC if the RPC connection
+            # was never established
+            self.node.kill_process()
 
     def _remove_electrum_data_dir(self):
         # Ignore race conditions caused by tmp wallet files created and deleted in
