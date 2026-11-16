@@ -1,11 +1,46 @@
+import json
 import os
 import sys
 import unittest
 from contextlib import redirect_stderr
 from decimal import Decimal as PyDecimal
 from io import StringIO
+from unittest.mock import MagicMock, patch
 
+from ..address import Address
 from ..commands import Commands, get_parser, preprocess_cmdline_args
+
+ADDRESS = "ecash:qr98e3qdhegz5k79gkfmp0xl27phv63uuqjtz8uutp"
+
+
+class TestGetAlias(unittest.TestCase):
+    """The JSON-RPC server serializes command results with json.dumps, so they
+    must not contain Address objects."""
+
+    def setUp(self):
+        self.commands = Commands(config=None, wallet=MagicMock(), network=None)
+
+    def test_address(self):
+        result = self.commands.getalias(ADDRESS)
+        self.assertEqual(
+            json.loads(json.dumps(result)), {"address": ADDRESS, "type": "address"}
+        )
+
+    def test_openalias(self):
+        with patch(
+            "electrumabc.alias.resolve_openalias",
+            return_value=(Address.from_string(ADDRESS), "Alice", True),
+        ):
+            result = self.commands.getalias("alice@example.com")
+        self.assertEqual(
+            json.loads(json.dumps(result)),
+            {
+                "address": ADDRESS,
+                "name": "Alice",
+                "type": "openalias",
+                "validated": True,
+            },
+        )
 
 
 class TestCommands(unittest.TestCase):

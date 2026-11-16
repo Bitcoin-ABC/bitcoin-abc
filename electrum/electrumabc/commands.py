@@ -904,7 +904,8 @@ class Commands:
     @command("w")
     def getalias(self, key):
         """Retrieve alias. Lookup in your list of contacts, and for an OpenAlias DNS record."""
-        return alias.resolve(key)
+        resolved = alias.resolve(key)
+        return {**resolved, "address": resolved["address"].to_ui_string()}
 
     @command("w")
     def searchcontacts(self, query):

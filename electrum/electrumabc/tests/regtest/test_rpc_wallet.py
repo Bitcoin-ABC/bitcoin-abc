@@ -72,6 +72,12 @@ class TestRPCWallet(ElectrumABCTestCase):
         assert new_address in rpc("listaddresses", receiving=True)
         assert rpc("ismine", address=new_address) is True
 
+    def test_getalias(self):
+        # An address resolves to itself. OpenAlias requires a DNS lookup and is
+        # covered by unit tests.
+        address = rpc("getunusedaddress")
+        assert rpc("getalias", key=address) == {"address": address, "type": "address"}
+
     def test_public_and_private_keys(self):
         addresses = rpc("listaddresses")[:3]
         for address in addresses:
