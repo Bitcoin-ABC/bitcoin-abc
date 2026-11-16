@@ -60,8 +60,10 @@ class ElectrumABCTestCase(unittest.TestCase):
         PortSeed.n = os.getpid()
 
         self.electrum_data_dir = make_tmp_electrum_data_dir()
+        self.addCleanup(self._remove_electrum_data_dir)
 
         self.tmpdir = tmpdir = tempfile.mkdtemp(prefix="electrum_func_test_")
+        self.addCleanup(shutil.rmtree, tmpdir)
         configs_dir = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "configs"
         )
@@ -90,26 +92,27 @@ class ElectrumABCTestCase(unittest.TestCase):
             ],
         )
         self.node.start()
+        self.addCleanup(self._stop_node)
         self.node.wait_for_rpc_connection()
         self.node.createwallet("test_wallet")
         addr = self.node.getnewaddress()
         self.node.generatetoaddress(101, addr, invalid_call=False)
 
+        # Registered before starting the daemon, so it is stopped even if it
+        # fails to get ready.
+        self.addCleanup(stop_ec_daemon, self.electrum_data_dir)
         start_ec_daemon(self.electrum_data_dir)
 
     def generatetoaddress(self, nblocks, addr):
         return self.node.generatetoaddress(nblocks, addr, invalid_call=False)
 
-    def tearDown(self):
-        super(ElectrumABCTestCase, self).tearDown()
-        stop_ec_daemon(self.electrum_data_dir)
-        # Remove the data directory, ignore race conditions caused by tmp wallet files
-        # created and deleted in WalletStorage._write while the daemon process is
-        # stopping
+    def _stop_node(self):
+        self.node.stop_node()
+        self.node.wait_until_stopped()
+
+    def _remove_electrum_data_dir(self):
+        # Ignore race conditions caused by tmp wallet files created and deleted in
+        # WalletStorage._write while the daemon process is stopping
         # See https://github.com/python/cpython/pull/14064
         with contextlib.suppress(FileNotFoundError):
             shutil.rmtree(self.electrum_data_dir)
-
-        self.node.stop_node()
-        self.node.wait_until_stopped()
-        shutil.rmtree(self.tmpdir)
