@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .simple_config import SimpleConfig
 
 
-def format_satoshis_plain(x, decimal_point=8) -> str:
+def format_satoshis_plain(x: int | None, decimal_point: int = 8) -> str:
     """Display a satoshi amount scaled.  Always uses a '.' as a decimal
     point and has no thousands separator"""
     if x is None:
@@ -48,7 +48,12 @@ _fmt_sats_cache = ExpiringCache(maxlen=20000, name="format_satoshis cache")
 
 
 def format_satoshis(
-    x, num_zeros=0, decimal_point=2, precision=None, is_diff=False, whitespaces=False
+    x: float | None,
+    num_zeros: int = 0,
+    decimal_point: int = 2,
+    precision: int | None = None,
+    is_diff: bool = False,
+    whitespaces: bool = False,
 ) -> str:
     global _cached_dp
     # We lazy init this here rather than at module level in case the
@@ -122,7 +127,9 @@ def format_satoshis(
     return result
 
 
-def format_amount(x, config: SimpleConfig, is_diff=False, whitespaces=False) -> str:
+def format_amount(
+    x: int, config: SimpleConfig, is_diff: bool = False, whitespaces: bool = False
+) -> str:
     """Wrapper for format_satoshis with a config parameter"""
     return format_satoshis(
         x,
@@ -141,7 +148,7 @@ def base_unit(config: SimpleConfig) -> str:
 
 
 def format_amount_and_units(
-    amount, config: SimpleConfig, fx: FxThread, is_diff=False
+    amount: int, config: SimpleConfig, fx: FxThread, is_diff: bool = False
 ) -> str:
     text = format_amount(amount, config, is_diff=is_diff) + " " + base_unit(config)
     x = fx.format_amount_and_units(amount, is_diff=is_diff)
@@ -150,10 +157,10 @@ def format_amount_and_units(
     return text
 
 
-def format_fee_satoshis(fee, num_zeros=0) -> str:
+def format_fee_satoshis(fee: float, num_zeros: int = 0) -> str:
     return format_satoshis(fee, num_zeros, 0, precision=num_zeros)
 
 
-def format_fee_rate(fee_rate, config: SimpleConfig) -> str:
+def format_fee_rate(fee_rate: float, config: SimpleConfig) -> str:
     sats_per_byte = format_fee_satoshis(fee_rate / 1000, max(config.get_num_zeros(), 1))
     return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)
