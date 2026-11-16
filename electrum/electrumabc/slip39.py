@@ -134,7 +134,7 @@ class Share:
         member_threshold: int,
         share_value: bytes,
     ):
-        self.index = None
+        self.index: int | None = None
         self.identifier = identifier
         self.extendable_backup_flag = extendable_backup_flag
         self.iteration_exponent = iteration_exponent
@@ -145,7 +145,7 @@ class Share:
         self.member_threshold = member_threshold
         self.share_value = share_value
 
-    def common_parameters(self) -> tuple:
+    def common_parameters(self) -> tuple[int, bool, int, int, int]:
         """Return the values that uniquely identify a matching set of shares."""
         return (
             self.identifier,
