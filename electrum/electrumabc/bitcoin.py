@@ -28,7 +28,7 @@ import hashlib
 import hmac
 import os
 from enum import IntEnum
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypeVar
 
 import pyaes
 
@@ -38,6 +38,8 @@ from .printerror import print_error
 from .util import InvalidPassword, assert_bytes, to_bytes
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .address import Address
     from .networks import AbstractNetProtocol
 
@@ -253,7 +255,7 @@ def op_push(i: int) -> str:
     return op_push_bytes(i).hex()
 
 
-def push_script_bytes(data: bytearray | bytes, *, minimal=True) -> bytes:
+def push_script_bytes(data: bytearray | bytes, *, minimal: bool = True) -> bytes:
     """Returns pushed data to the script, automatically respecting BIP62 "minimal encoding" rules.
     If `minimal` is False, will not use BIP62 and will just push using OP_PUSHDATA*, etc (this
     non-BIP62 way of pushing is the convention in OP_RETURN scripts such as CashAccounts usually).
@@ -274,13 +276,15 @@ def push_script_bytes(data: bytearray | bytes, *, minimal=True) -> bytes:
     return op_push_bytes(data_len) + data
 
 
-def push_script(data: str, *, minimal=True) -> str:
+def push_script(data: str, *, minimal: bool = True) -> str:
     """Returns pushed data to the script, automatically respecting BIP62 "minimal encoding" rules.
     Input data is hex, returns hex."""
     return push_script_bytes(bytes.fromhex(data), minimal=minimal).hex()
 
 
-def hmac_oneshot(key, msg, digest) -> bytes:
+def hmac_oneshot(
+    key: bytes | bytearray, msg: bytes | bytearray, digest: str | Callable
+) -> bytes:
     """Params key, msg and return val are bytes.
     Digest is a hashlib algorithm, e.g. hashlib.sha512"""
     return hmac.digest(key, msg, digest)
@@ -290,11 +294,11 @@ def hash_encode(x: bytes) -> str:
     return x[::-1].hex()
 
 
-def hash_decode(x) -> bytes:
+def hash_decode(x: str) -> bytes:
     return bytes.fromhex(x)[::-1]
 
 
-def hmac_sha_512(x, y) -> bytes:
+def hmac_sha_512(x: bytes | bytearray, y: bytes | bytearray) -> bytes:
     return hmac_oneshot(x, y, hashlib.sha512)
 
 
@@ -304,38 +308,50 @@ def hmac_sha_512(x, y) -> bytes:
 # end pywallet openssl private key implementation
 
 
-def hash160_to_b58_address(h160, addrtype) -> str:
+def hash160_to_b58_address(h160: bytes, addrtype: int) -> str:
     s = bytes([addrtype])
     s += h160
     return base_encode(s + Hash(s)[0:4], base=58)
 
 
-def b58_address_to_hash160(addr) -> tuple[bytes, bytes]:
-    addr = to_bytes(addr, "ascii")
+def b58_address_to_hash160(addr: str | bytes | bytearray) -> tuple[int, bytes]:
+    addr_b = to_bytes(addr, "ascii")
     # will raise ValueError on bad characters
-    _bytes = base_decode(addr, 25, base=58)
-    return _bytes[0], _bytes[1:21]
+    decoded_bytes = base_decode(addr_b, 25, base=58)
+    assert decoded_bytes is not None
+    return decoded_bytes[0], decoded_bytes[1:21]
 
 
-def hash160_to_p2pkh(h160, *, net=None) -> str:
+def hash160_to_p2pkh(
+    h160: bytes, *, net: type[AbstractNetProtocol] | None = None
+) -> str:
     if net is None:
         net = networks.net
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2PKH)
 
 
-def hash160_to_p2sh(h160, *, net=None) -> str:
+def hash160_to_p2sh(
+    h160: bytes, *, net: type[AbstractNetProtocol] | None = None
+) -> str:
     if net is None:
         net = networks.net
     return hash160_to_b58_address(h160, net.ADDRTYPE_P2SH)
 
 
-def public_key_to_p2pkh(public_key: bytes, *, net=None) -> str:
+def public_key_to_p2pkh(
+    public_key: bytes, *, net: type[AbstractNetProtocol] | None = None
+) -> str:
     if net is None:
         net = networks.net
     return hash160_to_p2pkh(hash_160(public_key), net=net)
 
 
-def pubkey_to_address(txin_type: ScriptType, pubkey: bytes, *, net=None) -> str:
+def pubkey_to_address(
+    txin_type: ScriptType,
+    pubkey: bytes,
+    *,
+    net: type[AbstractNetProtocol] | None = None,
+) -> str:
     if net is None:
         net = networks.net
     if txin_type == ScriptType.p2pkh:
@@ -360,7 +376,7 @@ __b43chars = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$*+-./:"
 assert len(__b43chars) == 43
 
 
-def base_encode(v, base) -> str:
+def base_encode(v: bytes | bytearray, base: int) -> str:
     """encode v, which is a string of bytes, to base58."""
     assert_bytes(v)
     if base not in (58, 43):
@@ -393,7 +409,9 @@ def base_encode(v, base) -> str:
     return result.decode("ascii")
 
 
-def base_decode(v: str, length, base) -> bytes | None:
+def base_decode(
+    v: str | bytes | bytearray, length: int | None, base: int
+) -> bytes | None:
     """decode v into a string of len bytes. May raise ValueError on bad chars
     in string."""
     # assert_bytes(v)
@@ -457,7 +475,13 @@ def DecodeBase58Check(psz: str) -> bytes | None:
         return key
 
 
-def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) -> str:
+def serialize_privkey(
+    secret: bytes,
+    compressed: bool,
+    txin_type: ScriptType,
+    *,
+    net: type[AbstractNetProtocol] | None = None,
+) -> str:
     if net is None:
         net = networks.net
     prefix = bytes([(txin_type + net.WIF_PREFIX) & 255])
@@ -466,7 +490,9 @@ def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) ->
     return EncodeBase58Check(vchIn)
 
 
-def deserialize_privkey(key, *, net=None) -> tuple[ScriptType, bytes, bool]:
+def deserialize_privkey(
+    key: str, *, net: type[AbstractNetProtocol] | None = None
+) -> tuple[ScriptType, bytes, bool]:
     """Returns the deserialized key if key is a WIF key (non bip38), raises
     otherwise."""
     # whether the pubkey is compressed should be visible from the keystore
@@ -496,13 +522,15 @@ def deserialize_privkey(key, *, net=None) -> tuple[ScriptType, bytes, bool]:
         raise ValueError("cannot deserialize", key)
 
 
-def is_compressed(sec, *, net=None) -> bool:
+def is_compressed(sec: str, *, net: type[AbstractNetProtocol] | None = None) -> bool:
     if net is None:
         net = networks.net
     return deserialize_privkey(sec, net=net)[2]
 
 
-def address_from_private_key(sec, *, net=None) -> str:
+def address_from_private_key(
+    sec: str, *, net: type[AbstractNetProtocol] | None = None
+) -> str:
     if net is None:
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
@@ -510,7 +538,7 @@ def address_from_private_key(sec, *, net=None) -> str:
     return pubkey_to_address(txin_type, public_key, net=net)
 
 
-def is_private_key(key, *, net=None) -> bool:
+def is_private_key(key: str, *, net: type[AbstractNetProtocol] | None = None) -> bool:
     """Returns True if key is a WIF key (and also non bip38)"""
     if net is None:
         net = networks.net
@@ -524,7 +552,7 @@ def is_private_key(key, *, net=None) -> bool:
 # end pywallet functions
 
 
-def is_minikey(text) -> bool:
+def is_minikey(text: str) -> bool:
     # Minikeys are typically 22 or 30 characters, but this routine
     # permits any length of 20 or more provided the minikey is valid.
     # A valid minikey must begin with an 'S', be in base58, and when
@@ -539,14 +567,14 @@ def is_minikey(text) -> bool:
     )
 
 
-def minikey_to_private_key(text) -> bytes:
+def minikey_to_private_key(text: str) -> bytes:
     return sha256(text)
 
 
 # BIP38
 
 
-def is_bip38_available(require_fast=True) -> bool:
+def is_bip38_available(require_fast: bool = True) -> bool:
     """Returns True iff we have the underlying libs to decode Bip38 (scrypt libs).
     Use require_fast=True if we require native code.  Note that the non-native
     code libs are incredibly slow and not suitable for production use."""
@@ -557,7 +585,9 @@ def is_bip38_available(require_fast=True) -> bool:
     return True
 
 
-def is_bip38_key(bip38str, *, net=None) -> bool:
+def is_bip38_key(
+    bip38str: str, *, net: type[AbstractNetProtocol] | None = None
+) -> bool:
     """Returns True iff the '6P...' passed-in string is a valid Bip38 encrypted
     key. False otherwise.  Does not require is_bip38_available to return a valid
     result."""
@@ -565,27 +595,37 @@ def is_bip38_key(bip38str, *, net=None) -> bool:
 
 
 def bip38_decrypt(
-    enc_key, password, *, require_fast=True, net=None
+    enc_key: str,
+    password: str,
+    *,
+    require_fast: bool = True,
+    net: type[AbstractNetProtocol] | None = None,
 ) -> tuple[str, object] | None:
-    """Pass a bip38 key eg '6PnQ46rtBGW4XuiudqinAZYobT4Aa8GdtYkjG1LvXK3RBq6ARJA3txjj21'
+    """
+    Pass a bip38 key eg '6PnQ46rtBGW4XuiudqinAZYobT4Aa8GdtYkjG1LvXK3RBq6ARJA3txjj21'
     and a password. Both should be str's. Returns a tuple of:
-    (decrypted_WIF_key_str, Address_object) if decoding succeeds, or an empty
-    tuple on bad password.  Returns 'None' if failed due to missing libs or
-    because of malformed key. Use is_bip38_available() to determine if we
-    actually can decode bip38 keys (we have the libs)."""
+    (decrypted_WIF_key_str, Address_object) if decoding succeeds.
+
+    Returns 'None' if failed due to either missing libs, malformed key or bad password.
+
+    Use is_bip38_available() to determine if we
+    actually can decode bip38 keys (we have the libs).
+    """
     if not is_bip38_available(require_fast):
         return None
     try:
         return Bip38Key(enc_key, net=net).decrypt(password)
     except Bip38Key.PasswordError:
-        # Bad password result is an empty tuple
-        return ()
+        return None
     except Bip38Key.Error as e:
         print_error("[bip38_decrypt] Error with key", enc_key, "error was:", repr(e))
     return None
 
 
 Bip38KeyTypeStringT = Literal["UnknownKey", "NonECMultKey", "ECMultKey"]
+
+
+T = TypeVar("T", bound="Bip38Key")
 
 
 class Bip38Key:
@@ -756,7 +796,9 @@ class Bip38Key:
         return "UnknownKey"
 
     @classmethod
-    def isBip38(cls, bip38_enc_key, *, net=None) -> bool:
+    def isBip38(
+        cls, bip38_enc_key: str, *, net: type[AbstractNetProtocol] | None = None
+    ) -> bool:
         """Returns true if the encryped key string is a valid bip38 key."""
         try:
             cls(bip38_enc_key, net=net)
@@ -803,17 +845,29 @@ class Bip38Key:
         return Bip38Key.canDecrypt()
 
     @staticmethod
-    def _scrypt(password, salt, N, r, p, dkLen) -> bytes:
-        password = to_bytes(password)
-        salt = to_bytes(salt)
+    def _scrypt(
+        password: str | bytes | bytearray,
+        salt: str | bytes | bytearray,
+        N: int,
+        r: int,
+        p: int,
+        dkLen: int,
+    ) -> bytes:
+        password_bytes = to_bytes(password)
+        salt_bytes = to_bytes(salt)
         if Bip38Key.isFast():
             if __class__._scrypt_1:
                 return __class__._scrypt_1(
-                    password=password, salt=salt, n=N, r=r, p=p, dklen=dkLen
+                    password=password_bytes, salt=salt_bytes, n=N, r=r, p=p, dklen=dkLen
                 )
             elif __class__._scrypt_2:
                 return __class__._scrypt_2(
-                    password=password, salt=salt, N=N, r=r, p=p, key_len=dkLen
+                    password=password_bytes,
+                    salt=salt_bytes,
+                    N=N,
+                    r=r,
+                    p=p,
+                    key_len=dkLen,
                 )
             raise RuntimeError(
                 "INTERNAL ERROR -- neither _scrypt_1 or _scrypt_2 are defined, but"
@@ -827,13 +881,14 @@ class Bip38Key:
                 " (fast), Python + OpenSSL 1.1 (fast), or pyscrypt (slow)"
             )
         print_error("[{}] using slow pyscrypt.hash... :(".format(__class__.__name__))
-        return pyscrypt.hash(password=password, salt=salt, N=N, r=r, p=p, dkLen=dkLen)
+        return pyscrypt.hash(
+            password=password_bytes, salt=salt_bytes, N=N, r=r, p=p, dkLen=dkLen
+        )
 
-    def _decryptNoEC(
-        self, passphrase: str
-    ) -> (
-        tuple
-    ):  # returns the (WIF private key, Address)  on success, raises Error on failure.
+    def _decryptNoEC(self, passphrase: str) -> tuple[str, Address]:
+        """
+        Raises a Bip38Key.PasswordError on failure.
+        """
         scryptBuf = Bip38Key._scrypt(
             password=passphrase, salt=self.salt, N=16384, r=8, p=8, dkLen=64
         )
@@ -881,9 +936,10 @@ class Bip38Key:
 
         return unicodedata.normalize("NFC", s)
 
-    def decrypt(
-        self, passphrase: str
-    ) -> tuple[str, object]:  # returns the (wifkey string, Address object)
+    def decrypt(self, passphrase: str) -> tuple[str, Address]:
+        """
+        Returns a tuple with the wifkey str and the address (`Address` instance).
+        """
         assert isinstance(passphrase, str), "Passphrase must be a string!"
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
         passphrase = self._normalizeNFC(passphrase)
@@ -968,7 +1024,13 @@ class Bip38Key:
         )
 
     @classmethod
-    def encrypt(cls, wif: str, passphrase: str, *, net=None) -> object:
+    def encrypt(
+        cls: type[T],
+        wif: str,
+        passphrase: str,
+        *,
+        net: type[AbstractNetProtocol] | None = None,
+    ) -> T:
         """Returns a Bip38Key instance encapsulating the supplied WIF key
         encrypted with passphrase. May raise on bad/garbage WIF or other bad
         arguments."""
@@ -1019,13 +1081,13 @@ class Bip38Key:
 
     @classmethod
     def createECMult(
-        cls,
+        cls: type[T],
         passphrase: str,
         lot_sequence: tuple[int, int] | None = None,
-        compressed=True,
+        compressed: bool = True,
         *,
-        net=None,
-    ) -> object:
+        net: type[AbstractNetProtocol] | None = None,
+    ) -> T:
         """Creates a new, randomly generated and encrypted "EC Mult" Bip38 key
         as per the Bip38 spec. The new key may be decrypted later with the
         supplied passphrase to yield a 'p2pkh' WIF private key.
@@ -1079,8 +1141,8 @@ class Bip38Key:
 
     @classmethod
     def ec_mult_from_intermediate_passphrase_string(
-        cls, enc_ips: bytes, compressed=True
-    ) -> object:
+        cls: type[T], enc_ips: str, compressed: bool = True
+    ) -> T:
         """Takes a Bip38 intermediate passphrase string as specified in the
         bip38 spec and generates a random and encrypted key, returning a newly
         constructed Bip38Key instance."""
@@ -1138,7 +1200,7 @@ class Bip38Key:
         )
 
     @staticmethod
-    def _int_to_bytes(value, length) -> bytes:
+    def _int_to_bytes(value: int, length: int) -> bytes:
         result = []
         for i in range(0, length):
             result.append(value >> (i * 8) & 0xFF)
@@ -1146,7 +1208,7 @@ class Bip38Key:
         return bytes(result)
 
     @staticmethod
-    def _bytes_to_int(by) -> int:
+    def _bytes_to_int(by: bytes) -> int:
         result = 0
         for b in by:
             result = result * 256 + int(b)
