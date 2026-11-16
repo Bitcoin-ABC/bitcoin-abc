@@ -15,7 +15,6 @@ from .util import get_user_dir, make_dir
 FINAL_CONFIG_VERSION = 2
 
 PLUGIN_USE_PREFIX = "use_"
-EXT_PLUGIN_USE_PREFIX = "use_external_"
 
 
 class AddressFormats:
@@ -449,12 +448,6 @@ class SimpleConfig(PrintError):
 
     def set_tab_visibility(self, name: str, visibility: bool) -> bool:
         return self.set_key(ConfigKey(f"show_{name}_tab"), visibility)
-
-    def is_external_plugin_enabled(self, name) -> bool:
-        return self.get(ConfigKey(f"{EXT_PLUGIN_USE_PREFIX}{name}", default=False))
-
-    def set_external_plugin_enabled(self, name, flag: bool):
-        self.set_key(f"{EXT_PLUGIN_USE_PREFIX}{name}", flag, save=True)
 
     def is_plugin_enabled(self, name, default=True) -> bool:
         return self.get(ConfigKey(f"{PLUGIN_USE_PREFIX}{name}", default=default))

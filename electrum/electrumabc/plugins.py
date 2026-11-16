@@ -26,17 +26,13 @@ from __future__ import annotations
 
 import concurrent.futures
 import importlib.util
-import json
 import os
 import pkgutil
-import shutil
 import sys
 import threading
 import time
 import traceback
-import zipimport
 from collections import defaultdict
-from enum import IntEnum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -46,12 +42,11 @@ from typing import (
 )
 from warnings import warn
 
-from . import version
 from .bip32 import xpub_type
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
 from .printerror import PrintError, print_error, print_stderr
-from .util import DaemonThread, ThreadJob, UserCancelled, make_dir, profiler
+from .util import DaemonThread, ThreadJob, UserCancelled, profiler
 
 if TYPE_CHECKING:
     from electrumabc_plugins.hw_wallet import (
@@ -65,24 +60,6 @@ if TYPE_CHECKING:
 
 plugin_loaders = {}
 hooks = defaultdict(list)
-
-
-class ExternalPluginCodes(IntEnum):
-    SUCCESS = 0
-    MISSING_MANIFEST = 1
-    NAME_ALREADY_IN_USE = 2
-    UNABLE_TO_COPY_FILE = 3
-    INSTALLED_BUT_FAILED_LOAD = 4
-    INCOMPATIBLE_VERSION = 5
-    INCOMPATIBLE_ZIP_FORMAT = 6
-    INVALID_MANIFEST_JSON = 7
-    INVALID_MAMIFEST_DISPLAY_NAME = 8
-    INVALID_MAMIFEST_DESCRIPTION = 9
-    INVALID_MAMIFEST_VERSION = 10
-    INVALID_MAMIFEST_MINIMUM_EC_VERSION = 11
-    INVALID_MAMIFEST_PACKAGE_NAME = 12
-    UNSPECIFIED_ERROR = 13
-
 
 internal_plugins_namespace = __import__("electrumabc_plugins")
 
@@ -100,24 +77,21 @@ class Plugins(DaemonThread):
         self.daemon_commands = {}
         self.internal_plugins = {}
         self.internal_plugin_metadata = {}
-        self.external_plugins = {}
-        self.external_plugin_metadata = {}
         self.device_manager = DeviceMgr(config)
         self.load_internal_plugins()
-        self.load_external_plugins()
         self.add_jobs(self.device_manager.thread_jobs())
         self.start()
 
-    def register_plugin(self, name, metadata, is_external=False):
+    def register_plugin(self, name, metadata):
         gui_good = self.gui_name in metadata.get("available_for", [])
         if not gui_good:
             return False
         details = metadata.get("registers_wallet_type")
         if details:
-            self.register_wallet_type(name, gui_good, details, is_external)
+            self.register_wallet_type(name, gui_good, details)
         details = metadata.get("registers_keystore")
         if details:
-            self.register_keystore(name, gui_good, details, is_external)
+            self.register_keystore(name, gui_good, details)
         return True
 
     def retranslate_internal_plugin_metadata(self, name):
@@ -211,60 +185,13 @@ class Plugins(DaemonThread):
                     fmt = traceback.format_exc()
                     self.print_error(f"cannot initialize plugin {name}: {e!r} {fmt}")
 
-    def load_external_plugins(self):
-        external_plugin_dir = self.get_external_plugin_dir()
-        # Unit tests, environment does not lead to finding a user dir, there will be none to load anyway.
-        if external_plugin_dir is None:
-            return
-
-        for file_name in os.listdir(external_plugin_dir):
-            plugin_file_path = os.path.join(external_plugin_dir, file_name)
-            _leading_name, ext = os.path.splitext(file_name)
-            if ext.lower() != ".zip" or not os.path.isfile(plugin_file_path):
-                continue
-            metadata, _error_code = self.get_metadata_from_external_plugin_zip_file(
-                plugin_file_path
-            )
-            if metadata is None:
-                continue
-            package_name = metadata["package_name"]
-            if package_name in self.internal_plugin_metadata:
-                self.print_error(
-                    "internal plugin also named '%s', external '%s' rejected"
-                    % (package_name, file_name)
-                )
-                continue
-            if not self.register_plugin(package_name, metadata, is_external=True):
-                continue
-            metadata["__file__"] = plugin_file_path
-            self.external_plugin_metadata[package_name] = metadata
-
-            if not metadata.get(
-                "requires_wallet_type"
-            ) and self.config.is_external_plugin_enabled(package_name):
-                try:
-                    self.load_external_plugin(package_name)
-                except Exception as e:
-                    traceback.print_exc(
-                        file=sys.stdout
-                    )  # shouldn't this be... suppressed unless -v?
-                    self.print_error(f"cannot initialize plugin {package_name} {e!r}")
-
     def get_internal_plugin(self, name, force_load=False):
         if force_load and name not in self.internal_plugins:
             self.load_internal_plugin(name)
         return self.internal_plugins.get(name)
 
-    def get_external_plugin(self, name, force_load=False):
-        if force_load and name not in self.external_plugins:
-            return self.load_external_plugin(name)
-        return self.external_plugins.get(name)
-
     def get_internal_plugin_count(self):
         return len(self.internal_plugins)
-
-    def get_external_plugin_count(self):
-        return len(self.external_plugins)
 
     def load_internal_plugin(self, name):
         if name in self.internal_plugins:
@@ -284,60 +211,12 @@ class Plugins(DaemonThread):
         self.print_error("loaded internal plugin", name)
         return plugin
 
-    def load_external_plugin(self, name):
-        if name in self.external_plugins:
-            return self.external_plugins[name]
-        # If we do not have the metadata, it was not detected by `load_external_plugins`
-        # on startup, or added by manual user installation after that point.
-        metadata = self.external_plugin_metadata.get(name, None)
-        if metadata is None:
-            self.print_error("attempted to load unknown external plugin %s" % name)
-            return
-
-        plugin_file_path = metadata["__file__"]
-        try:
-            zipfile = zipimport.zipimporter(plugin_file_path)
-        except zipimport.ZipImportError:
-            self.print_error("unable to load zip plugin '%s'" % plugin_file_path)
-            return
-
-        try:
-            module = zipfile.load_module(name)
-        except zipimport.ZipImportError as e:
-            self.print_error(
-                "unable to load zip plugin '%s' package '%s'"
-                % (plugin_file_path, name),
-                str(e),
-            )
-            return
-
-        sys.modules[f"electrumabc_external_plugins.{name}"] = module
-
-        full_name = f"electrumabc_external_plugins.{name}.{self.gui_name}"
-        spec = importlib.util.find_spec(full_name)
-        if spec is None:
-            raise RuntimeError(
-                "%s implementation for %s plugin not found" % (self.gui_name, name)
-            )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        plugin: BasePlugin = module.Plugin(self, self.config, name)
-        plugin.set_external(True)
-        self.add_jobs(plugin.thread_jobs())
-        self.external_plugins[name] = plugin
-        self.print_error("loaded external plugin", name)
-        return plugin
-
     def close_plugin(self, plugin):
         self.remove_jobs(plugin.thread_jobs())
 
     def enable_internal_plugin(self, name):
         self.config.set_plugin_enabled(name, True)
         return self.get_internal_plugin(name, force_load=True)
-
-    def enable_external_plugin(self, name):
-        self.config.set_external_plugin_enabled(name, True)
-        return self.get_external_plugin(name, force_load=True)
 
     def disable_internal_plugin(self, name):
         self.config.set_plugin_enabled(name, False)
@@ -348,29 +227,12 @@ class Plugins(DaemonThread):
         p.close()
         self.print_error("closed", name)
 
-    def disable_external_plugin(self, name):
-        self.config.set_external_plugin_enabled(name, False)
-        p = self.get_external_plugin(name)
-        if not p:
-            return
-        self.external_plugins.pop(name)
-        p.close()
-        self.print_error("closed", name)
-
     def toggle_internal_plugin(self, name):
         p = self.get_internal_plugin(name)
         return (
             self.disable_internal_plugin(name)
             if p
             else self.enable_internal_plugin(name)
-        )
-
-    def toggle_external_plugin(self, name):
-        p = self.get_external_plugin(name)
-        return (
-            self.disable_external_plugin(name)
-            if p
-            else self.enable_external_plugin(name)
         )
 
     def is_plugin_available(self, metadata, w):
@@ -389,149 +251,9 @@ class Plugins(DaemonThread):
         d = self.internal_plugin_metadata.get(name)
         return self.is_plugin_available(d, w)
 
-    def is_external_plugin_available(self, name, w):
-        d = self.external_plugin_metadata.get(name)
-        return self.is_plugin_available(d, w)
-
-    def get_external_plugin_dir(self):
-        if self.config.path is None:
-            return None
-        external_plugin_dir = os.path.join(self.config.path, "external_plugins")
-        make_dir(external_plugin_dir)
-        return external_plugin_dir
-
-    def get_metadata_from_external_plugin_zip_file(self, plugin_file_path):
-        file_name = os.path.basename(plugin_file_path)
-        try:
-            zipfile = zipimport.zipimporter(plugin_file_path)
-            metadata_text = zipfile.get_data("manifest.json")
-        except zipimport.ZipImportError:
-            self.print_error("unable to load zip plugin for %s" % file_name)
-            return None, ExternalPluginCodes.INCOMPATIBLE_ZIP_FORMAT
-        except OSError:
-            self.print_error("missing 'manifest.json' (zip plugin %s)" % file_name)
-            return None, ExternalPluginCodes.MISSING_MANIFEST
-        except Exception as e:
-            self.print_error(f"Exception opening {file_name}: {repr(e)}")
-            return None, ExternalPluginCodes.UNSPECIFIED_ERROR
-
-        try:
-            metadata = json.loads(metadata_text)
-        except json.JSONDecodeError:
-            self.print_error(
-                "invalid json in 'manifest.json' (zip plugin %s)" % file_name
-            )
-            return None, ExternalPluginCodes.INVALID_MANIFEST_JSON
-
-        class Version:
-            pass
-
-        expected_keys = {
-            "display_name": (str, ExternalPluginCodes.INVALID_MAMIFEST_DISPLAY_NAME),
-            "description": (str, ExternalPluginCodes.INVALID_MAMIFEST_DESCRIPTION),
-            "version": (Version, ExternalPluginCodes.INVALID_MAMIFEST_VERSION),
-            "minimum_ec_version": (
-                Version,
-                ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION,
-            ),
-            "package_name": (str, ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME),
-        }
-        for k, (expected_type, error_code) in expected_keys.items():
-            v = metadata.get(k, None)
-            if v is None:
-                self.print_error(
-                    "missing metadata key %s (zip plugin %s)" % (k, file_name)
-                )
-                return None, error_code
-            if expected_type is Version:
-                try:
-                    v = version.parse_package_version(v)
-                except ValueError:
-                    self.print_error(
-                        "metadata %s = %s, expected a.b.c version string (zip"
-                        " plugin %s)" % (k, v, file_name)
-                    )
-                    return None, error_code
-            elif type(metadata[k]) is not expected_type:
-                self.print_error(
-                    "metadata %s = %s, expected %s (zip plugin %s)"
-                    % (k, v, expected_type, file_name)
-                )
-                return None, error_code
-
-        return metadata, ExternalPluginCodes.SUCCESS
-
-    def install_external_plugin(self, plugin_original_path):
-        # Do the minimum verification necessary to check if the archive looks
-        # like a valid plugin zip archive.
-        metadata, error_code = self.get_metadata_from_external_plugin_zip_file(
-            plugin_original_path
-        )
-        if metadata is None:
-            return error_code
-
-        file_name = os.path.basename(plugin_original_path)
-        leading_name, _ext = os.path.splitext(file_name)
-        package_name = metadata.get("package_name", leading_name)
-        # Ensure it is not already installed.
-        if (
-            package_name in self.external_plugins
-            or package_name in self.external_plugin_metadata
-        ):
-            return ExternalPluginCodes.NAME_ALREADY_IN_USE
-
-        if (
-            version.parse_package_version(metadata["minimum_ec_version"])[:-1]
-            > version.parse_package_version(version.PACKAGE_VERSION)[:-1]
-        ):
-            return ExternalPluginCodes.INCOMPATIBLE_VERSION
-
-        # Copy the original file to the external plugin hosting dir.
-        install_dir = self.get_external_plugin_dir()
-        plugin_file_path = os.path.join(install_dir, file_name)
-        try:
-            shutil.copyfile(plugin_original_path, plugin_file_path)
-        except OSError:
-            return ExternalPluginCodes.UNABLE_TO_COPY_FILE
-        metadata["__file__"] = plugin_file_path
-
-        # Register the existence of the newly placed plugin archive.
-        # This would otherwise be recorded in `load_external_plugins`.
-        self.external_plugin_metadata[package_name] = metadata
-
-        # Not documented wallet type constraint.  Follow pattern elsewhere.
-        if metadata.get("requires_wallet_type"):
-            return ExternalPluginCodes.SUCCESS
-
-        # Otherwise, we enable all other installed plugins.  This causes the
-        # plugin to be loaded, afterward.
-        try:
-            self.enable_external_plugin(package_name)
-        except Exception as e:
-            traceback.print_exc(file=sys.stdout)
-            self.print_error(
-                "cannot enable/load external plugin %s:" % package_name, str(e)
-            )
-            return ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD
-
-        return ExternalPluginCodes.SUCCESS
-
-    def uninstall_external_plugin(self, name):
-        self.disable_external_plugin(name)
-        if "electrumabc_external_plugins." + name in sys.modules:
-            del sys.modules["electrumabc_external_plugins." + name]
-
-        metadata = self.external_plugin_metadata[name]
-        plugin_file_path = metadata["__file__"]
-        del self.external_plugin_metadata[name]
-
-        os.remove(plugin_file_path)
-
     def find_plugin(self, name, force_load=False):
         if name in self.internal_plugin_metadata:
             return self.get_internal_plugin(name, force_load)
-        else:
-            return self.get_external_plugin(name, force_load)
 
     def get_hardware_support(self):
         out = []
@@ -550,29 +272,23 @@ class Plugins(DaemonThread):
                     )
         return out
 
-    def register_wallet_type(self, name, gui_good, wallet_type, is_external):
+    def register_wallet_type(self, name, gui_good, wallet_type):
         from .wallet import register_constructor, register_wallet_type
 
         self.print_error("registering wallet type", (wallet_type, name))
 
         def loader():
-            if is_external:
-                plugin = self.get_external_plugin(name, force_load=True)
-            else:
-                plugin = self.get_internal_plugin(name, force_load=True)
+            plugin = self.get_internal_plugin(name, force_load=True)
             register_constructor(wallet_type, plugin.wallet_class)
 
         register_wallet_type(wallet_type)
         plugin_loaders[wallet_type] = loader
 
-    def register_keystore(self, name, gui_good, details, is_external):
+    def register_keystore(self, name, gui_good, details):
         from .keystore import register_keystore
 
         def dynamic_constructor(d):
-            if is_external:
-                plugin = self.get_external_plugin(name, force_load=True)
-            else:
-                plugin = self.get_internal_plugin(name, force_load=True)
+            plugin = self.get_internal_plugin(name, force_load=True)
             return plugin.keystore_class(d)
 
         if details[0] == "hardware":
@@ -720,7 +436,6 @@ class BasePlugin(PrintError):
         self.name = name
         self.config = config
         self.wallet = None
-        self.is_external = False
         self._hooks_i_registered = []
         # add self to hooks
         for aname in dir(self):
@@ -749,9 +464,6 @@ class BasePlugin(PrintError):
         self.parent.daemon_commands.update(
             {cmdname: getattr(self, cmdname) for cmdname in self._daemon_commands}
         )
-
-    def set_external(self, flag):
-        self.is_external = True
 
     def diagnostic_name(self):
         return self.name
@@ -786,12 +498,7 @@ class BasePlugin(PrintError):
         return []
 
     def is_enabled(self):
-        conf_getter = (
-            self.config.is_plugin_enabled
-            if not self.is_external
-            else self.config.is_external_plugin_enabled
-        )
-        return self.is_available() and conf_getter(self.name)
+        return self.is_available() and self.config.is_plugin_enabled(self.name)
 
     def is_available(self):
         return True

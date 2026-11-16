@@ -80,7 +80,7 @@ from electrumabc.util import (
 from electrumabc.version import PACKAGE_VERSION
 from electrumabc.wallet import AbstractWallet, MultisigWallet
 
-from . import address_dialog, external_plugins_window, qrwindow
+from . import address_dialog, qrwindow
 from .address_list import AddressList
 from .amountedit import AmountEdit, XECAmountEdit
 from .avalanche.delegation_editor import AvaDelegationDialog
@@ -198,7 +198,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.cleaned_up = False
         self.qr_window = None
         self.internalpluginsdialog = None
-        self.externalpluginsdialog = None
         self.hardwarewalletdialog = None
         # alias for backwards compatibility for plugins -- this signal used to live in
         # each window and has since been refactored to gui-object where it belongs
@@ -874,10 +873,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("Optional &Features") + "...",
             self.internal_plugins_dialog,
         ).setShortcut(QKeySequence("Shift+Ctrl+P"))
-        tools_menu.addAction(
-            _("Installed &Plugins") + "...",
-            self.external_plugins_dialog,
-        ).setShortcut(QKeySequence("Ctrl+P"))
         if sys.platform.startswith("linux"):
             tools_menu.addSeparator()
             tools_menu.addAction(
@@ -3637,17 +3632,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.internalpluginsdialog = d
         d.exec_()
         self.internalpluginsdialog = None  # Python GC please!
-
-    def external_plugins_dialog(self):
-        if self.externalpluginsdialog:
-            # NB: reentrance here is possible due to the way the window menus work on MacOS.. so guard against it
-            self.externalpluginsdialog.raise_()
-            return
-
-        d = external_plugins_window.ExternalPluginsDialog(self, _("Plugin Manager"))
-        self.externalpluginsdialog = d
-        d.exec_()
-        self.externalpluginsdialog = None  # allow python to GC
 
     def hardware_wallet_support(self):
         if not sys.platform.startswith("linux"):
