@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess
@@ -72,12 +73,27 @@ def rpc(method: str, **params: Any) -> Any:
     return poll_for_answer(EC_DAEMON_RPC_URL, request(method, params=params))
 
 
-def start_ec_daemon(datadir: str, *, with_wallet: bool = True) -> None:
+def start_ec_daemon(
+    datadir: str, *, with_wallet: bool = True, offline: bool = False
+) -> None:
     """
     Start a daemon using datadir as its data directory.
     If with_wallet is True, create and load a wallet in datadir, and wait until it
     is synchronized.
+    If offline is True, the daemon runs without any network.
     """
+    # The load_wallet RPC command requires the network
+    assert not (offline and with_wallet), "an offline daemon cannot load a wallet"
+    if offline:
+        # The daemon subcommand has no --offline option, but the daemon also reads
+        # it from the config file.
+        config_path = os.path.join(datadir, "regtest", "config")
+        with open(config_path, encoding="utf-8") as f:
+            config = json.load(f)
+        config["offline"] = True
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=4)
+
     default_wallet = os.path.join(datadir, "default_wallet")
     wallet_args = ["-w", default_wallet] if with_wallet else []
     subprocess.run(

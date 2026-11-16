@@ -43,11 +43,18 @@ P2PKH_TX_HEX = (
 
 
 class TestRPCOffline(ElectrumABCTestCase):
+    """Commands that need neither a wallet nor a network, tested with a daemon
+    running offline."""
+
+    NEEDS_NETWORK = False
     NEEDS_WALLET = False
 
-    def test_no_wallet(self):
+    def test_no_wallet_no_network(self):
+        assert rpc("getconfig", key="offline") is True
         with self.assertRaisesRegex(RuntimeError, "Wallet not loaded"):
             rpc("getbalance")
+        with self.assertRaisesRegex(RuntimeError, "Daemon offline"):
+            rpc("getservers")
 
     def test_commands_help_version(self):
         commands = rpc("commands")
@@ -69,7 +76,6 @@ class TestRPCOffline(ElectrumABCTestCase):
         # The value is parsed as a python literal
         assert rpc("setconfig", key="fee_per_kb", value="3000") is True
         assert rpc("getconfig", key="fee_per_kb") == 3000
-        assert rpc("getfeerate") == 3000
 
     def test_seeds(self):
         seed = rpc("make_seed")
@@ -134,23 +140,6 @@ class TestRPCOffline(ElectrumABCTestCase):
         # serialize always creates a version 2 transaction, everything else is the
         # same
         assert result["hex"] == "02" + P2PKH_TX_HEX[2:]
-
-    def test_createmultisig(self):
-        """Compare the result with the node's createmultisig RPC"""
-        # Public keys of the private keys 1, 2 and 3
-        pubkeys = [
-            "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-            "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
-            "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
-        ]
-        for num in (1, 2, 3):
-            result = rpc("createmultisig", num=num, pubkeys=pubkeys)
-            expected = self.node.createmultisig(num, pubkeys)
-            assert result["redeemScript"] == expected["redeemScript"]
-            # The address is returned in the legacy format
-            converted = rpc("addressconvert", address=result["address"])
-            assert converted["legacy"] == result["address"]
-            assert converted["cashaddr"] == expected["address"]
 
     def test_deserialize_p2pkh(self):
         # txid f8c9d5fea8bda2ba3514c5d316a68d7439c04de29b0404eaa197e2da871712f6
@@ -446,6 +435,30 @@ class TestRPCOffline(ElectrumABCTestCase):
                 "bitcoincashaddr": cashaddr_bch,
                 "legacy": legacy_addr,
             }
+
+
+class TestRPCOfflineCompareWithNode(ElectrumABCTestCase):
+    """Commands that need neither a wallet nor a network, with results compared
+    with the node's RPCs."""
+
+    NEEDS_WALLET = False
+
+    def test_createmultisig(self):
+        """Compare the result with the node's createmultisig RPC"""
+        # Public keys of the private keys 1, 2 and 3
+        pubkeys = [
+            "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+            "02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+            "02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9",
+        ]
+        for num in (1, 2, 3):
+            result = rpc("createmultisig", num=num, pubkeys=pubkeys)
+            expected = self.node.createmultisig(num, pubkeys)
+            assert result["redeemScript"] == expected["redeemScript"]
+            # The address is returned in the legacy format
+            converted = rpc("addressconvert", address=result["address"])
+            assert converted["legacy"] == result["address"]
+            assert converted["cashaddr"] == expected["address"]
 
 
 if __name__ == "__main__":

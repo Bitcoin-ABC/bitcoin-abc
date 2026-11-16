@@ -51,9 +51,15 @@ from test_framework.util import (  # noqa: E402
 
 
 class ElectrumABCTestCase(unittest.TestCase):
-    """Test case with an Electrum server provided by a Bitcoin ABC node and with
-    an Electrum ABC daemon running.
+    """Test case with an Electrum ABC daemon running, and by default an Electrum
+    server provided by a Bitcoin ABC node.
     """
+
+    NEEDS_NETWORK = True
+    """If True, a Bitcoin ABC node provides an Electrum server to the daemon.
+    Set it to False in subclasses that test a daemon running without network
+    (there is then no self.node). This requires NEEDS_WALLET to be False too,
+    because the load_wallet RPC command requires the network."""
 
     NEEDS_WALLET = True
     """If True, the daemon has a newly created, synchronized wallet loaded.
@@ -66,6 +72,19 @@ class ElectrumABCTestCase(unittest.TestCase):
         self.electrum_data_dir = make_tmp_electrum_data_dir()
         self.addCleanup(self._remove_electrum_data_dir)
 
+        if self.NEEDS_NETWORK:
+            self._start_node()
+
+        # Registered before starting the daemon, so it is stopped even if it
+        # fails to get ready.
+        self.addCleanup(stop_ec_daemon, self.electrum_data_dir)
+        start_ec_daemon(
+            self.electrum_data_dir,
+            with_wallet=self.NEEDS_WALLET,
+            offline=not self.NEEDS_NETWORK,
+        )
+
+    def _start_node(self):
         self.tmpdir = tmpdir = tempfile.mkdtemp(prefix="electrum_func_test_")
         self.addCleanup(shutil.rmtree, tmpdir)
         configs_dir = os.path.join(
@@ -101,11 +120,6 @@ class ElectrumABCTestCase(unittest.TestCase):
         self.node.createwallet("test_wallet")
         addr = self.node.getnewaddress()
         self.node.generatetoaddress(101, addr, invalid_call=False)
-
-        # Registered before starting the daemon, so it is stopped even if it
-        # fails to get ready.
-        self.addCleanup(stop_ec_daemon, self.electrum_data_dir)
-        start_ec_daemon(self.electrum_data_dir, with_wallet=self.NEEDS_WALLET)
 
     def generatetoaddress(self, nblocks, addr):
         return self.node.generatetoaddress(nblocks, addr, invalid_call=False)
