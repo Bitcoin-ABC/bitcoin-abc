@@ -127,7 +127,9 @@ class Wordlist(tuple[str, ...]):
         except KeyError as e:
             raise ValueError from e
 
-    def __contains__(self, word: str) -> bool:
+    def __contains__(self, word: object) -> bool:
+        if not isinstance(word, str):
+            return False
         try:
             self.index(word)
         except ValueError:
@@ -139,6 +141,7 @@ class Wordlist(tuple[str, ...]):
     def from_file(cls, filename: str) -> "Wordlist":
         if filename not in _WORDLIST_CACHE:
             data = pkgutil.get_data(__name__, os.path.join("wordlist", filename))
+            assert data is not None
             s = data.decode("utf-8").strip()
             s = unicodedata.normalize("NFKD", s)
             lines = s.split("\n")
