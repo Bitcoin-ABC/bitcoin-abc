@@ -19,6 +19,7 @@ from ..util import NotEnoughFunds
 from ..wallet import (
     AbstractWallet,
     StandardWallet,
+    Wallet,
     create_new_wallet,
     restore_wallet_from_text,
     sweep,
@@ -117,6 +118,46 @@ class TestCreateRestoreWallet(WalletTestCase):
             Address.from_string("qrrqa5sv8xrg7lrq3l4c3ememxfwwsa09gp9aycw57"),
             wallet.get_receiving_addresses()[0],
         )
+
+    def _load_wallet_file(self) -> AbstractWallet:
+        return Wallet(WalletStorage(self.wallet_path))
+
+    def test_create_new_wallet_saves_addresses(self):
+        wallet = create_new_wallet(path=self.wallet_path, encrypt_file=False)["wallet"]
+        self.assertGreater(len(wallet.get_receiving_addresses()), 0)
+        self.assertGreater(len(wallet.get_change_addresses()), 0)
+        self.assertEqual(
+            self._load_wallet_file().get_addresses(), wallet.get_addresses()
+        )
+
+    def test_restore_wallet_from_text_saves_addresses(self):
+        text = "head frost nest keep flavor winner pretty mimic truly sense snack laugh"
+        wallet = restore_wallet_from_text(
+            text, path=self.wallet_path, encrypt_file=False, config=self.config
+        )["wallet"]
+        self.assertGreater(len(wallet.get_addresses()), 0)
+        self.assertEqual(
+            self._load_wallet_file().get_addresses(), wallet.get_addresses()
+        )
+
+    def test_offline_wallet_creates_addresses(self):
+        """A wallet file without addresses (e.g. created before they were saved
+        on creation) gets its addresses when loaded without network."""
+        expected = create_new_wallet(path=self.wallet_path, encrypt_file=False)[
+            "wallet"
+        ].get_addresses()
+        self.assertGreater(len(expected), 0)
+        storage = WalletStorage(self.wallet_path)
+        storage.put("addresses", {"receiving": [], "change": []})
+        storage.write()
+
+        wallet = self._load_wallet_file()
+        self.assertEqual(wallet.get_addresses(), [])
+        wallet.start_threads(None)
+        self.assertEqual(wallet.get_addresses(), expected)
+        # They are saved when the wallet is closed
+        wallet.stop_threads()
+        self.assertEqual(self._load_wallet_file().get_addresses(), expected)
 
     def test_restore_wallet_from_text_xpub(self):
         text = "xpub6CUzEfgtza7ZNtfDGYwHPnbPMPiQh93mAbP6v7C3ozUgkZq4tXSgYb9qqZ62oh8RCeexdSF7ZJmTzCm5bdWLB3zSMF8rNfuY8kccNAsdF4d"

@@ -2352,6 +2352,9 @@ class AbstractWallet(PrintError, SPVDelegate):
         else:
             self.verifier = None
             self.synchronizer = None
+            # Without a synchronizer, the addresses up to the gap limit would never
+            # be created. They are saved when the threads are stopped.
+            self.synchronize()
 
     def stop_threads(self):
         if self.network:
@@ -3770,6 +3773,7 @@ def create_new_wallet(
     wallet = Wallet(storage)
     wallet.update_password(old_pw=None, new_pw=password, encrypt_storage=encrypt_file)
     wallet.synchronize()
+    wallet.save_addresses()
     msg = (
         "Please keep your seed in a safe place; if you lose it, you will not be able to"
         " restore your wallet."
@@ -3826,6 +3830,7 @@ def restore_wallet_from_text(
 
     wallet.update_password(old_pw=None, new_pw=password, encrypt_storage=encrypt_file)
     wallet.synchronize()
+    wallet.save_addresses()
     msg = (
         "This wallet was restored offline. It may contain more addresses than"
         " displayed. Start a daemon and use load_wallet to sync its history."

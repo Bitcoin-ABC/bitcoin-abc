@@ -440,27 +440,18 @@ class TestRPCOffline(ElectrumABCTestCase):
 
 
 class TestRPCOfflineWallet(ElectrumABCTestCase):
-    """Wallet and daemon management commands, with a daemon running offline."""
+    """Behavior specific to a wallet loaded by a daemon running offline."""
 
     NEEDS_NETWORK = False
 
-    def test_wallet_management(self):
+    def test_offline_wallet(self):
         assert rpc("getconfig", key="offline") is True
         default_wallet = os.path.join(self.electrum_data_dir, "default_wallet")
         # The wallet can't be synchronized without network
         assert rpc("list_wallets") == [{"path": default_wallet, "synchronized": False}]
         assert rpc("is_synchronized") is False
 
-        assert rpc("close_wallet") is True
-        assert rpc("list_wallets") == []
-
-        assert rpc("load_wallet") is True
-        assert rpc("list_wallets") == [{"path": default_wallet, "synchronized": False}]
-
-    def test_wallet_commands(self):
-        address = rpc("createnewaddress")
-        assert address in rpc("listaddresses")
-        assert rpc("ismine", address=address) is True
+        address = rpc("getunusedaddress")
         assert rpc("getbalance")["confirmed"] == "0"
         with self.assertRaisesRegex(RuntimeError, "Daemon offline"):
             rpc("getaddressbalance", address=address)

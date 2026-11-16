@@ -38,6 +38,8 @@ from .util import rpc
 
 
 class TestRPCWalletManagement(ElectrumABCTestCase):
+    NEEDS_NETWORK = False
+
     def default_wallet_path(self) -> str:
         return os.path.join(self.electrum_data_dir, "default_wallet")
 

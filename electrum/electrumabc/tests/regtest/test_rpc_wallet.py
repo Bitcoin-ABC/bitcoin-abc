@@ -36,6 +36,8 @@ from .util import rpc
 
 
 class TestRPCWallet(ElectrumABCTestCase):
+    NEEDS_NETWORK = False
+
     def test_wallet_storage_seed_and_master_keys(self):
         assert rpc("get", key="wallet_type") == "standard"
         assert rpc("get", key="seed_type") == "bip39"
