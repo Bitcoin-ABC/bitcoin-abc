@@ -79,11 +79,9 @@ def start_ec_daemon(
     """
     Start a daemon using datadir as its data directory.
     If with_wallet is True, create and load a wallet in datadir, and wait until it
-    is synchronized.
+    is synchronized (unless offline, as it is never synchronized without network).
     If offline is True, the daemon runs without any network.
     """
-    # The load_wallet RPC command requires the network
-    assert not (offline and with_wallet), "an offline daemon cannot load a wallet"
     if offline:
         # The daemon subcommand has no --offline option, but the daemon also reads
         # it from the config file.
@@ -125,6 +123,9 @@ def start_ec_daemon(
 
     result = poll_for_answer(EC_DAEMON_RPC_URL, request("load_wallet"))
     assert result
+
+    if offline:
+        return
 
     # Wait until the wallet is up to date
     poll_for_answer(

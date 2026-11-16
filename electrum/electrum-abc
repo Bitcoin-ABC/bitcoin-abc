@@ -476,7 +476,7 @@ def run_cmdline(config: SimpleConfig, config_options: dict, cmdname: str) -> Any
         result = server.run_cmdline(config_options)
     else:
         cmd = known_commands[cmdname]
-        if cmd.requires_network:
+        if cmd.requires_daemon or cmd.requires_network:
             print_msg(f"Daemon not running; try '{SCRIPT_NAME} daemon start'")
             sys.exit(1)
         else:

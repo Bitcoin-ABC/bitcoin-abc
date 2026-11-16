@@ -86,6 +86,9 @@ def assertOutpoint(out: str):
 class Command:
     def __init__(self, func, s):
         self.name = func.__name__
+        # Commands requiring the network also require the daemon, as only the
+        # daemon has a network.
+        self.requires_daemon = "d" in s
         self.requires_network = "n" in s
         self.requires_wallet = "w" in s
         self.requires_password = "p" in s
@@ -129,7 +132,12 @@ def command(s):
             c = known_commands[func.__name__]
             wallet = args[0].wallet
             network = args[0].network
+            daemon = args[0].daemon
             password = kwargs.get("password")
+            if c.requires_daemon and daemon is None:
+                raise RuntimeError(
+                    f"Daemon not running; try '{SCRIPT_NAME} daemon start'"
+                )
             if c.requires_network and network is None:
                 raise RuntimeError("Daemon offline")  # Same wording as in daemon.py.
             if c.requires_wallet and wallet is None:
@@ -252,13 +260,13 @@ class Commands:
         }
         return response
 
-    @command("n")
+    @command("d")
     def stop(self):
         """Stop daemon"""
         self.daemon.stop()
         return "Daemon stopped"
 
-    @command("n")
+    @command("d")
     def list_wallets(self):
         """List wallets open in daemon"""
         return [
@@ -266,7 +274,7 @@ class Commands:
             for k, w in self.daemon.wallets.items()
         ]
 
-    @command("n")
+    @command("d")
     def load_wallet(self):
         """Open wallet in daemon"""
         path = self.config.get_wallet_path()
@@ -276,7 +284,7 @@ class Commands:
         response = wallet is not None
         return response
 
-    @command("n")
+    @command("d")
     def close_wallet(self):
         """Close wallet"""
         path = self.config.get_wallet_path()
@@ -1133,12 +1141,12 @@ class Commands:
         self.network.send([("blockchain.scripthash.subscribe", [h])], callback)
         return True
 
-    @command("wn")
+    @command("wd")
     def is_synchronized(self):
         """return wallet synchronization status"""
         return self.wallet.is_up_to_date()
 
-    @command("n")
+    @command("")
     def getfeerate(self):
         """Return current optimal fee rate per kilobyte, according
         to config settings (static/dynamic)"""

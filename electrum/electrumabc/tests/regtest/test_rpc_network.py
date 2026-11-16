@@ -37,11 +37,6 @@ class TestRPCNetwork(ElectrumABCTestCase):
         # Only one server in this setup
         assert len(result) == 1
 
-    def test_getfeerate(self):
-        # getfeerate only reads the config, but it requires the network
-        assert rpc("setconfig", key="fee_per_kb", value="3000") is True
-        assert rpc("getfeerate") == 3000
-
 
 if __name__ == "__main__":
     unittest.main()

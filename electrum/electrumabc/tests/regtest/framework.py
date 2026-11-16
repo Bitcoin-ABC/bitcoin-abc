@@ -58,11 +58,11 @@ class ElectrumABCTestCase(unittest.TestCase):
     NEEDS_NETWORK = True
     """If True, a Bitcoin ABC node provides an Electrum server to the daemon.
     Set it to False in subclasses that test a daemon running without network
-    (there is then no self.node). This requires NEEDS_WALLET to be False too,
-    because the load_wallet RPC command requires the network."""
+    (there is then no self.node)."""
 
     NEEDS_WALLET = True
-    """If True, the daemon has a newly created, synchronized wallet loaded.
+    """If True, the daemon has a newly created wallet loaded. It is synchronized
+    before the test starts if NEEDS_NETWORK is True.
     Set it to False in subclasses that test commands not requiring a wallet."""
 
     def setUp(self):

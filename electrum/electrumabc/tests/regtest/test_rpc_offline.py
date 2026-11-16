@@ -22,6 +22,7 @@
 # SOFTWARE.
 """Tests for the RPC commands that use neither the wallet nor the network"""
 
+import os
 import unittest
 
 from ... import mnemo
@@ -76,6 +77,7 @@ class TestRPCOffline(ElectrumABCTestCase):
         # The value is parsed as a python literal
         assert rpc("setconfig", key="fee_per_kb", value="3000") is True
         assert rpc("getconfig", key="fee_per_kb") == 3000
+        assert rpc("getfeerate") == 3000
 
     def test_seeds(self):
         seed = rpc("make_seed")
@@ -435,6 +437,33 @@ class TestRPCOffline(ElectrumABCTestCase):
                 "bitcoincashaddr": cashaddr_bch,
                 "legacy": legacy_addr,
             }
+
+
+class TestRPCOfflineWallet(ElectrumABCTestCase):
+    """Wallet and daemon management commands, with a daemon running offline."""
+
+    NEEDS_NETWORK = False
+
+    def test_wallet_management(self):
+        assert rpc("getconfig", key="offline") is True
+        default_wallet = os.path.join(self.electrum_data_dir, "default_wallet")
+        # The wallet can't be synchronized without network
+        assert rpc("list_wallets") == [{"path": default_wallet, "synchronized": False}]
+        assert rpc("is_synchronized") is False
+
+        assert rpc("close_wallet") is True
+        assert rpc("list_wallets") == []
+
+        assert rpc("load_wallet") is True
+        assert rpc("list_wallets") == [{"path": default_wallet, "synchronized": False}]
+
+    def test_wallet_commands(self):
+        address = rpc("createnewaddress")
+        assert address in rpc("listaddresses")
+        assert rpc("ismine", address=address) is True
+        assert rpc("getbalance")["confirmed"] == "0"
+        with self.assertRaisesRegex(RuntimeError, "Daemon offline"):
+            rpc("getaddressbalance", address=address)
 
 
 class TestRPCOfflineCompareWithNode(ElectrumABCTestCase):

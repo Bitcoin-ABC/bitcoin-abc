@@ -8,7 +8,41 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from ..address import Address
-from ..commands import Commands, get_parser, preprocess_cmdline_args
+from ..commands import Commands, get_parser, known_commands, preprocess_cmdline_args
+
+DAEMON_ONLY_COMMANDS = ("stop", "list_wallets", "load_wallet", "close_wallet")
+
+
+class TestCommandRequirements(unittest.TestCase):
+    def test_daemon_only_commands(self):
+        """These commands must be run by the daemon, but don't need the network"""
+        for name in (*DAEMON_ONLY_COMMANDS, "is_synchronized"):
+            cmd = known_commands[name]
+            self.assertTrue(cmd.requires_daemon, name)
+            self.assertFalse(cmd.requires_network, name)
+
+    def test_no_daemon(self):
+        commands = Commands(config=MagicMock(), wallet=None, network=None)
+        for name in DAEMON_ONLY_COMMANDS:
+            with self.assertRaisesRegex(RuntimeError, "Daemon not running"):
+                getattr(commands, name)()
+
+    def test_offline_daemon(self):
+        daemon = MagicMock()
+        daemon.wallets = {}
+        commands = Commands(
+            config=MagicMock(), wallet=None, network=None, daemon=daemon
+        )
+        self.assertEqual(commands.list_wallets(), [])
+        with self.assertRaisesRegex(RuntimeError, "Daemon offline"):
+            commands.getservers()
+
+    def test_getfeerate_without_network(self):
+        config = MagicMock()
+        config.fee_per_kb.return_value = 3000
+        commands = Commands(config=config, wallet=None, network=None)
+        self.assertEqual(commands.getfeerate(), 3000)
+
 
 ADDRESS = "ecash:qr98e3qdhegz5k79gkfmp0xl27phv63uuqjtz8uutp"
 
