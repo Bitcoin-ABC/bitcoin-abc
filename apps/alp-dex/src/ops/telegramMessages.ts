@@ -263,6 +263,52 @@ ${formatSwapperLines(userAddress, username)}
 ${formatPriceImpactLine(priceImpactPct)}<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
 };
 
+export interface FinalityTimeoutMessageParams {
+    parsedSwap: ParsedPartiallySignedSwap;
+    txid: string;
+    errorMsg: string;
+    fromDecimals: number;
+    toDecimals: number;
+    fromTicker?: string | null;
+    toTicker?: string | null;
+    username?: string | null;
+    priceImpactPct?: number;
+}
+
+/**
+ * Telegram HTML when Chronik accepted a settle that did not finalize
+ * before the wait ended.
+ */
+export const getFinalityTimeoutMessage = (
+    params: FinalityTimeoutMessageParams,
+): string => {
+    const {
+        parsedSwap,
+        txid,
+        errorMsg,
+        fromDecimals,
+        toDecimals,
+        fromTicker,
+        toTicker,
+        username,
+        priceImpactPct,
+    } = params;
+    const fromLinked = tokenLinkedLabel(parsedSwap.fromTokenId, fromTicker);
+    const toLinked = tokenLinkedLabel(parsedSwap.toTokenId, toTicker);
+    const fromPlain = tokenPlainLabel(parsedSwap.fromTokenId, fromTicker);
+    const toPlain = tokenPlainLabel(parsedSwap.toTokenId, toTicker);
+    const userAddress = extractUserAddress(parsedSwap);
+
+    return `❌ <b>Swap Finality Timed Out</b>
+
+<b>Pair:</b> ${fromLinked} → ${toLinked}
+<b>From:</b> ${formatTokenQty(parsedSwap.atomsFrom, fromDecimals)} ${fromPlain}
+<b>To:</b> ${formatTokenQty(parsedSwap.atomsTo, toDecimals)} ${toPlain}
+${formatSwapperLines(userAddress, username)}
+${formatPriceImpactLine(priceImpactPct)}${previewTxid(txid, 'View Transaction')}
+<b>Error:</b> <code>${escapeHtml(errorMsg)}</code>`;
+};
+
 export interface SwapSuccessfulMessageParams {
     parsedSwap: ParsedPartiallySignedSwap;
     currentRate: number;

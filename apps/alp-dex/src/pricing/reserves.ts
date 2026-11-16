@@ -6,12 +6,22 @@ import { ValidationError } from '../methods/errors';
 
 /** Minimal UTXO shape needed to sum fungible token atoms. */
 export type TokenUtxoLike = {
+    /**
+     * When `false`, the out is not avalanche-final and is left out of
+     * quoted reserves. Omitted means the caller did not track finality
+     * (unit fixtures) and the atoms still count.
+     */
+    isFinal?: boolean;
     token?: {
         tokenId: string;
         atoms: bigint;
         isMintBaton: boolean;
     };
 };
+
+/** Quoted reserves follow coins settle is allowed to spend. */
+const countsInFinalReserves = (utxo: TokenUtxoLike): boolean =>
+    utxo.isFinal !== false;
 
 /**
  * Sum fungible atoms for `tokenId` across UTXOs (mint batons excluded).
@@ -44,8 +54,11 @@ export const pricingReserveAtoms = (
     tokenId: string,
 ): bigint => {
     return (
-        sumFungibleAtoms(sellerUtxos, tokenId) +
-        sumFungibleAtoms(slushUtxos, tokenId)
+        sumFungibleAtoms(
+            [...sellerUtxos].filter(countsInFinalReserves),
+            tokenId,
+        ) +
+        sumFungibleAtoms([...slushUtxos].filter(countsInFinalReserves), tokenId)
     );
 };
 
@@ -78,6 +91,9 @@ export const pairPricingReserves = (
 
     for (const utxos of [sellerUtxos, slushUtxos]) {
         for (const utxo of utxos) {
+            if (!countsInFinalReserves(utxo)) {
+                continue;
+            }
             const token = utxo.token;
             if (token === undefined || token.isMintBaton) {
                 continue;

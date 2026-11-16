@@ -13,6 +13,7 @@ import {
     formatTokenQty,
     formatXec,
     getBroadcastFailedMessage,
+    getFinalityTimeoutMessage,
     getFormerInventoryNotice,
     formatPostedSettleString,
     getInvalidSwapMessage,
@@ -154,6 +155,30 @@ describe('telegram message builders', () => {
         assert.ok(message.includes('<b>From:</b> 100 '));
         assert.ok(message.includes('<code>Network &lt;down&gt;</code>'));
         assert.ok(!message.includes('<code>Network <down></code>'));
+    });
+
+    it('builds finality-timeout HTML with the tx link and escaped error', () => {
+        const message = getFinalityTimeoutMessage({
+            parsedSwap: createMockParsedSwap(
+                TOKEN_A,
+                TOKEN_B,
+                100_0000n,
+                95_0000n,
+                2_0000n,
+            ),
+            txid: 'abc123def456',
+            errorMsg: 'failed to finalize <15s>',
+            fromDecimals: 4,
+            toDecimals: 4,
+            fromTicker: 'USD',
+            toTicker: 'CHF',
+        });
+        assert.ok(message.includes('❌ <b>Swap Finality Timed Out</b>'));
+        assert.ok(message.includes('explorer.e.cash/tx/abc123def456'));
+        assert.ok(
+            message.includes('<code>failed to finalize &lt;15s&gt;</code>'),
+        );
+        assert.ok(!message.includes('Pending Finality'));
     });
 
     it('builds successful swap HTML with fee, postage, and tx link', () => {

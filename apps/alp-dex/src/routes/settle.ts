@@ -6,7 +6,7 @@ import { Address, Tx, fromHex } from 'ecash-lib';
 import { PostageTx, type Wallet } from 'ecash-wallet';
 import { Router, type Request, type Response } from 'express';
 import type { ParsedTradedConfig } from '../config/tradedConfig';
-import { POSTAGE_SATS } from '../constants';
+import { POSTAGE_SATS, SETTLE_FINALIZE_TIMEOUT_SECS } from '../constants';
 import {
     LocalBook,
     outpointTxidHex,
@@ -21,6 +21,7 @@ import { assertTokenId } from '../methods/tokenId';
 import type { BookHub } from '../ops/bookHub';
 import {
     getBroadcastFailedMessage,
+    getFinalityTimeoutMessage,
     getInvalidSwapMessage,
     getRejectedSettleMessage,
     getSwapFailedMessage,
@@ -33,6 +34,7 @@ import { assertConfiguredPair } from './quotes';
 import {
     humanExchangeRate,
     logSwapOutcome,
+    type SettleOutcome,
     type SwapRecord,
 } from '../settle/audit';
 import {
@@ -41,7 +43,12 @@ import {
     validatePartiallySignedTx,
     type ParsedPartiallySignedSwap,
 } from '../settle/parseSwap';
-import { assertTakerInputs, resolveTakerInputs } from '../settle/takerInputs';
+import { addFuelAndSignFinalized } from '../settle/finalFuel';
+import {
+    assertTakerInputs,
+    assertTakerParentsFinal,
+    resolveTakerInputs,
+} from '../settle/takerInputs';
 import type { TradedTokens } from '../tokens/tradedTokens';
 
 export type SendOpsFn = (message: string) => Promise<void>;
@@ -229,7 +236,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
             const recordOutcome = async (
                 isValid: boolean,
                 broadcasted: boolean,
-                outcome: 'invalid' | 'success' | 'broadcast-failed' | 'failed',
+                outcome: SettleOutcome,
                 errorMsg?: string,
             ): Promise<void> => {
                 const fromToken = tradedTokens.get(fromTokenId);
@@ -292,6 +299,17 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     message = getInvalidSwapMessage({
                         parsedSwap,
                         currentRate: displayRate,
+                        fromDecimals,
+                        toDecimals,
+                        fromTicker,
+                        toTicker,
+                        priceImpactPct: tradePriceImpactPct,
+                    });
+                } else if (outcome === 'pending' && parsedSwap !== undefined) {
+                    message = getFinalityTimeoutMessage({
+                        parsedSwap,
+                        txid: txid ?? '',
+                        errorMsg: errorMsg ?? 'Transaction failed to finalize',
                         fromDecimals,
                         toDecimals,
                         fromTicker,
@@ -469,6 +487,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     prePostageInputSats: calculatedPrePostageInputSats,
                     lpScriptHexes,
                 });
+                await assertTakerParentsFinal(seller.chronik, takerInputs);
 
                 const settled = await settleQueue.enqueue(async () => {
                     // Drop jobs the taker has already timed out. Check
@@ -480,6 +499,10 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     // so concurrent settles cannot validate against
                     // reserves the previous fill already moved.
                     await syncLpWallets(seller, slush, localBook);
+                    // A pending fill has removed seller coins and has not
+                    // credited slush. Pricing that pair would use only the
+                    // debit. Do not publish that half-applied book.
+                    localBook.assertPricingOpen(fromTokenId, toTokenId);
                     bookHub?.publish();
 
                     const reserves = pairPricingReserves(
@@ -516,6 +539,7 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         ): utxo is typeof utxo & {
                             token: NonNullable<typeof utxo.token>;
                         } =>
+                            utxo.isFinal &&
                             utxo.token?.tokenId.toLowerCase() === toTokenId &&
                             utxo.token !== undefined &&
                             !utxo.token.isMintBaton,
@@ -572,7 +596,8 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     );
 
                     const postageTx = new PostageTx(deserializedTx);
-                    const builtTx = postageTx.addFuelAndSign(
+                    const builtTx = addFuelAndSignFinalized(
+                        postageTx,
                         seller,
                         calculatedPrePostageInputSats,
                         utxosToUse,
@@ -612,45 +637,70 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                         );
 
                     assertSettleRequestFresh(createdAtMs);
-                    const broadcastResp = await builtTx.broadcast();
-                    if (
-                        !broadcastResp.success ||
-                        !broadcastResp.broadcasted ||
-                        broadcastResp.broadcasted.length === 0
-                    ) {
+                    // Hold this queue job until the tx is final or Chronik
+                    // reports that the wait ended. A timeout still means
+                    // the tx was accepted.
+                    const broadcastResp = await builtTx.broadcast({
+                        retryOnUtxoConflict: false,
+                        finalizationTimeoutSecs: SETTLE_FINALIZE_TIMEOUT_SECS,
+                    });
+                    const broadcasted = broadcastResp.broadcasted ?? [];
+                    const settledTxid = broadcasted[0];
+                    const sellerSpent = builtTx.txs[0].inputs
+                        .filter(input => {
+                            const key = `${outpointTxidHex(input.prevOut.txid)}:${input.prevOut.outIdx}`;
+                            return !takerPrevOuts.has(key);
+                        })
+                        .map(input => ({
+                            txid: outpointTxidHex(input.prevOut.txid),
+                            outIdx: input.prevOut.outIdx,
+                        }));
+                    if (settledTxid === undefined) {
+                        // addFuelAndSign already dropped the seller inputs
+                        // it selected. Chronik rejected the tx, so put
+                        // those coins back before the next quote.
+                        await syncLpWallets(seller, slush, localBook);
                         const errorMsg =
                             broadcastResp.errors?.join(', ') || 'Unknown error';
                         throw new Error(`Broadcast failed: ${errorMsg}`);
                     }
-
-                    const settledTxid = broadcastResp.broadcasted[0];
-                    localBook.record(
-                        {
-                            slushUtxos: slushUtxosFromFill(
-                                deserializedTx,
-                                settledTxid,
-                                slush,
-                                slushScriptHex,
-                                swap,
-                                tradedTokens,
-                            ),
-                            sellerSpent: builtTx.txs[0].inputs
-                                .filter(input => {
-                                    const key = `${outpointTxidHex(input.prevOut.txid)}:${input.prevOut.outIdx}`;
-                                    return !takerPrevOuts.has(key);
-                                })
-                                .map(input => ({
-                                    txid: outpointTxidHex(input.prevOut.txid),
-                                    outIdx: input.prevOut.outIdx,
-                                })),
-                        },
+                    const slushUtxos = slushUtxosFromFill(
+                        deserializedTx,
+                        settledTxid,
                         slush,
+                        slushScriptHex,
+                        swap,
+                        tradedTokens,
                     );
+                    if (!broadcastResp.success) {
+                        // Coins stay out of the wallet until reconcile
+                        // sees this tx final or gone. Do not credit slush
+                        // yet: the fill can still be replaced.
+                        localBook.hold({
+                            txid: settledTxid,
+                            slushUtxos,
+                            sellerSpent,
+                            seen: false,
+                            heldAtMs: Date.now(),
+                            tokenIds: [swap.fromTokenId, swap.toTokenId],
+                        });
+                        return {
+                            postagePaidSats: paidSats,
+                            txid: settledTxid,
+                            pending: true,
+                            pendingError:
+                                broadcastResp.errors?.join(', ') ||
+                                'Transaction failed to finalize',
+                        };
+                    }
+
+                    localBook.record({ slushUtxos, sellerSpent }, slush);
                     bookHub?.publish();
 
                     return {
                         postagePaidSats: paidSats,
                         txid: settledTxid,
+                        pending: false,
                     };
                 });
                 postagePaidSats = settled.postagePaidSats;
@@ -667,21 +717,25 @@ export const createSettleRouter = (deps: SettleRouteDeps): Router => {
                     });
                 }
 
-                res.status(200).json({
-                    success: true,
+                res.status(settled.pending ? 202 : 200).json({
+                    success: !settled.pending,
+                    ...(settled.pending ? { pending: true } : {}),
                     txid,
                     postagePaidSats: postagePaidSats.toString(),
                 });
 
                 // Logs / Telegram must not turn a broadcast swap into a 500.
-                await recordOutcome(true, true, 'success').catch(
-                    (recordError: unknown) => {
-                        console.error(
-                            'Failed to record settle outcome:',
-                            recordError,
-                        );
-                    },
-                );
+                await recordOutcome(
+                    true,
+                    true,
+                    settled.pending ? 'pending' : 'success',
+                    settled.pending ? settled.pendingError : undefined,
+                ).catch((recordError: unknown) => {
+                    console.error(
+                        'Failed to record settle outcome:',
+                        recordError,
+                    );
+                });
             } catch (error: unknown) {
                 const status = error instanceof HttpError ? error.status : 500;
                 const errorMsg =

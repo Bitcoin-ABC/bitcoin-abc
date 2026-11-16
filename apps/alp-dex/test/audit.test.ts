@@ -78,6 +78,15 @@ describe('logSwapOutcome', () => {
         assert.ok(!('error' in details));
     });
 
+    it('logs pending with console.info', () => {
+        logSwapOutcome('pending', baseRecord(), 'failed to finalize');
+        assert.strictEqual(infoArgs.length, 1);
+        assert.strictEqual(errorArgs.length, 0);
+        const details = infoArgs[0]![1] as { outcome: string; error: string };
+        assert.strictEqual(details.outcome, 'pending');
+        assert.strictEqual(details.error, 'failed to finalize');
+    });
+
     it('logs invalid / broadcast-failed / failed with console.error', () => {
         logSwapOutcome('invalid', baseRecord(), 'bad hex');
         logSwapOutcome('broadcast-failed', baseRecord(), 'Broadcast failed');

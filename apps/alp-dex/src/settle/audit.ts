@@ -44,11 +44,13 @@ export const humanExchangeRate = (
 export type SettleOutcome =
     | 'invalid'
     | 'success'
+    | 'pending'
     | 'broadcast-failed'
     | 'failed';
 
 /**
- * Structured settle log line. Success goes to stdout; failures to stderr.
+ * Structured settle log line. Success and pending go to stdout; failures
+ * to stderr.
  */
 export const logSwapOutcome = (
     outcome: SettleOutcome,
@@ -72,7 +74,7 @@ export const logSwapOutcome = (
         serializedTxHexLength: record.serializedTxHex.length,
         ...(errorMsg !== undefined ? { error: errorMsg } : {}),
     };
-    if (outcome === 'success') {
+    if (outcome === 'success' || outcome === 'pending') {
         console.info('Swap settle outcome', details);
     } else {
         console.error('Swap settle outcome', details);

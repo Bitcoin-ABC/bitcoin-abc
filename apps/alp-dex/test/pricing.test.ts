@@ -122,6 +122,17 @@ describe('pricing reserves', () => {
             },
         ];
         assert.strictEqual(pricingReserveAtoms(seller, slush, TOKEN_A), 13n);
+        const unfinalized = [
+            {
+                isFinal: false,
+                token: {
+                    tokenId: TOKEN_A,
+                    atoms: 100n,
+                    isMintBaton: false,
+                },
+            },
+        ];
+        assert.strictEqual(pricingReserveAtoms(unfinalized, [], TOKEN_A), 0n);
         const pair = pairPricingReserves(seller, slush, TOKEN_A, TOKEN_B);
         assert.strictEqual(pair.reserveIn, 13n);
         assert.strictEqual(pair.reserveOut, 0n);

@@ -166,10 +166,19 @@ Flow:
 3. Node parses EMPP/ALP, validates schema / fees / exact constant-product
    output, resolves taker inputs via Chronik `validate-tx` (must exist,
    not be LP wallet UTXOs, carry only `fromToken` atoms equal to the
-   `fromToken` outputs, and sum to `prePostageInputSats`), serializes
-   settle through a queue, selects N exact-size
-   `toToken` seller UTXOs, adds postage fuel, signs, broadcasts.
+   `fromToken` outputs, sum to `prePostageInputSats`, and come from
+   avalanche-final parent txs), serializes settle through a queue,
+   selects N exact-size **finalized** `toToken` seller UTXOs, adds
+   finalized postage, signs, and broadcasts. The queue job waits until
+   that tx is avalanche-final (`SETTLE_FINALIZE_TIMEOUT_SECS`) before
+   the fill is booked.
 4. On success: stdout settle log + optional post-swap inventory pass.
+   The next swap is priced on this fill. A finality timeout keeps the
+   txid pending, withholds its seller coins, and refuses quotes and
+   settles on that pair until a later sync books the fill (the tx is
+   avalanche-final) or releases the coins (the tx was seen and then
+   disappeared, or is still unseen after `SETTLE_PENDING_UNSEEN_MS`).
+   A rejected broadcast is not booked.
 
 Exact-size seller inventory (advertised `utxoQty` / `utxoAtoms` per
 `tokenId`) lets the taker construct outs including any token change before

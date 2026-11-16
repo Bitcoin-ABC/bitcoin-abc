@@ -13,6 +13,7 @@ import { pairKey } from '../config/tradedPairs';
 import { atomsToDecimalizedQty, decimalizedQtyToAtoms } from '../methods/atoms';
 import { HttpError, ValidationError } from '../methods/errors';
 import { assertDistinctTokenPair } from '../methods/tokenId';
+import type { LocalBook } from '../inventory/localBook';
 import type { BookHub } from '../ops/bookHub';
 import type { BookSnapshot } from '../ops/bookSnapshot';
 import { quoteExactIn, spotToPerWholeFrom } from '../pricing/quotes';
@@ -41,6 +42,11 @@ export type QuoteRouteDeps = {
      * slush→seller fund; settle syncs back to these sums.
      */
     bookHub?: BookHub;
+    /**
+     * When set, a pair with a pending settle is not priced. The live
+     * book has debited seller inventory and has not credited slush.
+     */
+    localBook?: LocalBook;
 };
 
 type SwapTokenParams = {
@@ -217,20 +223,29 @@ export const pairReservesForQuote = (
  * seller+slush atom sums.
  */
 export const createQuoteRouter = (deps: QuoteRouteDeps): Router => {
-    const { seller, slush, feeAddress, tradedConfig, tradedTokens, bookHub } =
-        deps;
+    const {
+        seller,
+        slush,
+        feeAddress,
+        tradedConfig,
+        tradedTokens,
+        bookHub,
+        localBook,
+    } = deps;
     const feeScriptHex = Address.fromCashAddress(feeAddress).toScriptHex();
     const reservesForPair = (
         fromTokenId: string,
         toTokenId: string,
-    ): PairReserves =>
-        pairReservesForQuote(
+    ): PairReserves => {
+        localBook?.assertPricingOpen(fromTokenId, toTokenId);
+        return pairReservesForQuote(
             bookHub?.current() ?? null,
             seller,
             slush,
             fromTokenId,
             toTokenId,
         );
+    };
     const router = Router();
 
     /**

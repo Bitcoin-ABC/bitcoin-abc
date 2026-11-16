@@ -7,6 +7,7 @@ import {
     type ChronikClient,
     type Tx as ChronikTx,
 } from 'chronik-client';
+import { outpointTxidHex } from '../inventory/localBook';
 import { ValidationError } from '../methods/errors';
 import type { ParsedPartiallySignedSwap } from './parseSwap';
 
@@ -99,5 +100,40 @@ export const assertTakerInputs = (
             `prePostageInputSats mismatch: body ${prePostageInputSats}, ` +
                 `taker inputs ${inputSats}`,
         );
+    }
+};
+
+/**
+ * Taker inputs must already be avalanche-final.
+ *
+ * A parent that is only in the mempool can be replaced (the taker wallet
+ * re-spending the same coin). Final parents cannot. `validateRawTx` does
+ * not report that, so each parent tx is loaded and checked.
+ */
+export const assertTakerParentsFinal = async (
+    chronik: ChronikClient,
+    inputs: ChronikTx['inputs'],
+): Promise<void> => {
+    const txids = new Set<string>();
+    for (const input of inputs) {
+        txids.add(outpointTxidHex(input.prevOut.txid));
+    }
+    for (const txid of txids) {
+        let parent: ChronikTx;
+        try {
+            parent = await chronik.tx(txid);
+        } catch (error) {
+            if (isChronikRejection(error)) {
+                throw new ValidationError(
+                    `Taker input parent ${txid} failed Chronik lookup: ${error.message}`,
+                );
+            }
+            throw error;
+        }
+        if (parent?.isFinal !== true) {
+            throw new ValidationError(
+                `Taker inputs must be finalized: ${txid} is not final`,
+            );
+        }
     }
 };

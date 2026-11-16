@@ -176,6 +176,21 @@ const stubAcceptAnyBroadcast = (
         }
         return originalTxs(txsHex, skipTokenChecks);
     };
+    const originalFinalize = mock.broadcastAndFinalizeTxs.bind(mock);
+    mock.broadcastAndFinalizeTxs = async (
+        txsHex: string[],
+        finalizationTimeoutSecs?: number,
+        skipTokenChecks?: boolean,
+    ) => {
+        for (const txHex of txsHex) {
+            ensure(txHex);
+        }
+        return originalFinalize(
+            txsHex,
+            finalizationTimeoutSecs,
+            skipTokenChecks,
+        );
+    };
 };
 
 const BUYER_UTXO_TXID = '11'.repeat(32);
@@ -568,6 +583,9 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         });
         stubAcceptAnyBroadcast(mock);
         stubValidateBuyerInputs(mock);
+        mock.setTx(BUYER_UTXO_TXID, {
+            isFinal: true,
+        } as unknown as ChronikTx);
         const origBroadcastTx = mock.broadcastTx.bind(mock);
         mock.broadcastTx = async (txHex: string, skipTokenChecks?: boolean) => {
             broadcastCalls += 1;
@@ -580,6 +598,19 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
         ) => {
             broadcastCalls += 1;
             return origBroadcastTxs(txsHex, skipTokenChecks);
+        };
+        const origFinalize = mock.broadcastAndFinalizeTxs.bind(mock);
+        mock.broadcastAndFinalizeTxs = async (
+            txsHex: string[],
+            finalizationTimeoutSecs?: number,
+            skipTokenChecks?: boolean,
+        ) => {
+            broadcastCalls += 1;
+            return origFinalize(
+                txsHex,
+                finalizationTimeoutSecs,
+                skipTokenChecks,
+            );
         };
         const chronik = mock as unknown as ChronikClient;
         const wallets = createLpWallets(MNEMONIC, chronik, FEE);
@@ -1213,6 +1244,115 @@ describe('POST /api/v1/swap settle E2E (MockChronik)', () => {
             assert.strictEqual(audit.logs[0]!.broadcasted, false);
             return settle;
         };
+
+        it('does not attach unfinalized postage', async () => {
+            const payload = await buildBuyerSettlePayload(app);
+            const scriptUtxos = seller.utxos.map(utxo =>
+                utxo.token === undefined ? { ...utxo, isFinal: false } : utxo,
+            );
+            mock.setUtxosByAddress(seller.address, scriptUtxos);
+            const settle = await expectRejectedBeforeSigning(payload, 500);
+            assert.strictEqual(
+                settle.body.error,
+                'Failed to complete swap transaction',
+            );
+            assert.match(audit.logs[0]!.error ?? '', /Insufficient fuel/);
+        });
+
+        it('rejects taker inputs whose parent tx is not final', async () => {
+            mock.setTx(BUYER_UTXO_TXID, {
+                isFinal: false,
+            } as unknown as ChronikTx);
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await expectRejectedBeforeSigning(payload, 400);
+            assert.match(settle.body.error, /must be finalized/);
+        });
+
+        it('does not spend unfinalized seller inventory', async () => {
+            const payload = await buildBuyerSettlePayload(app);
+            const scriptUtxos = seller.utxos.map(utxo =>
+                utxo.token?.tokenId === TOKEN_B
+                    ? { ...utxo, isFinal: false }
+                    : utxo,
+            );
+            mock.setUtxosByAddress(seller.address, scriptUtxos);
+            const settle = await expectRejectedBeforeSigning(payload, 400);
+            assert.match(settle.body.error, /CP reserves must be positive/);
+        });
+
+        it('holds a fill that was broadcast but did not finalize', async () => {
+            const before = await request(app)
+                .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+                .expect(200);
+            mock.broadcastAndFinalizeTxs = async () => {
+                broadcastCalls += 1;
+                throw new Error(
+                    'Transaction(s) failed to finalize within 15 seconds',
+                );
+            };
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await request(app)
+                .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+                .send(payload)
+                .expect(202);
+            assert.strictEqual(settle.body.success, false);
+            assert.strictEqual(settle.body.pending, true);
+            assert.strictEqual(typeof settle.body.txid, 'string');
+            assert.strictEqual(audit.logs[0]!.outcome, 'pending');
+            assert.strictEqual(audit.logs[0]!.broadcasted, true);
+            assert.strictEqual(audit.logs[0]!.txid, settle.body.txid);
+            assert.match(audit.logs[0]!.error ?? '', /failed to finalize/);
+            const pausedQuote = await request(app)
+                .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+                .expect(400);
+            assert.match(pausedQuote.body.error, /pending finality/);
+            const pausedSettle = await request(app)
+                .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+                .send(payload)
+                .expect(400);
+            assert.match(pausedSettle.body.error, /pending finality/);
+            assert.strictEqual(audit.logs[1]!.outcome, 'invalid');
+            assert.strictEqual(broadcastCalls, 1);
+
+            mock.setTx(settle.body.txid, {
+                isFinal: true,
+            } as unknown as ChronikTx);
+            const retry = await request(app)
+                .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+                .send(payload)
+                .expect(400);
+            assert.match(retry.body.error, /does not match expected/);
+            assert.strictEqual(audit.logs[2]!.outcome, 'invalid');
+            const booked = await request(app)
+                .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+                .expect(200);
+            assert.notDeepStrictEqual(booked.body.outputs, before.body.outputs);
+        });
+
+        it('does not book a broadcast Chronik rejects', async () => {
+            const before = await request(app)
+                .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+                .expect(200);
+            mock.broadcastAndFinalizeTxs = async () => {
+                broadcastCalls += 1;
+                throw new Error('txn-mempool-conflict');
+            };
+            const payload = await buildBuyerSettlePayload(app);
+            const settle = await request(app)
+                .post(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}`)
+                .send(payload)
+                .expect(500);
+            assert.strictEqual(
+                settle.body.error,
+                'Failed to complete swap transaction',
+            );
+            assert.match(audit.logs[0]!.error ?? '', /txn-mempool-conflict/);
+            assert.strictEqual(audit.logs[0]!.outcome, 'broadcast-failed');
+            const after = await request(app)
+                .get(`/api/v1/swap/${TOKEN_A}/${TOKEN_B}?from=1.02&feePct=0.02`)
+                .expect(200);
+            assert.deepStrictEqual(after.body.outputs, before.body.outputs);
+        });
 
         it('rejects a taker tx spending an outpoint Chronik does not know', async () => {
             const payload = await buildBuyerSettlePayload(app);

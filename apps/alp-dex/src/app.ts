@@ -12,7 +12,7 @@ import express, {
 } from 'express';
 import type { ParsedTradedConfig } from './config/tradedConfig';
 import { BOOK_WS_PATH, POSTAGE_SATS, SPEC_VERSION } from './constants';
-import type { LocalBook } from './inventory/localBook';
+import { LocalBook } from './inventory/localBook';
 import type { BookHub } from './ops/bookHub';
 import type { SendOpsFn } from './routes/settle';
 import type { AsyncQueue } from './methods/queue';
@@ -81,9 +81,10 @@ export const createApp = (deps: CreateAppDeps): Express => {
         maintainInventory,
         sendOps,
         createdAtMs,
-        localBook,
+        localBook: localBookDep,
         bookHub,
     } = deps;
+    const localBook = localBookDep ?? new LocalBook();
     const app = express();
     // One hop (typical nginx) so req.ip is the client, not 127.0.0.1.
     app.set('trust proxy', 1);
@@ -147,6 +148,7 @@ export const createApp = (deps: CreateAppDeps): Express => {
             tradedConfig,
             tradedTokens,
             bookHub,
+            localBook,
         }),
     );
 

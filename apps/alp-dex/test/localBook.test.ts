@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
+import { ChronikError, type ChronikClient } from 'chronik-client';
 import {
     ALP_TOKEN_TYPE_STANDARD,
     DEFAULT_DUST_SATS,
@@ -11,6 +12,7 @@ import {
     fromHex,
 } from 'ecash-lib';
 import type { Wallet, WalletUtxo } from 'ecash-wallet';
+import { SETTLE_PENDING_UNSEEN_MS } from '../src/constants';
 import {
     LocalBook,
     applySlushUtxos,
@@ -152,6 +154,23 @@ describe('localBook', () => {
         assert.strictEqual(slush.utxos.length, 2);
     });
 
+    it('marks an existing unfinal slush outpoint final when the fill is booked', () => {
+        const slush = stubWallet('ecash:slush');
+        const utxos = slushUtxosFromFill(
+            swapTx(),
+            FILL_TXID,
+            slush,
+            slushScriptHex,
+            parsedSwap(),
+            tradedTokens(),
+        );
+        const indexed = utxos.map(utxo => ({ ...utxo, isFinal: false }));
+        const wallet = stubWallet('ecash:slush', indexed);
+        applySlushUtxos(wallet, utxos);
+        assert.strictEqual(wallet.utxos.length, 2);
+        assert.ok(wallet.utxos.every(utxo => utxo.isFinal === true));
+    });
+
     it('re-applies a fill after Chronik sync restores spent seller UTXOs', () => {
         const spent = { txid: '11'.repeat(32), outIdx: 0 };
         const seller = stubWallet('ecash:seller', [sellerUtxo(spent.txid, 0)]);
@@ -224,5 +243,147 @@ describe('localBook', () => {
         removeSellerOutpoints(seller, [spent]);
         assert.strictEqual(seller.utxos.length, 1);
         assert.strictEqual(seller.utxos[0]!.outpoint.txid, '33'.repeat(32));
+    });
+
+    const chronikTx = (
+        result: { isFinal: boolean } | 'missing',
+    ): Pick<ChronikClient, 'tx'> =>
+        ({
+            tx: async () => {
+                if (result === 'missing') {
+                    throw new ChronikError('not found', 404);
+                }
+                return result;
+            },
+        }) as Pick<ChronikClient, 'tx'>;
+
+    const pendingFill = (seen: boolean, heldAtMs: number) => {
+        const spent = { txid: '11'.repeat(32), outIdx: 0 };
+        const slushUtxos = slushUtxosFromFill(
+            swapTx(),
+            FILL_TXID,
+            stubWallet('ecash:slush'),
+            slushScriptHex,
+            parsedSwap(),
+            tradedTokens(),
+        );
+        return {
+            spent,
+            pending: {
+                txid: FILL_TXID,
+                slushUtxos,
+                sellerSpent: [spent],
+                seen,
+                heldAtMs,
+                tokenIds: [TOKEN_A, TOKEN_B],
+            },
+        };
+    };
+
+    it('keeps an unseen pending settle withheld on a 404', async () => {
+        const { spent, pending } = pendingFill(false, Date.now());
+        const seller = stubWallet('ecash:seller', [sellerUtxo(spent.txid, 0)]);
+        const slush = stubWallet('ecash:slush');
+        const book = new LocalBook();
+        book.hold(pending);
+        await book.reconcilePending(chronikTx('missing'), seller, slush);
+        assert.strictEqual(seller.utxos.length, 0);
+        assert.strictEqual(slush.utxos.length, 0);
+        await book.reconcilePending(
+            chronikTx({ isFinal: true }),
+            seller,
+            slush,
+        );
+        assert.strictEqual(slush.utxos.length, 2);
+    });
+
+    it('books a pending settle once Chronik shows the tx final', async () => {
+        const { spent, pending } = pendingFill(false, Date.now());
+        const seller = stubWallet('ecash:seller', [sellerUtxo(spent.txid, 0)]);
+        const slush = stubWallet('ecash:slush');
+        const book = new LocalBook();
+        book.hold(pending);
+        await book.reconcilePending(
+            chronikTx({ isFinal: true }),
+            seller,
+            slush,
+        );
+        assert.strictEqual(slush.utxos.length, 2);
+        book.afterSync(seller, slush);
+        assert.strictEqual(seller.utxos.length, 0);
+        assert.strictEqual(slush.utxos.length, 2);
+    });
+
+    it('releases a seen pending settle when the tx is gone and coins are unspent', async () => {
+        const { spent, pending } = pendingFill(false, Date.now());
+        const seller = stubWallet('ecash:seller', [sellerUtxo(spent.txid, 0)]);
+        const slush = stubWallet('ecash:slush');
+        const book = new LocalBook();
+        book.hold(pending);
+        await book.reconcilePending(
+            chronikTx({ isFinal: false }),
+            seller,
+            slush,
+        );
+        assert.strictEqual(seller.utxos.length, 0);
+        seller.utxos = [sellerUtxo(spent.txid, 0)];
+        await book.reconcilePending(chronikTx('missing'), seller, slush);
+        assert.strictEqual(seller.utxos.length, 1);
+        assert.strictEqual(slush.utxos.length, 0);
+        await book.reconcilePending(
+            chronikTx({ isFinal: true }),
+            seller,
+            slush,
+        );
+        assert.strictEqual(slush.utxos.length, 0);
+    });
+
+    it('releases an unseen pending settle after the hold expires', async () => {
+        const { spent, pending } = pendingFill(
+            false,
+            Date.now() - SETTLE_PENDING_UNSEEN_MS - 1,
+        );
+        const seller = stubWallet('ecash:seller', [sellerUtxo(spent.txid, 0)]);
+        const slush = stubWallet('ecash:slush');
+        const book = new LocalBook();
+        book.hold(pending);
+        await book.reconcilePending(chronikTx('missing'), seller, slush);
+        assert.strictEqual(seller.utxos.length, 1);
+        assert.strictEqual(slush.utxos.length, 0);
+        assert.strictEqual(book.pricingPaused(TOKEN_A), false);
+    });
+
+    it('pauses pricing for tokens a pending settle has only half-applied', () => {
+        const { pending } = pendingFill(false, Date.now());
+        const book = new LocalBook();
+        assert.strictEqual(book.pricingPaused(TOKEN_B), false);
+        book.hold(pending);
+        assert.strictEqual(book.pricingPaused(TOKEN_A), true);
+        assert.strictEqual(book.pricingPaused(TOKEN_B), true);
+        assert.throws(
+            () => book.assertPricingOpen(TOKEN_A, TOKEN_B),
+            /pending finality/,
+        );
+    });
+
+    it('sets isFinal on slush outs Chronik indexed before the fill was booked', async () => {
+        const { pending } = pendingFill(true, Date.now());
+        const indexed = pending.slushUtxos.map(utxo => ({
+            ...utxo,
+            isFinal: false,
+        }));
+        const slush = stubWallet('ecash:slush', indexed);
+        const seller = stubWallet('ecash:seller');
+        const book = new LocalBook();
+        book.hold(pending);
+        await book.reconcilePending(
+            chronikTx({ isFinal: true }),
+            seller,
+            slush,
+        );
+        book.afterSync(seller, slush);
+        assert.strictEqual(slush.utxos.length, 2);
+        assert.ok(slush.utxos.every(utxo => utxo.isFinal === true));
+        assert.strictEqual(book.pricingPaused(TOKEN_A), false);
     });
 });
