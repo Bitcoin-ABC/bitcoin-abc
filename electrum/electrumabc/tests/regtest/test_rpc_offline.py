@@ -43,6 +43,12 @@ P2PKH_TX_HEX = (
 
 
 class TestRPCOffline(ElectrumABCTestCase):
+    NEEDS_WALLET = False
+
+    def test_no_wallet(self):
+        with self.assertRaisesRegex(RuntimeError, "Wallet not loaded"):
+            rpc("getbalance")
+
     def test_commands_help_version(self):
         commands = rpc("commands")
         help_list = rpc("help")

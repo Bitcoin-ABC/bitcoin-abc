@@ -72,14 +72,14 @@ def rpc(method: str, **params: Any) -> Any:
     return poll_for_answer(EC_DAEMON_RPC_URL, request(method, params=params))
 
 
-# Creates a temp directory on disk for wallet storage
-# Starts a daemon, creates and loads a wallet
-def start_ec_daemon(datadir: str) -> None:
+def start_ec_daemon(datadir: str, *, with_wallet: bool = True) -> None:
     """
-    Creates a temp directory on disk for wallet storage
-    Starts a daemon, creates and loads a wallet
+    Start a daemon using datadir as its data directory.
+    If with_wallet is True, create and load a wallet in datadir, and wait until it
+    is synchronized.
     """
     default_wallet = os.path.join(datadir, "default_wallet")
+    wallet_args = ["-w", default_wallet] if with_wallet else []
     subprocess.run(
         [
             ELECTRUMABC_COMMAND,
@@ -87,8 +87,7 @@ def start_ec_daemon(datadir: str) -> None:
             "-v",
             "-D",
             datadir,
-            "-w",
-            default_wallet,
+            *wallet_args,
             "daemon",
             "start",
         ],
@@ -99,6 +98,9 @@ def start_ec_daemon(datadir: str) -> None:
     from ...version import PACKAGE_VERSION
 
     assert result == PACKAGE_VERSION, f"{result} != {PACKAGE_VERSION}"
+
+    if not with_wallet:
+        return
 
     r = request("create", params={"wallet_path": default_wallet})
     result = poll_for_answer(EC_DAEMON_RPC_URL, r)

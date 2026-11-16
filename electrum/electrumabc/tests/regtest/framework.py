@@ -55,6 +55,10 @@ class ElectrumABCTestCase(unittest.TestCase):
     an Electrum ABC daemon running.
     """
 
+    NEEDS_WALLET = True
+    """If True, the daemon has a newly created, synchronized wallet loaded.
+    Set it to False in subclasses that test commands not requiring a wallet."""
+
     def setUp(self):
         super(ElectrumABCTestCase, self).setUp()
         PortSeed.n = os.getpid()
@@ -101,7 +105,7 @@ class ElectrumABCTestCase(unittest.TestCase):
         # Registered before starting the daemon, so it is stopped even if it
         # fails to get ready.
         self.addCleanup(stop_ec_daemon, self.electrum_data_dir)
-        start_ec_daemon(self.electrum_data_dir)
+        start_ec_daemon(self.electrum_data_dir, with_wallet=self.NEEDS_WALLET)
 
     def generatetoaddress(self, nblocks, addr):
         return self.node.generatetoaddress(nblocks, addr, invalid_call=False)
