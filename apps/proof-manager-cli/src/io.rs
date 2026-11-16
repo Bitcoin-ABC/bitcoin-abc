@@ -63,7 +63,7 @@ pub fn write_secret_output(
 fn write_output_with_mode(
     content: &str,
     output: Option<PathBuf>,
-    mode: Option<u32>,
+    #[cfg_attr(not(unix), allow(unused_variables))] mode: Option<u32>,
 ) -> Result<()> {
     match output {
         Some(path) => {
