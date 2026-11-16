@@ -21,7 +21,7 @@ ELECTRUM_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
 
 DEFAULT_TIMEOUT = 10
-DEFAULT_POLL_INTERVAL = 1
+DEFAULT_POLL_INTERVAL = 0.1
 
 COINBASE_MATURITY = 100
 
@@ -165,9 +165,7 @@ def start_ec_daemon(
 
 def stop_ec_daemon(datadir) -> None:
     """Stop the daemon, and wait until it has released the RPC port"""
-    subprocess.run(
-        [ELECTRUMABC_COMMAND, "--regtest", "-D", datadir, "daemon", "stop"], check=True
-    )
+    rpc("stop")
     # The stop command returns before the daemon is done shutting down
     wait_until(is_rpc_port_free, interval=0.1)
 
@@ -218,13 +216,12 @@ def wait_until(
     """Run a test function in a loop until it returns True. Raise an AssertionError
     if it did not return True before the timeout is reached.
     """
-    t0 = time.time()
-    time_end = t0 + timeout
-    success = False
-    while not success and time.time() < time_end:
-        success = test_function()
+    time_end = time.time() + timeout
+    while time.time() < time_end:
+        if test_function():
+            return
         time.sleep(interval)
-    assert success, f"wait_until: predicate not True after {timeout} seconds"
+    raise AssertionError(f"wait_until: predicate not True after {timeout} seconds")
 
 
 def get_block_subsidy(blockheight) -> int:
