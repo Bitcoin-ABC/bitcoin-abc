@@ -344,19 +344,19 @@ function(find_git_head_logs_file RESULT)
 	find_package(Git)
 	if(GIT_FOUND)
 		execute_process(
-			COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--show-toplevel"
+			COMMAND "${GIT_EXECUTABLE}" "rev-parse" "--path-format=absolute" "--git-path" "logs/HEAD"
 			WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-			OUTPUT_VARIABLE GIT_ROOT
+			OUTPUT_VARIABLE GIT_HEAD_LOGS_FILE
 			RESULT_VARIABLE GIT_RESULT
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 			ERROR_QUIET
 		)
 
 		if(GIT_RESULT EQUAL 0)
-			set(GIT_LOGS_DIR "${GIT_ROOT}/.git/logs")
-			set(GIT_HEAD_LOGS_FILE "${GIT_LOGS_DIR}/HEAD")
-			# If the .git/logs/HEAD does not exist, create it
+			# If the logs/HEAD file does not exist, create it. Using --git-path
+			# makes this work in a git worktree, where .git is a file.
 			if(NOT EXISTS "${GIT_HEAD_LOGS_FILE}")
+				get_filename_component(GIT_LOGS_DIR "${GIT_HEAD_LOGS_FILE}" DIRECTORY)
 				file(MAKE_DIRECTORY "${GIT_LOGS_DIR}")
 				file(TOUCH "${GIT_HEAD_LOGS_FILE}")
 			endif()
