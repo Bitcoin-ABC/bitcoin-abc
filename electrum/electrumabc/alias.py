@@ -62,15 +62,15 @@ def resolve(k: str) -> ResolveAliasBaseT | ResolveAliasFullT:
     raise RuntimeWarning(f"Invalid eCash address or alias {k}")
 
 
-def find_regex(haystack, needle) -> str | None:
+def find_regex(haystack: str, needle: str) -> str | None:
     regex = re.compile(needle)
-    try:
-        return regex.search(haystack).groups()[0]
-    except AttributeError:
+    match = regex.search(haystack)
+    if not match:
         return None
+    return match.groups()[0]
 
 
-def resolve_openalias(url) -> tuple[Address, str, bool] | None:
+def resolve_openalias(url: str) -> tuple[Address, str, bool] | None:
     # support email-style addresses, per the OA standard
     url = url.replace("@", ".")
     try:
@@ -82,9 +82,10 @@ def resolve_openalias(url) -> tuple[Address, str, bool] | None:
         string = record.strings[0].decode("utf-8")
         if string.startswith(OA1_PREFIX):
             address = find_regex(string, r"recipient_address=([A-Za-z0-9:]+)")
+            if not address:
+                continue
             name = find_regex(string, r"recipient_name=([^;]+)")
             if not name:
                 name = address
-            if not address:
-                continue
             return Address.from_string(address), name, validated
+    return None
