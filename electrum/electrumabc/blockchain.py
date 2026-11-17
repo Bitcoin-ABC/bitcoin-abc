@@ -287,13 +287,17 @@ class Blockchain(PrintError):
     Manages blockchain headers and their verification
     """
 
-    def __init__(self, config: SimpleConfig, base_height: int, parent_base_height: int):
+    def __init__(
+        self, config: SimpleConfig, base_height: int, parent_base_height: int | None
+    ):
         self.config = config
         self.catch_up: str | None = None
         """Interface server"""
 
         self.base_height = base_height
         self.parent_base_height = parent_base_height
+
+        self.old_path: str | None = None
 
         self.lock = threading.Lock()
         with self.lock:
@@ -306,6 +310,7 @@ class Blockchain(PrintError):
         return "{}@{}".format(self.get_name(), self.get_base_height())
 
     def parent(self) -> Blockchain:
+        assert self.parent_base_height is not None
         return blockchains[self.parent_base_height]
 
     def get_max_child(self) -> int | None:
@@ -461,6 +466,7 @@ class Blockchain(PrintError):
                 continue
             if b.old_path != b.path():
                 self.print_error("renaming", b.old_path, b.path())
+                assert b.old_path is not None
                 os.rename(b.old_path, b.path())
         # update pointers
         blockchains[self.base_height] = self
@@ -527,10 +533,11 @@ class Blockchain(PrintError):
     ) -> int:
         if height < 0:
             return 0
-        times = [
-            self.read_header(h, chunk)["timestamp"]
-            for h in range(max(0, height - 10), height + 1)
-        ]
+        times = []
+        for h in range(max(0, height - 10), height + 1):
+            header = self.read_header(h, chunk)
+            assert header is not None
+            times.append(header["timestamp"])
         return sorted(times)[len(times) // 2]
 
     def get_suitable_block_height(
@@ -543,6 +550,9 @@ class Blockchain(PrintError):
         blocks2 = self.read_header(suitableheight, chunk)
         blocks1 = self.read_header(suitableheight - 1, chunk)
         blocks = self.read_header(suitableheight - 2, chunk)
+        assert blocks is not None
+        assert blocks1 is not None
+        assert blocks2 is not None
 
         if blocks["timestamp"] > blocks2["timestamp"]:
             blocks, blocks2 = blocks2, blocks
@@ -595,6 +605,7 @@ class Blockchain(PrintError):
                 return self._cached_asert_anchor
             mtp = prev_mtp
             anchor = prev
+        return None
 
     def get_bits(self, header: Header, chunk: HeaderChunk | None = None) -> int:
         """Return bits for the given height."""
@@ -656,17 +667,20 @@ class Blockchain(PrintError):
             daa_cumulative_work = 0
             for daa_i in range(daa_starting_height + 1, daa_ending_height + 1):
                 daa_prior = self.read_header(daa_i, chunk)
+                assert daa_prior is not None
                 daa_bits_for_a_block = daa_prior["bits"]
                 daa_work_for_a_block = bits_to_work(daa_bits_for_a_block)
                 daa_cumulative_work += daa_work_for_a_block
 
             # calculate and sanitize elapsed time
-            daa_starting_timestamp = self.read_header(daa_starting_height, chunk)[
-                "timestamp"
-            ]
-            daa_ending_timestamp = self.read_header(daa_ending_height, chunk)[
-                "timestamp"
-            ]
+            daa_start_header = self.read_header(daa_starting_height, chunk)
+            assert daa_start_header is not None
+            daa_starting_timestamp = daa_start_header["timestamp"]
+
+            daa_end_header = self.read_header(daa_ending_height, chunk)
+            assert daa_end_header is not None
+            daa_ending_timestamp = daa_end_header["timestamp"]
+
             daa_elapsed_time = daa_ending_timestamp - daa_starting_timestamp
             # NOTE: the below assume 600 second block times
             if daa_elapsed_time > 172800:
@@ -693,7 +707,9 @@ class Blockchain(PrintError):
             # special case for a newly started testnet (such as testnet4)
             if height < N_BLOCKS:
                 return MAX_BITS
-            return self.read_header(height // N_BLOCKS * N_BLOCKS, chunk)["bits"]
+            ret_header = self.read_header(height // N_BLOCKS * N_BLOCKS, chunk)
+            assert ret_header is not None
+            return ret_header["bits"]
 
         # bitcoin cash EDA
         # Can't go below minimum, so early bail
@@ -720,7 +736,9 @@ class Blockchain(PrintError):
         if height == 0:
             return MAX_BITS
         first = self.read_header(height - N_BLOCKS, chunk)
+        assert first is not None
         prior = self.read_header(height - 1, chunk)
+        assert prior is not None
         prior_target = bits_to_target(prior["bits"])
 
         # usually: 14 * 24 * 60 * 60 = 2 weeks
