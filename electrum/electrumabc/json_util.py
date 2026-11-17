@@ -13,7 +13,7 @@ from .transaction import Transaction
 
 
 class MyEncoder(json.JSONEncoder):
-    def default(self, obj) -> Any:
+    def default(self, obj: object) -> Any:
         if isinstance(obj, Transaction):
             return obj.as_dict()
         if isinstance(obj, datetime):
@@ -25,7 +25,7 @@ class MyEncoder(json.JSONEncoder):
         return super(MyEncoder, self).default(obj)
 
 
-def json_encode(obj) -> str:
+def json_encode(obj: object) -> str:
     try:
         s = json.dumps(obj, sort_keys=True, indent=4, cls=MyEncoder)
     except TypeError:
@@ -33,7 +33,7 @@ def json_encode(obj) -> str:
     return s
 
 
-def json_decode(x) -> Any:
+def json_decode(x: Any) -> Any:
     try:
         return json.loads(x, parse_float=Decimal)
     except Exception:
