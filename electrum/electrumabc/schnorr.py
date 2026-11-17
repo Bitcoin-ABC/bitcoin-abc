@@ -42,8 +42,7 @@ def jacobi(a: int, n: int) -> int:
         a, n = n % a1, a1
     if a == 0:
         return 0
-    if a == 1:
-        return s
+    return s
 
 
 # only used for pure python:
@@ -338,8 +337,8 @@ class BlindSignatureRequest:
         )
         assert res == 1, "defined to never fail"
         assert Rnew_size.value == 65, "should fill buffer as uncompressed"
-        self.Rxnew = Rnew_serialized[1:33]
-        y = int.from_bytes(Rnew_serialized[33:], byteorder="big")
+        self.Rxnew = Rnew_serialized.raw[1:33]
+        y = int.from_bytes(Rnew_serialized.raw[33:], byteorder="big")
 
         # calculate the jacobi symbol (+1 or -1). ~30 microsec, because pure python :(
         self.c = jacobi(y, self.fieldsize)
