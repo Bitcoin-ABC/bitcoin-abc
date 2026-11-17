@@ -15,7 +15,7 @@
         "unavailableTitle": "ددې تادیاتو تړنه پرانیستل نشي",
         "malformed": "تړنه سمونږیره ده.",
         "unsupportedToken": "توکن ملاتړ نه کیږي.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "دا د تادیې غوښتنه غیر ملاتړ شوي ساحې لري."
     },
     "camera": {
         "manualEntry": "لاسي ننوتل",

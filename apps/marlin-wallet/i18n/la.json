@@ -15,7 +15,7 @@
         "unavailableTitle": "Hic nexus solutionis aperiri non potest",
         "malformed": "Nexus vitiosus est.",
         "unsupportedToken": "Tessera non sustinetur.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Haec petitio solutionis campos non sustentatos continet."
     },
     "camera": {
         "manualEntry": "Manus Īnscrīptiō",

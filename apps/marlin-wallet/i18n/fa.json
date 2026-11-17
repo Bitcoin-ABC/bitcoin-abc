@@ -15,7 +15,7 @@
         "unavailableTitle": "این پیوند پرداخت باز نمی‌شود",
         "malformed": "پیوند نامعتبر است.",
         "unsupportedToken": "این توکن پشتیبانی نمی‌شود.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "این درخواست پرداخت شامل فیلدهای پشتیبانی‌نشده است."
     },
     "camera": {
         "manualEntry": "ورود دستی",

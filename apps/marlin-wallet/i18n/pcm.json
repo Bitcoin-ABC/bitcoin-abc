@@ -15,7 +15,7 @@
         "unavailableTitle": "No fit open dis payment link",
         "malformed": "Dis link no correct.",
         "unsupportedToken": "We no support dat token.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Dis payment request get fields wey we no support."
     },
     "camera": {
         "manualEntry": "Type am manually",

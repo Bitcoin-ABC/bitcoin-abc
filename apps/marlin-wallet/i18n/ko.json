@@ -15,7 +15,7 @@
         "unavailableTitle": "이 결제 링크를 열 수 없습니다",
         "malformed": "링크 형식이 잘못되었습니다.",
         "unsupportedToken": "지원하지 않는 토큰입니다.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "이 결제 요청에 지원되지 않는 필드가 포함되어 있습니다."
     },
     "camera": {
         "manualEntry": "직접 입력",
@@ -53,6 +53,7 @@
         "yourReceivingAddress": "받는 주소"
     },
     "mnemonic": {
+        "clearAll": "모두 지우기",
         "editMnemonicText": "니모닉 편집",
         "enterMnemonic": "니모닉(12단어 비밀 복구 구문)을 입력하세요",
         "failedToSave": "니모닉(12단어 비밀 복구 구문)을 저장하지 못했습니다. 다시 시도해 주세요.",

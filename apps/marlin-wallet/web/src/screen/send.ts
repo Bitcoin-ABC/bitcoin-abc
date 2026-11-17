@@ -819,14 +819,14 @@ export class SendScreen {
         if (amountPrimary < this.minSpendablePrimary) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            this.ui.buttonSpan.textContent = `Min: ${this.formatPrimary(this.minSpendablePrimary)}`;
+            this.ui.buttonSpan.textContent = `${t('send.min')}: ${this.formatPrimary(this.minSpendablePrimary)}`;
             return;
         }
 
         if (amountPrimary > this.maxSpendablePrimary) {
             this.ui.sendAmountInput.classList.add('invalid');
             this.ui.confirmSendBtn.disabled = true;
-            this.ui.buttonSpan.textContent = `Max: ${this.formatPrimary(this.maxSpendablePrimary)}`;
+            this.ui.buttonSpan.textContent = `${t('send.max')}: ${this.formatPrimary(this.maxSpendablePrimary)}`;
             return;
         }
 

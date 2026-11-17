@@ -15,7 +15,7 @@
         "unavailableTitle": "Не удалось открыть эту платёжную ссылку",
         "malformed": "Ссылка повреждена или недействительна.",
         "unsupportedToken": "Токен не поддерживается.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Этот платёжный запрос содержит неподдерживаемые поля."
     },
     "camera": {
         "manualEntry": "Ручной ввод",

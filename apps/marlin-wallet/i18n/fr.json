@@ -15,7 +15,7 @@
         "unavailableTitle": "Impossible d'ouvrir ce lien de paiement",
         "malformed": "Le lien est incorrect.",
         "unsupportedToken": "Ce jeton n'est pas pris en charge.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Cette demande de paiement contient des champs non pris en charge."
     },
     "camera": {
         "manualEntry": "Saisie manuelle",

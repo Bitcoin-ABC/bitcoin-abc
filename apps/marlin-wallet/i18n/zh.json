@@ -15,7 +15,7 @@
         "unavailableTitle": "无法打开此付款链接",
         "malformed": "链接格式无效。",
         "unsupportedToken": "不支持该代币。",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "此付款请求包含不支持的字段。"
     },
     "camera": {
         "manualEntry": "手动输入",

@@ -15,7 +15,7 @@
         "unavailableTitle": "Bu ödeme bağlantısı açılamıyor",
         "malformed": "Bağlantı hatalı.",
         "unsupportedToken": "Jeton desteklenmiyor.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Bu ödeme isteği desteklenmeyen alanlar içeriyor."
     },
     "camera": {
         "manualEntry": "Manuel Giriş",

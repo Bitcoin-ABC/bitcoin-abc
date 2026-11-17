@@ -15,7 +15,7 @@
         "unavailableTitle": "Hindi mabuksan ang payment link na ito",
         "malformed": "Mali ang link.",
         "unsupportedToken": "Hindi suportado ang token.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Ang payment request na ito ay may mga field na hindi suportado."
     },
     "camera": {
         "manualEntry": "Manwal na Pagpasok",

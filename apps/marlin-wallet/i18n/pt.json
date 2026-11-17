@@ -15,7 +15,7 @@
         "unavailableTitle": "Não é possível abrir este link de pagamento",
         "malformed": "O link é inválido.",
         "unsupportedToken": "O token não é suportado.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Este pedido de pagamento contém campos não suportados."
     },
     "camera": {
         "manualEntry": "Entrada Manual",

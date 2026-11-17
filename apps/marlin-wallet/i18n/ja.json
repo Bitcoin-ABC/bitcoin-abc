@@ -15,7 +15,7 @@
         "unavailableTitle": "この支払いリンクを開けません",
         "malformed": "リンクの形式が正しくありません。",
         "unsupportedToken": "このトークンはサポートされていません。",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "この支払いリクエストにはサポートされていないフィールドが含まれています。"
     },
     "camera": {
         "manualEntry": "手動入力",

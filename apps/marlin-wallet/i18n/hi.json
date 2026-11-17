@@ -15,7 +15,7 @@
         "unavailableTitle": "यह भुगतान लिंक नहीं खोला जा सकता",
         "malformed": "लिंक अमान्य है।",
         "unsupportedToken": "टोकन समर्थित नहीं है।",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "इस भुगतान अनुरोध में असमर्थित फ़ील्ड हैं।"
     },
     "camera": {
         "manualEntry": "खुद डालें",

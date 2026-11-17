@@ -15,7 +15,7 @@
         "unavailableTitle": "تعذّر فتح رابط الدفع هذا",
         "malformed": "الرابط غير صالح.",
         "unsupportedToken": "رمز العملة غير مدعوم.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "طلب الدفع هذا يحتوي على حقول غير مدعومة."
     },
     "camera": {
         "manualEntry": "إدخال يدوي",

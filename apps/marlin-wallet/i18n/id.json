@@ -15,7 +15,7 @@
         "unavailableTitle": "Tautan pembayaran ini tidak dapat dibuka",
         "malformed": "Tautan tidak valid.",
         "unsupportedToken": "Token tidak didukung.",
-        "unsupportedFields": "This payment request contains unsupported fields"
+        "unsupportedFields": "Permintaan pembayaran ini berisi bidang yang tidak didukung."
     },
     "camera": {
         "manualEntry": "Entri Manual",
