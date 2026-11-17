@@ -28,7 +28,6 @@
         "react-native": "0.88.1",
         "react-native-haptic-feedback": "^3.0.0",
         "react-native-keychain": "^11.0.0",
-        "react-native-linear-gradient": "^2.8.3",
         "react-native-safe-area-context": "^5.11.1",
         "react-native-webview": "^14.0.1"
     },

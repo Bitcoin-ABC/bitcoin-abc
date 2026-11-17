@@ -32,7 +32,6 @@ import {
 import { WebView } from 'react-native-webview';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import * as Keychain from 'react-native-keychain';
-import LinearGradient from 'react-native-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import './src/i18n';
 
@@ -554,12 +553,7 @@ function AppContent(): React.JSX.Element {
     }
 
     return (
-        <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.container}
-        >
+        <View style={styles.container}>
             <StatusBar barStyle="light-content" />
             <ScrollView
                 style={[
@@ -632,7 +626,7 @@ function AppContent(): React.JSX.Element {
                     </View>
                 </View>
             </Modal>
-        </LinearGradient>
+        </View>
     );
 }
 
@@ -647,6 +641,7 @@ function App(): React.JSX.Element {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#667eea',
     },
     loadingScreen: {
         flex: 1,

@@ -22,12 +22,11 @@ body {
 }
 
 /*
- * Gradient background only for standalone web (not mobile WebView).
+ * Background only for standalone web (not mobile WebView).
  * Applying this unconditionally would conflict with the edge to edge display on mobile.
  */
 body.standalone-web {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
+    background: #667eea;
 }
 
 .container {
