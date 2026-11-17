@@ -16,7 +16,7 @@ endef
 # The exact commit hash does not really matter, we just need to satisfy the minimum version
 # required in src/CMakeLists.txt.
 define $(package)_config_cmds
-  ./autogen.sh && \
+  autoconf && \
   $($(package)_autoconf) --with-version=$($(package)_version)-0-g54eaed1d8b56b1aa528be3bdd1877e59c56fa90c
 endef
 
