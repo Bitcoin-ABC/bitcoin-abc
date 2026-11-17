@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Electrum ABC - lightweight eCash client
 # Copyright (C) 2018 The Electrum developers
 # Copyright (C) 2024 The Electrum ABC developers
@@ -30,7 +28,11 @@ import hashlib
 import hmac
 from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 from enum import Enum
-from typing import TYPE_CHECKING, Callable, NamedTuple
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    NamedTuple,
+)
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
@@ -92,7 +94,7 @@ def _x_and_y_from_pubkey_bytes(pubkey: bytes) -> tuple[int, int]:
     return x, y
 
 
-def sig_string_from_der_sig(der_sig) -> bytes:
+def sig_string_from_der_sig(der_sig: bytes) -> bytes:
     r, s = get_r_and_s_from_der_sig(der_sig)
     return sig_string_from_r_and_s(r, s)
 
@@ -129,8 +131,8 @@ def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> tuple[int, int]:
     secp256k1.secp256k1_ecdsa_signature_serialize_compact(
         secp256k1.ctx, compact_signature, sig
     )
-    r = int.from_bytes(compact_signature[:32], byteorder="big")
-    s = int.from_bytes(compact_signature[32:], byteorder="big")
+    r = int.from_bytes(compact_signature.raw[:32], byteorder="big")
+    s = int.from_bytes(compact_signature.raw[32:], byteorder="big")
     return r, s
 
 
@@ -184,7 +186,10 @@ class InvalidECPointException(Exception):
     """e.g. not on curve, or infinity"""
 
 
-class ECPubkey(object):
+class ECPubkey:
+    _x: int | None
+    _y: int | None
+
     def __init__(self, b: bytes | None):
         self._x, self._y = None, None
         if b is not None:
@@ -236,7 +241,7 @@ class ECPubkey(object):
         )
         return ECPubkey(_bytes)
 
-    def get_public_key_bytes(self, compressed=True) -> bytes:
+    def get_public_key_bytes(self, compressed: bool = True) -> bytes:
         if self.is_at_infinity():
             raise InvalidECPointException("point is at infinity")
         x = int.to_bytes(self.x(), length=32, byteorder="big", signed=False)
@@ -248,16 +253,20 @@ class ECPubkey(object):
             header = b"\x04"
             return header + x + y
 
-    def get_public_key_hex(self, compressed=True) -> str:
+    def get_public_key_hex(self, compressed: bool = True) -> str:
         return self.get_public_key_bytes(compressed).hex()
 
     def point(self) -> EcCoordinates:
         return EcCoordinates(self.x(), self.y())
 
     def x(self) -> int:
+        if self._x is None:
+            raise InvalidECPointException("point is at infinity")
         return self._x
 
     def y(self) -> int:
+        if self._y is None:
+            raise InvalidECPointException("point is at infinity")
         return self._y
 
     def _to_libsecp256k1_pubkey_ptr(self) -> Array[c_char]:
@@ -271,7 +280,7 @@ class ECPubkey(object):
         return pubkey
 
     @classmethod
-    def _from_libsecp256k1_pubkey_ptr(cls, pubkey) -> ECPubkey:
+    def _from_libsecp256k1_pubkey_ptr(cls, pubkey: Array[c_char]) -> ECPubkey:
         pubkey_serialized = create_string_buffer(65)
         pubkey_size = c_size_t(65)
         secp256k1.secp256k1_ec_pubkey_serialize(
@@ -303,7 +312,7 @@ class ECPubkey(object):
     def __rmul__(self, other: int) -> ECPubkey:
         return self * other
 
-    def __add__(self, other) -> ECPubkey:
+    def __add__(self, other: object) -> ECPubkey:
         if not isinstance(other, ECPubkey):
             raise TypeError(f"addition not defined for ECPubkey and {type(other)}")
         if self.is_at_infinity():
@@ -311,12 +320,10 @@ class ECPubkey(object):
         if other.is_at_infinity():
             return self
 
-        pubkey1 = self._to_libsecp256k1_pubkey_ptr()
-        pubkey2 = other._to_libsecp256k1_pubkey_ptr()
+        pubkey1 = cast(self._to_libsecp256k1_pubkey_ptr(), c_char_p)
+        pubkey2 = cast(other._to_libsecp256k1_pubkey_ptr(), c_char_p)
         pubkey_sum = create_string_buffer(64)
 
-        pubkey1 = cast(pubkey1, c_char_p)
-        pubkey2 = cast(pubkey2, c_char_p)
         array_of_pubkey_ptrs = (c_char_p * 2)(pubkey1, pubkey2)
         ret = secp256k1.secp256k1_ec_pubkey_combine(
             secp256k1.ctx, pubkey_sum, array_of_pubkey_ptrs, 2
@@ -325,13 +332,15 @@ class ECPubkey(object):
             return POINT_AT_INFINITY
         return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey_sum)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, ECPubkey):
             return False
+        if self.is_at_infinity():
+            return other.is_at_infinity()
+        if other.is_at_infinity():
+            # We already checked if self.is_at_infinity above
+            return False
         return self.point() == other.point()
-
-    def __ne__(self, other) -> bool:
-        return not (self == other)
 
     def verify_message(
         self,
@@ -372,7 +381,7 @@ class ECPubkey(object):
             secp256k1.ctx, sig, msg_hash, pubkey
         )
 
-    def encrypt_message(self, message: bytes, magic=b"BIE1") -> bytes:
+    def encrypt_message(self, message: bytes, magic: bytes = b"BIE1") -> bytes:
         """
         ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the
          cipher; hmac-sha256 is used as the mac
@@ -404,7 +413,7 @@ class ECPubkey(object):
         return CURVE_ORDER
 
     def is_at_infinity(self) -> bool:
-        return self == POINT_AT_INFINITY
+        return self._x is None or self._y is None
 
 
 GENERATOR = ECPubkey(
@@ -509,7 +518,7 @@ class ECPrivkey(ECPubkey):
         nonce_function = None
         sig = create_string_buffer(64)
 
-        def sign_with_extra_entropy(extra_entropy) -> tuple[int, int]:
+        def sign_with_extra_entropy(extra_entropy: bytes | None) -> tuple[int, int]:
             ret = secp256k1.secp256k1_ecdsa_sign(
                 secp256k1.ctx,
                 sig,
@@ -526,8 +535,8 @@ class ECPrivkey(ECPubkey):
             secp256k1.secp256k1_ecdsa_signature_serialize_compact(
                 secp256k1.ctx, compact_signature, sig
             )
-            r = int.from_bytes(compact_signature[:32], byteorder="big")
-            s = int.from_bytes(compact_signature[32:], byteorder="big")
+            r = int.from_bytes(compact_signature.raw[:32], byteorder="big")
+            s = int.from_bytes(compact_signature.raw[32:], byteorder="big")
             return r, s
 
         r, s = sign_with_extra_entropy(extra_entropy=None)
@@ -543,7 +552,7 @@ class ECPrivkey(ECPubkey):
 
         return sigencode(r, s)
 
-    def sign_transaction(self, hashed_preimage) -> bytes:
+    def sign_transaction(self, hashed_preimage: bytes) -> bytes:
         return self.sign(
             hashed_preimage,
             sigencode=der_sig_from_r_and_s,
@@ -552,11 +561,11 @@ class ECPrivkey(ECPubkey):
     def sign_message(
         self,
         message: bytes,
-        is_compressed,
+        is_compressed: bool,
         *,
         sigtype: SignatureType = SignatureType.ECASH,
     ) -> bytes:
-        def bruteforce_recid(sig_string) -> tuple[bytes, int]:
+        def bruteforce_recid(sig_string: bytes) -> tuple[bytes, int]:
             for recid in range(4):
                 sig65 = construct_sig65(sig_string, recid, is_compressed)
                 if not self.verify_message(sig65, message, sigtype=sigtype):
@@ -574,7 +583,7 @@ class ECPrivkey(ECPubkey):
         sig65, _recid = bruteforce_recid(sig_string)
         return sig65
 
-    def decrypt_message(self, encrypted, magic=b"BIE1") -> bytes:
+    def decrypt_message(self, encrypted: bytes | str, magic: bytes = b"BIE1") -> bytes:
         encrypted = base64.b64decode(encrypted)
         if len(encrypted) < 85:
             raise Exception("invalid ciphertext: length")
@@ -598,6 +607,6 @@ class ECPrivkey(ECPubkey):
         return aes_decrypt_with_iv(key_e, iv, ciphertext)
 
 
-def construct_sig65(sig_string, recid, is_compressed) -> bytes:
+def construct_sig65(sig_string: bytes, recid: int, is_compressed: bool) -> bytes:
     comp = 4 if is_compressed else 0
     return bytes([27 + recid + comp]) + sig_string
