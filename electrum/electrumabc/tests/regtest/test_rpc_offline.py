@@ -480,6 +480,34 @@ class TestRPCOfflineCompareWithNode(ElectrumABCTestCase):
             assert converted["legacy"] == result["address"]
             assert converted["cashaddr"] == expected["address"]
 
+    def test_serialize_with_privkey(self):
+        """Sign a transaction spending a coin of the node with its private key, and
+        check that the node accepts it"""
+        address = self.node.getnewaddress()
+        wif = self.node.dumpprivkey(address)
+        txid = self.node.sendtoaddress(address, 1_000_000)
+        [vout] = [
+            d["vout"]
+            for d in self.node.gettransaction(txid)["details"]
+            if d["category"] == "receive" and d["address"] == address
+        ]
+        value = 100_000_000  # 1,000,000 XEC
+
+        result = rpc(
+            "serialize",
+            jsontx={
+                "inputs": [
+                    {"output": f"{txid}:{vout}", "value": value, "privkey": wif}
+                ],
+                "outputs": [
+                    {"address": self.node.getnewaddress(), "value": value - 10_000}
+                ],
+            },
+        )
+        assert result["complete"] is True
+        [accepted] = self.node.testmempoolaccept([result["hex"]])
+        assert accepted["allowed"] is True, accepted
+
 
 if __name__ == "__main__":
     unittest.main()

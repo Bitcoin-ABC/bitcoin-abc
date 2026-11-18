@@ -42,7 +42,7 @@ from typing import Any
 from . import alias, bitcoin, util, web
 from .address import Address, AddressError, DestinationType
 from .amount import format_satoshis_plain
-from .bitcoin import CASH, TYPE_ADDRESS
+from .bitcoin import CASH, TYPE_ADDRESS, ScriptType
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
 from .ecc import ECPrivkey, ECPubkey, verify_message_with_address
@@ -431,7 +431,10 @@ class Commands:
     @command("")
     def serialize(self, jsontx):
         """Create a transaction from json inputs.
-        Inputs must have a redeemPubkey.
+        Inputs must be a list of {'output':'txid:n', 'value':satoshi_amount} (or with
+        'prevout_hash' and 'prevout_n' instead of 'output'), with either a
+        'privkey' (WIF) to sign a p2pkh input, or a 'scriptSig' for an already
+        signed input.
         Outputs must be a list of {'address':address, 'value':satoshi_amount}.
         """
         keypairs = {}
@@ -446,12 +449,20 @@ class Commands:
             sec = txin.get("privkey")
             if sec:
                 txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
+                if txin_type != ScriptType.p2pkh:
+                    raise ValueError(
+                        f"Unsupported private key type {txin_type.name}, only p2pkh"
+                        " inputs can be signed"
+                    )
                 pubkey = ECPrivkey(privkey).get_public_key_bytes(compressed)
                 keypairs[pubkey] = privkey, compressed
                 txin["type"] = txin_type.name
                 txin["x_pubkeys"] = [pubkey.hex()]
                 txin["signatures"] = [None]
                 txin["num_sig"] = 1
+                txin["address"] = Address.from_pubkey(pubkey)
+            elif isinstance(txin.get("address"), str):
+                txin["address"] = Address.from_string(txin["address"])
 
         inputs = [TxInput.from_coin_dict(inp) for inp in inputs]
 
