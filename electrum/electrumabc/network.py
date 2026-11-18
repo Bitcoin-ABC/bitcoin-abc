@@ -72,11 +72,12 @@ if TYPE_CHECKING:
     called and takes the interface's response as a parameter.
     """
 
-    ServerProtocolT = Literal["s", "t", "st"]
-
     class CheckpointServer(TypedDict, total=False):
         root: str | None
         height: int
+
+
+ServerProtocolT = Literal["s", "t", "st"]
 
 
 # Rate-limit the get_merkle requests sent to fulcrum servers.

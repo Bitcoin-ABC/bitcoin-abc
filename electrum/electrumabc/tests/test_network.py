@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from .. import networks
-from ..network import Network
+from ..network import Network, deserialize_server, serialize_server
 from ..simple_config import SimpleConfig
 
 
@@ -98,6 +98,36 @@ class TestNetworkOnNotifyHeader(unittest.TestCase):
         self.network.connection_down.assert_not_called()
         self.assertEqual(self.interface.tip_header, expected_header)
         self.assertEqual(self.interface.tip, valid_server_height)
+
+
+class TestServerString(unittest.TestCase):
+    def test_deserialize_server(self):
+        for protocol in ("s", "t", "st"):
+            self.assertEqual(
+                deserialize_server(f"electrum.example.com:50002:{protocol}"),
+                ("electrum.example.com", "50002", protocol),
+            )
+        # The host may contain colons (IPv6)
+        self.assertEqual(deserialize_server("::1:50002:s"), ("::1", "50002", "s"))
+
+    def test_deserialize_server_invalid(self):
+        for server_str in (
+            # Unknown protocol
+            "electrum.example.com:50002:x",
+            # The port is not an integer
+            "electrum.example.com:port:s",
+            # Missing field
+            "electrum.example.com:50002",
+        ):
+            with self.assertRaises(ValueError, msg=server_str):
+                deserialize_server(server_str)
+
+    def test_serialize_server_roundtrip(self):
+        server_str = serialize_server("electrum.example.com", 50002, "t")
+        self.assertEqual(server_str, "electrum.example.com:50002:t")
+        self.assertEqual(
+            deserialize_server(server_str), ("electrum.example.com", "50002", "t")
+        )
 
 
 if __name__ == "__main__":
