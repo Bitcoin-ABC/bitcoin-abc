@@ -154,6 +154,27 @@ class TestRPCCoins(ElectrumABCTestCase):
         assert item["txid"] == txid
         assert item["label"] == "funding tx"
 
+    def test_history_show_addresses(self):
+        address, txid = self.fund_wallet()
+        [item] = rpc("history", show_addresses=True)
+        assert item["txid"] == txid
+
+        def decode_node_tx(txid):
+            # The funding transaction and its inputs are in the node's wallet
+            return self.node.decoderawtransaction(self.node.gettransaction(txid)["hex"])
+
+        tx = decode_node_tx(txid)
+        expected_inputs = []
+        for vin in tx["vin"]:
+            prev_tx = decode_node_tx(vin["txid"])
+            expected_inputs.append(
+                prev_tx["vout"][vin["vout"]]["scriptPubKey"]["addresses"][0]
+            )
+        expected_outputs = [vout["scriptPubKey"]["addresses"][0] for vout in tx["vout"]]
+        assert address in expected_outputs
+        assert item["input_addresses"] == expected_inputs
+        assert item["output_addresses"] == expected_outputs
+
     def test_is_synchronized(self):
         self.fund_wallet()
         assert rpc("is_synchronized") is True

@@ -1887,9 +1887,9 @@ class AbstractWallet(PrintError, SPVDelegate):
                 for txin in tx.txinputs():
                     if txin.type == ScriptType.coinbase:
                         continue
-                    if txin.addr is None:
+                    if txin.address is None:
                         continue
-                    input_addresses.append(txin.addr.to_ui_string())
+                    input_addresses.append(txin.address.to_ui_string())
                 for txo in tx.outputs():
                     output_addresses.append(txo.destination.to_ui_string())
                 item["input_addresses"] = input_addresses
