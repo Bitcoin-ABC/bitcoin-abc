@@ -52,7 +52,7 @@ from typing import (
 
 from . import avalanche, bitcoin, coinchooser, keystore, mnemo, paymentrequest
 from .address import Address, PublicKey, Script
-from .amount import format_satoshis
+from .amount import format_satoshis, format_satoshis_plain
 from .bip32 import xpub_type
 from .bitcoin import ScriptType
 from .constants import XEC
@@ -1825,7 +1825,12 @@ class AbstractWallet(PrintError, SPVDelegate):
         def fmt_amt(v, is_diff):
             if v is None:
                 return "--"
-            return format_satoshis(v, decimal_point=decimal_point, is_diff=is_diff)
+            # The history is exported to files, and returned by the history
+            # command, so don't use the locale's number format.
+            text = format_satoshis_plain(v, decimal_point=decimal_point)
+            if is_diff and v >= 0:
+                text = "+" + text
+            return text
 
         # grab history
         history = self.get_history(domain, reverse=True)

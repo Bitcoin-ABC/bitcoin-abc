@@ -154,6 +154,16 @@ class TestRPCCoins(ElectrumABCTestCase):
         assert item["txid"] == txid
         assert item["label"] == "funding tx"
 
+    def test_amounts_format(self):
+        """The amounts are formatted without thousands separators and with a dot as
+        the decimal point, whatever the locale of the daemon"""
+        address, txid = self.fund_wallet()
+        [item] = rpc("history")
+        assert item["txid"] == txid
+        assert item["value"] == f"+{FUNDING_AMOUNT}"
+        assert item["balance"] == f"{FUNDING_AMOUNT}"
+        assert [address, f"{FUNDING_AMOUNT}"] in rpc("listaddresses", balance=True)
+
     def test_history_show_addresses(self):
         address, txid = self.fund_wallet()
         [item] = rpc("history", show_addresses=True)

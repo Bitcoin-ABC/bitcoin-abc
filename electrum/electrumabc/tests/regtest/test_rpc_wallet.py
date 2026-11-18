@@ -63,10 +63,8 @@ class TestRPCWallet(ElectrumABCTestCase):
         assert rpc("listaddresses", unused=True) == all_addresses
         assert rpc("listaddresses", funded=True) == []
         assert rpc("listaddresses", frozen=True) == []
-        # The formatting of the balance depends on the locale
         with_balance = rpc("listaddresses", receiving=True, balance=True)
-        assert [item[0] for item in with_balance] == receiving
-        assert all(len(item) == 2 for item in with_balance)
+        assert with_balance == [[address, "0"] for address in receiving]
 
         assert rpc("getunusedaddress") in receiving
 

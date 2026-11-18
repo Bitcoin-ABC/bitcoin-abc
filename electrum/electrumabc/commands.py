@@ -41,7 +41,7 @@ from typing import Any
 
 from . import alias, bitcoin, util, web
 from .address import Address, AddressError, DestinationType
-from .amount import format_satoshis
+from .amount import format_satoshis_plain
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
@@ -961,8 +961,9 @@ class Commands:
                 item = (item,)
             if balance:
                 item += (
-                    format_satoshis(
-                        sum(self.wallet.get_addr_balance(addr)), decimal_point=2
+                    format_satoshis_plain(
+                        sum(self.wallet.get_addr_balance(addr)),
+                        decimal_point=XEC.decimals,
                     ),
                 )
             if labels:
@@ -1016,7 +1017,9 @@ class Commands:
             PR_UNCONFIRMED: "Unconfirmed",
         }
         out["address"] = out.get("address").to_ui_string()
-        out[f"amount ({XEC.ticker})"] = format_satoshis(out.get("amount"))
+        out[f"amount ({XEC.ticker})"] = format_satoshis_plain(
+            out.get("amount"), decimal_point=XEC.decimals
+        )
         out["status"] = pr_str[out.get("status", PR_UNKNOWN)]
         return out
 
