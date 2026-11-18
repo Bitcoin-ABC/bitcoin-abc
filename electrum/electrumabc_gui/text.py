@@ -34,6 +34,7 @@ class ElectrumGui:
             storage.decrypt(password)
         self.wallet = Wallet(storage)
         self.wallet.start_threads(self.network)
+        daemon.add_wallet(self.wallet)
         self.contacts = self.wallet.contacts
 
         locale.setlocale(locale.LC_ALL, "")
@@ -89,7 +90,8 @@ class ElectrumGui:
         self.set_cursor(1)
         curses.echo()
         self.stdscr.addstr(y, x, " " * 20, curses.A_REVERSE)
-        s = self.stdscr.getstr(y, x)
+        # getstr returns bytes
+        s = self.stdscr.getstr(y, x).decode(self.encoding, errors="replace")
         curses.noecho()
         self.set_cursor(0)
         return s
@@ -219,7 +221,9 @@ class ElectrumGui:
             return f"{address:<45}  {label:<30}"
 
         messages = [
-            fmt_address_line(str(addr), self.wallet.labels.get(addr, ""))
+            fmt_address_line(
+                str(addr), self.wallet.labels.get(addr.to_storage_string(), "")
+            )
             for addr in self.wallet.get_addresses()
         ]
         self.print_list(messages, fmt_address_line("Address", "Label"))
@@ -370,11 +374,11 @@ class ElectrumGui:
             self.run_popup("Address", ["Edit label", "Freeze", "Prioritize"])
 
     def run_contacts_tab(self, c):
-        if c == 10 and self.contacts:
+        contacts = self.contacts.get_all(nocopy=True)
+        if c == 10 and contacts:
             out = self.run_popup(
                 "Address", ["Copy", "Pay to", "Edit label", "Delete"]
             ).get("button")
-            contacts = self.contacts.get_all(nocopy=True)
             contact = contacts[self.pos % len(contacts)]
             if out == "Pay to":
                 self.tab = 1
@@ -383,7 +387,13 @@ class ElectrumGui:
             elif out == "Edit label":
                 s = self.get_string(6 + self.pos, 18)
                 if s:
-                    self.wallet.labels[contact.address] = s
+                    # Like in the Qt GUI, the label of an address contact is
+                    # stored under the address, and that of an OpenAlias
+                    # contact under the alias.
+                    label_key = contact.address
+                    if Address.is_valid(label_key):
+                        label_key = Address.from_string(label_key)
+                    self.wallet.set_label(label_key, s)
 
     def run_banner_tab(self, c):
         self.show_message(repr(c))
@@ -448,7 +458,7 @@ class ElectrumGui:
             return
 
         if self.str_description:
-            self.wallet.labels[tx.txid()] = self.str_description
+            self.wallet.set_label(tx.txid(), self.str_description)
 
         self.show_message(_("Please wait..."), getchar=False)
         status, _msg = self.network.broadcast_transaction(tx)

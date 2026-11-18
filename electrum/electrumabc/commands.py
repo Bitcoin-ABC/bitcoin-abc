@@ -902,6 +902,10 @@ class Commands:
     def setlabel(self, key, label):
         """Assign a label to an item. Item may be a bitcoin address address or a
         transaction ID"""
+        # Address labels are stored under the legacy format of the address, which
+        # the wallet only uses if it is given an Address object.
+        if Address.is_valid(key):
+            key = Address.from_string(key)
         self.wallet.set_label(key, label)
 
     @command("w")

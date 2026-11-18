@@ -28,6 +28,7 @@ The test framework creates a new BIP39 wallet without a password for each test.
 import unittest
 
 from ... import mnemo, networks
+from ...address import Address
 from ...bip32 import xpub_from_xprv
 from ...bitcoin import deserialize_privkey
 from ...ecc import ECPrivkey
@@ -73,6 +74,27 @@ class TestRPCWallet(ElectrumABCTestCase):
         assert new_address not in all_addresses
         assert new_address in rpc("listaddresses", receiving=True)
         assert rpc("ismine", address=new_address) is True
+
+    def test_setlabel_address(self):
+        address, other_address = rpc("listaddresses", receiving=True)[:2]
+        legacy_address = Address.from_string(
+            other_address, net=networks.RegtestNet
+        ).to_string(Address.Format.LEGACY, net=networks.RegtestNet)
+
+        def get_labels():
+            return dict(rpc("listaddresses", receiving=True, labels=True))
+
+        assert get_labels()[address] == "''"
+        # The address can be given in the cashaddr or legacy format
+        assert rpc("setlabel", key=address, label="savings") is None
+        assert rpc("setlabel", key=legacy_address, label="donations") is None
+        labels = get_labels()
+        assert labels[address] == "'savings'"
+        assert labels[other_address] == "'donations'"
+
+        # An empty label removes it
+        rpc("setlabel", key=address, label="")
+        assert get_labels()[address] == "''"
 
     def test_getalias(self):
         # An address resolves to itself. OpenAlias requires a DNS lookup and is

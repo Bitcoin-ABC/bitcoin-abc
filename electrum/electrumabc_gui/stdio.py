@@ -44,6 +44,7 @@ class ElectrumGui:
 
         self.wallet = Wallet(storage)
         self.wallet.start_threads(self.network)
+        daemon.add_wallet(self.wallet)
         self.contacts = self.wallet.contacts
 
         self.network.register_callback(
@@ -180,7 +181,7 @@ class ElectrumGui:
 
     def print_addresses(self):
         messages = (
-            f"{str(addr):>30}    {self.wallet.labels.get(addr, ''):>30}       "
+            f"{str(addr):>30}    {self.wallet.labels.get(addr.to_storage_string(), ''):>30}       "
             for addr in self.wallet.get_addresses()
         )
         self.print_list(messages, "            Address                      Label ")
@@ -268,7 +269,7 @@ class ElectrumGui:
             return
 
         if self.str_description:
-            self.wallet.labels[tx.txid()] = self.str_description
+            self.wallet.set_label(tx.txid(), self.str_description)
 
         print(_("Please wait..."))
         status, _msg = self.network.broadcast_transaction(tx)
