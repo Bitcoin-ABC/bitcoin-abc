@@ -30,11 +30,12 @@ The daemon is started by the test framework with a default wallet path. The
 
 import json
 import os
+import subprocess
 import unittest
 
 from ... import mnemo
 from .framework import ElectrumABCTestCase
-from .util import rpc
+from .util import ELECTRUMABC_COMMAND, rpc
 
 
 class TestRPCWalletManagement(ElectrumABCTestCase):
@@ -107,13 +108,58 @@ class TestRPCWalletManagement(ElectrumABCTestCase):
         path = self.default_wallet_path()
         assert [w["path"] for w in rpc("list_wallets")] == [path]
 
+        balance = rpc("getbalance")
+
         assert rpc("close_wallet") is True
         assert rpc("list_wallets") == []
         # Already closed
         assert rpc("close_wallet") is False
+        # The wallet commands no longer run on the closed wallet
+        with self.assertRaisesRegex(RuntimeError, "Wallet not loaded"):
+            rpc("getbalance")
 
         assert rpc("load_wallet") is True
         assert [w["path"] for w in rpc("list_wallets")] == [path]
+        assert rpc("getbalance") == balance
+
+        # The wallet is also used by the RPC commands when loaded from the command
+        # line
+        assert rpc("close_wallet") is True
+        subprocess.run(
+            [
+                ELECTRUMABC_COMMAND,
+                "--regtest",
+                "-D",
+                self.electrum_data_dir,
+                "-w",
+                path,
+                "load_wallet",
+            ],
+            check=True,
+        )
+        assert [w["path"] for w in rpc("list_wallets")] == [path]
+        assert rpc("getbalance") == balance
+
+        # A wallet loaded from the command line becomes the one used by the RPC
+        # commands
+        other_path = os.path.join(self.electrum_data_dir, "other_wallet")
+        rpc("create", wallet_path=other_path)
+        subprocess.run(
+            [
+                ELECTRUMABC_COMMAND,
+                "--regtest",
+                "-D",
+                self.electrum_data_dir,
+                "-w",
+                other_path,
+                "load_wallet",
+            ],
+            check=True,
+        )
+        assert sorted(w["path"] for w in rpc("list_wallets")) == sorted(
+            [path, other_path]
+        )
+        assert rpc("getmpk") == self.read_wallet_file(other_path)["keystore"]["xpub"]
 
     def test_password(self):
         seed = rpc("getseed")

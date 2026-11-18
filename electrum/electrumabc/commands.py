@@ -161,10 +161,24 @@ def command(s):
 class Commands:
     def __init__(self, config, wallet, network, daemon=None, callback=None):
         self.config = config
-        self.wallet = wallet
+        self._wallet = wallet
         self.daemon = daemon
         self.network = network
         self._callback = callback
+
+    @property
+    def wallet(self):
+        if self._wallet is None or self.daemon is None:
+            return self._wallet
+        # The daemon's RPC server uses the same Commands object for all the calls,
+        # so look the wallet up in the daemon: it may have been closed since (by the
+        # close_wallet command, or by closing its window in the GUI), and then
+        # loaded again.
+        return self.daemon.get_wallet(self._wallet.storage.path)
+
+    @wallet.setter
+    def wallet(self, wallet):
+        self._wallet = wallet
 
     def _run(self, method, *args, password_getter=None, **kwargs):
         # this wrapper is called from the python console
@@ -281,6 +295,9 @@ class Commands:
         wallet = self.daemon.load_wallet(path, self.config.get("password"))
         if wallet is not None:
             self.wallet = wallet
+            # The command line runs each command on a new Commands object, so also
+            # make the wallet the one used by the daemon's RPC server.
+            self.daemon.cmd_runner.wallet = wallet
         response = wallet is not None
         return response
 
