@@ -725,10 +725,17 @@ describe('Send', () => {
                             );
                         }
                         const tooHigh = (max + 10_000).toFixed(2);
-                        cy.get('#send-amount').clear().type(tooHigh);
+                        // Set via invoke: typing above input[type=number] max
+                        // is clamped in Chromium (value sticks at max and fee
+                        // shows without error).
+                        cy.get('#send-amount')
+                            .invoke('val', tooHigh)
+                            .trigger('input', { force: true })
+                            .should('have.value', tooHigh);
                     });
-                cy.get('#fee-display').should('be.visible');
-                cy.get('#fee-display').should('have.class', 'error');
+                cy.get('#fee-display')
+                    .should('be.visible')
+                    .and('have.class', 'error');
                 cy.get('#fee-display .fee-item.title').should(
                     'contain',
                     'Insufficient funds',

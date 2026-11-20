@@ -207,30 +207,53 @@ export function runWithChronik(
 /**
  * CoinGecko response shape for ecash-price CoinGeckoProvider (see
  * modules/ecash-price). Intercepting avoids flaky secondary balance when the
- * API is down or rate-limited. Replies include whichever vs_currencies the app
- * requested (usd and/or eur).
+ * API is down or rate-limited. Replies include whichever `ids` /
+ * `vs_currencies` the app requested (`ecash` / `tether`, `usd` / `eur`).
  */
 export function stubCoingeckoXecFiatPrices(): void {
     cy.intercept(
         { method: 'GET', url: /api\.coingecko\.com\/api\/v3\/simple\/price/ },
         req => {
             const url = new URL(req.url);
-            const vsRaw = url.searchParams.get('vs_currencies') || '';
-            const parts = vsRaw
+            const ids = (url.searchParams.get('ids') || '')
+                .split(',')
+                .map(s => s.trim().toLowerCase())
+                .filter(Boolean);
+            const vsParts = (url.searchParams.get('vs_currencies') || '')
                 .split(',')
                 .map(s => s.trim().toLowerCase())
                 .filter(Boolean);
             const lastUpdated = Math.floor(Date.now() / 1000);
-            const ecash: Record<string, number> = {
-                last_updated_at: lastUpdated,
+            const body: Record<string, Record<string, number>> = {};
+
+            const fillQuotes = (
+                entry: Record<string, number>,
+                usd: number,
+                eur: number,
+            ) => {
+                entry.last_updated_at = lastUpdated;
+                if (vsParts.includes('usd')) {
+                    entry.usd = usd;
+                }
+                if (vsParts.includes('eur')) {
+                    entry.eur = eur;
+                }
             };
-            if (parts.includes('usd')) {
-                ecash.usd = 0.00005;
+
+            // MarlinPriceFetcher prefetches every supported quote source (XEC +
+            // USDT for Firma)
+            if (ids.includes('ecash')) {
+                const ecash: Record<string, number> = {};
+                fillQuotes(ecash, 0.00005, 0.000046);
+                body.ecash = ecash;
             }
-            if (parts.includes('eur')) {
-                ecash.eur = 0.000046;
+            if (ids.includes('tether')) {
+                const tether: Record<string, number> = {};
+                fillQuotes(tether, 1, 0.92);
+                body.tether = tether;
             }
-            req.reply({ statusCode: 200, body: { ecash } });
+
+            req.reply({ statusCode: 200, body });
         },
     );
 }
