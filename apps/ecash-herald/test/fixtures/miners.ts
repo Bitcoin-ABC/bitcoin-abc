@@ -759,6 +759,23 @@ const minerTestFixtures = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'HashRoute',
     },
+    // SoloPool.ru - parsed from payout script
+    {
+        height: '976351',
+        coinbaseHex:
+            '03dfe50e042627006b00f0000016ffac0f000b536f6c6f506f6f6c2e7275',
+        payoutOutputScript:
+            '76a914a6aca941095d67ab33a9cb87b86dd7bd2c3de1e888ac',
+        parsed: 'SoloPool.ru',
+    },
+    // SoloPool.ru - parsed from coinbase hex fragment
+    {
+        height: '976351',
+        coinbaseHex:
+            '03dfe50e042627006b00f0000016ffac0f000b536f6c6f506f6f6c2e7275',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'SoloPool.ru',
+    },
 ];
 
 export default minerTestFixtures;
