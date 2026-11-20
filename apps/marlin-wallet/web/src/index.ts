@@ -10,6 +10,7 @@ import { Wallet } from 'ecash-wallet';
 import { ChronikClient, ConnectionStrategy, WsMsgClient } from 'chronik-client';
 import {
     CoinGeckoProvider,
+    CoinMarketCapProvider,
     Fiat,
     PriceFetcher,
     ProviderStrategy,
@@ -678,11 +679,11 @@ async function initializeApp() {
         config.chronikUrls,
     );
 
-    // Initialize price API with CoinGecko provider
+    // Initialize price API with CoinGecko, falling back to CoinMarketCap
     // Cache prices for 60 seconds to reduce API calls
     priceFetcher = new MarlinPriceFetcher(
         new PriceFetcher(
-            [new CoinGeckoProvider()],
+            [new CoinGeckoProvider(), new CoinMarketCapProvider()],
             ProviderStrategy.FALLBACK,
             60 * 1000,
         ),
