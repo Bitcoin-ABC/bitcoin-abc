@@ -42,11 +42,10 @@ from .bitcoin import (
 )
 from .crypto import Hash, hash_160, sha256
 from .ecc import ECPrivkey
+from .util import bfh, to_bytes
 
 if TYPE_CHECKING:
     from .networks import AbstractNetProtocol
-
-hex_to_bytes = bytes.fromhex
 
 
 class DestinationType(abc.ABC):
@@ -77,15 +76,6 @@ P2SH_suffix = bytes([OpCodes.OP_EQUAL])
 # Utility functions
 
 
-def to_bytes(x: bytes | bytearray) -> bytes:
-    """Convert to bytes which is hashable."""
-    if isinstance(x, bytes):
-        return x
-    if isinstance(x, bytearray):
-        return bytes(x)
-    raise TypeError("{} is not bytes ({})".format(x, type(x)))
-
-
 def hash_to_hex_str(x: bytes) -> str:
     """Convert a big-endian binary hash to displayed hex string.
 
@@ -96,7 +86,7 @@ def hash_to_hex_str(x: bytes) -> str:
 
 def hex_str_to_hash(x: str) -> bytes:
     """Convert a displayed hex string to a binary hash."""
-    return bytes(reversed(hex_to_bytes(x)))
+    return bytes(reversed(bfh(x)))
 
 
 def bytes_to_int(be_bytes: bytes) -> int:
@@ -131,7 +121,7 @@ class PublicKey(DestinationType):
     def from_pubkey(cls, pubkey: str | bytes | bytearray) -> PublicKey:
         """Create from a public key expressed as binary bytes."""
         if isinstance(pubkey, str):
-            pubkey = hex_to_bytes(pubkey)
+            pubkey = bfh(pubkey)
         cls.validate(pubkey)
         return cls(to_bytes(pubkey))
 
@@ -183,7 +173,7 @@ class PublicKey(DestinationType):
     @classmethod
     def from_string(cls, string: str) -> PublicKey:
         """Create from a hex string."""
-        return cls.from_pubkey(hex_to_bytes(string))
+        return cls.from_pubkey(bfh(string))
 
     @classmethod
     def validate(cls, pubkey: bytes | bytearray) -> None:
@@ -513,7 +503,7 @@ class Address(DestinationType):
         """Returns a P2PKH address from a public key.  The public key can
         be bytes or a hex string."""
         if isinstance(pubkey, str):
-            pubkey = hex_to_bytes(pubkey)
+            pubkey = bfh(pubkey)
         PublicKey.validate(pubkey)
         return cls(hash_160(pubkey), cls.Type.P2PKH)
 
