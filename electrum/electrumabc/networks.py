@@ -22,16 +22,21 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import json
 import pkgutil
 import re
-from collections.abc import Sequence
-from typing import Any, ClassVar, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol, TypeVar
 
 from . import constants
 from .asert_daa import Anchor, ASERTDaa
 from .printerror import print_error
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .network import ServersJsonT
 
 
 def _read_json_dict(filename: str) -> Any:
@@ -61,7 +66,7 @@ class AbstractNetProtocol(Protocol):
     CW144_HEIGHT: ClassVar[int]
 
     DEFAULT_PORTS: ClassVar[dict[str, str]]
-    DEFAULT_SERVERS: ClassVar[dict[str, dict[str, str]]]
+    DEFAULT_SERVERS: ClassVar[ServersJsonT]
 
     BITCOIN_CASH_FORK_BLOCK_HEIGHT: ClassVar[int]
     BITCOIN_CASH_FORK_BLOCK_HASH: ClassVar[str]

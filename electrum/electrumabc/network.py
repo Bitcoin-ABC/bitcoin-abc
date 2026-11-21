@@ -34,6 +34,7 @@ import socket
 import stat
 import threading
 import time
+import typing
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast, get_args
 
@@ -62,6 +63,7 @@ if TYPE_CHECKING:
         MessageMethodT,
         MessageParamsT,
     )
+    from .transaction import Transaction
 
     MessageSendT = tuple[MessageMethodT, MessageParamsT]
     NetworkResponseCallbackT = Callable[[InterfaceMessageResponseT], Any]
@@ -90,8 +92,20 @@ ServerProtocolT = Literal["s", "t", "st"]
 MAX_QLEN_GET_MERKLE_REQUESTS = 100
 
 
-def filter_version(servers):
-    def is_recent(vv):
+class ServerJsonT(TypedDict, total=False):
+    pruning: str
+    s: str
+    t: str
+    version: str
+
+
+ServersJsonT = dict[str, ServerJsonT]
+
+
+def filter_version(servers: ServersJsonT) -> ServersJsonT:
+    def is_recent(vv: str | None) -> bool:
+        if vv is None:
+            return False
         try:
             return version.normalize_version(vv) >= version.normalize_version(
                 version.PROTOCOL_VERSION
@@ -103,7 +117,9 @@ def filter_version(servers):
     return {k: v for k, v in servers.items() if is_recent(v.get("version"))}
 
 
-def filter_protocol(hostmap, protocol: ServerProtocolT = "s"):
+def filter_protocol(
+    hostmap: ServersJsonT, protocol: ServerProtocolT = "s"
+) -> list[str]:
     """Filters the hostmap for those implementing protocol.
     Protocol may be: 's', 't', or 'st' for both.
     The result is a list in serialized form."""
@@ -119,8 +135,10 @@ def filter_protocol(hostmap, protocol: ServerProtocolT = "s"):
 
 
 def get_eligible_servers(
-    hostmap=None, protocol: ServerProtocolT = "s", exclude_set: set | None = None
-):
+    hostmap: ServersJsonT | None = None,
+    protocol: ServerProtocolT = "s",
+    exclude_set: set | None = None,
+) -> list[str]:
     if hostmap is None:
         hostmap = networks.net.DEFAULT_SERVERS
     exclude_set = exclude_set or set()
@@ -128,18 +146,20 @@ def get_eligible_servers(
 
 
 def pick_random_server(
-    hostmap=None, protocol: ServerProtocolT = "s", exclude_set: set | None = None
-):
+    hostmap: ServersJsonT | None = None,
+    protocol: ServerProtocolT = "s",
+    exclude_set: set | None = None,
+) -> str | None:
     exclude_set = exclude_set or set()
     eligible = get_eligible_servers(hostmap, protocol, exclude_set)
     return random.choice(eligible) if eligible else None
 
 
-def servers_to_hostmap(servers):
+def servers_to_hostmap(servers: Iterable[str]) -> ServersJsonT:
     """Takes an iterable of HOST:PORT:PROTOCOL strings and breaks them into
     a hostmap dict of host -> { protocol : port } suitable to be passed to
     pick_random_server() and get_eligible_servers() above."""
-    ret = {}
+    ret: ServersJsonT = {}
     for s in servers:
         try:
             host, port, protocol = deserialize_server(s)
@@ -152,7 +172,7 @@ def servers_to_hostmap(servers):
             )
             # deserialization error
             continue
-        m = ret.get(host, {})
+        m: ServerJsonT = ret.get(host, {})
         need_add = len(m) == 0
         m[protocol] = port
         if need_add:
@@ -163,15 +183,27 @@ def servers_to_hostmap(servers):
     return ret
 
 
-def hostmap_to_servers(hostmap):
+def hostmap_to_servers(hostmap: ServersJsonT) -> list[str]:
     """The inverse of servers_to_hostmap"""
     return filter_protocol(hostmap, protocol="st")
 
 
-proxy_modes = ["socks4", "socks5", "http"]
+ProxyModeT = Literal["socks4", "socks5", "http"]
+proxy_modes: tuple[ProxyModeT, ...] = get_args(ProxyModeT)
 
 
-def serialize_proxy(p):
+class ProxyBaseT(TypedDict):
+    mode: ProxyModeT
+    host: str
+    port: str
+
+
+class ProxyDictT(ProxyBaseT, total=False):
+    user: str
+    password: str
+
+
+def serialize_proxy(p: ProxyDictT | None) -> str | None:
     if not isinstance(p, dict):
         return None
     return ":".join(
@@ -185,12 +217,12 @@ def serialize_proxy(p):
     )
 
 
-def deserialize_proxy(s: str | None) -> dict[str, str | int] | None:
+def deserialize_proxy(s: str | None) -> ProxyDictT | None:
     if not isinstance(s, str):
         return None
     if s.lower() == "none":
         return None
-    proxy: dict[str, str | int] = {"mode": "socks5", "host": "localhost"}
+    proxy = {"mode": "socks5", "host": "localhost"}
     args = s.split(":")
     n = 0
     if proxy_modes.count(args[n]) == 1:
@@ -232,7 +264,7 @@ def serialize_server(host: str, port: str | int, protocol: ServerProtocolT) -> s
 bypass_proxy_filters = [check_proxy_bypass_tor_control]
 
 
-def _socksocket_filtered(*args, **kwargs):
+def _socksocket_filtered(*args, **kwargs) -> socket.socket:
     """
     This function checks bypass_proxy_filters and if any of the filters returns true
     a raw socket will be returned, otherwise a socks socket will be returned.
@@ -298,6 +330,8 @@ class Network(util.DaemonThread):
         self.blacklisted_servers: set[str] = set(
             self.config.get(ConfigKeys.SERVER_BLACKLIST)
         )
+        self.disconnected_servers: set[str] = set()
+        self.recent_servers: list[str] = []
         (
             self.whitelisted_servers,
             self.whitelisted_servers_hostmap,
@@ -396,7 +430,7 @@ class Network(util.DaemonThread):
             deserialize_proxy(self.config.get(ConfigKeys.PROXY)),
         )
 
-    def on_tor_port_changed(self, controller: TorController):
+    def on_tor_port_changed(self, controller: TorController) -> None:
         if (
             not controller.active_socks_port
             or not controller.is_enabled()
@@ -417,7 +451,7 @@ class Network(util.DaemonThread):
         if hasattr(self, "proxy"):
             self.load_parameters()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """NB: due to Network.INSTANCE keeping the singleton instance alive,
         this code isn't normally reached, except for in the iOS
         implementation, which kills the daemon and the network before app
@@ -436,16 +470,16 @@ class Network(util.DaemonThread):
         """Returns the extant Network singleton, if any, or None if in offline mode"""
         return Network.INSTANCE
 
-    def callback_listener_count(self, event):
+    def callback_listener_count(self, event: str) -> int:
         # we intentionally don't take any locks here as a performance optimization
         return len(self.callbacks.get(event, []))
 
-    def register_callback(self, callback, events):
+    def register_callback(self, callback: Callable, events: Iterable[str]) -> None:
         with self.lock:
             for event in events:
                 self.callbacks[event].append(callback)
 
-    def unregister_callback(self, callback):
+    def unregister_callback(self, callback: Callable) -> None:
         with self.lock:
             for callbacks in self.callbacks.values():
                 try:
@@ -453,15 +487,15 @@ class Network(util.DaemonThread):
                 except ValueError:
                     pass
 
-    def trigger_callback(self, event, *args):
+    def trigger_callback(self, event: str, *args) -> None:
         with self.lock:
             callbacks = self.callbacks[event][:]
         [callback(event, *args) for callback in callbacks]
 
-    def recent_servers_file(self):
+    def recent_servers_file(self) -> str:
         return os.path.join(self.config.path, "recent-servers")
 
-    def read_recent_servers(self):
+    def read_recent_servers(self) -> list[str]:
         if not self.config.path:
             return []
         try:
@@ -471,7 +505,7 @@ class Network(util.DaemonThread):
         except Exception:
             return []
 
-    def save_recent_servers(self):
+    def save_recent_servers(self) -> None:
         if not self.config.path:
             return
         s = json.dumps(self.recent_servers, indent=4, sort_keys=True)
@@ -481,11 +515,11 @@ class Network(util.DaemonThread):
         except Exception:
             pass
 
-    def get_server_height(self):
+    def get_server_height(self) -> int:
         with self.interface_lock:
             return self.interface.tip if self.interface else 0
 
-    def server_is_lagging(self):
+    def server_is_lagging(self) -> bool:
         sh = self.get_server_height()
         if not sh:
             self.print_error("no height for main interface")
@@ -496,17 +530,17 @@ class Network(util.DaemonThread):
             self.print_error("%s is lagging (%d vs %d)" % (self.default_server, sh, lh))
         return result
 
-    def set_status(self, status):
+    def set_status(self, status: str) -> None:
         self.connection_status = status
         self.notify("status")
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return self.interface is not None
 
-    def is_connecting(self):
+    def is_connecting(self) -> bool:
         return self.connection_status == "connecting"
 
-    def is_up_to_date(self):
+    def is_up_to_date(self) -> bool:
         return self.unanswered_requests == {}
 
     def queue_request(
@@ -517,7 +551,7 @@ class Network(util.DaemonThread):
         *,
         callback: NetworkResponseCallbackT | None = None,
         max_qlen: int | None = None,
-    ):
+    ) -> int | None:
         """If you want to queue a request on any interface it must go through
         this function so message ids are properly tracked.
         Returns the monotonically increasing message id for this request.
@@ -562,7 +596,7 @@ class Network(util.DaemonThread):
             self.print_error("*** WARNING: queueing request on a stale instance!")
         return message_id
 
-    def send_subscriptions(self):
+    def send_subscriptions(self) -> None:
         self.sub_cache.clear()
         # Resend unanswered requests
         old_reqs = self.unanswered_requests
@@ -593,6 +627,7 @@ class Network(util.DaemonThread):
                 # list.
                 self.subscriptions.pop(k, None)
                 n_defunct += 1
+        assert self.interface is not None
         self.print_error(
             "sent subscriptions to",
             self.interface.server,
@@ -604,7 +639,7 @@ class Network(util.DaemonThread):
             "defunct subs",
         )
 
-    def get_status_value(self, key):
+    def get_status_value(self, key: str) -> str:
         if key == "status":
             value = self.connection_status
         elif key == "banner":
@@ -621,31 +656,41 @@ class Network(util.DaemonThread):
             raise RuntimeError("unexpected trigger key {}".format(key))
         return value
 
-    def notify(self, key):
+    def notify(self, key: str) -> None:
         if key in ("updated",):
             # Legacy support.  Will warn that updated is deprecated.
             self.trigger_callback(key)
         else:
             self.trigger_callback(key, self.get_status_value(key))
 
-    def get_parameters(self):
+    def get_parameters(
+        self,
+    ) -> tuple[str, str, ServerProtocolT, ProxyDictT | None, bool]:
         host, port, protocol = deserialize_server(self.default_server)
         return host, port, protocol, self.proxy, self.auto_connect
 
-    def get_donation_address(self):
+    def get_donation_address(self) -> str | None:
         if self.is_connected():
             return self.donation_address
+        return None
 
-    def get_interfaces(self, *, interfaces=False):
+    @typing.overload
+    def get_interfaces(self, *, interfaces: Literal[True]) -> list[Interface]: ...
+    @typing.overload
+    def get_interfaces(self, *, interfaces: Literal[False] = False) -> list[str]: ...
+
+    def get_interfaces(
+        self, *, interfaces: bool = False
+    ) -> list[str] | list[Interface]:
         """Returns the servers that are in connected state. Despite its name,
         this method does not return the actual interfaces unless interfaces=True,
         but rather returns the server:50002:s style string."""
         with self.interface_lock:
-            return list(
-                self.interfaces.values() if interfaces else self.interfaces.keys()
-            )
+            if interfaces:
+                return list(self.interfaces.values())
+            return list(self.interfaces.keys())
 
-    def get_servers(self):
+    def get_servers(self) -> ServersJsonT:
         out = networks.net.DEFAULT_SERVERS.copy()
         if self.irc_servers:
             out.update(filter_version(self.irc_servers.copy()))
@@ -659,7 +704,7 @@ class Network(util.DaemonThread):
                     out[host] = {protocol: port}
         return out
 
-    def start_interface(self, server_key: str):
+    def start_interface(self, server_key: str) -> None:
         """Start the given server if it is not already active or being connected to.
 
         Arguments:
@@ -678,14 +723,14 @@ class Network(util.DaemonThread):
             lambda x: x.bad_certificate.append_weak(self.on_bad_certificate),
         )
 
-    def get_unavailable_servers(self):
+    def get_unavailable_servers(self) -> set[str]:
         exclude_set = set(self.interfaces)
         exclude_set = exclude_set.union(self.connecting)
         exclude_set = exclude_set.union(self.disconnected_servers)
         exclude_set = exclude_set.union(self.blacklisted_servers)
         return exclude_set
 
-    def start_random_interface(self):
+    def start_random_interface(self) -> None:
         exclude_set = self.get_unavailable_servers()
         hostmap = (
             self.get_servers()
@@ -696,12 +741,12 @@ class Network(util.DaemonThread):
         if server_key:
             self.start_interface(server_key)
 
-    def start_interfaces(self):
+    def start_interfaces(self) -> None:
         self.start_interface(self.default_server)
         for i in range(self.num_server - 1):
             self.start_random_interface()
 
-    def set_proxy(self, proxy):
+    def set_proxy(self, proxy: ProxyDictT | None) -> None:
         self.proxy = proxy
         # Store these somewhere so we can un-monkey-patch
         if not hasattr(socket, "_socketobject"):
@@ -728,7 +773,9 @@ class Network(util.DaemonThread):
             socket.getaddrinfo = socket._getaddrinfo
         self.notify("proxy")
 
-    def start_network(self, protocol, proxy):
+    def start_network(
+        self, protocol: ServerProtocolT, proxy: ProxyDictT | None
+    ) -> None:
         assert not self.interface and not self.interfaces
         assert not self.connecting and self.socket_queue.empty()
         self.print_error("starting network")
@@ -737,7 +784,7 @@ class Network(util.DaemonThread):
         self.set_proxy(proxy)
         self.start_interfaces()
 
-    def stop_network(self):
+    def stop_network(self) -> None:
         with self.interface_lock:
             self.print_error("stopping network")
             for interface in list(self.interfaces.values()):
@@ -750,7 +797,14 @@ class Network(util.DaemonThread):
             # Get a new queue - no old pending connections thanks!
             self.socket_queue = queue.Queue()
 
-    def set_parameters(self, host, port, protocol, proxy, auto_connect):
+    def set_parameters(
+        self,
+        host: str,
+        port: str,
+        protocol: ServerProtocolT,
+        proxy: ProxyDictT | None,
+        auto_connect: bool,
+    ) -> None:
         with self.interface_lock:
             try:
                 self.save_parameters(host, port, protocol, proxy, auto_connect)
@@ -758,7 +812,14 @@ class Network(util.DaemonThread):
                 return
             self.load_parameters()
 
-    def save_parameters(self, host, port, protocol, proxy, auto_connect):
+    def save_parameters(
+        self,
+        host: str,
+        port: str,
+        protocol: ServerProtocolT,
+        proxy: ProxyDictT | None,
+        auto_connect: bool,
+    ) -> None:
         proxy_str = serialize_proxy(proxy)
         server = serialize_server(host, port, protocol)
         # sanitize parameters
@@ -779,7 +840,7 @@ class Network(util.DaemonThread):
         ):
             raise ValueError("changes were not allowed by config")
 
-    def load_parameters(self):
+    def load_parameters(self) -> None:
         server = self.get_config_server()
         protocol = deserialize_server(server)[2]
         proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
@@ -795,8 +856,8 @@ class Network(util.DaemonThread):
             self.switch_lagging_interface()
             self.notify("blockchain_updated")
 
-    def get_config_server(self):
-        server = self.config.get(ConfigKeys.SERVER)
+    def get_config_server(self) -> str:
+        server: str | None = self.config.get(ConfigKeys.SERVER)
         if server:
             try:
                 deserialize_server(server)
@@ -813,6 +874,7 @@ class Network(util.DaemonThread):
         ):
             hostmap = None if not wl_only else self.whitelisted_servers_hostmap
             server = pick_random_server(hostmap, exclude_set=self.blacklisted_servers)
+        assert server is not None
         return server
 
     def switch_to_random_interface(self) -> None:
@@ -879,7 +941,7 @@ class Network(util.DaemonThread):
                 self.interface = None
             interface.close()
 
-    def add_recent_server(self, server):
+    def add_recent_server(self, server: str) -> None:
         # list is ordered
         if server in self.recent_servers:
             self.recent_servers.remove(server)
@@ -893,7 +955,7 @@ class Network(util.DaemonThread):
         request: InterfaceRequest | None,
         response: InterfaceMessageResponseT,
         callbacks: list[NetworkResponseCallbackT],
-    ):
+    ) -> None:
         if self.debug:
             self.print_error("<--", response)
         error = response.get("error")
@@ -1111,7 +1173,7 @@ class Network(util.DaemonThread):
 
     def _cancel_pending_sends(
         self,
-        callback,
+        callback: Callable,
         *,
         method: MessageMethodT | None = None,
         params: MessageParamsT | None = None,
@@ -1148,7 +1210,7 @@ class Network(util.DaemonThread):
                     idx += 1
         return ct, nmsgs
 
-    def unsubscribe(self, callback) -> None:
+    def unsubscribe(self, callback: Callable) -> None:
         """Unsubscribe a callback to free object references to enable GC.
         It is advised that this function only be called from the network thread
         to avoid race conditions."""
@@ -1904,7 +1966,9 @@ class Network(util.DaemonThread):
     def on_server_version(self, interface: Interface, version_data: list[Any]) -> None:
         interface.server_version = version_data
 
-    def on_notify_header(self, interface: Interface, header_dict) -> None:
+    def on_notify_header(
+        self, interface: Interface, header_dict: dict[str, Any] | None
+    ) -> None:
         """
         When we subscribe for 'blockchain.headers.subscribe', a server will send
         us it's topmost header.  After that, it will forward on any additional
@@ -2151,7 +2215,7 @@ class Network(util.DaemonThread):
         with self.interface_lock:
             if self.interface:
                 server = self.interface.server
-                host, port, protocol, proxy, auto_connect = self.get_parameters()
+                _, _, _, proxy, auto_connect = self.get_parameters()
                 host, port, protocol = server.split(":")
                 self.set_parameters(host, port, protocol, proxy, auto_connect)
 
@@ -2210,7 +2274,9 @@ class Network(util.DaemonThread):
             return False, msg
 
     @staticmethod
-    def __wait_for(it, timeout: float = 30) -> Any:
+    def __wait_for(
+        it: Callable[[NetworkResponseCallbackT], None], timeout: float = 30
+    ) -> Any:
         """Wait for the result of calling lambda `it`.
         Will raise util.TimeoutException or util.ServerErrorResponse on failure."""
         q = queue.Queue()
@@ -2231,8 +2297,9 @@ class Network(util.DaemonThread):
 
     @staticmethod
     def __with_default_synchronous_callback(
-        invocation: Callable[[Callable], None], callback: Callable | None
-    ):
+        invocation: Callable[[NetworkResponseCallbackT], None],
+        callback: NetworkResponseCallbackT | None,
+    ) -> Any:
         """Use this method if you want to make the network request
         synchronous."""
         if not callback:
@@ -2240,7 +2307,9 @@ class Network(util.DaemonThread):
 
         invocation(callback)
 
-    def broadcast_transaction(self, transaction, callback=None):
+    def broadcast_transaction(
+        self, transaction: Transaction, callback: NetworkResponseCallbackT | None = None
+    ) -> tuple[bool, Any] | None:
         """This is the legacy EC/Electrum API that we still need to support
         for plugins and other code, but it has been improved to not allow for
         phishing attacks by calling broadcast_transaction2 which actually
@@ -2251,7 +2320,7 @@ class Network(util.DaemonThread):
         if callback:
             command = "blockchain.transaction.broadcast"
             self.send([(command, [str(transaction)])], callback)
-            return
+            return None
 
         try:
             out = self.broadcast_transaction2(transaction)
@@ -2263,7 +2332,9 @@ class Network(util.DaemonThread):
 
         return True, out
 
-    def broadcast_transaction2(self, transaction, timeout=30):
+    def broadcast_transaction2(
+        self, transaction: Transaction, timeout: float = 30
+    ) -> Any:
         """Very similar to broadcast_transation() but it actually tells calling
         code what the nature of the error was in a more explicit manner by
         raising an Exception. Normally a util.TimeoutException,
@@ -2276,7 +2347,7 @@ class Network(util.DaemonThread):
 
         command = "blockchain.transaction.broadcast"
 
-        def invocation(c):
+        def invocation(c: NetworkResponseCallbackT) -> None:
             self.send([(command, [str(transaction)])], c)
 
         try:
@@ -2299,7 +2370,7 @@ class Network(util.DaemonThread):
         return out
 
     @staticmethod
-    def transmogrify_broadcast_response_for_gui(server_msg) -> str:
+    def transmogrify_broadcast_response_for_gui(server_msg: Any) -> str:
         # NB: the server_msg is usually a dict but not always.
         # Unfortunately, ElectrumX doesn't return a good error code. It's always '1'.
         # So, we must use substring matching to grok the error message.
@@ -2470,7 +2541,9 @@ class Network(util.DaemonThread):
         return _("An error occurred broadcasting the transaction")
 
     # Used by the verifier job.
-    def get_merkle_for_transaction(self, tx_hash: str, tx_height: int, callback):
+    def get_merkle_for_transaction(
+        self, tx_hash: str, tx_height: int, callback: NetworkResponseCallbackT
+    ) -> int | None:
         """Asynchronously enqueue a request for a merkle proof for a tx.
         Note that the callback param is required.
         May return None if too many requests were enqueued (max_qlen) or
@@ -2500,16 +2573,13 @@ class Network(util.DaemonThread):
         if proxy.get("user") and proxy.get("password"):
             pre = "{}:{}@".format(proxy.get("user"), proxy.get("password"))
         mode = proxy.get("mode")
-        if mode and mode.lower() == "socks5":
-            # socks5 with hostname resolution on the server side so it
-            # works with tor & even onion!
-            mode += "h"
-        socks = "{}://{}{}:{}".format(mode, pre, proxy.get("host"), proxy.get("port"))
-        # transform it to requests format
+        scheme: str = "socks5h" if mode == "socks5" else str(mode)
+        # Transform it to requests format
+        socks = "{}://{}{}:{}".format(scheme, pre, proxy.get("host"), proxy.get("port"))
         proxies = {"http": socks, "https": socks}
         return proxies
 
-    def on_bad_certificate(self, server: str, certificate) -> None:
+    def on_bad_certificate(self, server: str, certificate: str) -> None:
         if server in self.bad_certificate_servers:
             return
         self.bad_certificate_servers[server] = certificate
@@ -2609,7 +2679,7 @@ class Network(util.DaemonThread):
     def server_is_whitelisted(self, server: str) -> bool:
         return server in self.whitelisted_servers
 
-    def _compute_whitelist(self):
+    def _compute_whitelist(self) -> tuple[set[str], ServersJsonT]:
         if not hasattr(self, "_hardcoded_whitelist"):
             self._hardcoded_whitelist = frozenset(
                 hostmap_to_servers(networks.net.DEFAULT_SERVERS)
