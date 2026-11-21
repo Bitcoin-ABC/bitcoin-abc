@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import abc
 import functools
-import hashlib
 import struct
 from dataclasses import dataclass, field
 from enum import Enum
@@ -41,13 +40,12 @@ from .bitcoin import (
     minikey_to_private_key,
     push_script_bytes,
 )
-from .crypto import hash_160
+from .crypto import Hash, hash_160, sha256
 from .ecc import ECPrivkey
 
 if TYPE_CHECKING:
     from .networks import AbstractNetProtocol
 
-_sha256 = hashlib.sha256
 hex_to_bytes = bytes.fromhex
 
 
@@ -109,16 +107,6 @@ def bytes_to_int(be_bytes: bytes) -> int:
 def int_to_bytes(value: int) -> bytes:
     """Converts an integer to a big-endian sequence of bytes"""
     return value.to_bytes((value.bit_length() + 7) // 8, "big")
-
-
-def sha256(x: bytes) -> bytes:
-    """Simple wrapper of hashlib sha256."""
-    return _sha256(x).digest()
-
-
-def double_sha256(x: bytes) -> bytes:
-    """SHA-256 of SHA-256, as used extensively in bitcoin."""
-    return sha256(sha256(x))
 
 
 class UnknownAddress(DestinationType):
@@ -850,7 +838,7 @@ class Base58:
         prefixes it."""
         be_bytes = Base58.decode(txt)
         result, check = be_bytes[:-4], be_bytes[-4:]
-        if check != double_sha256(result)[:4]:
+        if check != Hash(result)[:4]:
             raise Base58Error("invalid base 58 checksum for {}".format(txt))
         return result
 
@@ -858,5 +846,5 @@ class Base58:
     def encode_check(payload: bytes) -> str:
         """Encodes a payload bytearray (which includes the version byte(s))
         into a Base58Check string."""
-        be_bytes = payload + double_sha256(payload)[:4]
+        be_bytes = payload + Hash(payload)[:4]
         return Base58.encode(be_bytes)

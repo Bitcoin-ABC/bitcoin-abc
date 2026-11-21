@@ -113,15 +113,14 @@ def DecodeAES_base64(secret, ciphertext_b64) -> bytes:
     return DecodeAES_bytes(secret, ciphertext)
 
 
-def sha256(x) -> bytes:
+def sha256(x: str | bytes | bytearray) -> bytes:
     x = to_bytes(x, "utf8")
-    return bytes(hashlib.sha256(x).digest())
+    return hashlib.sha256(x).digest()
 
 
-def Hash(x) -> bytes:
+def Hash(x: str | bytes | bytearray) -> bytes:
     x = to_bytes(x, "utf8")
-    out = bytes(sha256(sha256(x)))
-    return out
+    return sha256(sha256(x))
 
 
 # functions from pywallet
