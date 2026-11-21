@@ -288,7 +288,7 @@ def init_cmdline(config_options: dict, server):
         sys.exit(0)
 
     # important warning
-    if cmd.name in ["getprivatekeys"]:
+    if cmd.name == "getprivatekeys":
         print_stderr("WARNING: ALL your private keys are secret.")
         print_stderr("Exposing a single private key can compromise your entire wallet!")
         print_stderr(
@@ -358,7 +358,7 @@ def run_offline_command(config: SimpleConfig, config_options: dict) -> Any:
     # arguments passed to function
     args = [config.get(x) for x in cmd.params]
     # decode json arguments
-    if cmdname not in ("setconfig",):
+    if cmdname != "setconfig":
         args = list(map(json_decode, args))
     # options
     kwargs = {}

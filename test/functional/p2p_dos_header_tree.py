@@ -30,7 +30,7 @@ class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
             os.path.dirname(os.path.realpath(__file__)), self.options.datafile
         )
         with open(self.headers_file_path, encoding="utf-8") as headers_data:
-            h_lines = [line.strip() for line in headers_data.readlines()]
+            h_lines = [line.strip() for line in headers_data]
 
         # The headers data is taken from testnet3 for early blocks from genesis until the first checkpoint. There are
         # two headers with valid POW at height 1 and 2, forking off from

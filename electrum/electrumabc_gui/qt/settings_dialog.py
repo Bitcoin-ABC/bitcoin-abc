@@ -315,10 +315,7 @@ class SettingsDialog(WindowModalDialog):
         if index < 0:
             index = 0
         self.colortheme_combo.setCurrentIndex(index)
-        if (
-            sys.platform in ("darwin",)
-            and not self.gui_object.is_dark_theme_available()
-        ):
+        if sys.platform == "darwin" and not self.gui_object.is_dark_theme_available():
             msg = _(
                 "Color theme support is provided by macOS if using Mojave or above."
                 " Use the System Preferences to switch color themes."
@@ -345,11 +342,11 @@ class SettingsDialog(WindowModalDialog):
         )
         gui_widgets.append((colortheme_label, self.colortheme_combo))
 
-        if sys.platform not in ("darwin",):
+        if sys.platform != "darwin":
             # Enable/Disable HighDPI -- this option makes no sense for macOS
             # and thus does not appear on that platform
             self.hidpi_chk = QtWidgets.QCheckBox(_("Automatic high-DPI scaling"))
-            if sys.platform in ("linux",):
+            if sys.platform == "linux":
                 self.hidpi_chk.setToolTip(
                     _(
                         "Enable/disable this option if you experience graphical "
@@ -395,7 +392,7 @@ class SettingsDialog(WindowModalDialog):
 
                 freetype_chk.stateChanged.connect(on_freetype_chk)
                 gui_widgets.append((freetype_chk, None))
-            elif sys.platform in ("linux",):
+            elif sys.platform == "linux":
                 # Enable/Disable the use of the fonts.xml FontConfig override
                 # (Linux only)
                 self.fontconfig_chk = QtWidgets.QCheckBox(
@@ -919,7 +916,7 @@ class SettingsDialog(WindowModalDialog):
             # hmm, previous exchange wasn't in new h= setting. Try default exchange.
             idx = self.ex_combo.findText(ConfigKeys.USE_EXCHANGE.default)
         # if still no success (idx < 0) -> default to the first exchange in combo
-        idx = 0 if idx < 0 else idx
+        idx = max(idx, 0)
         # don't set index if no exchanges, as any index is illegal.
         # this shouldn't happen.
         if exchanges:

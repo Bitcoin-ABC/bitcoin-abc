@@ -305,10 +305,10 @@ class MnemonicElectrum(MnemonicBase):
                 " generation languages in this implementation"
             )
         # increase num_bits in order to obtain a uniform distibution for the last word
-        bpw = math.log(len(self.wordlist), 2)
+        bpw = math.log2(len(self.wordlist))
         num_bits = int(math.ceil(num_bits / bpw) * bpw)
         # handle custom entropy; make sure we add at least 16 bits
-        n_custom = int(math.ceil(math.log(custom_entropy, 2)))
+        n_custom = int(math.ceil(math.log2(custom_entropy)))
         n = max(16, num_bits - n_custom)
         self.print_error("make_seed", "adding %d bits" % n)
         my_entropy = 1

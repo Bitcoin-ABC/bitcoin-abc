@@ -25,6 +25,7 @@ select = [
     "ASYNC",
     "FLY",
     "PLE",
+    "FURB",
     "B006", # mutable-argument-default
     "B008", # function-call-in-default-argument
     "B912", # map-without-explicit-strict
@@ -46,6 +47,7 @@ ignore = [
     "E305", # blank-lines-after-function-or-class
     "E501", # line-too-long
     "C901", # complex-structure
+    "FURB157", # verbose-decimal-constructor
 ]
 
 [lint.per-file-ignores]

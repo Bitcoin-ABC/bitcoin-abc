@@ -176,7 +176,7 @@ class WalletSendTest(BitcoinTestFramework):
                 if not subtract_fee_from_outputs:
                     assert_equal(
                         to_wallet.getbalances()["mine"]["untrusted_pending"],
-                        to_untrusted_pending_before + Decimal(amount if amount else 0),
+                        to_untrusted_pending_before + Decimal(amount or 0),
                     )
             else:
                 assert_equal(

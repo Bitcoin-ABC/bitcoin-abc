@@ -983,7 +983,7 @@ class RPCCoverage:
             raise RuntimeError("No coverage reference found")
 
         with open(coverage_ref_filename, "r", encoding="utf8") as file:
-            all_cmds.update([line.strip() for line in file.readlines()])
+            all_cmds.update([line.strip() for line in file])
 
         for root, _, files in os.walk(self.dir):
             for filename in files:
@@ -992,7 +992,7 @@ class RPCCoverage:
 
         for filename in coverage_filenames:
             with open(filename, "r", encoding="utf8") as file:
-                covered_cmds.update([line.strip() for line in file.readlines()])
+                covered_cmds.update([line.strip() for line in file])
 
         return all_cmds - covered_cmds
 

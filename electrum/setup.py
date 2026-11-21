@@ -148,7 +148,7 @@ class MakeAllBeforeSdist(setuptools.command.sdist.sdist):
 
 platform_package_data = {}
 
-if sys.platform in ("linux",):
+if sys.platform == "linux":
     platform_package_data = {
         "electrumabc_gui.qt": ["data/ecsupplemental_lnx.ttf", "data/fonts.xml"],
     }

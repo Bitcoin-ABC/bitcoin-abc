@@ -119,7 +119,7 @@ class ASERTDaa:
 
     @staticmethod
     def target_to_hex(target: int) -> str:
-        h = hex(target)[2:]
+        h = f"{target:x}"
         return "0" * (64 - len(h)) + h
 
     def next_bits_aserti3_2d(

@@ -7,7 +7,7 @@ import tempfile
 import threading
 import time
 import traceback
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import qtpy
 from qtpy import QtWidgets
@@ -47,6 +47,8 @@ from .util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from electrumabc.plugins import Plugins
 
     from . import ElectrumGui

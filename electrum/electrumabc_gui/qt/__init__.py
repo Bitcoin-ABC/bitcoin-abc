@@ -123,9 +123,7 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
 
     if hasattr(QtCore.Qt, "AA_ShareOpenGLContexts"):
         QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-    if sys.platform not in ("darwin",) and hasattr(
-        QtCore.Qt, "AA_EnableHighDpiScaling"
-    ):
+    if sys.platform != "darwin" and hasattr(QtCore.Qt, "AA_EnableHighDpiScaling"):
         # The below only applies to non-macOS. On macOS this setting is
         # never used (because it is implicitly auto-negotiated by the OS
         # in a differernt way).
@@ -359,7 +357,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             sys.exit(msg)
 
     def is_dark_theme_available(self):
-        if sys.platform in ("darwin",):
+        if sys.platform == "darwin":
             # On OSX, qdarkstyle is kind of broken. We instead rely on Mojave
             # dark mode if (built in to the OS) for this facility, which the
             # user can set outside of this application.
@@ -371,7 +369,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         return True
 
     def set_dark_theme_if_needed(self):
-        if sys.platform in ("darwin",):
+        if sys.platform == "darwin":
             # On OSX, qdarkstyle is kind of broken (bad UI). We instead rely on Mojave
             # dark mode if (built in to the OS) for this facility, which the
             # user can set outside of this application.
@@ -942,7 +940,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         """Called from main_window.py -- tells user once and only once about
         the high DPI mode and its caveats on Linux only.  Is a no-op otherwise."""
         is_win = sys.platform[:3] in ("win", "cyg")
-        is_lin = sys.platform in ("linux",)
+        is_lin = sys.platform == "linux"
         if not is_win and not is_lin:
             return
         if (
@@ -1097,15 +1095,16 @@ class ElectrumGui(QtCore.QObject, PrintError):
         fontconfig override, False otherwise.  This config setting defaults to
         True for all Linux, but only is relevant to Qt GUI."""
         return bool(
-            sys.platform in ("linux",)
+            sys.platform == "linux"
             and self.config.get(ConfigKeys.LINUX_QT_USE_CUSTOM_FONTCONFIG)
         )
 
     @linux_qt_use_custom_fontconfig.setter
     def linux_qt_use_custom_fontconfig(self, b):
-        if self.config.is_modifiable(
-            ConfigKeys.LINUX_QT_USE_FONTCONFIG
-        ) and sys.platform in ("linux",):
+        if (
+            self.config.is_modifiable(ConfigKeys.LINUX_QT_USE_FONTCONFIG)
+            and sys.platform == "linux"
+        ):
             self.config.set_key(ConfigKeys.LINUX_QT_USE_CUSTOM_FONTCONFIG, bool(b))
 
     def main(self):

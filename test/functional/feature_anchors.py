@@ -53,9 +53,9 @@ class AnchorsTest(BitcoinTestFramework):
         for p in self.nodes[0].getpeerinfo():
             addr_split = p["addr"].split(":")
             if p["connection_type"] == "block-relay-only":
-                block_relay_nodes_port.append(hex(int(addr_split[1]))[2:])
+                block_relay_nodes_port.append(f"{int(addr_split[1]):x}")
             else:
-                inbound_nodes_port.append(hex(int(addr_split[1]))[2:])
+                inbound_nodes_port.append(f"{int(addr_split[1]):x}")
 
         self.log.info("Stop node 0")
         self.stop_node(0)

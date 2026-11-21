@@ -241,8 +241,7 @@ class PaymentRequest:
             return False
         # get requestor name
         self.requestor = x.get_common_name()
-        if self.requestor.startswith("*."):
-            self.requestor = self.requestor[2:]
+        self.requestor = self.requestor.removeprefix("*.")
         # verify the BIP70 signature
         pubkey0 = rsakey.RSAKey(x.modulus, x.exponent)
         sig = paymntreq.signature
@@ -308,7 +307,7 @@ class PaymentRequest:
         return o.destination.to_ui_string()
 
     def get_requestor(self) -> str:
-        return self.requestor if self.requestor else self.get_address()
+        return self.requestor or self.get_address()
 
     def get_verify_status(self) -> str | None:
         return self.error if self.requestor else "No Signature"
@@ -532,8 +531,7 @@ def check_ssl_config(config: SimpleConfig) -> str:
     assert x.exponent == params[1]
     # return requestor
     requestor = x.get_common_name()
-    if requestor.startswith("*."):
-        requestor = requestor[2:]
+    requestor = requestor.removeprefix("*.")
     return requestor
 
 

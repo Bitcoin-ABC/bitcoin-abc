@@ -320,7 +320,7 @@ class ElectrumGui:
             self.pos += 1  # tab
         elif cc in ["^W", "^C", "^X", "^Q"]:
             self.tab = -1
-        elif cc in ["^N"]:
+        elif cc == "^N":
             self.network_dialog()
         elif cc == "^S":
             self.settings_dialog()

@@ -1508,7 +1508,7 @@ def get_parser():
                 " this value (angle,software,desktop are possible overrides)"
             ),
         )
-    if sys.platform not in ("darwin",):
+    if sys.platform != "darwin":
         # Qt High DPI scaling can not be disabled on macOS since it is never
         # explicitly enabled on macOS! (see gui/qt/__init__.py)
         parser_gui.add_argument(

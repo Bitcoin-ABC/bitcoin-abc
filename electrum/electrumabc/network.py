@@ -657,7 +657,7 @@ class Network(util.DaemonThread):
         return value
 
     def notify(self, key: str) -> None:
-        if key in ("updated",):
+        if key == "updated":
             # Legacy support.  Will warn that updated is deprecated.
             self.trigger_callback(key)
         else:

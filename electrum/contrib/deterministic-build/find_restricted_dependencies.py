@@ -40,7 +40,7 @@ for p in sys.stdin.read().split():
             restricted = restricted.strip()
             dep_basename = dep.split(" ")[0]
             if check_restriction(dep, restricted):
-                print(dep_basename, sep=" ")
+                print(dep_basename)
                 print(
                     f"Installing {dep} from {p} although it is only needed for "
                     f"{restricted}",

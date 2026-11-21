@@ -64,7 +64,7 @@ def parseline(line: str) -> Union[dict, None]:
         else:
             net = "ipv6"
             # Not interested in localhost
-            if m.group(1) in ["::"]:
+            if m.group(1) == "::":
                 return None
             ipstr = m.group(1)
             # XXX parse IPv6 into number, could use name_to_ipv6 from

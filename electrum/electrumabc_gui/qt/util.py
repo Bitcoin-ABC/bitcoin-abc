@@ -669,7 +669,7 @@ class OverlayControlMixin:
         self._updateOverlayPos()
 
     def _updateSverlayStyleSheet(self):
-        if sys.platform in ("darwin",):
+        if sys.platform == "darwin":
             # On Mac, in Mojave dark mode, we get some strange button spacing
             # if we use the regular common sheet, so we must use a custom sheet.
             style_sheet = self.STYLE_SHEET_MAC

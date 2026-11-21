@@ -262,7 +262,7 @@ class JsonDB(PrintError):
             self.put("wallet_type", "standard")
             self.put("keystore", d)
 
-        elif wallet_type in ["bip44"]:
+        elif wallet_type == "bip44":
             xpub = xpubs["x/0'"]
             xprv = xprvs.get("x/0'")
             d = {

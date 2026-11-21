@@ -132,7 +132,7 @@ class TcpConnection(threading.Thread, PrintError):
 
     def get_simple_socket(self) -> socket.socket | None:
         try:
-            host = self.override_host if self.override_host else self.host
+            host = self.override_host or self.host
             addr_info = socket.getaddrinfo(
                 host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM
             )

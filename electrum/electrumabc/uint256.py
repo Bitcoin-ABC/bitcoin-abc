@@ -88,8 +88,7 @@ class BaseBlob:
     @classmethod
     def from_hex(cls: type[T], hex_str: str) -> T:
         hex_str = hex_str.strip()
-        if hex_str.startswith("0x"):
-            hex_str = hex_str[2:]
+        hex_str = hex_str.removeprefix("0x")
 
         if len(hex_str) // 2 != (cls.BITS // 8):
             raise DeserializationError(

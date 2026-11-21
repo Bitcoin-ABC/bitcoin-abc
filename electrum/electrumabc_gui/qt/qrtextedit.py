@@ -27,7 +27,7 @@ class _QrCodeTextEdit(ButtonsTextEdit):
 
     def showEvent(self, e):
         super().showEvent(e)
-        if sys.platform in ("darwin",) and isinstance(
+        if sys.platform == "darwin" and isinstance(
             self.qr_button, QtWidgets.QAbstractButton
         ):
             # on Darwin it's entirely possible that the color scheme changes

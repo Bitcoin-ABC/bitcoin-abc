@@ -760,7 +760,7 @@ class BaseWizard(PrintError):
         if has_xpub:
             t1 = xpub_type(k.xpub)
         if self.wallet_type == "standard":
-            if has_xpub and t1 not in ["standard"]:
+            if has_xpub and t1 != "standard":
                 self.show_error(_("Wrong key type") + " %s" % t1)
                 self.run("choose_keystore")
                 return
@@ -768,7 +768,7 @@ class BaseWizard(PrintError):
             self.run("create_wallet")
         elif self.wallet_type == "multisig":
             assert has_xpub
-            if t1 not in ["standard"]:
+            if t1 != "standard":
                 self.show_error(_("Wrong key type") + " %s" % t1)
                 self.run("choose_keystore")
                 return

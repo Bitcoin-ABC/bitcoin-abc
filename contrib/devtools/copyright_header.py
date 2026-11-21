@@ -225,7 +225,7 @@ def print_report(file_infos, verbose):
     print_filenames(examined, verbose)
 
     print(SEPARATOR)
-    print("")
+    print()
     zero_copyrights = [i["filename"] for i in file_infos if i["all_copyrights"] == 0]
     print(f"{len(zero_copyrights):4d} with zero copyrights")
     print_filenames(zero_copyrights, verbose)
@@ -243,7 +243,7 @@ def print_report(file_infos, verbose):
     ]
     print(f"{len(four_or_more_copyrights):4d} with four or more copyrights")
     print_filenames(four_or_more_copyrights, verbose)
-    print("")
+    print()
     print(SEPARATOR)
     print(
         'Copyrights with dominant style:\ne.g. "Copyright (c)" and '
@@ -257,7 +257,7 @@ def print_report(file_infos, verbose):
             holder_name_escaped = holder_name.replace("\\n", "\\\\n")
             print(f"{len(dominant_style):4d} with '{holder_name_escaped}'")
             print_filenames(dominant_style, verbose)
-    print("")
+    print()
     print(SEPARATOR)
     print(
         'Copyrights with year list style:\ne.g. "Copyright (c)" and '
@@ -274,7 +274,7 @@ def print_report(file_infos, verbose):
                 )
             )
             print_filenames(year_list_style, verbose)
-    print("")
+    print()
     print(SEPARATOR)
     print(
         'Copyrights with no "(c)" style:\ne.g. "Copyright" and "<year>" or '
@@ -292,7 +292,7 @@ def print_report(file_infos, verbose):
             )
             print_filenames(without_c_style, verbose)
 
-    print("")
+    print()
     print(SEPARATOR)
 
     unclassified_copyrights = [

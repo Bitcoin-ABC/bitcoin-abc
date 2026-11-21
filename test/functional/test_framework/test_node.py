@@ -1207,7 +1207,7 @@ class RPCOverloadWrapper:
             {
                 "desc": desc,
                 "timestamp": 0 if rescan else "now",
-                "label": label if label else "",
+                "label": label or "",
             }
         ]
         import_res = self.importdescriptors(req)
@@ -1221,9 +1221,7 @@ class RPCOverloadWrapper:
         ):
             return self.__getattr__("addmultisigaddress")(nrequired, keys, label)
         cms = self.createmultisig(nrequired, keys)
-        req = [
-            {"desc": cms["descriptor"], "timestamp": 0, "label": label if label else ""}
-        ]
+        req = [{"desc": cms["descriptor"], "timestamp": 0, "label": label or ""}]
         import_res = self.importdescriptors(req)
         if not import_res[0]["success"]:
             raise JSONRPCException(import_res[0]["error"])
@@ -1240,7 +1238,7 @@ class RPCOverloadWrapper:
             {
                 "desc": desc,
                 "timestamp": 0 if rescan else "now",
-                "label": label if label else "",
+                "label": label or "",
             }
         ]
         import_res = self.importdescriptors(req)
@@ -1264,7 +1262,7 @@ class RPCOverloadWrapper:
             {
                 "desc": desc,
                 "timestamp": 0 if rescan else "now",
-                "label": label if label else "",
+                "label": label or "",
             }
         ]
         if is_hex and p2sh:
@@ -1272,7 +1270,7 @@ class RPCOverloadWrapper:
                 {
                     "desc": descsum_create("p2sh(raw(" + address + "))"),
                     "timestamp": 0 if rescan else "now",
-                    "label": label if label else "",
+                    "label": label or "",
                 }
             )
         import_res = self.importdescriptors(reqs)

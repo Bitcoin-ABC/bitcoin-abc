@@ -615,8 +615,7 @@ def get_temp_default_datadir(temp_dir: pathlib.Path) -> tuple[dict, pathlib.Path
 
 def append_config(datadir, options):
     with open(os.path.join(datadir, "bitcoin.conf"), "a", encoding="utf8") as f:
-        for option in options:
-            f.write(f"{option}\n")
+        f.writelines(f"{option}\n" for option in options)
 
 
 def get_auth_cookie(datadir, chain):

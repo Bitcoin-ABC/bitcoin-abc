@@ -40,7 +40,7 @@ class BuildInfo(UserDict):
         for prop in propsList:
             properties[prop["name"]] = prop["value"]
 
-        return properties if properties else None
+        return properties or None
 
 
 class TeamCity:

@@ -222,7 +222,7 @@ class Synchronizer(ThreadJob):
         status = bytearray()
         for tx_hash, height in hist:
             status.extend(f"{tx_hash}:{height:d}:".encode("ascii"))
-        return hashlib.sha256(status).digest().hex()
+        return hashlib.sha256(status).hexdigest()
 
     @property
     def change_subs_active(self) -> set[str]:

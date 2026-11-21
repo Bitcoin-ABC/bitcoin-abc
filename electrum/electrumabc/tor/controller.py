@@ -170,7 +170,7 @@ class TorController(PrintError):
 
     @staticmethod
     def _popen_monkey_patch(*args, **kwargs) -> subprocess.Popen:
-        if sys.platform in ("win32",):
+        if sys.platform == "win32":
             if hasattr(subprocess, "CREATE_NO_WINDOW"):
                 kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
             else:

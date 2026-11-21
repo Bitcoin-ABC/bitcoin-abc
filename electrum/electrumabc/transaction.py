@@ -268,7 +268,7 @@ class TxInput:
                 sig_list = signatures
             else:
                 pk_list = x_pubkeys
-                sig_list = [sig if sig else NO_SIGNATURE for sig in self.signatures]
+                sig_list = [sig or NO_SIGNATURE for sig in self.signatures]
         return pk_list, sig_list
 
     def get_or_build_scriptsig(

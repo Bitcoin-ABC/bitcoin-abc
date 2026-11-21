@@ -89,7 +89,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
 
         self.previous_payto = ""
 
-        if sys.platform in ("darwin",):
+        if sys.platform == "darwin":
             # See issue #1411 -- on *some* macOS systems, clearing the
             # payto field with setText('') ends up leaving "ghost" pixels
             # in the field, which look like the text that was just there.
@@ -110,7 +110,7 @@ class PayToEdit(PrintError, CompletionTextEdit, ScanQRTextEdit):
         self.overlay_widget.setHidden(b)
 
     def setGreen(self):
-        if sys.platform in ("darwin",) and util.ColorScheme.dark_scheme:
+        if sys.platform == "darwin" and util.ColorScheme.dark_scheme:
             # MacOS dark mode requires special treatment here
             self.setStyleSheet(
                 self._original_style_sheet
