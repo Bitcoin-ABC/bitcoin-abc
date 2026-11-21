@@ -33,7 +33,7 @@ import time
 import warnings
 from collections import defaultdict
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Literal, NamedTuple, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, NamedTuple, TypedDict, TypeVar
 
 from . import bitcoin, schnorr
 from .address import (
@@ -1612,7 +1612,9 @@ class Transaction:
     # savings optimization.  Please maintain that invariant if you modify this
     # code, otherwise the cache may grow to 10x memory consumption if you
     # put deserialized tx's in here.
-    _fetched_tx_cache = ExpiringCache(maxlen=1000, name="TransactionFetchCache")
+    _fetched_tx_cache: ClassVar[ExpiringCache[str, Transaction]] = ExpiringCache(
+        maxlen=1000, name="TransactionFetchCache"
+    )
 
     def fetch_input_data(
         self,

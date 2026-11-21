@@ -1,21 +1,36 @@
-#
 # Electron Cash - A Bitcoin Cash SPV Wallet
 #
 # This file Copyright (C) 2019 Calin Culianu <calin.culianu@gmail.com>
 # License: MIT License
-#
+from __future__ import annotations
+
 import math
 import queue
 import threading
 import time
 import weakref
 from collections import defaultdict
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from .printerror import PrintError, print_error
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
-class ExpiringCache:
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+@dataclass(slots=True)
+class CacheEntry(Generic[V]):
+    tick: int
+    """tick of last cache hit"""
+
+    value: V
+
+
+class ExpiringCache(Generic[K, V]):
     """A fast cache useful for storing tens of thousands of lightweight items.
 
     Use this class to cache the results of functions or other computations
@@ -62,36 +77,34 @@ class ExpiringCache:
         timeout: float | None = None,
     ):
         assert maxlen > 0
-        timeout = (
-            isinstance(timeout, (float, int)) and timeout > 0.0 and timeout
-        ) or None
-        self.timeout_ticks = timeout and math.ceil(
-            timeout / _ExpiringCacheMgr.tick_interval
-        )
+        self.timeout_ticks: int | None = None
+        if isinstance(timeout, (float, int)) and timeout > 0.0:
+            self.timeout_ticks = math.ceil(timeout / _ExpiringCacheMgr.tick_interval)
+
         self.maxlen = maxlen
         self.name = name
-        self.d = {}
+        self.d: dict[K, CacheEntry[V]] = {}
         _ExpiringCacheMgr.add_cache(self)
 
-    def get(self, key, default=None) -> Any:
+    def get(self, key: K, default: V | None = None) -> V | None:
         res = self.d.get(key)
         if res is not None:
             # cache hit
             # update tick access time for this cache hit
-            res[0] = _ExpiringCacheMgr.tick
-            return res[1]
+            res.tick = _ExpiringCacheMgr.tick
+            return res.value
         # cache miss
         return default
 
-    def put(self, key, value) -> None:
-        self.d[key] = [_ExpiringCacheMgr.tick, value]
+    def put(self, key: K, value: V) -> None:
+        self.d[key] = CacheEntry(_ExpiringCacheMgr.tick, value)
 
     def size_bytes(self) -> int:
         """Returns the cache's memory usage in bytes. This is done by doing a
         deep, recursive examination of the cache contents."""
         return get_object_size(self.d.copy())  # prevent iterating over a mutating dict.
 
-    def copy_dict(self) -> dict[Any, tuple[int, Any]]:
+    def copy_dict(self) -> dict[K, CacheEntry[V]]:
         """Returns a copy of the cache contents. Useful for seriliazing
         or otherwise examining the cache. The returned dict format is:
         d[item_key] -> [tick, item_value]"""
@@ -137,18 +150,18 @@ class _ExpiringCacheMgr(PrintError):
     # may end up executing in the same thread as our add_cache() method,
     # due to the way Python GC works!
     _lock = threading.RLock()
-    _instance = None
+    _instance: _ExpiringCacheMgr | None = None
     tick = 0
     tick_interval = 10.0  # seconds; we wake up this often to update 'tick' and also to expire old items for overflowing caches
     debug = False  # If true we print to console when caches expire and go away
 
-    def __init__(self, add_iter=None):
+    def __init__(self, add_iter: tuple[ExpiringCache, ...] | None = None):
         cls = type(self)
         assert not cls._instance, "_ExpiringCacheMgr is a singleton"
         super().__init__()
         cls._instance = self
-        self.q = queue.Queue()
-        self.caches = weakref.WeakSet()
+        self.q: queue.Queue[None] = queue.Queue()
+        self.caches: weakref.WeakSet[ExpiringCache] = weakref.WeakSet()
         if add_iter:
             self.caches.update(add_iter)
         self.livect = len(
@@ -158,9 +171,9 @@ class _ExpiringCacheMgr(PrintError):
         self.thread.start()
 
     @classmethod
-    def add_cache(cls, *caches) -> None:
+    def add_cache(cls, *caches: ExpiringCache) -> None:
         assert caches
-        new_caches = caches
+        new_caches: Sequence[ExpiringCache] = caches
         with cls._lock:
             slf = cls._instance
             if not slf:
@@ -175,7 +188,7 @@ class _ExpiringCacheMgr(PrintError):
             slf.livect = len(slf.caches)
 
     @classmethod
-    def on_cache_gc(cls, name) -> None:
+    def on_cache_gc(cls, name: str) -> None:
         assert cls._instance
         thread2join = None
         with cls._lock:
@@ -256,7 +269,9 @@ class _ExpiringCacheMgr(PrintError):
                 self.print_error("thread exit")
 
     @classmethod
-    def _try_to_expire_old_items(cls, d_orig, num) -> int:
+    def _try_to_expire_old_items(
+        cls, d_orig: dict[Any, CacheEntry[Any]], num: int
+    ) -> int:
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if len(d) < num or num <= 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
@@ -269,8 +284,7 @@ class _ExpiringCacheMgr(PrintError):
         # bin the cache.dict items by 'tick' (when they were last accessed)
         bins = defaultdict(list)
         for k, v in d.items():
-            tick = v[0]
-            bins[tick].append(k)
+            bins[v.tick].append(k)
         del d
 
         # Now, expire the old items starting with the oldest until we
@@ -300,7 +314,9 @@ class _ExpiringCacheMgr(PrintError):
         return ct
 
     @classmethod
-    def _remove_timed_out_items(cls, d_orig, tick_cutoff) -> int:
+    def _remove_timed_out_items(
+        cls, d_orig: dict[Any, CacheEntry[Any]], tick_cutoff: float
+    ) -> int:
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if not len(d) or tick_cutoff < 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
@@ -313,7 +329,7 @@ class _ExpiringCacheMgr(PrintError):
         # scan the cache.dict for items whose 'tick' is older than tick_cutoff
         ct = 0
         for k, v in d.items():
-            tick = v[0]
+            tick = v.tick
             if tick < tick_cutoff:
                 try:
                     del d_orig[k]  # despite appearances, this is atomic (thread-safe)
@@ -323,7 +339,7 @@ class _ExpiringCacheMgr(PrintError):
         return ct
 
 
-def get_object_size(obj_0) -> int:
+def get_object_size(obj_0: Any) -> int:
     """Debug tool -- returns the amount of memory taken by an object in bytes
     by deeply examining its contents recursively (more accurate than
     sys.getsizeof as a result)."""
@@ -336,11 +352,11 @@ def get_object_size(obj_0) -> int:
     zero_depth_bases = (str, bytes, Number, range, bytearray)
     iteritems = "items"
 
-    def getsize(obj_0) -> int:
+    def getsize(obj_0: Any) -> int:
         """Recursively iterate to sum size of object & members."""
         seen_ids = set()
 
-        def inner(obj) -> int:
+        def inner(obj: Any) -> int:
             obj_id = id(obj)
             if obj_id in seen_ids:
                 return 0

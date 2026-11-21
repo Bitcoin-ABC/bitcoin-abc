@@ -44,7 +44,9 @@ def set_locale_has_thousands_separator(flag: bool) -> None:
 
 # This cache will eat about ~6MB of memory per 20,000 items, but it does make
 # format_satoshis() run over 3x faster.
-_fmt_sats_cache = ExpiringCache(maxlen=20000, name="format_satoshis cache")
+_fmt_sats_cache: ExpiringCache[tuple[float, int, int, int, bool, bool], str] = (
+    ExpiringCache(maxlen=20000, name="format_satoshis cache")
+)
 
 
 def format_satoshis(

@@ -72,8 +72,8 @@ class ScriptOutput(address.ScriptOutput):
     # returns a bool.  We save the parsed message in this cache because __new__
     # will be called very soon after on a True return to re-parse the Script,
     # due to the way the protocol_match system works in Electron Cash.
-    _script_message_cache: ClassVar[caches.ExpiringCache] = caches.ExpiringCache(
-        maxlen=25, name="SLP Script Message Cache", timeout=60.0
+    _script_message_cache: ClassVar[caches.ExpiringCache[bytes, Message]] = (
+        caches.ExpiringCache(maxlen=25, name="SLP Script Message Cache", timeout=60.0)
     )
 
     def __post_init__(self) -> None:
