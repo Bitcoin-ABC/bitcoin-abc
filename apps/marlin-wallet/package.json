@@ -36,6 +36,8 @@
         "@babel/preset-env": "^7.29.14",
         "@babel/runtime": "^7.29.14",
         "@react-native-community/cli": "^20.2.0",
+        "@react-native-community/cli-platform-android": "20.2.0",
+        "@react-native-community/cli-platform-ios": "20.2.0",
         "@react-native/babel-preset": "0.88.1",
         "@react-native/codegen": "0.88.1",
         "@react-native/eslint-config": "0.88.1",

@@ -525,6 +525,12 @@ importers:
       '@react-native-community/cli':
         specifier: ^20.2.0
         version: 20.2.0(supports-color@8.1.1)(typescript@6.0.3)
+      '@react-native-community/cli-platform-android':
+        specifier: 20.2.0
+        version: 20.2.0
+      '@react-native-community/cli-platform-ios':
+        specifier: 20.2.0
+        version: 20.2.0
       '@react-native/babel-preset':
         specifier: 0.88.1
         version: 0.88.1(@babel/core@7.29.13(supports-color@8.1.1))(supports-color@8.1.1)
