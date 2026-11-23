@@ -311,4 +311,45 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->FinalizeNode(config, dummyNode);
 }
 
+// The Handshake test helper must not get the peer discouraged.
+BOOST_AUTO_TEST_CASE(handshake_does_not_discourage) {
+    LOCK(NetEventsInterface::g_msgproc_mutex);
+
+    const Config &config = m_node.chainman->GetConfig();
+
+    auto banman = std::make_unique<BanMan>(m_args.GetDataDirBase() / "banlist",
+                                           config.GetChainParams(), nullptr,
+                                           DEFAULT_MISBEHAVING_BANTIME);
+    auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,
+                                                    *m_node.addrman);
+    auto peerman = PeerManager::make(*connman, *m_node.addrman, banman.get(),
+                                     *m_node.chainman, *m_node.mempool,
+                                     /*avalanche=*/nullptr, {});
+
+    CConnman::Options options;
+    options.m_msgproc = {peerman.get()};
+    connman->Init(options);
+
+    banman->ClearBanned();
+    CAddress addr(ip(0xa0b0c001), NODE_NONE);
+    CNode dummyNode(id++, /*sock=*/nullptr, addr,
+                    /* nKeyedNetGroupIn */ 0, /* nLocalHostNonceIn */ 0,
+                    /* nLocalExtraEntropyIn */ 0, CAddress(), /* pszDest */ "",
+                    ConnectionType::INBOUND, /* inbound_onion */ false);
+
+    connman->Handshake(
+        /*node=*/dummyNode,
+        /*successfully_connected=*/true,
+        /*remote_services=*/ServiceFlags(NODE_NETWORK),
+        /*local_services=*/ServiceFlags(NODE_NETWORK),
+        /*version=*/PROTOCOL_VERSION,
+        /*relay_txs=*/true);
+
+    BOOST_CHECK(!banman->IsDiscouraged(addr));
+    BOOST_CHECK(!dummyNode.fDisconnect);
+    BOOST_CHECK(dummyNode.fSuccessfullyConnected);
+
+    peerman->FinalizeNode(config, dummyNode);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

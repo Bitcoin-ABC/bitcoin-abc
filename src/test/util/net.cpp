@@ -11,6 +11,7 @@
 #include <netmessagemaker.h>
 #include <node/eviction.h>
 #include <span.h>
+#include <util/time.h>
 
 #include <vector>
 
@@ -27,8 +28,9 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     CSerializedNetMsg msg_version{
         NetMsg::Make(NetMsgType::VERSION, version,
                      Using<CustomUintFormatter<8>>(remote_services),
-                     // dummy time
-                     int64_t{},
+                     // Use a valid time: a timestamp before the genesis block
+                     // causes the peer to be discouraged.
+                     int64_t{GetTime()},
                      // ignored service bits
                      int64_t{},
                      // dummy addrMe
