@@ -84,7 +84,7 @@ class ReplayProtectionTest(BitcoinTestFramework, BlockTestMixin):
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
-        for i in range(100):
+        for _ in range(100):
             out.append(get_spendable_output())
 
         # Generate a key pair to test P2SH sigCheck count

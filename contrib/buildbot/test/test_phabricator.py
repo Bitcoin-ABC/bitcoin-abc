@@ -107,7 +107,7 @@ class PhabricatorTests(unittest.TestCase):
 
         # The whoami result should be cached. Call the method a few times and
         # check the call occurs once and the result is always as expected.
-        for i in range(10):
+        for _ in range(10):
             phid = self.phab.get_current_user_phid()
             self.phab.user.whoami.assert_called_once()
             self.assertEqual(phid, user_PHID)
@@ -387,7 +387,7 @@ class PhabricatorTests(unittest.TestCase):
         # With later calls the content is returned directly thanks to the cache
         self.phab.diffusion.filecontentquery.reset_mock()
         self.phab.file.download.reset_mock()
-        for i in range(10):
+        for _ in range(10):
             file_content = self.phab.get_file_content_from_master(path)
             self.assertEqual(file_content, expected_content)
             self.phab.diffusion.filecontentquery.assert_not_called()
@@ -395,7 +395,7 @@ class PhabricatorTests(unittest.TestCase):
 
         # If the master commit changes, the file content is still valid in cache
         # as long as its file hash is unchanged
-        for i in range(10):
+        for _ in range(10):
             commit_hash = str(int(commit_hash) + 1)
             self.phab.get_latest_master_commit_hash.return_value = commit_hash
 
@@ -414,7 +414,7 @@ class PhabricatorTests(unittest.TestCase):
         # ... only once.
         self.phab.diffusion.filecontentquery.reset_mock()
         self.phab.file.download.reset_mock()
-        for i in range(10):
+        for _ in range(10):
             file_content = self.phab.get_file_content_from_master(path)
             self.assertEqual(file_content, expected_content)
             self.phab.diffusion.filecontentquery.assert_not_called()

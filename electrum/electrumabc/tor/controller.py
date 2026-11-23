@@ -51,7 +51,7 @@ def check_proxy_bypass_tor_control(*args, **kwargs) -> bool:
         # [0] is this function, [1] is the genexpr in _socksocket_filtered,
         # [2] is _socksocket_filtered and [3] is the caller. In newer stem
         # versions socket is not called directly but through asyncio.
-        for s in stack[3:7]:
+        for _s in stack[3:7]:
             caller_self = stack[3].frame.f_locals.get("self")
             if caller_self and type(caller_self) is stem.socket.ControlPort:
                 return True

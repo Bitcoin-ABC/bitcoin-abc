@@ -342,7 +342,7 @@ class Fusion(threading.Thread, PrintError):
             sec, _compressed = priv
             assert isinstance(sec, bytes) and len(sec) == 32
         self.keypairs.update(keypairs)
-        for coin, (pub, value) in coins.items():
+        for coin, (pub, _value) in coins.items():
             assert pub[0] in (2, 3, 4), "expecting a realized pubkey"
             assert coin not in self.coins, "already added"
             assert pub.hex() in self.keypairs, f"missing private key for {pub.hex()}"
@@ -424,7 +424,11 @@ class Fusion(threading.Thread, PrintError):
 
     def clear_coins(self):
         """Clear the inputs list and release frozen coins."""
-        for wallet, (coins, mytxids, checked_txids) in self.source_wallet_info.items():
+        for wallet, (
+            coins,
+            _mytxids,
+            _checked_txids,
+        ) in self.source_wallet_info.items():
             wallet.set_frozen_coin_state(coins, False)
             self.notify_coins_ui(wallet)
         self.source_wallet_info.clear()  # save some memory as the checked_txids set can be big
@@ -550,7 +554,7 @@ class Fusion(threading.Thread, PrintError):
         finally:
             self.clear_coins()
             if self.status[0] != "complete":
-                for amount, addr in self.outputs:
+                for _amount, addr in self.outputs:
                     self.target_wallet.unreserve_change_address(addr)
                 if not server_connected_and_greeted:
                     self.notify_server_status(False, self.status)
@@ -1172,7 +1176,7 @@ class Fusion(threading.Thread, PrintError):
                 # assemble the transaction.
                 if len(allsigs) != len(tx.txinputs()):
                     raise FusionError("Server gave wrong number of signatures.")
-                for i, (sig, inp) in enumerate(zip(allsigs, tx.txinputs())):
+                for sig, inp in zip(allsigs, tx.txinputs()):
                     if len(sig) != 64:
                         raise FusionError("server relayed bad signature")
                     inp.update_signature(sig + b"\x41", 0)

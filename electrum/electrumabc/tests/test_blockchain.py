@@ -33,7 +33,7 @@ class TestBlockchain(unittest.TestCase):
         self.assertEqual(bc.target_to_bits(0), 0)
         bits = bc.MAX_BITS
         for step in (1, 17, 149, 1019, 14851, 104729, 1000001):
-            for n in range(100):
+            for _n in range(100):
                 if (bits & 0x00FFFFFF) >= 0x8000:
                     test_bits = bits
                     if test_bits & 0x800000:
@@ -55,7 +55,7 @@ class TestBlockchain(unittest.TestCase):
         }
         blocks = [first]
         chunk_bytes = bc.serialize_header(first)
-        for n in range(1, 1000):
+        for _n in range(1, 1000):
             block = get_block(blocks[-1], 600, first["bits"])
             blocks.append(block)
             chunk_bytes += bc.serialize_header(block)
@@ -63,7 +63,7 @@ class TestBlockchain(unittest.TestCase):
         chain = MyBlockchain()
 
         # Get blocks every 2hrs now.  Heights 1000 ... 1010 inclusive
-        for n in range(11):
+        for _n in range(11):
             block = get_block(blocks[-1], 2 * 3600, first["bits"])
             blocks.append(block)
             chunk_bytes += bc.serialize_header(block)

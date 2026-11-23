@@ -129,7 +129,7 @@ class P2PEvict(BitcoinTestFramework):
         self.log.info(
             "Create 4 peers and protect them from eviction by sending us a tx"
         )
-        for i in range(4):
+        for _ in range(4):
             txpeer = node.add_p2p_connection(SlowP2PInterface())
             current_peer += 1
             txpeer.sync_with_ping()

@@ -100,7 +100,7 @@ class MempoolLimitTest(BitcoinTestFramework):
         parent_fee = (100 * mempoolmin_feerate / 1000) * parent_size
 
         big_parent_txids = []
-        for i in range(num_big_parents):
+        for _ in range(num_big_parents):
             parent = self.wallet.create_self_transfer(
                 fee=parent_fee, target_size=parent_size, confirmed_only=True
             )

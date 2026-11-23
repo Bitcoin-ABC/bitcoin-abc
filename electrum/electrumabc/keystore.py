@@ -528,7 +528,7 @@ class OldKeyStore(DeterministicKeyStore):
     @classmethod
     def stretch_key(self, seed):
         x = seed
-        for i in range(100000):
+        for _i in range(100000):
             x = hashlib.sha256(x + seed).digest()
         return be_bytes_to_number(x)
 

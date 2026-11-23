@@ -27,6 +27,7 @@ select = [
     "PLE",
     "FURB",
     "B006", # mutable-argument-default
+    "B007", # unused-loop-control-variable
     "B008", # function-call-in-default-argument
     "B033", # duplicate-value
     "B912", # map-without-explicit-strict

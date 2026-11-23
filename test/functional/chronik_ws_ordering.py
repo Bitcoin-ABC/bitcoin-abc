@@ -186,7 +186,7 @@ class ChronikWsOrdering(BitcoinTestFramework):
         # Send 240 txs to the p2sh scripts, 15 to each script
         p2sh_txids = []
         for p2sh_script in p2sh_scripts:
-            for i in range(15):
+            for _ in range(15):
                 p2sh_txid = send_to_script(p2sh_script)
                 p2sh_txids.append(p2sh_txid)
                 assert_equal(ws.recv(), ws_tx_msg(p2sh_txid, pb.TX_ADDED_TO_MEMPOOL))

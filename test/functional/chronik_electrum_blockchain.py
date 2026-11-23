@@ -1127,7 +1127,7 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
 
         # Valid address, but not associated with any known coin. With or without
         # prefix
-        for address in (
+        for _address in (
             "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpuvt7ljzqy",
             "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpuvt7ljzqy",
         ):

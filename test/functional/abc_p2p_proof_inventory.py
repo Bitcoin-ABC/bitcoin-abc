@@ -308,7 +308,7 @@ class ProofInventoryTest(BitcoinTestFramework):
 
         def add_peers(count):
             peers = []
-            for i in range(count):
+            for _ in range(count):
                 peer = node.add_p2p_connection(ProofInvStoreP2PInterface())
                 peer.wait_for_verack()
                 peers.append(peer)

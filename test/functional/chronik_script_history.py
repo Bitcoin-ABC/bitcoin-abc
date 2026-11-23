@@ -247,7 +247,7 @@ class ChronikScriptHistoryTest(BitcoinTestFramework):
         newblocktxs = [
             entry for entry in mempooltxs if entry["txid"] not in mempool_txids[:5]
         ]
-        for idx, tx in enumerate(mempool_txs[:5]):
+        for tx in mempool_txs[:5]:
             tx.nLockTime = 12
             mine_txs.append(tx)
             newblocktxs.append({"time_first_seen": 0, "txid": tx.txid_hex})

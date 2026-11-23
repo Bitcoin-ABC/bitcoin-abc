@@ -112,7 +112,7 @@ class GetblockstatsTest(BitcoinTestFramework):
         self.nodes[0].setmocktime(mocktime)
         self.sync_all()
 
-        for i, b in enumerate(blocks):
+        for b in blocks:
             self.nodes[0].submitblock(b)
 
     def run_test(self):

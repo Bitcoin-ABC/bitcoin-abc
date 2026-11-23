@@ -173,7 +173,7 @@ class MempoolCoherenceOnActivationsTest(BitcoinTestFramework, BlockTestMixin):
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
-        for i in range(100):
+        for _ in range(100):
             out.append(get_spendable_output())
 
         # Create 2 pre-fork-only txns (tx_pre0, tx_pre1). Fund txns are valid

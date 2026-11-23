@@ -64,7 +64,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
 
         # Prepare peers proofs
         peers = []
-        for i in range(0, self.min_avaproofs_node_count + 1):
+        for _ in range(0, self.min_avaproofs_node_count + 1):
             key, proof = gen_proof(self, self.nodes[0])
             peers.append({"key": key, "proof": proof})
 

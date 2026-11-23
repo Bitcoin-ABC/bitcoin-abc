@@ -454,7 +454,7 @@ def deployPlugins(
     plugins = []
     if deploymentInfo.pluginPath is None:
         return
-    for dirpath, dirnames, filenames in os.walk(deploymentInfo.pluginPath):
+    for dirpath, _dirnames, filenames in os.walk(deploymentInfo.pluginPath):
         pluginDirectory = os.path.relpath(dirpath, deploymentInfo.pluginPath)
         if pluginDirectory == "designer":
             # Skip designer plugins

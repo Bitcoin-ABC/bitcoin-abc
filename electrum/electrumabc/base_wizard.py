@@ -455,7 +455,7 @@ class BaseWizard(PrintError):
         devices = []
         devmgr = self.plugins.device_manager
         scanned = devmgr.scan_devices()
-        for name, description, plugin in support:
+        for name, _description, plugin in support:
             try:
                 # FIXME: side-effect: unpaired_device_info sets client.handler
                 u = devmgr.unpaired_device_infos(None, plugin, devices=scanned)

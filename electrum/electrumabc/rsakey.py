@@ -239,7 +239,7 @@ def isPrime(n, iterations=5, display=False):
         s, t = s // 2, t + 1
     # Repeat Rabin-Miller x times
     a = 2  # Use 2 as a base for first iteration speedup, per HAC
-    for count in range(iterations):
+    for _count in range(iterations):
         v = powMod(a, s, n)
         if v == 1:
             continue

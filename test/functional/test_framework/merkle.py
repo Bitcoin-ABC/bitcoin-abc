@@ -45,7 +45,7 @@ def merkle_root_and_branch(
 
     working_hashes = hashes.copy()
 
-    for i in range(bl):
+    for _ in range(bl):
         if len(working_hashes) % 2 == 1:
             # odd number of hashes, duplicate last one
             working_hashes.append(working_hashes[-1])

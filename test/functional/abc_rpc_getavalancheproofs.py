@@ -46,9 +46,9 @@ class GetAvalancheProofsTest(BitcoinTestFramework):
 
         def avalancheproofs_equals(expected):
             proofs = node.getavalancheproofs()
-            for key, proof_list in proofs.items():
+            for _key, proof_list in proofs.items():
                 proof_list.sort()
-            for key, proof_list in expected.items():
+            for _key, proof_list in expected.items():
                 proof_list.sort()
             return proofs == expected
 

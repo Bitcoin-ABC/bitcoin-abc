@@ -743,7 +743,7 @@ class Network(util.DaemonThread):
 
     def start_interfaces(self) -> None:
         self.start_interface(self.default_server)
-        for i in range(self.num_server - 1):
+        for _i in range(self.num_server - 1):
             self.start_random_interface()
 
     def set_proxy(self, proxy: ProxyDictT | None) -> None:

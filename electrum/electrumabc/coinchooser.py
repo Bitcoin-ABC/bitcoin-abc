@@ -291,7 +291,7 @@ class CoinChooserRandom(CoinChooserBase):
         # And now some random ones
         attempts = min(100, (len(buckets) - 1) * 10 + 1)
         permutation = list(range(len(buckets)))
-        for i in range(attempts):
+        for _i in range(attempts):
             # Get a random permutation of the buckets, and
             # incrementally combine buckets until sufficient
             self.p.shuffle(permutation)

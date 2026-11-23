@@ -356,7 +356,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         self.wait_until(lambda: has_node_count(2))
 
         self.log.info("Check that repeated avahello messages are ignored")
-        for i in range(3):
+        for _ in range(3):
             with node.assert_debug_log(["Ignoring avahello from peer"]):
                 peer_proof_known.send_avahello(interface_delegation_hex, delegated_key)
 

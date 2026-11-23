@@ -208,7 +208,7 @@ class ElectrumGui:
         self.do_send()
 
     def print_banner(self):
-        for i, x in enumerate(self.wallet.network.banner.split("\n")):
+        for x in self.wallet.network.banner.split("\n"):
             print(x)
 
     def print_list(self, lst, firstline):

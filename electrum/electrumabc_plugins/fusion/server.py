@@ -375,7 +375,7 @@ class FusionServer(GenericServer):
                 c.start_ev.set()
 
             # Remove those clients from all pools
-            for t, pool in self.waiting_pools.items():
+            for _t, pool in self.waiting_pools.items():
                 for c in chosen_clients:
                     pool.remove(c)
                 pool.try_move_from_queue()
@@ -534,7 +534,7 @@ class FusionServer(GenericServer):
         except Exception:
             # Remove client from waiting pools on failure (on success, we are already removed; on stop we don't care.)
             with self.lock:
-                for t, pool in mytierpools.items():
+                for pool in mytierpools.values():
                     if pool.remove(client):
                         pool.try_move_from_queue()
                 if self.tier_best in mytierpools:
@@ -893,7 +893,7 @@ class FusionController(threading.Thread, PrintError):
             if bad_inputs:
                 bad_components.update(input_indices[i] for i in bad_inputs)
             else:
-                for i, (inp, sig) in enumerate(zip(tx.txinputs(), signatures)):
+                for inp, sig in zip(tx.txinputs(), signatures):
                     inp.update_signature(sig + b"\x41", 0)
 
                 assert tx.is_complete()
@@ -938,7 +938,7 @@ class FusionController(threading.Thread, PrintError):
 
         # scan the commitment list and note where each client's commitments ended up
         client_commit_indexes = [[None] * Params.num_components for _ in self.clients]
-        for i, (commit, ci, cj) in enumerate(commitment_master_list):
+        for i, (_commit, ci, cj) in enumerate(commitment_master_list):
             client_commit_indexes[ci][cj] = i
 
         collector = ResultsCollector(len(self.clients), done_on_fail=False)

@@ -557,7 +557,7 @@ class CScript(bytes):
         See raw_iter() if you need to distinguish the different possible
         PUSHDATA encodings.
         """
-        for opcode, data, sop_idx in self.raw_iter():
+        for opcode, data, _sop_idx in self.raw_iter():
             if data is not None:
                 yield data
             else:

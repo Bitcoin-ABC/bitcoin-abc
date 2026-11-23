@@ -60,7 +60,7 @@ class AddrTest(BitcoinTestFramework):
 
         N = 5
         cur_mock_time = int(time.time())
-        for i in range(N):
+        for _ in range(N):
             addr_receiver = self.nodes[0].add_p2p_connection(AddrReceiver())
             addr_receiver.send_and_ping(msg_getaddr())
             # Trigger response

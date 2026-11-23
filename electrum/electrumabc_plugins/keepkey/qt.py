@@ -79,7 +79,7 @@ class CharacterDialog(WindowModalDialog):
         vbox.addWidget(WWLabel(CHARACTER_RECOVERY))
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.word_help)
-        for i in range(4):
+        for _i in range(4):
             char_button = CharacterButton("*")
             char_button.setMaximumWidth(36)
             self.char_buttons.append(char_button)

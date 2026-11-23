@@ -77,7 +77,7 @@ def is_CJK(c: str) -> bool:
         # Fast path -- n is clearly out of range.
         return False
     # Slow path: n may be in range of one of the intervals so scan them all using a slow linear search
-    for imin, imax, name in CJK_INTERVALS:
+    for imin, imax, _name in CJK_INTERVALS:
         if n >= imin and n <= imax:
             return True
     return False

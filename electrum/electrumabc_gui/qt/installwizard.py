@@ -941,7 +941,7 @@ class DerivationPathScanner(QThread):
         self.aborting = False
 
     def notify_offline(self):
-        for i, p in enumerate(self.DERIVATION_PATHS):
+        for i, _p in enumerate(self.DERIVATION_PATHS):
             self.update_table_cb(i, _("Offline"))
 
     def run(self):

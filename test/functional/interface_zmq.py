@@ -128,7 +128,7 @@ class ZMQTest(BitcoinTestFramework):
     # all of them and return the corresponding ZMQSubscriber objects.
     def setup_zmq_test(self, services, *, recv_timeout=60, sync_blocks=True):
         subscribers = []
-        for topic, address in services:
+        for topic, _address in services:
             socket = self.ctx.socket(zmq.SUB)
             subscribers.append(ZMQSubscriber(socket, topic.encode()))
 

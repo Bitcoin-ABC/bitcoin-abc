@@ -156,7 +156,7 @@ class RejectLowDifficultyHeadersTest(BitcoinTestFramework):
         # Send a group of 2000 headers, forking from genesis.
         new_blocks = []
         hashPrevBlock = int(node.getblockhash(0), 16)
-        for i in range(2000):
+        for _ in range(2000):
             block = create_block(hashprev=hashPrevBlock, tmpl=node.getblocktemplate())
             block.solve()
             new_blocks.append(block)

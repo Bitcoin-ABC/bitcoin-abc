@@ -286,7 +286,7 @@ class AddressTypeTest(BitcoinTestFramework):
 
             # Verify that the receiving wallet contains a UTXO with the
             # expected address, and expected descriptor
-            for n, to_node in enumerate(range(from_node, from_node + 4)):
+            for _n, to_node in enumerate(range(from_node, from_node + 4)):
                 to_node %= 4
                 found = False
                 for utxo in self.nodes[to_node].listunspent():

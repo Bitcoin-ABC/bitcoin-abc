@@ -220,7 +220,7 @@ class CancelButton(QtWidgets.QPushButton):
 class MessageBoxMixin:
     def top_level_window_recurse(self, window=None):
         window = window or self
-        for n, child in enumerate(window.children()):
+        for child in window.children():
             if (
                 isinstance(child, QtWidgets.QWidget)
                 and child.isWindow()

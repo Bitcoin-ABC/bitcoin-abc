@@ -316,7 +316,7 @@ class Plugin(BasePlugin):
         ):
             but and but.hide()
             return
-        for xpub, K, _hash in state.cosigner_list:
+        for xpub, _K, _hash in state.cosigner_list:
             if self.cosigner_can_sign(d.tx, xpub):
                 but and but.show()
                 break
@@ -379,7 +379,7 @@ class Plugin(BasePlugin):
             self.print_error("Error: state object not found")
             return
         keys = state.keys
-        for key, _hash in keys:
+        for _key, _hash in keys:
             if _hash == keyhash:
                 break
         else:

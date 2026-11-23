@@ -167,7 +167,7 @@ class TestSlip39(unittest.TestCase):
         )
         with open(test_vector_file, "r", encoding="utf-8") as f:
             vectors = json.load(f)
-        for description, mnemonics, expected_secret, extended_private_key in vectors:
+        for description, mnemonics, expected_secret, _extended_private_key in vectors:
             if expected_secret:
                 encrypted_seed = slip39.recover_ems(mnemonics)
                 assert bytes.fromhex(expected_secret) == encrypted_seed.decrypt(

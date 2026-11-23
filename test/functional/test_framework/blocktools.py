@@ -192,7 +192,7 @@ def create_confirmed_utxos(test_framework, node, count, age=101, **kwargs):
     addr2 = node.getnewaddress()
     if iterations <= 0:
         return utxos
-    for i in range(iterations):
+    for _ in range(iterations):
         t = utxos.pop()
         inputs = []
         inputs.append({"txid": t["txid"], "vout": t["vout"]})
@@ -247,7 +247,7 @@ def send_big_transactions(node, utxos, num, fee_multiplier):
                 CScript([OP_DUP, OP_HASH160, addrHash, OP_EQUALVERIFY, OP_CHECKSIG]),
             )
         )
-        for i in range(0, 127):
+        for __ in range(0, 127):
             ctx.vout.append(CTxOut(0, CScript([OP_RETURN, bytes(padding, "utf-8")])))
         # Create a proper fee for the transaction to be mined
         ctx.vout[0].nValue -= int(fee_multiplier * node.calculate_fee(ctx))

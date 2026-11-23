@@ -82,7 +82,7 @@ f.write("""
 f.write('static const char UNUSED *bitcoin_strings[] = {\n')
 f.write(f"QT_TRANSLATE_NOOP(\"bitcoin-abc\", \"{os.getenv('COPYRIGHT_HOLDERS')}\"),\n")
 messages.sort(key=operator.itemgetter(0))
-for (msgid, msgstr) in messages:
+for (msgid, _msgstr) in messages:
     if msgid != EMPTY:
         f.write('QT_TRANSLATE_NOOP("bitcoin-abc", {}),\n'.format('\n'.join(msgid)))
 f.write('};\n')

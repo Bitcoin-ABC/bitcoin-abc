@@ -140,7 +140,7 @@ class Plugins(DaemonThread):
             return cls._all_found_plugins
 
         cls._all_found_plugins = {}
-        for loader, name, _ispkg in pkgutil.iter_modules(
+        for _loader, name, _ispkg in pkgutil.iter_modules(
             [cls.internal_plugins_pkgpath]
         ):
             # we don't  have a server for cosigner_pool
@@ -239,7 +239,7 @@ class Plugins(DaemonThread):
         if not metadata:
             return False
         deps = metadata.get("requires", [])
-        for dep, s in deps:
+        for dep, _s in deps:
             try:
                 __import__(dep)
             except ImportError:

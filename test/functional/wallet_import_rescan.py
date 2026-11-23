@@ -231,7 +231,7 @@ class ImportRescanTest(BitcoinTestFramework):
                 variant.check()
 
         # Create new transactions sending to each address.
-        for i, variant in enumerate(IMPORT_VARIANTS):
+        for variant in IMPORT_VARIANTS:
             variant.sent_amount = get_rand_amount()
             variant.sent_txid = self.nodes[0].sendtoaddress(
                 variant.address["address"], variant.sent_amount

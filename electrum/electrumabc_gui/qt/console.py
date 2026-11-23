@@ -323,7 +323,7 @@ class Console(QtWidgets.QWidget):
         doc = self.editor.document()
         curr_line = doc.findBlockByLineNumber(doc.lineCount() - 1).text()
         self.editor.moveCursor(QtGui.QTextCursor.End)
-        for i in range(len(curr_line) - len(self.prompt)):
+        for _i in range(len(curr_line) - len(self.prompt)):
             self.editor.moveCursor(QtGui.QTextCursor.Left, QtGui.QTextCursor.KeepAnchor)
 
         self.editor.textCursor().removeSelectedText()
@@ -353,7 +353,7 @@ class Console(QtWidgets.QWidget):
         c = self.editor.textCursor()
         c.setPosition(self.completions_pos)
         length = self.completions_end - self.completions_pos
-        for x in range(length):
+        for _x in range(length):
             c.deleteChar()
 
         self.editor.moveCursor(QtGui.QTextCursor.End)
@@ -405,7 +405,7 @@ class Console(QtWidgets.QWidget):
 
     def setCursorPosition(self, position):
         self.editor.moveCursor(QtGui.QTextCursor.StartOfLine)
-        for i in range(len(self.prompt) + position):
+        for _i in range(len(self.prompt) + position):
             self.editor.moveCursor(QtGui.QTextCursor.Right)
 
     def runCommand(self):

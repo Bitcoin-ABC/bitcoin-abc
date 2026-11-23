@@ -158,7 +158,7 @@ class TransactionOrderingTest(BitcoinTestFramework):
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
-        for i in range(100):
+        for _ in range(100):
             out.append(get_spendable_output())
 
         # Let's build some blocks and test them.

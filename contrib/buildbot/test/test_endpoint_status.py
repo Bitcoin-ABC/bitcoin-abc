@@ -1443,7 +1443,7 @@ class EndpointStatusTestCase(ABCBotFixture):
         self.phab.harbormaster.createartifact.reset_mock()
 
         # Call /status again a few time
-        for i in range(10):
+        for _ in range(10):
             call_status_check_artifact_search()
 
             # But since the artifact already exists it is not added again
@@ -1842,7 +1842,7 @@ class EndpointStatusTestCase(ABCBotFixture):
             teamcity_project_id="ProjectId2",
             teamcity_project_name="Project Name 2",
         )
-        for i in range(10):
+        for _ in range(10):
             call_status("hide_me_Type", BuildStatus.Success)
             assert_panel_content(
                 get_github_panel_content()

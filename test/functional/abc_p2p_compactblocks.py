@@ -246,7 +246,7 @@ class FullBlockTest(BitcoinTestFramework):
 
         # collect spendable outputs now to avoid cluttering the code later on
         out = []
-        for i in range(100):
+        for _ in range(100):
             out.append(get_spendable_output())
 
         # Check that compact block also work for big blocks

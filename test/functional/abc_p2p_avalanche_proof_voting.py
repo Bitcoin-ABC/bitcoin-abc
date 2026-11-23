@@ -329,7 +329,7 @@ class AvalancheProofVotingTest(BitcoinTestFramework):
 
         self.log.info("The node will now ignore the invalid proof")
 
-        for i in range(5):
+        for _ in range(5):
             with node.assert_debug_log(["received: avaproof"]):
                 self.send_proof(peer, proof_seq50)
             assert_raises_rpc_error(

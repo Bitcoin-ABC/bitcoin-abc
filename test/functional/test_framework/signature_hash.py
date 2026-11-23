@@ -28,7 +28,7 @@ def FindAndDelete(script, sig):
     r = b""
     last_sop_idx = sop_idx = 0
     skip = True
-    for opcode, data, sop_idx in script.raw_iter():
+    for _opcode, _data, sop_idx in script.raw_iter():
         if not skip:
             r += script[last_sop_idx:sop_idx]
         last_sop_idx = sop_idx

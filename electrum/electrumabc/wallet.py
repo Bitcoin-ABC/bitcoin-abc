@@ -518,7 +518,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     def build_reverse_history(self):
         self.tx_addr_hist = defaultdict(set)
         for addr, hist in self._history.items():
-            for tx_hash, h in hist:
+            for tx_hash, _h in hist:
                 self.tx_addr_hist[tx_hash].add(addr)
 
     @profiler
@@ -533,7 +533,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         for addr in my_addrs:
             hist = self._history[addr]
 
-            for tx_hash, tx_height in hist:
+            for tx_hash, _tx_height in hist:
                 if (
                     tx_hash in self.pruned_txo_values
                     or self.txi.get(tx_hash)
@@ -788,11 +788,11 @@ class AbstractWallet(PrintError, SPVDelegate):
         delta = 0
         # substract the value of coins sent from address
         d = self.txi.get(tx_hash, {}).get(address, [])
-        for n, v in d:
+        for _n, v in d:
             delta -= v
         # add the value of the coins received at address
         d = self.txo.get(tx_hash, {}).get(address, [])
-        for n, v, cb in d:
+        for _n, v, _cb in d:
             delta += v
         return delta
 
@@ -814,7 +814,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 is_relevant = True
                 outpoint = txin.outpoint
                 d = self.txo.get(outpoint.txid.to_string(), {}).get(txin.address, [])
-                for n, v, cb in d:
+                for n, v, _cb in d:
                     if n == outpoint.n:
                         value = v
                         spends_coins_mine.append(str(outpoint))
@@ -954,7 +954,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         sent = {}
         for tx_hash, height in address_history:
             inputs = self.txi.get(tx_hash, {}).get(address, [])
-            for txi, v in inputs:
+            for txi, _v in inputs:
                 sent[txi] = height
         return sent
 
@@ -1408,7 +1408,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 wallets."""
                 dd = self.txo.get(prevout_hash, {})
                 for addr2, item in dd.items():
-                    for n, v, is_cb in item:
+                    for n, v, _is_cb in item:
                         if n == prevout_n:
                             return addr2, v
                 return (None, None)
@@ -1443,7 +1443,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 # find value from prev output
                 if self.is_mine(addr):
                     dd = self.txo.get(prevout_hash, {})
-                    for n, v, is_cb in dd.get(addr, []):
+                    for n, v, _is_cb in dd.get(addr, []):
                         if n == prevout_n:
                             add_to_self_txi(tx_hash, addr, ser, v)
                             break
@@ -1536,7 +1536,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 to_pop = []
                 for addr, txis_for_addr in dd.items():
                     del_idx = []
-                    for idx, (ser, v) in enumerate(txis_for_addr):
+                    for idx, (ser, _v) in enumerate(txis_for_addr):
                         prev_hash, _prev_n = ser.split(":")
                         if prev_hash == tx_hash:
                             self._addr_bal_cache.pop(
@@ -1598,7 +1598,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         with self.lock:
             old_hist = self.get_address_history(addr)
             old_hist_set = frozenset((tx_hash, height) for tx_hash, height in old_hist)
-            for tx_hash, height in old_hist_set - hist_set:
+            for tx_hash, _height in old_hist_set - hist_set:
                 s = self.tx_addr_hist.get(tx_hash)
                 if s:
                     s.discard(addr)
@@ -1661,7 +1661,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         tx_deltas = defaultdict(int)
         for addr in domain:
             h = self.get_address_history(addr)
-            for tx_hash, height in h:
+            for tx_hash, _height in h:
                 delta = self.get_tx_delta(tx_hash, addr)
                 if delta is None or tx_deltas[tx_hash] is None:
                     tx_deltas[tx_hash] = None
@@ -2328,7 +2328,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     @profiler
     def prepare_for_verifier(self):
         # review transactions that are in the history
-        for addr, hist in self._history.items():
+        for _addr, hist in self._history.items():
             for tx_hash, tx_height in hist:
                 # add it in case it was previously unconfirmed
                 self.add_unverified_tx(tx_hash, tx_height)
@@ -2453,7 +2453,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     def address_is_old(self, address, age_limit=2):
         age = -1
         local_height = self.get_local_height()
-        for tx_hash, tx_height in self.get_address_history(address):
+        for _tx_hash, tx_height in self.get_address_history(address):
             if tx_height == 0:
                 tx_age = 0
             else:
@@ -2470,13 +2470,13 @@ class AbstractWallet(PrintError, SPVDelegate):
             self.is_schnorr_enabled() if sign_schnorr is None else bool(sign_schnorr)
         )
         txid = tx.txid()
-        for i, txo in enumerate(tx.outputs()):
+        for out_idx, txo in enumerate(tx.outputs()):  # noqa: B007
             if txo.type == bitcoin.TYPE_ADDRESS and self.is_mine(txo.destination):
                 break
         else:
             return
         coins = self.get_addr_utxo(txo.destination)
-        item = coins.get(txid + ":%d" % i)
+        item = coins.get(txid + ":%d" % out_idx)
         if not item:
             return
 
@@ -3150,7 +3150,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         """
         txid_str = outpoint.txid.to_string()
         for addr, coins in self.txo.get(txid_str, {}).items():
-            for vout, amount, is_coinbase in coins:
+            for vout, _amount, _is_coinbase in coins:
                 if vout == outpoint.n:
                     return addr
         return None
@@ -3216,13 +3216,13 @@ class ImportedWalletBase(SimpleWallet):
         with self.lock:
             for addr, details in self._history.items():
                 if addr == address:
-                    for tx_hash, height in details:
+                    for tx_hash, _height in details:
                         transactions_to_remove.add(tx_hash)
                         self.tx_addr_hist[tx_hash].discard(address)
                         if not self.tx_addr_hist.get(tx_hash):
                             self.tx_addr_hist.pop(tx_hash, None)
                 else:
-                    for tx_hash, height in details:
+                    for tx_hash, _height in details:
                         transactions_new.add(tx_hash)
             transactions_to_remove -= transactions_new
             self._history.pop(address, None)
@@ -3663,8 +3663,8 @@ class MultisigWallet(DeterministicWallet):
                 keystore_.update_password(old_pw, new_pw)
                 self.storage.put(name, keystore_.dump())
 
-    def check_password(self, password):
-        for name, keystore_ in self.keystores.items():
+    def check_password(self, password) -> None:
+        for _name, keystore_ in self.keystores.items():
             if keystore_.may_have_password():
                 keystore_.check_password(password)
         self.storage.check_password(password)

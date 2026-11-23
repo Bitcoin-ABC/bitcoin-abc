@@ -156,7 +156,7 @@ def postprocess_translations(reduce_diff_hacks=False):
         _orig_escape_cdata = ET._escape_cdata
         ET._escape_cdata = escape_cdata
 
-    for filename, filepath in all_ts_files():
+    for _filename, filepath in all_ts_files():
         os.rename(filepath, filepath + ".orig")
 
     have_errors = False
@@ -214,7 +214,7 @@ def postprocess_translations(reduce_diff_hacks=False):
         # check if document is (virtually) empty, and remove it if so
         num_messages = 0
         for context in root.findall("context"):
-            for message in context.findall("message"):
+            for _message in context.findall("message"):
                 num_messages += 1
         if num_messages < MIN_NUM_MESSAGES:
             print(f"Removing {filepath}, as it contains only {num_messages} messages")

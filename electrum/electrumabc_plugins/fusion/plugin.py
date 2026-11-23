@@ -628,7 +628,7 @@ class FusionPlugin(BasePlugin):
         torcount = limiter.count
         if torcount > AUTOFUSE_RECENT_TOR_LIMIT_UPPER:
             # need tor cooldown, stop the waiting autofusions
-            for wallet, password in wallets_and_passwords:
+            for wallet, _password in wallets_and_passwords:
                 self.stop_autofusions(wallet, "Tor cooldown", not_if_running=True)
             return
         if torcount > AUTOFUSE_RECENT_TOR_LIMIT_LOWER:

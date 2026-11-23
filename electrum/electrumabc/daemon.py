@@ -75,7 +75,7 @@ def get_fd_or_server(
 
     limit = 5
     latest_exc = None
-    for n in range(limit):
+    for _n in range(limit):
         try:
             return os.open(lockfile, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644), None
         except PermissionError as e:
@@ -339,7 +339,7 @@ class Daemon(DaemonThread):
     def run(self) -> None:
         while self.is_running():
             self.server.handle_request() if self.server else time.sleep(0.1)
-        for k, wallet in self.wallets.items():
+        for _k, wallet in self.wallets.items():
             wallet.stop_threads()
         if self.network:
             self.print_error("shutting down network")

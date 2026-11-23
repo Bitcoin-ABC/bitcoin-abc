@@ -344,7 +344,7 @@ def process_mnemonics(mnemonics: list[str]) -> tuple[EncryptedSeed | None, str]:
 
     # Compile information about groups.
     groups_completed = 0
-    for i, group in groups.items():
+    for group in groups.values():
         if group:
             member_threshold = next(iter(group)).member_threshold
             if len(group) >= member_threshold:
@@ -684,7 +684,7 @@ def _decode_mnemonics(
             "Invalid set of mnemonics. All mnemonics must have the same group count."
         )
 
-    for group_index, group in groups.items():
+    for _group_index, group in groups.items():
         if len({share[0] for share in group[1]}) != len(group[1]):
             raise Slip39Error(
                 "Invalid set of shares. Member indices in each group must be unique."

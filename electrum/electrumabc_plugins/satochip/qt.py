@@ -134,7 +134,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             ("needs_SC", _("Secure Channel")),
             ("card_label", _("Card label")),
         ]
-        for row_num, (member_name, label) in enumerate(rows):
+        for member_name, label in rows:
             widget = QtWidgets.QLabel("<tt>")
             widget.setTextInteractionFlags(
                 Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard

@@ -408,7 +408,7 @@ class ChronikScriptHashTest(BitcoinTestFramework):
         replacement_tx = FromHex(
             CTransaction(), self.node.getrawtransaction(funding_txid)
         )
-        for out_idx, txout in enumerate(replacement_tx.vout):
+        for out_idx, txout in enumerate(replacement_tx.vout):  # noqa: B007
             if txout.scriptPubKey == script_pubkey:
                 break
         replacement_tx.vout[out_idx].scriptPubKey = b"\x21\x03" + 32 * b"\xee" + b"\xac"
