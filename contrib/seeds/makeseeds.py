@@ -156,13 +156,13 @@ def lookup_asn(net: str, ip: str) -> Union[int, None]:
             prefix = ".origin6"
 
         asn = int(
-            [
+            next(
                 x.to_text()
                 for x in dns.resolver.query(
                     ".".join(reversed(ipaddr.split("."))) + prefix + ".asn.cymru.com",
                     "TXT",
                 ).response.answer
-            ][0]
+            )
             .split('"')[1]
             .split(" ")[0]
         )

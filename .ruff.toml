@@ -32,6 +32,7 @@ select = [
     "B023", # function-uses-loop-variable
     "B033", # duplicate-value
     "B912", # map-without-explicit-strict
+    "RUF015", # unnecessary-iterable-allocation-for-first-element
     "RUF019", # unnecessary-key-check
     "RUF036", # none-not-at-end-of-union
     "RUF046", # unnecessary-cast-to-int

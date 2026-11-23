@@ -201,9 +201,9 @@ class ReceivedByTest(BitcoinTestFramework):
         label = ""
         address = self.nodes[1].getnewaddress()
         test_address(self.nodes[1], address, labels=[label])
-        received_by_label_json = [
+        received_by_label_json = next(
             r for r in self.nodes[1].listreceivedbylabel() if r["label"] == label
-        ][0]
+        )
         balance_by_label = self.nodes[1].getreceivedbylabel(label)
 
         txid = self.nodes[0].sendtoaddress(addr, 100000)
@@ -240,11 +240,11 @@ class ReceivedByTest(BitcoinTestFramework):
         # Create a new label named "mynewlabel" that has a 0 balance
         address = self.nodes[1].getnewaddress()
         self.nodes[1].setlabel(address, "mynewlabel")
-        received_by_label_json = [
+        received_by_label_json = next(
             r
             for r in self.nodes[1].listreceivedbylabel(0, True)
             if r["label"] == "mynewlabel"
-        ][0]
+        )
 
         # Test includeempty of listreceivedbylabel
         assert_equal(received_by_label_json["amount"], Decimal("0.0"))

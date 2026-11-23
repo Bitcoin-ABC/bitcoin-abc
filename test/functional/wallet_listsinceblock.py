@@ -221,7 +221,7 @@ class ListSinceBlockTest(BitcoinTestFramework):
         self.generate(self.nodes[2], 6)
         self.nodes[2].importprivkey(privkey)
         utxos = self.nodes[2].listunspent()
-        utxo = [u for u in utxos if u["address"] == address][0]
+        utxo = next(u for u in utxos if u["address"] == address)
         self.nodes[1].importprivkey(privkey)
 
         # Split network into two

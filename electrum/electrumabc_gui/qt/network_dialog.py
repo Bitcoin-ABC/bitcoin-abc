@@ -1196,7 +1196,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         host = self.server_host.text()
         pp = self.servers.get(host, networks.net.DEFAULT_PORTS)
         if p not in pp.keys():
-            p = list(pp.keys())[0]
+            p = next(iter(pp.keys()))
         port = pp[p]
         self.server_host.setText(host)
         self.server_port.setText(port)
@@ -1231,7 +1231,7 @@ class NetworkChoiceLayout(QObject, PrintError):
                 protocol = "s"
                 port = pp.get(protocol)
             else:
-                protocol = list(pp.keys())[0]
+                protocol = next(iter(pp.keys()))
                 port = pp.get(protocol)
         self.server_host.setText(host)
         self.server_port.setText(port)

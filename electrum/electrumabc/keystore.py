@@ -228,7 +228,7 @@ class ImportedKeyStore(SoftwareKeyStore):
                 self._sorted.remove(address)
 
     def check_password(self, password):
-        pubkey = list(self.keypairs.keys())[0]
+        pubkey = next(iter(self.keypairs.keys()))
         self.export_private_key(pubkey, password)
 
     def import_privkey(self, WIF_privkey, password):

@@ -68,7 +68,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
             return [output.spent_by for output in tx.outputs]
 
         def find_tx(txs):
-            return [tx for tx in txs if tx.txid[::-1].hex() == txid][0]
+            return next(tx for tx in txs if tx.txid[::-1].hex() == txid)
 
         def check_outputs_spent(expected_outpoints, *, has_been_mined):
             assert_equal(

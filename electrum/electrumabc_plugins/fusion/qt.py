@@ -2073,7 +2073,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
         fusions = {i.data(0, Qt.UserRole)() for i in selected}
         fusions.discard(None)
         statuses = {f.status[0] for f in fusions}
-        selection_of_1_fusion = list(fusions)[0] if len(fusions) == 1 else None
+        selection_of_1_fusion = next(iter(fusions)) if len(fusions) == 1 else None
         has_live = "running" in statuses or "waiting" in statuses
 
         menu = QtWidgets.QMenu()
