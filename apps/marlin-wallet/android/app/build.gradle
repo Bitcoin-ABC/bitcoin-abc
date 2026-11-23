@@ -7,45 +7,31 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 /**
- * Helper function to find hermesc binary in pnpm's .pnpm directory
+ * Helper function to find hermesc for this app's react-native version.
+ * Resolves from apps/marlin-wallet so we do not pick another package's
+ * hermes-compiler from the monorepo .pnpm store (bytecode mismatch).
  */
 def findHermescBinary() {
-    def monorepoRoot = file("../../../../")
-    def pnpmDir = new File(monorepoRoot, "node_modules/.pnpm")
-    
+    def projectRoot = file("../..")
+
     def osName = System.getProperty("os.name").toLowerCase()
     def osBin = osName.contains("windows") ? "win64-bin" : osName.contains("mac") ? "osx-bin" : "linux64-bin"
-    
-    // Fallback location if this function fails to figure out the proper path.
-    // Note that this will likely fail
-    def fallback = new File(monorepoRoot, "node_modules/react-native/sdks/hermesc/${osBin}/hermesc").absolutePath
 
-    if (!pnpmDir.exists()) {
-        // Fallback to standard location if .pnpm doesn't exist
-        return fallback
-    }
-    
-    // Search for hermes-compiler@* directories in .pnpm
-    def hermesCompilerDirs = pnpmDir.listFiles(new FileFilter() {
-        @Override
-        boolean accept(File file) {
-            return file.isDirectory() && file.name.startsWith("hermes-compiler@")
-        }
-    })
-    
-    if (hermesCompilerDirs != null && hermesCompilerDirs.length > 0) {
-        // Loop through all matching directories and return the first one where
-        // hermesc exists. Most likely there is a single match anyway.
-        for (File hermesCompilerDir : hermesCompilerDirs) {
-            def hermescPath = new File(hermesCompilerDir, "node_modules/hermes-compiler/hermesc/${osBin}/hermesc")
-            
-            if (hermescPath.exists()) {
-                return hermescPath.absolutePath
-            }
+    def reactNativeDir = new File(projectRoot, "node_modules/react-native")
+    if (reactNativeDir.exists()) {
+        // pnpm: hermes-compiler is a sibling of react-native in the virtual store
+        def hermesc = new File(
+            reactNativeDir.toPath().toRealPath().toFile().parentFile,
+            "hermes-compiler/hermesc/${osBin}/hermesc"
+        )
+        if (hermesc.exists()) {
+            return hermesc.absolutePath
         }
     }
-    
-    return fallback
+
+    throw new GradleException(
+        "Could not find hermesc for ${osBin} next to react-native under ${projectRoot}"
+    )
 }
 
 /**
