@@ -2128,6 +2128,10 @@ export const getBlockTgMessage = (
             tokenName = prepareStringForTelegramHTML(tokenName);
             tokenTicker = prepareStringForTelegramHTML(tokenTicker);
 
+            // Offer and relist `price` is the full-take ask, not XEC paid.
+            // Only filled accepts belong in the "sold for" total, and the
+            // link on that line should stay on a buy if a cancel follows.
+            const buyPriceSats = action === 'BUY' ? (price ?? 0n) : 0n;
             const existingAgoraInfo = agoraTxMap.get(tokenId);
             if (typeof existingAgoraInfo === 'undefined') {
                 agoraTxMap.set(tokenId, {
@@ -2143,7 +2147,7 @@ export const getBlockTgMessage = (
                         action === 'BUY'
                             ? new BigNumber(atoms.toString())
                             : new BigNumber(0),
-                    buyVolumeSats: price ?? 0n,
+                    buyVolumeSats: buyPriceSats,
                     tokenName,
                     tokenTicker,
                     decimals,
@@ -2172,8 +2176,9 @@ export const getBlockTgMessage = (
                             ? existingAgoraInfo.buyAtoms.plus(atoms.toString())
                             : existingAgoraInfo.buyAtoms,
                     buyVolumeSats:
-                        existingAgoraInfo.buyVolumeSats + (price ?? 0n),
-                    exampleTxid: txid,
+                        existingAgoraInfo.buyVolumeSats + buyPriceSats,
+                    exampleTxid:
+                        action === 'BUY' ? txid : existingAgoraInfo.exampleTxid,
                 });
             }
             continue;

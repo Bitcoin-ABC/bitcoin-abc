@@ -5,7 +5,8 @@
 import assert from 'assert';
 import { parseAgoraTx } from '../src/agora';
 import { parseTx, getBlockTgMessage, parseBlockTxs } from '../src/parse';
-import { GenesisInfo, Tx } from 'chronik-client';
+import { GenesisInfo, Token, TokenType, Tx } from 'chronik-client';
+import { CryptoTicker, Fiat } from 'ecash-price';
 
 const agoraTokenInfoMap = new Map<string, GenesisInfo>([
     [
@@ -373,6 +374,123 @@ const mockCoinbaseTx: Tx = {
     },
 };
 
+const FIRMA_TOKEN_ID =
+    '0387947fd575db4fb19a3e322f635dec37fd192b5941625b66bc4b2c3008cbf0';
+const ALP_STANDARD: TokenType = {
+    protocol: 'ALP',
+    type: 'ALP_TOKEN_TYPE_STANDARD',
+    number: 0,
+};
+
+const firmaToken = (atoms: bigint): Token => ({
+    tokenId: FIRMA_TOKEN_ID,
+    tokenType: ALP_STANDARD,
+    atoms,
+    isMintBaton: false,
+    entryIdx: 0,
+});
+
+const firmaShell = (
+    txid: string,
+    inputs: Tx['inputs'],
+    outputs: Tx['outputs'],
+): Tx => ({
+    txid,
+    version: 2,
+    inputs,
+    outputs,
+    lockTime: 0,
+    timeFirstSeen: 1781800802,
+    size: 200,
+    isCoinbase: false,
+    tokenEntries: [
+        {
+            tokenId: FIRMA_TOKEN_ID,
+            tokenType: ALP_STANDARD,
+            txType: 'SEND',
+            isInvalid: false,
+            burnSummary: '',
+            failedColorings: [],
+            actualBurnAtoms: 0n,
+            intentionalBurnAtoms: 0n,
+            burnsMintBatons: false,
+        },
+    ],
+    tokenFailedParsings: [],
+    tokenStatus: 'TOKEN_STATUS_NORMAL',
+    isFinal: true,
+    block: mockCoinbaseTx.block,
+});
+
+// 1,000 atoms (0.1000 FIRMA) accepted for 50,000 sats (500 XEC).
+const firmaBuyTx = firmaShell(
+    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    [
+        {
+            prevOut: {
+                txid: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                outIdx: 1,
+            },
+            // OP_1 OP_1: second-to-last op is not OP_0, so this is a buy.
+            inputScript: '5151',
+            sats: 546n,
+            sequenceNo: 4294967295,
+            outputScript: 'a9140b3008d34c2a5021beca5cee0b71dccf37f4bf8e87',
+            token: firmaToken(1000n),
+            plugins: {
+                agora: {
+                    groups: [],
+                    data: ['5041525449414c'],
+                },
+            },
+        },
+    ],
+    [
+        { sats: 0n, outputScript: '6a00' },
+        {
+            sats: 50000n,
+            outputScript: '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+        },
+        {
+            sats: 546n,
+            outputScript: '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+            token: firmaToken(1000n),
+        },
+    ],
+);
+
+const firmaCancelTx = firmaShell(
+    'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+    [
+        {
+            prevOut: {
+                txid: 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+                outIdx: 1,
+            },
+            // OP_0 OP_0: second-to-last op is OP_0, so this is a cancel.
+            inputScript: '0000',
+            sats: 546n,
+            sequenceNo: 4294967295,
+            outputScript: 'a9140b3008d34c2a5021beca5cee0b71dccf37f4bf8e87',
+            token: firmaToken(1000n),
+            plugins: {
+                agora: {
+                    groups: [],
+                    data: ['5041525449414c'],
+                },
+            },
+        },
+    ],
+    [
+        { sats: 0n, outputScript: '6a00' },
+        {
+            sats: 546n,
+            outputScript: '76a914cf76d8e334b149cb49ad1f95de339c3e6e9ed54188ac',
+            token: firmaToken(1000n),
+        },
+    ],
+);
+
 describe('agora tx parsing', function () {
     it('parseAgoraTx identifies a FIRMA relist tx', function () {
         const parsed = parseAgoraTx(firmaRelistTx);
@@ -443,5 +561,40 @@ describe('agora tx parsing', function () {
         assert.match(msg, /💰1 tx sold 3,932,555\.22/);
         assert.match(msg, /Staked XEC \(XECX\)/);
         assert.doesNotMatch(msg, / sent /);
+    });
+
+    it('getBlockTgMessage prices agora sales from buys only', function () {
+        const parsedBlock = parseBlockTxs(
+            '000000000000000033477a11797468dd6637f4ad435deaa316373798892c28ff',
+            954058,
+            [mockCoinbaseTx, firmaRelistTx, firmaBuyTx, firmaCancelTx],
+        );
+
+        const tgMsgs = getBlockTgMessage(
+            parsedBlock,
+            [
+                {
+                    fiat: Fiat.USD,
+                    price: 0.01,
+                    ticker: CryptoTicker.XEC,
+                },
+            ],
+            agoraTokenInfoMap,
+            false,
+        );
+        const msg = tgMsgs.join('\n');
+
+        // Relist ask is ~1.9B XEC. At $0.01/XEC that ask is ~$19M.
+        // The sale line must be the 500 XEC fill ($5), and the link must
+        // stay on the buy after the cancel.
+        assert.match(msg, /🏷1 tx relisted 10,000\.0000/);
+        assert.match(
+            msg,
+            new RegExp(
+                `💰1 tx sold 0\\.1000 .*for <a href="https://explorer\\.e\\.cash/tx/${firmaBuyTx.txid}">\\$5</a>`,
+            ),
+        );
+        assert.doesNotMatch(msg, new RegExp(firmaCancelTx.txid));
+        assert.match(msg, /❌1 tx canceled/);
     });
 });
