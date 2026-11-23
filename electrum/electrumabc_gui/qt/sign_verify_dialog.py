@@ -44,7 +44,7 @@ class CollapsibleSection(QWidget):
         self.setLayout(main_layout)
 
         self.toggleButton = QToolButton(self)
-        self.toggleButton.setStyleSheet("QToolButton {border: none;}")  # noqa: FS003
+        self.toggleButton.setStyleSheet("QToolButton {border: none;}")
         self.toggleButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.toggleButton.setArrowType(Qt.RightArrow)
         self.toggleButton.setText(title)
