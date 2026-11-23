@@ -369,7 +369,7 @@ class Address(DestinationType):
     FMT_UI = Format.CASHADDR
     """Current address format used in the UI"""
 
-    FMTS_UI = [Format.CASHADDR, Format.LEGACY]
+    FMTS_UI: tuple[Format, ...] = (Format.CASHADDR, Format.LEGACY)
     """All address formats that can be used in the UI"""
 
     FMT_UI_IDX = FMTS_UI.index(FMT_UI)
@@ -770,7 +770,7 @@ class Base58:
 
     chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
     assert len(chars) == 58
-    cmap = {c: n for n, c in enumerate(chars)}
+    cmap: ClassVar[dict[str, int]] = {c: n for n, c in enumerate(chars)}
 
     @staticmethod
     def char_value(c: str) -> int:

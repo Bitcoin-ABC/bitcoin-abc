@@ -13,7 +13,7 @@ from datetime import datetime, timedelta, timezone
 # Qt 5.12 also exports Decimal
 from decimal import Decimal as PyDecimal
 from threading import Thread
-from typing import Any, TypeVar
+from typing import Any, ClassVar, TypeVar
 
 import requests
 
@@ -311,7 +311,7 @@ class CoinPaprika(ExchangeBase):
 
     # The fixed list of quote currencies supported by the API. An unsupported
     # currency makes the whole request fail.
-    QUOTE_CURRENCIES = [
+    QUOTE_CURRENCIES: tuple[str, ...] = (
         "ARS",
         "AUD",
         "BOB",
@@ -354,7 +354,7 @@ class CoinPaprika(ExchangeBase):
         "USD",
         "VND",
         "ZAR",
-    ]
+    )
 
     def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
         ccys = ["USD"]
@@ -391,7 +391,7 @@ class CoinPaprika(ExchangeBase):
 class Binance(ExchangeBase):
     """Binance exchange. The XEC/USDT pair is used as a proxy for USD."""
 
-    SYMBOLS = {"USD": "XECUSDT", "TRY": "XECTRY"}
+    SYMBOLS: ClassVar[dict[str, str]] = {"USD": "XECUSDT", "TRY": "XECTRY"}
 
     def get_rates(self, ccy: str) -> dict[str, PyDecimal]:
         symbols = ",".join(f'"{s}"' for s in self.SYMBOLS.values())

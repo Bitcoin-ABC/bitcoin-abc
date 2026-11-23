@@ -21,7 +21,7 @@ from copy import deepcopy
 from decimal import ROUND_DOWN, Decimal
 from functools import lru_cache
 from subprocess import CalledProcessError
-from typing import Callable, Dict, Optional, Union
+from typing import Callable, ClassVar, Dict, Optional, Union
 
 from . import coverage
 from .authproxy import AuthServiceProxy, JSONRPCException
@@ -461,7 +461,7 @@ def is_port_available(port: int) -> bool:
 
 
 class UniquePort:
-    port_base: dict[PortName, int] = {}
+    port_base: ClassVar[dict[PortName, int]] = {}
 
     # The LRU cache ensures that for a given type and peer / node index, the
     # functions always return the same port, and that it is tested only the

@@ -14,6 +14,7 @@ import re
 import struct
 import sys
 import time
+from typing import Any
 
 import requests
 
@@ -810,7 +811,9 @@ class DigitalBitboxPlugin(HWPluginBase):
     libraries_available = hid is not None
     keystore_class = DigitalBitboxKeyStore
     client = None
-    DEVICE_IDS = [(0x03EB, 0x2402)]  # Digital Bitbox
+    DEVICE_IDS: tuple[Any, ...] = (
+        (0x03EB, 0x2402),  # Digital Bitbox
+    )
 
     def __init__(self, parent, config, name):
         HWPluginBase.__init__(self, parent, config, name)

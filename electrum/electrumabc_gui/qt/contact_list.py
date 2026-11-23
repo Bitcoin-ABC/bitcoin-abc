@@ -65,7 +65,7 @@ if TYPE_CHECKING:
 
 class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     # Name, Label, Address
-    filter_columns = [1, 2, 3]
+    filter_columns: tuple[int, ...] = (1, 2, 3)
 
     contact_updated = Signal()
     """Emitted when a contact is added, renamed or deleted"""

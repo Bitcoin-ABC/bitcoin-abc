@@ -44,7 +44,12 @@ if TYPE_CHECKING:
 
 
 class InvoiceList(MyTreeWidget):
-    filter_columns = [0, 1, 2, 3]  # Date, Requestor, Description, Amount
+    filter_columns: tuple[int, ...] = (
+        0,  # Date
+        1,  # Requestor
+        2,  # Description
+        3,  # Amount
+    )
     visibility_changed = Signal(bool)
     pay_invoice_signal = Signal(str)
     delete_invoice_signal = Signal(str)

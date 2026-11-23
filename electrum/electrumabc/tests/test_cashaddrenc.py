@@ -143,7 +143,7 @@ class TestCashAddrAddress(unittest.TestCase):
     """Unit test class for cashaddr addressess."""
 
     # Valid address sizes from the cashaddr spec
-    valid_sizes = [160, 192, 224, 256, 320, 384, 448, 512]
+    valid_sizes: tuple[int, ...] = (160, 192, 224, 256, 320, 384, 448, 512)
 
     def test_encode_bad_inputs(self):
         with self.assertRaises(TypeError):

@@ -27,7 +27,7 @@ import unittest
 from base64 import b64decode, b64encode
 from enum import IntEnum
 from io import BytesIO
-from typing import List, Optional
+from typing import ClassVar, List, Optional
 
 from test_framework.siphash import siphash256
 from test_framework.util import assert_equal, uint256_hex
@@ -209,9 +209,9 @@ class CAddress:
     # see https://github.com/bitcoin/bips/blob/master/bip-0155.mediawiki
     NET_IPV4 = 1
 
-    ADDRV2_NET_NAME = {NET_IPV4: "IPv4"}
+    ADDRV2_NET_NAME: ClassVar[dict[int, str]] = {NET_IPV4: "IPv4"}
 
-    ADDRV2_ADDRESS_LENGTH = {NET_IPV4: 4}
+    ADDRV2_ADDRESS_LENGTH: ClassVar[dict[int, int]] = {NET_IPV4: 4}
 
     def __init__(self):
         self.time = 0
@@ -284,7 +284,7 @@ class CAddress:
 class CInv:
     __slots__ = ("hash", "type")
 
-    typemap = {
+    typemap: ClassVar[dict[int, str]] = {
         MSG_UNDEFINED: "Error",
         MSG_TX: "TX",
         MSG_BLOCK: "Block",

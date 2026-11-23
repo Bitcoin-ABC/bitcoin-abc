@@ -29,6 +29,7 @@
 import queue
 import socket
 from functools import partial
+from typing import ClassVar
 
 from qtpy import QtWidgets
 from qtpy.QtCore import QObject, Qt, QThread, QTimer, Signal
@@ -286,8 +287,13 @@ class ServerFlag:
     Banned = 2  # Blacklisting/banning was a hidden mechanism inherited from Electrum. We would blacklist misbehaving servers under the hood. Now that facility is exposed (editable by the user). We never connect to blacklisted servers.
     Preferred = 1  # Preferred servers (white-listed) start off as the servers in servers.json and are "more trusted" and optionally the user can elect to connect to only these servers
     NoFlag = 0
-    Symbol = {NoFlag: "", Preferred: "⭐", Banned: "⛔", BadCertificate: "❗️"}
-    UnSymbol = {  # used for "disable X" context menu
+    Symbol: ClassVar[dict[int, str]] = {
+        NoFlag: "",
+        Preferred: "⭐",
+        Banned: "⛔",
+        BadCertificate: "❗️",
+    }
+    UnSymbol: ClassVar[dict[int, str]] = {  # used for "disable X" context menu
         NoFlag: "",
         Preferred: "❌",
         Banned: "✅",
@@ -920,7 +926,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.fill_in_proxy_settings()
         self.update()
 
-    _tor_client_names = {
+    _tor_client_names: ClassVar[dict[TorController.BinaryType, str]] = {
         TorController.BinaryType.MISSING: _("Tor"),
         TorController.BinaryType.SYSTEM: _("system Tor"),
         TorController.BinaryType.DOWNLOADED: _("downloaded Tor"),

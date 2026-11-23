@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+from typing import ClassVar
 
 import mnemonic
 
@@ -53,7 +54,7 @@ class TestBIP39Checksum(unittest.TestCase):
 class TestSeeds(unittest.TestCase):
     """Test old and new seeds."""
 
-    mnemonics = {
+    mnemonics: ClassVar[tuple[tuple[str, str], ...]] = (
         (
             (
                 "cell dumb heartbeat north boom tease ship baby bright kingdom rare"
@@ -129,7 +130,7 @@ class TestSeeds(unittest.TestCase):
             ),
             "bip39",
         ),
-    }
+    )
 
     def test_electrum_seed(self):
         seed = (

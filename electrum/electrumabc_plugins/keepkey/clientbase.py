@@ -1,5 +1,6 @@
 import time
 from struct import pack
+from typing import ClassVar
 
 from electrumabc.bip32 import serialize_xpub
 from electrumabc.i18n import _
@@ -13,7 +14,7 @@ from ..hw_wallet.plugin import HardwareClientBase
 class GuiMixin(object):
     # Requires: self.proto, self.device
 
-    messages = {
+    messages: ClassVar[dict[int | str, str]] = {
         3: _("Confirm the transaction output on your {} device"),
         4: _("Confirm internal entropy on your {} device to begin"),
         5: _("Write down the seed word shown on your {}"),

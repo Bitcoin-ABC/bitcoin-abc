@@ -25,7 +25,7 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from electrumabc.address import OpCodes, Script, ScriptOutput
 from electrumabc.i18n import _, ngettext
@@ -45,7 +45,7 @@ class HWPluginBase(BasePlugin):
     keystore_class: type[HardwareKeyStore]
     libraries_available: bool
 
-    DEVICE_IDS: Iterable[Any]
+    DEVICE_IDS: tuple[Any, ...]
 
     # For now, Ledger and Trezor don't support the 899' derivation path.
     # SatochipPlugin overrides this class attribute.

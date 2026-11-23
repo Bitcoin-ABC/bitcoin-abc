@@ -43,13 +43,15 @@ from .util import WindowModalDialog
 
 class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
     UDEV_RULES_FILE = "/etc/udev/rules.d/20-electrum-abc-hw-wallets.rules"
-    GRAPHICAL_SUDOS = ["pkexec", "gksudo", "kdesudo"]
+    GRAPHICAL_SUDOS: tuple[str, ...] = ("pkexec", "gksudo", "kdesudo")
 
-    ADDITIONAL_HARDWARE_IDS = {
-        (0x534C, 0x0001),  # TREZOR
-        (0x1209, 0x53C0),  # TREZOR V2
-        (0x1209, 0x53C1),  # TREZOR V2
-    }
+    ADDITIONAL_HARDWARE_IDS: frozenset[tuple[int, int]] = frozenset(
+        {
+            (0x534C, 0x0001),  # TREZOR
+            (0x1209, 0x53C0),  # TREZOR V2
+            (0x1209, 0x53C1),  # TREZOR V2
+        }
+    )
 
     def __init__(self, parent: QtWidgets.QWidget, plugins: Plugins):
         assert parent and plugins

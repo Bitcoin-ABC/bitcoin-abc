@@ -202,7 +202,7 @@ class TestNode:
         self.mocktime = None
 
     AddressKeyPair = collections.namedtuple("AddressKeyPair", ["address", "key"])
-    PRIV_KEYS = [
+    PRIV_KEYS: tuple[AddressKeyPair, ...] = (
         # address , privkey
         AddressKeyPair(
             "mjTkW3DjgyZck4KbiRusZsqTgaYTxdSz6z",
@@ -252,7 +252,7 @@ class TestNode:
             "mzRe8QZMfGi58KyWCse2exxEFry2sfF2Y7",
             "cPiRWE8KMjTRxH1MWkPerhfoHFn5iHPWVK5aPqjW8NxmdwenFinJ",
         ),
-    ]
+    )
 
     def get_deterministic_priv_key(self):
         """Return a deterministic priv key in base58, that only depends on the node's index"""

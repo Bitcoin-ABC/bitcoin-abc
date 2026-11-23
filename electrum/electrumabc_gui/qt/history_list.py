@@ -25,7 +25,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt
@@ -59,9 +59,9 @@ TX_ICONS = [
 
 
 class HistoryList(MyTreeWidget):
-    filter_columns = [2, 3, 4]  # Date, Description, Amount
-    filter_data_columns = [0]  # Allow search on tx_hash (string)
-    statusIcons = {}
+    filter_columns: tuple[int, ...] = (2, 3, 4)  # Date, Description, Amount
+    filter_data_columns: tuple[int, ...] = (0,)  # Allow search on tx_hash (string)
+    statusIcons: ClassVar[dict[int, QIcon]] = {}
     default_sort = MyTreeWidget.SortSpec(0, Qt.AscendingOrder)
 
     def __init__(self, main_window: ElectrumWindow):

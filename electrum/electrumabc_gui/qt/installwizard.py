@@ -906,7 +906,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
 
 class DerivationPathScanner(QThread):
-    DERIVATION_PATHS = [
+    DERIVATION_PATHS: tuple[str, ...] = (
         # XEC
         "m/44'/899'/0'",
         # XEC token aware
@@ -933,7 +933,7 @@ class DerivationPathScanner(QThread):
         "m/44'/245'/0'/0",
         "m/49'/0'/0'",
         "m/84'/0'/0'",
-    ]
+    )
 
     def __init__(self, parent, bip32_seed: bytes, config, update_table_cb):
         QThread.__init__(self, parent)

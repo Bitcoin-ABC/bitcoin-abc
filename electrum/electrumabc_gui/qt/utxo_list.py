@@ -96,7 +96,7 @@ class UTXOList(MyTreeWidget, PrintError):
         height = 3
         output_point = 4
 
-    filter_columns = [Col.address, Col.label]
+    filter_columns: tuple[int, ...] = (Col.address, Col.label)
     # sort by amount, descending
     default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)
 

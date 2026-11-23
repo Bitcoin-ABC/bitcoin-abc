@@ -104,7 +104,7 @@ class MainNet(AbstractNet, AbstractNetProtocol):
     CASHADDR_PREFIX = constants.CASHADDR_PREFIX
     CASHADDR_PREFIX_BCH = constants.CASHADDR_PREFIX_BCH
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-    DEFAULT_PORTS = {"t": "50001", "s": "50002"}
+    DEFAULT_PORTS: ClassVar[dict[str, str]] = {"t": "50001", "s": "50002"}
     # DO NOT MODIFY IN CLIENT CODE
     DEFAULT_SERVERS = _read_json_dict("servers.json")
 
@@ -137,11 +137,11 @@ class MainNet(AbstractNet, AbstractNetProtocol):
 
     # Version numbers for BIP32 extended keys
     # standard: xprv, xpub
-    XPRV_HEADERS = {
+    XPRV_HEADERS: ClassVar[dict[str, int]] = {
         "standard": 0x0488ADE4,
     }
 
-    XPUB_HEADERS = {
+    XPUB_HEADERS: ClassVar[dict[str, int]] = {
         "standard": 0x0488B21E,
     }
 
@@ -155,7 +155,7 @@ class TestNet(AbstractNet, AbstractNetProtocol):
     CASHADDR_PREFIX = constants.CASHADDR_TESTNET_PREFIX
     CASHADDR_PREFIX_BCH = constants.CASHADDR_TESTNET_PREFIX_BCH
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
-    DEFAULT_PORTS = {"t": "51001", "s": "51002"}
+    DEFAULT_PORTS: ClassVar[dict[str, str]] = {"t": "51001", "s": "51002"}
     # DO NOT MODIFY IN CLIENT CODE
     DEFAULT_SERVERS = _read_json_dict("servers_testnet.json")
 
@@ -177,11 +177,11 @@ class TestNet(AbstractNet, AbstractNetProtocol):
 
     # Version numbers for BIP32 extended keys
     # standard: tprv, tpub
-    XPRV_HEADERS = {
+    XPRV_HEADERS: ClassVar[dict[str, int]] = {
         "standard": 0x04358394,
     }
 
-    XPUB_HEADERS = {
+    XPUB_HEADERS: ClassVar[dict[str, int]] = {
         "standard": 0x043587CF,
     }
 

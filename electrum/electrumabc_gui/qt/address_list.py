@@ -60,7 +60,7 @@ if TYPE_CHECKING:
 
 class AddressList(MyTreeWidget):
     # Address, Label, Balance
-    filter_columns = [0, 1, 2]
+    filter_columns: tuple[int, ...] = (0, 1, 2)
 
     class DataRoles(IntEnum):
         address = Qt.UserRole + 0

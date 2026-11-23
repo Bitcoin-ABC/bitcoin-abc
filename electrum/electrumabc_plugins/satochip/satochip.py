@@ -3,6 +3,7 @@ import logging
 import traceback
 from os import urandom
 from struct import pack
+from typing import Any
 
 import mnemonic
 
@@ -601,7 +602,7 @@ class SatochipPlugin(HWPluginBase):
     libraries_available = LIBS_AVAILABLE
     minimum_library = (0, 0, 0)
     keystore_class = SatochipKeyStore
-    DEVICE_IDS = [(SATOCHIP_VID, SATOCHIP_PID)]
+    DEVICE_IDS: tuple[Any, ...] = ((SATOCHIP_VID, SATOCHIP_PID),)
     SUPPORTED_XTYPES = "standard"
 
     def __init__(self, parent, config, name):

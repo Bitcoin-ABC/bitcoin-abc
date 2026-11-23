@@ -107,9 +107,9 @@ class Params:
     num_components = 23
     component_feerate = 1000  # sats/kB
     max_excess_fee = 300000  # sats
-    tiers = [
+    tiers: tuple[int, ...] = tuple(
         round(b * s) for b in [10000, 100000, 1000000, 10000000, 100000000] for s in E12
-    ]
+    )
 
     # How many clients do we want before starting a fusion?
     min_clients = 8

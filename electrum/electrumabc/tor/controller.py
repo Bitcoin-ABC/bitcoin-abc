@@ -129,10 +129,10 @@ class TorController(PrintError):
     )
 
     # If a log string matches any of the included regex it is ignored
-    _ignored_res = [
+    _ignored_res: tuple[re.Pattern[str], ...] = (
         # This is caused by the network dialog TorDetector
         re.compile(r".*This port is not an HTTP proxy.*"),
-    ]
+    )
 
     def _tor_msg_handler(self, message: str) -> None:
         if is_verbose:

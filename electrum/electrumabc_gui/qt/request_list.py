@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 class RequestList(MyTreeWidget):
     # Date, Account, Address, Description, Amount
-    filter_columns = [0, 1, 2, 3, 4]
+    filter_columns: tuple[int, ...] = (0, 1, 2, 3, 4)
 
     def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(

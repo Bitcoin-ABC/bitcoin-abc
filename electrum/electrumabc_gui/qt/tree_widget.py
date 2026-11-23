@@ -92,7 +92,7 @@ class TreeSortingMixin:
 class MyTreeWidget(QtWidgets.QTreeWidget, TreeSortingMixin):
     # Specify this in subclasses to enable substring search/filtering (Ctrl+F)
     # (if this and filter_data_columns are both empty, no search is applied)
-    filter_columns = []
+    filter_columns: tuple[int, ...] = ()
     # Like the above but rather than search the item .text() field, it searches
     # for *data* in columns, e.g. item.data(col, Qt.UserRole). The data must
     # live in filter_data_role (Qt.UserRole by default) in the specified
@@ -104,7 +104,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget, TreeSortingMixin):
     # history_list by txid. If this criterion doesn't suit your use-case when
     # inheriting from this, you may always override this class's `filter`
     # method.
-    filter_data_columns = []
+    filter_data_columns: tuple[int, ...] = ()
     # the QTreeWidgetItem data role to use when searching data columns
     filter_data_role: int = Qt.UserRole
 

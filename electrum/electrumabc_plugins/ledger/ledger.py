@@ -5,7 +5,7 @@ import inspect
 import sys
 import traceback
 from struct import pack, unpack
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from electrumabc.address import Address
 from electrumabc.bip32 import serialize_xpub
@@ -766,7 +766,7 @@ class LedgerPlugin(HWPluginBase):
     libraries_available = BTCHIP
     keystore_class = LedgerKeyStore
     client = None
-    DEVICE_IDS = [
+    DEVICE_IDS: tuple[Any, ...] = (
         (0x2581, 0x1807),  # HW.1 legacy btchip
         (0x2581, 0x2B7C),  # HW.1 transitional production
         (0x2581, 0x3B7C),  # HW.1 ledger production
@@ -789,10 +789,10 @@ class LedgerPlugin(HWPluginBase):
         (0x2C97, 0x6000),  # Stax
         (0x2C97, 0x7000),  # Flex
         (0x2C97, 0x8000),  # Apex P
-    ]
+    )
 
     VENDOR_IDS = (0x2C97,)
-    LEDGER_MODEL_IDS = {
+    LEDGER_MODEL_IDS: ClassVar[dict[int, str]] = {
         0x10: "Ledger Nano S",
         0x40: "Ledger Nano X",
         0x50: "Ledger Nano S Plus",
