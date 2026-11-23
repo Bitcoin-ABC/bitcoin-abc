@@ -1132,26 +1132,26 @@ class ChronikElectrumBlockchain(BitcoinTestFramework):
             "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpuvt7ljzqy",
         ):
             assert_equal(
-                self.client.blockchain.scripthash.get_balance(32 * "ff").result,
+                self.client.blockchain.address.get_balance(address).result,
                 {
                     "confirmed": 0,
                     "unconfirmed": 0,
                 },
             )
             assert_equal(
-                self.client.blockchain.scripthash.get_history(32 * "ff").result,
+                self.client.blockchain.address.get_history(address).result,
                 [],
             )
             assert_equal(
-                self.client.blockchain.scripthash.listunspent(32 * "ff").result,
+                self.client.blockchain.address.listunspent(address).result,
                 [],
             )
             assert_equal(
-                self.client.blockchain.scripthash.get_first_use(32 * "ff").result,
+                self.client.blockchain.address.get_first_use(address).result,
                 None,
             )
             assert_equal(
-                self.client.blockchain.scripthash.get_mempool(32 * "ff").result,
+                self.client.blockchain.address.get_mempool(address).result,
                 [],
             )
 
