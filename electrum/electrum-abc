@@ -130,7 +130,7 @@ if is_local:
 def check_imports():
     """pure-python dependencies need to be imported here for pyinstaller"""
     try:
-        import certifi  # pylint: disable=C0415  # noqa: F401
+        import certifi  # pylint: disable=C0415
         import dns  # pylint: disable=C0415,W0611  # noqa: F401
         import google.protobuf  # pylint: disable=C0415,W0611  # noqa: F401
         import jsonrpclib  # pylint: disable=C0415,W0611  # noqa: F401
@@ -139,10 +139,10 @@ def check_imports():
     except ImportError as i_e:
         sys.exit("Error: %s. Try 'sudo pip install <module-name>'" % str(i_e))
     from google.protobuf import (  # pylint: disable=C0415,W0611  # noqa: F401
-        descriptor,  # pylint: disable=C0415,W0611  # noqa: F401
+        descriptor,  # pylint: disable=C0415,W0611
         descriptor_pb2,
-        message,  # pylint: disable=C0415,W0611  # noqa: F401
-        reflection,  # pylint: disable=C0415,W0611  # noqa: F401
+        message,  # pylint: disable=C0415,W0611
+        reflection,  # pylint: disable=C0415,W0611
     )
     from jsonrpclib import (  # pylint: disable=C0415,W0611  # noqa: F401
         SimpleJSONRPCServer,

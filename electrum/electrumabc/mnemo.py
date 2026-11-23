@@ -185,7 +185,7 @@ class MnemonicBase(PrintError):
     def normalize_text(cls, txt: str | bytes, is_passphrase=False) -> str:
         if isinstance(txt, bytes):
             txt = txt.decode("utf8")
-        elif not isinstance(txt, str):  # noqa: F821
+        elif not isinstance(txt, str):
             raise TypeError("String value expected")
 
         return normalize_text(txt, is_passphrase=is_passphrase)

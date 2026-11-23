@@ -11,7 +11,7 @@ import sys
 from enum import Enum
 
 sys.path.append("../../../test/functional/test_framework")
-from authproxy import AuthServiceProxy  # noqa: E402
+from authproxy import AuthServiceProxy
 
 
 class Chain(Enum):

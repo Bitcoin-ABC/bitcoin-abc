@@ -19,7 +19,7 @@ from binascii import b2a_hex
 from itertools import islice
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../test/functional"))
-from test_framework.address import (  # noqa: E402
+from test_framework.address import (
     b58chars,
     base58_to_byte,
     byte_to_base58,

@@ -37,6 +37,7 @@ select = [
     "RUF046", # unnecessary-cast-to-int
     "RUF059", # unused-unpacked-variable
     "RUF064", # non-octal-permissions
+    "RUF100", # unused-noqa
     "UP006", # non-pep585-annotation
     "UP007", # non-pep604-annotation-union
     "UP031", # printf-string-formatting

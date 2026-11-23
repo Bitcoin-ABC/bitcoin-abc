@@ -40,8 +40,8 @@ sys.path.append(
         os.path.dirname(__file__), "..", "..", "..", "..", "test", "functional"
     )
 )
-from test_framework.test_node import TestNode  # noqa: E402
-from test_framework.util import (  # noqa: E402
+from test_framework.test_node import TestNode
+from test_framework.util import (
     PortSeed,
     chronik_port,
     get_datadir_path,

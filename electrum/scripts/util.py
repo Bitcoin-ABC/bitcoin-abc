@@ -8,10 +8,10 @@ from collections import defaultdict
 # Import electrumabc from the local sources instead of installed package.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from electrumabc.interface import Connection, Interface  # noqa: E402
-from electrumabc.networks import parse_servers  # noqa: E402
-from electrumabc.simple_config import ConfigKeys, SimpleConfig  # noqa: E402
-from electrumabc.util import get_user_dir, make_dir  # noqa: E402
+from electrumabc.interface import Connection, Interface
+from electrumabc.networks import parse_servers
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
+from electrumabc.util import get_user_dir, make_dir
 
 # Make sure the data directory for pinned self-signed certificates exists, or the
 # connection to fulcrum servers will fail. The directory does not exist if Electrum ABC

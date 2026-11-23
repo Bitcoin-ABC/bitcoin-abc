@@ -40,7 +40,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
                             "x_pubkeys": ["03" * COMPRESSED_PUBKEY_NBYTES],
                             "num_sig": 1,
                         }
-                    i += 1  # noqa: SIM113
+                    i += 1
                 tx_history.append(("a" * 64, 1))
 
         self.mock_wallet = Mock()

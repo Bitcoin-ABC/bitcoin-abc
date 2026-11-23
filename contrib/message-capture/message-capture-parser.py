@@ -17,8 +17,8 @@ from typing import Any, Dict, List, Optional, Union
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../test/functional"))
 
-from test_framework.messages import ser_uint256  # noqa: E402
-from test_framework.p2p import MESSAGEMAP  # noqa: E402
+from test_framework.messages import ser_uint256
+from test_framework.p2p import MESSAGEMAP
 
 TIME_SIZE = 8
 LENGTH_SIZE = 4
