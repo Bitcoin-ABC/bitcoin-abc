@@ -383,10 +383,10 @@ def age(from_date, since_date=None, target_tz=None, include_seconds=False) -> st
 
 def time_difference(distance_in_time, include_seconds) -> str:
     # distance_in_time = from_date - since_date
-    distance_in_seconds = int(
-        round(abs(distance_in_time.days * 86400 + distance_in_time.seconds))
+    distance_in_seconds = round(
+        abs(distance_in_time.days * 86400 + distance_in_time.seconds)
     )
-    distance_in_minutes = int(round(distance_in_seconds / 60))
+    distance_in_minutes = round(distance_in_seconds / 60)
 
     if distance_in_seconds < 60:
         if include_seconds:

@@ -57,11 +57,11 @@ def get_chainparams(rpc_caller, block):
     rpc_caller.getblockheader(block)
 
     # Block size on disk (in GB) with some margin for growth
-    diskSizeBlocks = str(int(math.ceil(chaininfo["size_on_disk"] / GIGABYTE * 1.3)))
+    diskSizeBlocks = str(math.ceil(chaininfo["size_on_disk"] / GIGABYTE * 1.3))
 
     # Chainstate size on disk (in GB) with some margin for growth
     utxos = rpc_caller.gettxoutsetinfo()
-    diskSizeChainstate = str(int(math.ceil(utxos["disk_size"] / GIGABYTE * 1.3)))
+    diskSizeChainstate = str(math.ceil(utxos["disk_size"] / GIGABYTE * 1.3))
 
     return (block, chainwork, diskSizeBlocks, diskSizeChainstate)
 

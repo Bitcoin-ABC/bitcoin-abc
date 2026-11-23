@@ -280,7 +280,7 @@ class BIP68Test(BitcoinTestFramework):
         tx2 = CTransaction()
         tx2.nVersion = 2
         tx2.vin = [CTxIn(COutPoint(tx1.txid_int, 0), nSequence=0)]
-        tx2.vout = [CTxOut(int(0), CScript([b"a"]))]
+        tx2.vout = [CTxOut(0, CScript([b"a"]))]
         tx2.vout[0].nValue = tx1.vout[0].nValue - fee_multiplier * self.nodes[
             0
         ].calculate_fee(tx2)

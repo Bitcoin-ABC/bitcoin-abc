@@ -34,6 +34,7 @@ select = [
     "B912", # map-without-explicit-strict
     "RUF019", # unnecessary-key-check
     "RUF036", # none-not-at-end-of-union
+    "RUF046", # unnecessary-cast-to-int
     "RUF059", # unused-unpacked-variable
     "RUF064", # non-octal-permissions
     "UP006", # non-pep585-annotation

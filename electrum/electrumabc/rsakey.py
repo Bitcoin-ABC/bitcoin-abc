@@ -148,7 +148,7 @@ def numBytes(n):
     if n == 0:
         return 0
     bits = numBits(n)
-    return int(math.ceil(bits / 8.0))
+    return math.ceil(bits / 8.0)
 
 
 # **************************************************************************

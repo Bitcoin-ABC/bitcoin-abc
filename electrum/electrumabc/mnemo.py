@@ -308,7 +308,7 @@ class MnemonicElectrum(MnemonicBase):
         bpw = math.log2(len(self.wordlist))
         num_bits = int(math.ceil(num_bits / bpw) * bpw)
         # handle custom entropy; make sure we add at least 16 bits
-        n_custom = int(math.ceil(math.log2(custom_entropy)))
+        n_custom = math.ceil(math.log2(custom_entropy))
         n = max(16, num_bits - n_custom)
         self.print_error("make_seed", "adding %d bits" % n)
         my_entropy = 1

@@ -180,7 +180,7 @@ class CoinChooserBase(PrintError):
         while n > 1:
             average = remaining / n
             amount = self.p.randint(int(average * 0.7), int(average * 1.3))
-            precision = min(self.p.choice(precisions), int(floor(log10(amount))))
+            precision = min(self.p.choice(precisions), floor(log10(amount)))
             amount = int(round(amount, -precision))
             amounts.append(amount)
             remaining -= amount
