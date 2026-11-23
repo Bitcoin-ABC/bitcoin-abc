@@ -15,7 +15,7 @@ class PluginOutput(NamedTuple):
     groups: Union[bytes, list[bytes]]
 
     # Data attached to this output.
-    data: Union[None, bytes, list[bytes]] = None
+    data: Union[bytes, list[bytes], None] = None
 
 
 # Base class for plugins to derive
