@@ -28,6 +28,7 @@ select = [
     "FURB",
     "B006", # mutable-argument-default
     "B008", # function-call-in-default-argument
+    "B033", # duplicate-value
     "B912", # map-without-explicit-strict
     "RUF059", # unused-unpacked-variable
     "RUF064", # non-octal-permissions
