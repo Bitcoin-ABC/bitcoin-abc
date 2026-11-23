@@ -354,7 +354,7 @@ class RPCPackagesTest(BitcoinTestFramework):
             txid = testres_tx["txid"]
             submitres_tx = submitpackage_result["tx-results"][txid]
             # No "allowed" if the tx was already in the mempool
-            if "allowed" in testres_tx and testres_tx["allowed"]:
+            if testres_tx.get("allowed"):
                 assert_equal(submitres_tx["vsize"], testres_tx["size"])
                 assert_equal(submitres_tx["fees"]["base"], testres_tx["fees"]["base"])
             entry_info = node.getmempoolentry(txid)

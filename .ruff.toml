@@ -32,6 +32,7 @@ select = [
     "B023", # function-uses-loop-variable
     "B033", # duplicate-value
     "B912", # map-without-explicit-strict
+    "RUF019", # unnecessary-key-check
     "RUF059", # unused-unpacked-variable
     "RUF064", # non-octal-permissions
     "UP006", # non-pep585-annotation
