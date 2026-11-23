@@ -339,7 +339,10 @@ class CoinChooserRandom(CoinChooserBase):
         for bkts_choose_from in bucket_sets:
             try:
 
-                def sfunds(bkts: list[Bucket]) -> bool:
+                def sfunds(
+                    bkts: list[Bucket],
+                    already_selected_buckets: list[Bucket] = already_selected_buckets,
+                ) -> bool:
                     return sufficient_funds(already_selected_buckets + bkts)
 
                 candidates = self.bucket_candidates_any(bkts_choose_from, sfunds)

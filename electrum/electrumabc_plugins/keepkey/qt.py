@@ -214,7 +214,7 @@ class QtPlugin(QtPluginBase):
         for keystore in wallet.get_keystores():
             if isinstance(keystore, self.keystore_class):
 
-                def show_address():
+                def show_address(keystore=keystore):
                     keystore.thread.add(
                         partial(self.show_address, wallet, addrs[0], keystore)
                     )
