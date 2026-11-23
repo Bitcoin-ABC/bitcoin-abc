@@ -58,6 +58,14 @@ export async function startCoordinator(
         throw new CoordinatorConfigError(`Chronik client: ${message}`);
     }
 
+    const tlsCert = config.tlsCert;
+    const tlsKey = config.tlsKey;
+    if ((tlsCert === undefined) !== (tlsKey === undefined)) {
+        throw new CoordinatorConfigError(
+            'TLS_CERT and TLS_KEY must both be set',
+        );
+    }
+
     const coordinator = new FusionCoordinator({
         host: config.host,
         covertDomain: config.covertDomain,
@@ -72,6 +80,9 @@ export async function startCoordinator(
                       key: config.wssKey,
                   },
               }),
+        ...(tlsCert !== undefined && tlsKey !== undefined
+            ? { tls: { cert: tlsCert, key: tlsKey } }
+            : {}),
     });
 
     try {
@@ -86,6 +97,7 @@ export async function startCoordinator(
                 `control=${ports.controlPort} ` +
                 `covert=${ports.covertPort} ` +
                 (ports.wssPort === undefined ? '' : `wss=${ports.wssPort} `) +
+                (tlsCert === undefined ? '' : 'tls=1 ') +
                 `advertise=${config.covertDomain} ` +
                 `minPlayers=${config.minPlayers}`,
         );

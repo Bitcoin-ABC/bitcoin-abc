@@ -27,7 +27,10 @@ Optional:
   CONTROL_PORT          Control TCP port (default ${DEFAULT_CONTROL_PORT})
   COVERT_PORT           Covert TCP port (default ${DEFAULT_COVERT_PORT})
   MIN_PLAYERS           Players to start a round (default ${DEFAULT_MIN_PLAYERS})
-  WSS_PORT              WebSocket gateway port (unset = TCP only).
+  TLS_CERT              PEM cert path for TCP control and covert.
+                        Requires TLS_KEY. Unset keeps those listeners plain.
+  TLS_KEY               PEM key path. Requires TLS_CERT.
+  WSS_PORT              WebSocket gateway port (unset = no WebSocket).
                         Paths /control and /covert.
   WSS_CERT              PEM cert path. Requires WSS_PORT and WSS_KEY.
   WSS_KEY               PEM key path. Requires WSS_PORT and WSS_CERT.
@@ -60,6 +63,9 @@ export interface CoordinatorConfig {
     wssPort?: number;
     wssCert?: string;
     wssKey?: string;
+    /** PEM paths for TCP listener TLS. Both or neither. */
+    tlsCert?: string;
+    tlsKey?: string;
 }
 
 /** Unspecified bind addresses (IPv4 + IPv6 any), via Node `net.BlockList`. */
@@ -168,8 +174,25 @@ export function parseCoordinatorEnv(
             DEFAULT_COVERT_PORT,
         ),
         minPlayers: parseMinPlayers(env.MIN_PLAYERS),
+        ...parseTcpTls(env),
         ...parseWss(env),
     };
+}
+
+function parseTcpTls(
+    env: NodeJS.Dict<string>,
+): Pick<CoordinatorConfig, 'tlsCert' | 'tlsKey'> {
+    const cert = optionalPath('TLS_CERT', env.TLS_CERT);
+    const key = optionalPath('TLS_KEY', env.TLS_KEY);
+    if ((cert === undefined) !== (key === undefined)) {
+        throw new CoordinatorConfigError(
+            'TLS_CERT and TLS_KEY must both be set',
+        );
+    }
+    if (cert === undefined || key === undefined) {
+        return {};
+    }
+    return { tlsCert: cert, tlsKey: key };
 }
 
 function parseWss(

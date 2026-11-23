@@ -128,6 +128,9 @@ fuses ALP without burning tokens.
 - **17. FusionClient WebSocket `runRound`** — `createWebSocketRunRound` dials
   `/control` and `/covert` with the platform WebSocket. Wallets pass it as
   `runRound` and do not import `src/node.ts`.
+- **21. TLS on coordinator TCP** — `TLS_CERT` and `TLS_KEY` make
+  `FusionCoordinator.start()` wrap control and covert with
+  `listen({ ssl: true })`. FusionBegin `covertSsl` matches.
 
 **Aside:** [PRIVACY.md](./PRIVACY.md) concludes that alp-fusion is worth
 building. One round of 16 inputs has the same source count as a Monero ring.
@@ -155,8 +158,6 @@ starts `FusionCoordinator` on `127.0.0.1`. There is no hostname to ping.
   from HD Cashtab state; one-shot `fuseOnce` against staging (15).
 - **20. Cashtab Fusion UX** — opt-in toggle, token allowlist, fee caps,
   status, fuse-now. Do not ship the toggle before 19.
-- **21. TLS on coordinator TCP** — framing already has `listen({ ssl: true })`;
-  `FusionCoordinator.start()` does not enable it.
 - **22. Warm-pool daemons** — deploy ≥ `minPlayers` continuous Node clients
   for target `(tokenId, atomTier)`. Cashtab one-shots cannot fill pools.
 - **23. Public coordinator** — TLS + WSS, `minPlayers >= 8`, Chronik

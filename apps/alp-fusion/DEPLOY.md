@@ -23,6 +23,7 @@ This document is the ops target for that model.
 | Node participant CLI (`pnpm start:participant`)                | Landed                                                   |
 | WebSocket gateway (`WSS_PORT`, `/control` and `/covert`)       | Landed — same frames as TCP; TLS via cert and key        |
 | FusionClient WebSocket `runRound` (`createWebSocketRunRound`)  | Landed — dials `/control` and `/covert`                  |
+| TCP TLS on control and covert (`TLS_CERT` / `TLS_KEY`)         | Landed — `start()` uses `listen({ ssl: true })`          |
 | Public or staging coordinator                                  | **None deployed**                                        |
 | Blame / restart / DoS limits                                   | Not yet — punchlist 25                                   |
 
@@ -105,9 +106,9 @@ Staging deploy (15):
    platform socket has no SOCKS5 or Tor hook, so the coordinator sees one
    client IP on `/control` and `/covert` until a covert path hides it.
 
-Public launch (23) additionally requires TLS on TCP (21), TLS on the
-WebSocket gateway, `minPlayers >= 8`, and warm-pool daemons (22) for each
-advertised `(tokenId, atomTier)`.
+Public launch (23) additionally requires TCP TLS (`TLS_CERT` /
+`TLS_KEY`), TLS on the WebSocket gateway, `minPlayers >= 8`, and warm-pool
+daemons (22) for each advertised `(tokenId, atomTier)`.
 
 Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
 `run` / `stop`) once the CLIs exist. Expect roughly:

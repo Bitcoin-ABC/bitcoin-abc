@@ -260,6 +260,30 @@ describe('parseCoordinatorEnv', () => {
             'WSS_CERT must be non-empty',
         );
     });
+
+    it('accepts TCP TLS cert and key together', () => {
+        expect(
+            parseCoordinatorEnv({
+                CHRONIK_URLS: CHRONIK,
+                TLS_CERT: ' certs/server.crt ',
+                TLS_KEY: 'certs/server.key',
+            }),
+        ).to.include({
+            tlsCert: 'certs/server.crt',
+            tlsKey: 'certs/server.key',
+        });
+    });
+
+    it('rejects a half-specified TCP TLS config', () => {
+        expectConfigError(
+            () =>
+                parseCoordinatorEnv({
+                    CHRONIK_URLS: CHRONIK,
+                    TLS_KEY: 'certs/server.key',
+                }),
+            'TLS_CERT and TLS_KEY must both be set',
+        );
+    });
 });
 
 describe('startCoordinator', () => {
@@ -367,5 +391,31 @@ describe('startCoordinator', () => {
         expect((threw as CoordinatorConfigError).message).to.include(
             'Failed to start coordinator',
         );
+    });
+
+    it('rejects a config that sets only one TCP TLS path', async () => {
+        const base = parseCoordinatorEnv({
+            CHRONIK_URLS: CHRONIK,
+            CONTROL_PORT: '0',
+            COVERT_PORT: '0',
+        });
+        for (const partial of [
+            { tlsCert: 'certs/server.crt' },
+            { tlsKey: 'certs/server.key' },
+        ]) {
+            let threw: unknown;
+            try {
+                await startCoordinator(
+                    { ...base, ...partial },
+                    { createChronik: () => new MockChronikClient() },
+                );
+            } catch (err) {
+                threw = err;
+            }
+            expect(threw).to.be.instanceOf(CoordinatorConfigError);
+            expect((threw as Error).message).to.match(
+                /TLS_CERT and TLS_KEY must both be set/,
+            );
+        }
     });
 });

@@ -28,7 +28,11 @@ import {
     NUM_COMPONENTS,
     PROTOCOL_VERSION,
 } from '../protocol/constants.js';
-import { listen, type FusionConnection } from '../protocol/connection.js';
+import {
+    listen,
+    type FusionConnection,
+    type ListenOptions,
+} from '../protocol/connection.js';
 import { listenWebSocket } from '../protocol/websocket.js';
 import { serveCovertPeer } from '../protocol/covert.js';
 import { asBytes, componentCommitment } from '../protocol/components.js';
@@ -93,6 +97,15 @@ export interface FusionCoordinatorOptions {
         port: number;
         cert?: string | Buffer;
         key?: string | Buffer;
+    };
+    /**
+     * Terminate TLS on the TCP control and covert listeners. Omit for plain
+     * TCP. Both PEM paths or Buffers are required. FusionBegin.covertSsl
+     * follows this so covert dials use TLS too.
+     */
+    tls?: {
+        cert: string | Buffer;
+        key: string | Buffer;
     };
 }
 
@@ -395,6 +408,8 @@ export class FusionCoordinator {
     private covert: { port: number; close: () => Promise<void> } | undefined;
     private wss: { port: number; close: () => Promise<void> } | undefined;
     private closed = false;
+    /** True after {@link start} bound the TCP listeners with TLS. */
+    private tcpSsl = false;
 
     constructor(opts: FusionCoordinatorOptions = {}) {
         if (
@@ -454,18 +469,35 @@ export class FusionCoordinator {
         await initProto();
         this.types = await getTypes();
         this.closed = false;
-        this.control = await listen(host, controlPort, conn => {
-            void this.handleSession(conn).catch(() => {
-                conn.close();
-            });
-        });
-        this.covert = await listen(host, covertPort, conn => {
-            void serveCovertPeer(conn, (field, payload) =>
-                this.onCovert(field, payload),
-            ).catch(() => {
-                conn.close();
-            });
-        });
+        const tcpListen = tcpListenOptions(this.opts.tls);
+        this.tcpSsl = tcpListen.ssl === true;
+        try {
+            this.control = await listen(
+                host,
+                controlPort,
+                conn => {
+                    void this.handleSession(conn).catch(() => {
+                        conn.close();
+                    });
+                },
+                tcpListen,
+            );
+            this.covert = await listen(
+                host,
+                covertPort,
+                conn => {
+                    void serveCovertPeer(conn, (field, payload) =>
+                        this.onCovert(field, payload),
+                    ).catch(() => {
+                        conn.close();
+                    });
+                },
+                tcpListen,
+            );
+        } catch (err) {
+            await this.close().catch(() => undefined);
+            throw err;
+        }
         const wss = this.opts.wss;
         if (wss) {
             try {
@@ -1034,7 +1066,7 @@ export class FusionCoordinator {
             atomTier: round.atomTier,
             covertDomain,
             covertPort: this.covertPort,
-            covertSsl: false,
+            covertSsl: this.tcpSsl,
             serverTime,
         };
         const budget = delay(this.opts.roundTimeoutMs ?? 10_000);
@@ -1070,6 +1102,23 @@ export class FusionCoordinator {
             budget.clear();
         }
     }
+}
+
+function tcpListenOptions(
+    tls: { cert?: string | Buffer; key?: string | Buffer } | undefined,
+): ListenOptions {
+    if (tls === undefined) {
+        return {};
+    }
+    if (
+        tls.cert === undefined ||
+        tls.key === undefined ||
+        tls.cert === '' ||
+        tls.key === ''
+    ) {
+        throw new Error('TCP TLS requires both cert and key');
+    }
+    return { ssl: true, cert: tls.cert, key: tls.key };
 }
 
 function fusionChain(
