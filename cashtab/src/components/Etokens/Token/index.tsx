@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -36,6 +36,7 @@ import {
     NANOSAT_DECIMALS,
     isValidTokenId,
     getAgoraMinBuyError,
+    hasUsableFiatPrice,
 } from 'validation';
 import BigNumber from 'bignumber.js';
 import {
@@ -1494,8 +1495,12 @@ const Token: React.FC = () => {
     }, [switches]);
 
     useEffect(() => {
-        if (fiatPrice === null && selectedCurrency !== appConfig.ticker) {
-            // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable
+        if (
+            !hasUsableFiatPrice(fiatPrice) &&
+            selectedCurrency !== appConfig.ticker
+        ) {
+            // Clear NFT and Token list prices and de-select fiat currency if rate is unavailable.
+            // Testnet stubs the rate at 0, which is not a usable fiat price.
             handleSelectedCurrencyChange({
                 target: { value: appConfig.ticker },
             } as React.ChangeEvent<HTMLSelectElement>);
@@ -4865,7 +4870,9 @@ const Token: React.FC = () => {
                                                             selectedCurrency
                                                         }
                                                         selectDisabled={
-                                                            fiatPrice === null
+                                                            !hasUsableFiatPrice(
+                                                                fiatPrice,
+                                                            )
                                                         }
                                                         fiatCode={settings.fiatCurrency.toUpperCase()}
                                                         error={
@@ -5056,8 +5063,9 @@ const Token: React.FC = () => {
                                                                     selectedCurrency
                                                                 }
                                                                 selectDisabled={
-                                                                    fiatPrice ===
-                                                                    null
+                                                                    !hasUsableFiatPrice(
+                                                                        fiatPrice,
+                                                                    )
                                                                 }
                                                                 fiatCode={settings.fiatCurrency.toUpperCase()}
                                                                 error={

@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -1509,9 +1509,28 @@ export const getContactNameError = (
 };
 
 /**
+ * True for the native list-price unit. Mainnet labels it XEC and testnet
+ * labels it tXEC. Both are XEC amounts, not fiat.
+ */
+const isNativeXecListPrice = (selectedCurrency: string): boolean =>
+    selectedCurrency === 'XEC' || selectedCurrency === 'tXEC';
+
+/**
+ * Whether an XEC/fiat rate can convert a list price.
+ * Testnet stores 0 because it does not fetch a fiat rate; that is not usable.
+ * @param fiatPrice XEC price in the selected fiat currency, or null when unknown
+ */
+export const hasUsableFiatPrice = (
+    fiatPrice: null | number,
+): fiatPrice is number =>
+    typeof fiatPrice === 'number' &&
+    Number.isFinite(fiatPrice) &&
+    fiatPrice > 0;
+
+/**
  * Validation for a user-input price for listing an NFT, in XEC or fiat
  * @param xecListPrice user input list price of an NFT in XEC or fiat
- * @param selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param selectedCurrency e.g. XEC, tXEC, USD (comes from Select dropdown)
  * @param fiatPrice price of XEC in selectedCurrency
  */
 export const getXecListPriceError = (
@@ -1523,8 +1542,13 @@ export const getXecListPriceError = (
     if (xecListPrice === '') {
         return 'List price is required.';
     }
-    if (selectedCurrency !== 'XEC' && fiatPrice === null) {
-        // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
+    if (
+        !isNativeXecListPrice(selectedCurrency) &&
+        !hasUsableFiatPrice(fiatPrice)
+    ) {
+        // The list form also switches back to the native ticker when the rate
+        // is missing. Return an error instead of dividing by 0 or null, which
+        // throws out of the input handler (BigInt(Infinity) on testnet).
         return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
     }
     const normalizedPrice = normalizeDecimalInput(xecListPrice, userLocale);
@@ -1537,16 +1561,15 @@ export const getXecListPriceError = (
             return `List price supports up to ${appConfig.cashDecimals} decimal places.`;
         }
     }
-    const priceSatoshis =
-        selectedCurrency !== 'XEC'
-            ? toSatoshis(
-                  parseFloat(
-                      (
-                          parseFloat(normalizedPrice) / (fiatPrice as number)
-                      ).toFixed(2),
+    const priceSatoshis = isNativeXecListPrice(selectedCurrency)
+        ? toSatoshis(Number(normalizedPrice))
+        : toSatoshis(
+              parseFloat(
+                  (parseFloat(normalizedPrice) / (fiatPrice as number)).toFixed(
+                      2,
                   ),
-              )
-            : toSatoshis(Number(normalizedPrice));
+              ),
+          );
     if (priceSatoshis < appConfig.dustSats) {
         // We cannot enforce an output to have less than dust satoshis
         return 'List price cannot be less than dust (5.46 XEC).';
@@ -1562,10 +1585,9 @@ export const getXecListPriceError = (
  * So, we can have much lower prices
  * However we still must prevent prices that are "too low", i.e. less than 1 nanosatoshi per token
  * satoshi, or prices where the min buy would be less than dust (546 satoshis)
- * @param xecListPrice user input list price of an NFT in XEC or fiat
- * @param selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param xecListPrice user input list price of a token in XEC or fiat
+ * @param selectedCurrency e.g. XEC, tXEC, USD (comes from Select dropdown)
  * @param fiatPrice price of XEC in selectedCurrency
- * @param minBuyTokenQty min amount that can be purchased in this agora partial
  * @param tokenDecimals
  */
 export const NANOSAT_DECIMALS = 11;
@@ -1579,8 +1601,13 @@ export const getAgoraPartialListPriceError = (
     if (xecListPrice === '') {
         return 'List price is required.';
     }
-    if (selectedCurrency !== 'XEC' && fiatPrice === null) {
-        // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
+    if (
+        !isNativeXecListPrice(selectedCurrency) &&
+        !hasUsableFiatPrice(fiatPrice)
+    ) {
+        // The list form also switches back to the native ticker when the rate
+        // is missing. Return an error instead of dividing by 0 or null, which
+        // throws out of the input handler (BigInt(Infinity) on testnet).
         return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
     }
     const normalizedPrice = normalizeDecimalInput(xecListPrice, userLocale);
@@ -1597,15 +1624,14 @@ export const getAgoraPartialListPriceError = (
         }
     }
 
-    // Get the price in XEC
-    const priceXec =
-        selectedCurrency !== 'XEC'
-            ? new BigNumber(
-                  new BigNumber(normalizedPrice)
-                      .div(fiatPrice as number)
-                      .toFixed(NANOSAT_DECIMALS),
-              )
-            : new BigNumber(normalizedPrice);
+    // Get the price in XEC. tXEC is the testnet label for the same unit.
+    const priceXec = isNativeXecListPrice(selectedCurrency)
+        ? new BigNumber(normalizedPrice)
+        : new BigNumber(
+              new BigNumber(normalizedPrice)
+                  .div(fiatPrice as number)
+                  .toFixed(NANOSAT_DECIMALS),
+          );
 
     // Get the price in nanosats per token satoshi
     // this is the unit agora takes, 1 nanosat per 1 tokens at is the min
@@ -1673,15 +1699,21 @@ export const getAgoraMinBuyError = (
     // Note that we "could" do this, but it would mean users are overpaying
     // Maintain accurate prices
 
-    // Get the price in XEC
-    const priceXec =
-        selectedCurrency !== 'XEC'
-            ? new BigNumber(
-                  new BigNumber(normalizedListPrice)
-                      .div(fiatPrice as number)
-                      .toFixed(NANOSAT_DECIMALS),
-              )
-            : new BigNumber(normalizedListPrice);
+    if (
+        !isNativeXecListPrice(selectedCurrency) &&
+        !hasUsableFiatPrice(fiatPrice)
+    ) {
+        return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
+    }
+
+    // Get the price in XEC. tXEC is the testnet label for the same unit.
+    const priceXec = isNativeXecListPrice(selectedCurrency)
+        ? new BigNumber(normalizedListPrice)
+        : new BigNumber(
+              new BigNumber(normalizedListPrice)
+                  .div(fiatPrice as number)
+                  .toFixed(NANOSAT_DECIMALS),
+          );
 
     // Get the total price of the min buy amount
     const priceXecMinBuy = priceXec.times(new BigNumber(normalizedMinBuy));

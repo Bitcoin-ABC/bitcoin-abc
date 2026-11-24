@@ -963,6 +963,9 @@ export const SendTokenInput: React.FC<SendTokenInputProps> = ({
     );
 };
 
+/** Testnet has no XEC fiat market, so Agora list prices stay in tXEC. */
+const listingFiatCurrencyEnabled = import.meta.env.VITE_TESTNET !== 'true';
+
 interface ListPriceInputProps {
     name: string;
     placeholder: string;
@@ -1047,14 +1050,22 @@ export const ListPriceInput: React.FC<ListPriceInputProps> = ({
                     data-testid="currency-select-dropdown"
                     value={selectValue}
                     onChange={handleSelect}
-                    disabled={selectDisabled}
+                    disabled={selectDisabled || !listingFiatCurrencyEnabled}
                 >
-                    <CurrencyOption data-testid="xec-option" value="XEC">
-                        XEC
+                    <CurrencyOption
+                        data-testid="xec-option"
+                        value={appConfig.ticker}
+                    >
+                        {appConfig.ticker}
                     </CurrencyOption>
-                    <CurrencyOption data-testid="fiat-option" value={fiatCode}>
-                        {fiatCode}
-                    </CurrencyOption>
+                    {listingFiatCurrencyEnabled && (
+                        <CurrencyOption
+                            data-testid="fiat-option"
+                            value={fiatCode}
+                        >
+                            {fiatCode}
+                        </CurrencyOption>
+                    )}
                 </SellPriceDropdown>
             </InputRow>
             <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>

@@ -1,4 +1,4 @@
-// Copyright (c) 2024 The Bitcoin developers
+// Copyright (c) 2024-2026 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -2977,6 +2977,22 @@ export default {
                 returned:
                     'Cannot input price in GBP while fiat price is unavailable.',
             },
+            {
+                description:
+                    'Accepts a tXEC price when the fiat rate is the testnet stub of 0',
+                xecListPrice: '5.46',
+                selectedCurrency: 'tXEC',
+                fiatPrice: 0,
+                returned: false,
+            },
+            {
+                description: 'Rejects fiat input if fiatPrice is zero',
+                xecListPrice: '5.46',
+                selectedCurrency: 'USD',
+                fiatPrice: 0,
+                returned:
+                    'Cannot input price in USD while fiat price is unavailable.',
+            },
         ],
     },
     getAgoraPartialListPriceError: {
@@ -3143,6 +3159,24 @@ export default {
                 tokenDecimals: 0,
                 returned:
                     'Cannot input price in GBP while fiat price is unavailable.',
+            },
+            {
+                description:
+                    'Accepts a tXEC price when the fiat rate is the testnet stub of 0',
+                xecListPrice: '1',
+                selectedCurrency: 'tXEC',
+                fiatPrice: 0,
+                tokenDecimals: 0,
+                returned: false,
+            },
+            {
+                description: 'Rejects fiat input if fiatPrice is zero',
+                xecListPrice: '1',
+                selectedCurrency: 'USD',
+                fiatPrice: 0,
+                tokenDecimals: 0,
+                returned:
+                    'Cannot input price in USD while fiat price is unavailable.',
             },
         ],
     },
@@ -3316,6 +3350,35 @@ export default {
                 tokenBalance: '100',
                 userLocale: 'en-US',
                 returned: `Total cost of minimum buy below dust. Min offered qty must be at least 6.`,
+            },
+            {
+                description:
+                    'tXEC price with a zero fiat rate still uses the native XEC price',
+                xecListPrice: '1',
+                selectedCurrency: 'tXEC',
+                fiatPrice: 0,
+                minBuyTokenQty: '1',
+                offeredTokenQty: '100',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned: `Total cost of minimum buy below dust. Min offered qty must be at least 6.`,
+            },
+            {
+                description:
+                    'Rejects a fiat min buy when the fiat rate is zero',
+                xecListPrice: '1',
+                selectedCurrency: 'USD',
+                fiatPrice: 0,
+                minBuyTokenQty: '10',
+                offeredTokenQty: '100',
+                tokenDecimals: 0,
+                tokenProtocol: 'ALP',
+                tokenBalance: '100',
+                userLocale: 'en-US',
+                returned:
+                    'Cannot input price in USD while fiat price is unavailable.',
             },
             {
                 description:
