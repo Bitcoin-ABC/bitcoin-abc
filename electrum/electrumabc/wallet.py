@@ -2562,17 +2562,20 @@ class AbstractWallet(PrintError, SPVDelegate):
         info = {}
         xpubs = self.get_master_public_keys()
         for txout in tx.outputs():
-            if self.is_change(txout.destination):
-                index = self.get_address_index(txout.destination)
-                pubkeys = self.get_public_keys(txout.destination)
-                # sort xpubs using the order of pubkeys
-                _sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
-                info[txout.destination] = (
-                    index,
-                    sorted_xpubs,
-                    self.m if isinstance(self, MultisigWallet) else None,
-                    self.txin_type,
-                )
+            if not isinstance(txout.destination, Address) or not self.is_change(
+                txout.destination
+            ):
+                continue
+            index = self.get_address_index(txout.destination)
+            pubkeys = self.get_public_keys(txout.destination)
+            # sort xpubs using the order of pubkeys
+            _sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
+            info[txout.destination] = (
+                index,
+                sorted_xpubs,
+                self.m if isinstance(self, MultisigWallet) else None,
+                self.txin_type,
+            )
         tx.output_info = info
 
     def sign_transaction(self, tx, password, *, use_cache=False):
