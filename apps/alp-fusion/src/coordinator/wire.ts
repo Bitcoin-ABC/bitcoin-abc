@@ -35,7 +35,7 @@ import {
 } from '../protocol/connection.js';
 import { listenWebSocket } from '../protocol/websocket.js';
 import { serveCovertPeer } from '../protocol/covert.js';
-import { asBytes, componentCommitment } from '../protocol/components.js';
+import { asBytes } from '../protocol/components.js';
 import {
     verifyCovertComponent,
     verifyPlayerCommit,
@@ -77,7 +77,9 @@ export interface FusionCoordinatorOptions {
     roundTimeoutMs?: number;
     recvTimeoutMs?: number;
     /**
-     * Cap on unmatched covert blobs stored before / during a round.
+     * Cap on covert blobs stored before a round starts.
+     * In-round reveals use the authorized component count
+     * (`numComponents * players`), not this value.
      * Default: `numComponents * minPlayers * 2`.
      */
     maxEarlyCovert?: number;
@@ -133,9 +135,10 @@ class ActiveRound {
     readonly tokenId: string;
     readonly atomTier: bigint;
     readonly playerIds: readonly PlayerId[];
+    /** Commitment hashes per player. Not used to attribute covert reveals. */
     readonly expected = new Map<PlayerId, Set<string>>();
-    readonly received = new Map<PlayerId, Buffer[]>();
-    readonly pending = new Map<string, Buffer>();
+    /** Covert components keyed by sha256(component), not by the salted commitment. */
+    private readonly covertBlobs = new Map<string, Buffer>();
     readonly result: Promise<RoundResult>;
     readonly signed: Promise<RoundResult>;
     private resolveResult!: (r: RoundResult) => void;
@@ -143,7 +146,12 @@ class ActiveRound {
     private finished = false;
     private signedFinished = false;
     private readonly feePerKb: bigint;
-    private readonly maxPending: number;
+    /**
+     * Most components one player may commit. The in-round cap is this
+     * times the player count, then the exact committed count once every
+     * player has committed.
+     */
+    private readonly perPlayerComponents: number;
     private readonly chain: FusionChain | undefined;
     private assembling = false;
     tx: Tx | undefined;
@@ -159,14 +167,14 @@ class ActiveRound {
         atomTier: bigint,
         playerIds: PlayerId[],
         feePerKb: bigint,
-        maxPending: number,
+        perPlayerComponents: number,
         chain?: FusionChain,
     ) {
         this.tokenId = tokenId;
         this.atomTier = atomTier;
         this.playerIds = playerIds;
         this.feePerKb = feePerKb;
-        this.maxPending = maxPending;
+        this.perPlayerComponents = perPlayerComponents;
         this.chain = chain;
         this.result = new Promise(resolve => {
             this.resolveResult = resolve;
@@ -174,33 +182,40 @@ class ActiveRound {
         this.signed = new Promise(resolve => {
             this.resolveSigned = resolve;
         });
-        for (const id of playerIds) {
-            this.received.set(id, []);
-        }
     }
 
     /**
-     * Queue an unmatched covert blob, or assign it if a player already
-     * committed this hash. Returns false when the unmatched cap is full.
+     * Store a covert component without linking it to a player commitment.
+     * Returns false when the authorized-component cap is full.
      */
-    addPending(hashHex: string, component: Buffer): boolean {
+    addCovert(component: Buffer): boolean {
         if (this.finished) {
             return true;
         }
-        for (const [playerId, hashes] of this.expected) {
-            if (hashes.has(hashHex)) {
-                this.assign(playerId, hashHex, component);
-                return true;
-            }
+        const id = toHex(sha256(component));
+        if (this.covertBlobs.has(id)) {
+            return true;
         }
-        if (
-            !this.pending.has(hashHex) &&
-            this.pending.size >= this.maxPending
-        ) {
+        if (this.covertBlobs.size >= this.covertLimit()) {
             return false;
         }
-        this.pending.set(hashHex, component);
+        this.covertBlobs.set(id, component);
         return true;
+    }
+
+    /**
+     * Before every player has committed, allow up to one full set per player.
+     * After that, allow only the committed count. This is not maxEarlyCovert.
+     */
+    private covertLimit(): number {
+        if (this.expected.size === this.playerIds.length) {
+            let authorized = 0;
+            for (const hashes of this.expected.values()) {
+                authorized += hashes.size;
+            }
+            return authorized;
+        }
+        return this.playerIds.length * this.perPlayerComponents;
     }
 
     addCommit(playerId: PlayerId, hashHexes: string[]): void {
@@ -218,13 +233,6 @@ class ActiveRound {
             throw new Error(`player ${playerId}: no commitments`);
         }
         this.expected.set(playerId, set);
-        for (const hashHex of set) {
-            const pending = this.pending.get(hashHex);
-            if (pending) {
-                this.pending.delete(hashHex);
-                this.assign(playerId, hashHex, pending);
-            }
-        }
     }
 
     fail(error: string): void {
@@ -288,17 +296,20 @@ class ActiveRound {
         if (this.expected.size !== this.playerIds.length) {
             return;
         }
+        let want = 0;
         for (const id of this.playerIds) {
-            const want = this.expected.get(id);
-            const got = this.received.get(id) ?? [];
-            if (!want || got.length !== want.size) {
+            const committed = this.expected.get(id);
+            if (!committed) {
                 return;
             }
+            want += committed.size;
         }
-        const allComponents: Buffer[] = [];
-        for (const id of this.playerIds) {
-            allComponents.push(...(this.received.get(id) ?? []));
+        if (this.covertBlobs.size !== want) {
+            return;
         }
+        const allComponents = [...this.covertBlobs.entries()]
+            .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+            .map(([, blob]) => blob);
         let assembled: ReturnType<typeof assembleFromComponents>['assembled'];
         let pubkeys: Uint8Array[];
         try {
@@ -370,25 +381,6 @@ class ActiveRound {
             components: allComponents,
         });
     }
-
-    private assign(
-        playerId: PlayerId,
-        hashHex: string,
-        component: Buffer,
-    ): void {
-        const hashes = this.expected.get(playerId);
-        if (!hashes?.has(hashHex)) {
-            return;
-        }
-        const list = this.received.get(playerId);
-        if (!list) {
-            return;
-        }
-        if (list.some(b => toHex(sha256(b)) === hashHex)) {
-            return;
-        }
-        list.push(component);
-    }
 }
 
 /**
@@ -422,11 +414,15 @@ export class FusionCoordinator {
         }
         this.opts = opts;
         this.matcher = new PoolMatcher(opts.minPlayers);
-        this.maxEarlyCovert =
+        const earlyCap =
             opts.maxEarlyCovert ??
             (opts.numComponents ?? NUM_COMPONENTS) *
                 (opts.minPlayers ?? DEFAULT_MIN_PLAYERS) *
                 2;
+        if (!Number.isInteger(earlyCap) || earlyCap < 1) {
+            throw new Error('maxEarlyCovert must be a positive integer');
+        }
+        this.maxEarlyCovert = earlyCap;
     }
 
     get controlPort(): number {
@@ -619,8 +615,7 @@ export class FusionCoordinator {
                 payload,
                 this.activeRound.roundPubkey,
             );
-            const hashHex = toHex(componentCommitment(component));
-            if (!this.activeRound.addPending(hashHex, component)) {
+            if (!this.activeRound.addCovert(component)) {
                 return {
                     ok: false,
                     message: 'too many covert components',
@@ -1015,12 +1010,18 @@ export class FusionCoordinator {
                     ready.atomTier,
                     ready.playerIds,
                     this.opts.componentFeerate ?? DEFAULT_FEE_SATS_PER_KB,
-                    this.maxEarlyCovert,
+                    this.opts.numComponents ?? NUM_COMPONENTS,
                     fusionChain(this.opts.chronik),
                 );
                 this.activeRound = round;
-                for (const [hashHex, component] of this.earlyCovert) {
-                    round.addPending(hashHex, component);
+                let moved = 0;
+                for (const component of this.earlyCovert.values()) {
+                    if (moved >= this.maxEarlyCovert) {
+                        break;
+                    }
+                    if (round.addCovert(component)) {
+                        moved += 1;
+                    }
                 }
                 this.earlyCovert.clear();
                 void this.beginRound(round).catch(err => {

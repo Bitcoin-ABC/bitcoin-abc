@@ -11,6 +11,7 @@ import {
     parseEmppScript,
     Script,
     SEND_STR,
+    sha256,
     shaRmd160,
     Tx,
 } from 'ecash-lib';
@@ -21,9 +22,10 @@ import { runWireRound } from '../../src/client/wire.js';
 import { FusionCoordinator } from '../../src/coordinator/wire.js';
 import {
     asBytes,
-    componentCommitment,
     componentsToContribution,
     contributionToComponents,
+    encodeContribution,
+    saltedComponentHash,
     type WireContribution,
     type WireFuelInput,
     type WireTokenInput,
@@ -243,14 +245,19 @@ describe('wire components', () => {
             tokenOutputs,
             fuelInputs,
         };
-        const blobs = contributionToComponents(contrib);
+        const encoded = encodeContribution(contrib);
+        const blobs = encoded.map(item => item.component);
         expect(blobs).to.have.length(3);
         const back = componentsToContribution('p', TOKEN_ID, blobs);
         expect(back.tokenInputs).to.have.length(1);
         expect(back.tokenInputs[0].atoms).to.equal(40n);
         expect(back.tokenOutputs).to.have.length(1);
         expect(back.fuelInputs).to.have.length(1);
-        expect(toHexish(componentCommitment(blobs[0]))).to.have.length(64);
+        const commitment = toHexish(
+            saltedComponentHash(encoded[0].salt, blobs[0]),
+        );
+        expect(commitment).to.have.length(64);
+        expect(commitment).to.not.equal(toHexish(sha256(blobs[0])));
     });
 
     it('rejects a pubkey that does not match the P2PKH script', () => {
@@ -359,6 +366,28 @@ describe('FusionCoordinator wire round', function () {
             expect(
                 [...alp.sendAtomsArray].sort((x, y) => Number(x - y)),
             ).to.deep.equal([25n, 35n, 40n]);
+        } finally {
+            await coord.close();
+        }
+    });
+
+    it('assembles when maxEarlyCovert is below the component count', async () => {
+        const coord = new FusionCoordinator({
+            minPlayers: 2,
+            atomTiers: [100n],
+            maxEarlyCovert: 1,
+            recvTimeoutMs: 5_000,
+            roundTimeoutMs: 8_000,
+        });
+        await coord.start('127.0.0.1');
+        const pair = pairPlayers(60, 61);
+        try {
+            const [a, b] = await Promise.all([
+                joinRound(coord, pair.a),
+                joinRound(coord, pair.b),
+            ]);
+            expect(a.txid).to.equal(b.txid);
+            expect(a.rawTx.length).to.be.greaterThan(0);
         } finally {
             await coord.close();
         }
@@ -1383,7 +1412,8 @@ async function throughShare(
     const noncePoints = Array.isArray(nonceRaw)
         ? nonceRaw.map(p => Buffer.from(p as Uint8Array))
         : [];
-    const components = contributionToComponents(contribution);
+    const encoded = encodeContribution(contribution);
+    const components = encoded.map(item => item.component);
     const feerate =
         typeof hello.payload.componentFeerate === 'bigint'
             ? hello.payload.componentFeerate
@@ -1393,6 +1423,7 @@ async function throughShare(
         roundPubkey,
         noncePoints,
         feerate,
+        encoded.map(item => item.salt),
     );
     await conn.sendMessage(
         encodeMessage(types.ClientMessage, 'playercommit', {

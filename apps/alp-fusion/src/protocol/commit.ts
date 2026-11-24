@@ -26,7 +26,7 @@ import {
     type PedersenCommitment,
 } from 'ecash-lib';
 
-import { asBytes } from './components.js';
+import { asBytes, saltedComponentHash } from './components.js';
 import { PEDERSEN_H_SATS, PEDERSEN_H_TOKEN } from './constants.js';
 import {
     decodeComponent,
@@ -131,7 +131,7 @@ export interface BuiltPlayerCommit {
     randomNumberCommitment: Uint8Array;
     blindSigRequests: Uint8Array[];
     requests: BlindSignatureRequest[];
-    /** `sha256(component)` hex — assemble matching key for this slice. */
+    /** `sha256(salt || component)` hex. The salt is not in the component. */
     hashes: string[];
 }
 
@@ -143,9 +143,13 @@ export function buildPlayerCommit(
     roundPubkey: Uint8Array,
     blindNoncePoints: Uint8Array[],
     feerate: bigint,
+    salts: Uint8Array[],
 ): BuiltPlayerCommit {
     if (components.length === 0) {
         throw new Error('buildPlayerCommit: at least one component');
+    }
+    if (salts.length !== components.length) {
+        throw new Error('buildPlayerCommit: one salt per component');
     }
     if (blindNoncePoints.length < components.length) {
         throw new Error('buildPlayerCommit: not enough blind nonce points');
@@ -157,7 +161,8 @@ export function buildPlayerCommit(
     let excessFee = 0n;
     let tokenTotal = 0n;
 
-    for (const raw of components) {
+    for (let i = 0; i < components.length; i++) {
+        const raw = components[i];
         const amounts = componentCommitAmounts(raw, feerate);
         excessFee += amounts.sats;
         tokenTotal += amounts.atoms;
@@ -165,7 +170,7 @@ export function buildPlayerCommit(
         const tokenC = tokenPedersenSetup().commit(amounts.atoms);
         satsCommits.push(satsC);
         tokenCommits.push(tokenC);
-        const hash = sha256(raw);
+        const hash = saltedComponentHash(salts[i], raw);
         hashes.push(toHex(hash));
         initialCommitments.push(
             encodeInitialCommitment({

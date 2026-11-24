@@ -13,10 +13,13 @@ import {
     Script,
     sha256,
     shaRmd160,
+    toHex,
 } from 'ecash-lib';
 
 import {
     contributionToComponents,
+    encodeContribution,
+    saltedComponentHash,
     DUMMY_POINT,
     type WireContribution,
 } from '../../src/protocol/components.js';
@@ -84,7 +87,9 @@ describe('buildPlayerCommit / verifyPlayerCommit', () => {
     }
 
     it('roundtrips dual Pedersen and unblinds a covert signature', () => {
-        const components = contributionToComponents(conserved());
+        const encoded = encodeContribution(conserved());
+        const components = encoded.map(item => item.component);
+        const salts = encoded.map(item => item.salt);
         const ecc = new Ecc();
         const seckey = randomScalarBytes();
         const roundPubkey = ecc.derivePubkey(seckey);
@@ -94,7 +99,12 @@ describe('buildPlayerCommit / verifyPlayerCommit', () => {
             roundPubkey,
             blinds.map(b => b.getR()),
             DEFAULT_FEE_SATS_PER_KB,
+            salts,
         );
+        expect(built.hashes[0]).to.equal(
+            toHex(saltedComponentHash(salts[0], components[0])),
+        );
+        expect(built.hashes[0]).to.not.equal(toHex(sha256(components[0])));
         const verified = verifyPlayerCommit(
             {
                 initialCommitments: built.initialCommitments,
@@ -178,7 +188,8 @@ describe('buildPlayerCommit / verifyPlayerCommit', () => {
                 },
             ],
         };
-        const components = contributionToComponents(burned);
+        const encoded = encodeContribution(burned);
+        const components = encoded.map(item => item.component);
         const ecc = new Ecc();
         const seckey = randomScalarBytes();
         expect(() =>
@@ -187,6 +198,7 @@ describe('buildPlayerCommit / verifyPlayerCommit', () => {
                 ecc.derivePubkey(seckey),
                 components.map(() => new BlindSigner().getR()),
                 DEFAULT_FEE_SATS_PER_KB,
+                encoded.map(item => item.salt),
             ),
         ).to.throw(/not conserved/);
     });

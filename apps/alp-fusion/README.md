@@ -131,6 +131,9 @@ fuses ALP without burning tokens.
 - **21. TLS on coordinator TCP** — `TLS_CERT` and `TLS_KEY` make
   `FusionCoordinator.start()` wrap control and covert with
   `listen({ ssl: true })`. FusionBegin `covertSsl` matches.
+- **24. Covert unlinkability** — PlayerCommit stores
+  `sha256(salt || component)`. The salt stays with the committer, so a
+  covert reveal cannot be mapped back to that commitment.
 
 **Aside:** [PRIVACY.md](./PRIVACY.md) concludes that alp-fusion is worth
 building. One round of 16 inputs has the same source count as a Monero ring.
@@ -162,8 +165,6 @@ starts `FusionCoordinator` on `127.0.0.1`. There is no hostname to ping.
   for target `(tokenId, atomTier)`. Cashtab one-shots cannot fill pools.
 - **23. Public coordinator** — TLS + WSS, `minPlayers >= 8`, Chronik
   broadcast, URL in Cashtab config. Replaces staging defaults.
-- **24. Covert unlinkability** — salt `sha256(salt || component)` so the
-  coordinator cannot map reveal → committer.
 - **25. Blame / restart + DoS limits** — recover a bad player; bound
   unmatched covert blobs and sessions.
 

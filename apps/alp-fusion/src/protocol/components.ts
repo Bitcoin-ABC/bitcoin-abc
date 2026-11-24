@@ -5,8 +5,8 @@
 /**
  * Encode / decode CashFusion-shaped {@link Component} blobs for a wire round.
  *
- * `saltedComponentHash` is still `sha256(componentBytes)` for assemble
- * matching. Pedersen / blind-auth live in `commit.ts`.
+ * `saltedComponentHash` is `sha256(salt || component)`. The salt stays with
+ * the committer. Pedersen / blind-auth live in `commit.ts`.
  */
 import { randomBytes } from 'node:crypto';
 
@@ -72,10 +72,27 @@ export function asBytes(value: unknown, name: string): Buffer {
 }
 
 /**
- * `sha256` of the encoded component — matches `saltedComponentHash` for this slice.
+ * Commitment the coordinator stores for one component.
+ * `salt` is 32 bytes and is not part of `component`, so a covert reveal
+ * cannot be matched back to this hash.
  */
-export function componentCommitment(componentBytes: Uint8Array): Uint8Array {
-    return sha256(componentBytes);
+export function saltedComponentHash(
+    salt: Uint8Array,
+    component: Uint8Array,
+): Uint8Array {
+    if (salt.length !== 32) {
+        throw new Error(`salt must be 32 bytes, got ${salt.length}`);
+    }
+    const buf = new Uint8Array(32 + component.length);
+    buf.set(salt, 0);
+    buf.set(component, 32);
+    return sha256(buf);
+}
+
+/** One encoded component plus the salt that must not leave the committer. */
+export interface EncodedComponent {
+    salt: Buffer;
+    component: Buffer;
 }
 
 /**
@@ -102,22 +119,37 @@ function assertPubkeyMatchesScript(
     }
 }
 
+function encodeSalted(
+    fields: Parameters<typeof encodeComponent>[0],
+): EncodedComponent {
+    const salt = randomBytes(32);
+    return {
+        salt,
+        component: encodeComponent({
+            ...fields,
+            saltCommitment: sha256(salt),
+        }),
+    };
+}
+
 /**
- * Encode one player's inputs/outputs as `Component` protobuf blobs.
+ * Encode one player's inputs/outputs as salted `Component` protobuf blobs.
+ * Callers that commit must keep `salt` and pass it to `buildPlayerCommit`.
  */
-export function contributionToComponents(contrib: WireContribution): Buffer[] {
+export function encodeContribution(
+    contrib: WireContribution,
+): EncodedComponent[] {
     if (contrib.tokenInputs.length === 0) {
         throw new Error('at least one token input required');
     }
     if (contrib.tokenOutputs.length === 0) {
         throw new Error('at least one token output required');
     }
-    const out: Buffer[] = [];
+    const out: EncodedComponent[] = [];
     for (const inp of contrib.tokenInputs) {
         assertPubkeyMatchesScript(inp.pubkey, inp.script, 'token input');
         out.push(
-            encodeComponent({
-                saltCommitment: sha256(randomBytes(32)),
+            encodeSalted({
                 input: {
                     prevTxid: outpointTxidBytes(inp.prevOut),
                     prevIndex: inp.prevOut.outIdx,
@@ -134,8 +166,7 @@ export function contributionToComponents(contrib: WireContribution): Buffer[] {
             throw new Error('fuel input atoms must be 0');
         }
         out.push(
-            encodeComponent({
-                saltCommitment: sha256(randomBytes(32)),
+            encodeSalted({
                 input: {
                     prevTxid: outpointTxidBytes(fuel.prevOut),
                     prevIndex: fuel.prevOut.outIdx,
@@ -147,8 +178,7 @@ export function contributionToComponents(contrib: WireContribution): Buffer[] {
     }
     for (const tout of contrib.tokenOutputs) {
         out.push(
-            encodeComponent({
-                saltCommitment: sha256(randomBytes(32)),
+            encodeSalted({
                 output: {
                     scriptpubkey: Buffer.from(tout.script.bytecode),
                     sats: tout.sats ?? DEFAULT_DUST_SATS,
@@ -159,8 +189,7 @@ export function contributionToComponents(contrib: WireContribution): Buffer[] {
     }
     for (const xec of contrib.xecOutputs ?? []) {
         out.push(
-            encodeComponent({
-                saltCommitment: sha256(randomBytes(32)),
+            encodeSalted({
                 output: {
                     scriptpubkey: Buffer.from(xec.script.bytecode),
                     sats: xec.sats,
@@ -169,6 +198,14 @@ export function contributionToComponents(contrib: WireContribution): Buffer[] {
         );
     }
     return out;
+}
+
+/**
+ * Encode one player's inputs/outputs as `Component` protobuf blobs.
+ * Drops the salts. Use {@link encodeContribution} when committing.
+ */
+export function contributionToComponents(contrib: WireContribution): Buffer[] {
+    return encodeContribution(contrib).map(item => item.component);
 }
 
 function asRecord(value: unknown, name: string): Record<string, unknown> {

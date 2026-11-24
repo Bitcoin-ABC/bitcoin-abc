@@ -13,7 +13,7 @@ import { DEFAULT_FEE_SATS_PER_KB, finalizeBlindSigs } from 'ecash-lib';
 
 import {
     asBytes,
-    contributionToComponents,
+    encodeContribution,
     type WireContribution,
 } from '../protocol/components.js';
 import { buildPlayerCommit, readBlindSigScalars } from '../protocol/commit.js';
@@ -172,12 +172,14 @@ export async function runWireRound(
             ? nonceRaw.map(p => Buffer.from(p as Uint8Array))
             : [];
 
-        const components = contributionToComponents(opts.contribution);
+        const encoded = encodeContribution(opts.contribution);
+        const components = encoded.map(item => item.component);
         const built = buildPlayerCommit(
             components,
             roundPubkey,
             noncePoints,
             feerate,
+            encoded.map(item => item.salt),
         );
         await sendClient(conn, types, 'playercommit', {
             initialCommitments: built.initialCommitments,

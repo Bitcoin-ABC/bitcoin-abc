@@ -133,7 +133,7 @@ Wallets and daemons call `FusionClient` (one-shot `fuseOnce` or continuous
   hook is Node TCP only. `createWebSocketRunRound` cannot set it, so it
   does not cover browser rounds. The coordinator side still needs an
   inbound Tor path (onion service).
-- Covert components now carry a real blind-Schnorr signature, but reveal is
-  **not yet unlinkable to the coordinator**: `saltedComponentHash` is still
-  `sha256(component)`, so the coordinator maps every revealed component to
-  its committer. Salted `sha256(salt || component)` + blame proofs remain.
+- Covert reveals are unlinkable to the committer: `saltedComponentHash` is
+  `sha256(salt || component)` and the salt is not sent. The coordinator
+  counts components and checks blind signatures. It does not match a reveal
+  to a player's commitment. Blame proofs that open the salt remain.
