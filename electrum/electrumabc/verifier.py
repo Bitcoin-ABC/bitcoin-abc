@@ -21,18 +21,21 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
 from . import networks
 from .bitcoin import hash_decode, hash_encode
 from .crypto import Hash
-from .network import Network
 from .util import ThreadJob
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from .blockchain import Blockchain
+    from .network import Network
 
 
 class BadResponse(Exception):
@@ -77,7 +80,7 @@ class SPVDelegate(ABC):
         tx's"""
 
     @abstractmethod
-    def undo_verifications(self, blkchain: object, height: int) -> set:
+    def undo_verifications(self, blkchain: Blockchain, height: int) -> set:
         """Called when the blockchain has changed to tell the wallet to undo
         verifications when a reorg has happened. Returns a set of tx_hashes that
         were undone."""
