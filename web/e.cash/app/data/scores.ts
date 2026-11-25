@@ -101,7 +101,7 @@ export interface ScoreableItem {
   id: number;
   attributes: {
     name: string;
-    score?: number;
+    score?: number | null;
     deposit_confirmations?: number;
     [key: string]: unknown;
   };

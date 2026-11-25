@@ -13,7 +13,7 @@ import {
 } from "../scores";
 
 // Example of API response shape
-const mockExchangesApiResponse = {
+const mockExchangesApiResponse: { data: ScoreableItem[] } = {
   data: [
     {
       id: 1,
@@ -142,7 +142,7 @@ describe("sortExchanges", () => {
       { threshold: 100, resultSlice: 1 },
     ];
 
-    const scoredMockExchanges = [
+    const scoredMockExchanges: ScoreableItem[] = [
       {
         id: 1,
         attributes: {
@@ -233,7 +233,7 @@ describe("sortExchanges", () => {
   });
 
   it("should filter out items with scores below threshold", () => {
-    const exchanges = [
+    const exchanges: ScoreableItem[] = [
       {
         id: 1,
         attributes: {
