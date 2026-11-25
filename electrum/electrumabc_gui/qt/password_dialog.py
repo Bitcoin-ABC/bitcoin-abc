@@ -25,6 +25,7 @@
 
 import math
 import re
+from enum import Enum, auto
 
 from qtpy import QtWidgets
 from qtpy.QtCore import Qt
@@ -55,16 +56,16 @@ def check_password_strength(password):
     return password_strength[min(3, int(score))]
 
 
-PW_NEW, PW_CHANGE, PW_PASSPHRASE = range(0, 3)
-
-
 class PasswordLayout:
-    titles = [_("Enter Password"), _("Change Password"), _("Enter Passphrase")]
+    class Kind(Enum):
+        PW_NEW = auto()
+        PW_CHANGE = auto()
+        PW_PASSPHRASE = auto()
 
     def __init__(
         self,
         msg,
-        kind,
+        kind: Kind,
         OK_button,
         wallet=None,
         *,
@@ -80,7 +81,7 @@ class PasswordLayout:
         self.kind = kind
         self.OK_button = OK_button
         self.all_lineedits = (self.pw, self.new_pw, self.conf_pw)
-        self.pw_strength = None  # Will be a QLabel if kind != PW_PASSPHRASE
+        self.pw_strength = None  # Will be a QLabel if kind != Kind.PW_PASSPHRASE
 
         vbox = QtWidgets.QVBoxLayout()
         label = QtWidgets.QLabel(msg + "\n")
@@ -90,7 +91,7 @@ class PasswordLayout:
         grid.setSpacing(8)
         grid.setColumnStretch(1, 1)
 
-        if kind == PW_PASSPHRASE:
+        if kind == self.Kind.PW_PASSPHRASE:
             vbox.addWidget(label)
             msgs = [_("Passphrase:"), _("Confirm Passphrase:")]
         else:
@@ -106,7 +107,7 @@ class PasswordLayout:
             logo_grid.addWidget(label, 0, 1, 1, 2)
             vbox.addLayout(logo_grid)
 
-            m1 = _("New Password:") if kind == PW_CHANGE else _("Password:")
+            m1 = _("New Password:") if kind == self.Kind.PW_CHANGE else _("Password:")
             msgs = [m1, _("Confirm Password:")]
             if wallet and wallet.has_password():
                 grid.addWidget(QtWidgets.QLabel(_("Current Password:")), 0, 0)
@@ -124,7 +125,7 @@ class PasswordLayout:
         vbox.addLayout(grid)
 
         # Password Strength Label
-        if kind != PW_PASSPHRASE:
+        if kind != self.Kind.PW_PASSPHRASE:
             self.pw_strength = QtWidgets.QLabel()
             grid.addWidget(self.pw_strength, 3, 0, 1, 2)
             self.new_pw.textChanged.connect(self.pw_changed)
@@ -149,7 +150,7 @@ class PasswordLayout:
         self.encrypt_cb = QtWidgets.QCheckBox(_("Encrypt wallet file"))
         self.encrypt_cb.setEnabled(False)
         grid.addWidget(self.encrypt_cb, 4, 0, 1, -1)
-        self.encrypt_cb.setVisible(kind != PW_PASSPHRASE)
+        self.encrypt_cb.setVisible(kind != self.Kind.PW_PASSPHRASE)
 
         def enable_OK():
             ok = bool(
@@ -168,9 +169,6 @@ class PasswordLayout:
             enable_OK()  # force buttons to OFF state initially.
 
         self.vbox = vbox
-
-    def title(self):
-        return self.titles[self.kind]
 
     def layout(self):
         return self.vbox
@@ -201,14 +199,14 @@ class PasswordLayout:
         self.pw_strength.setText(label)
 
     def old_password(self):
-        if self.kind == PW_CHANGE:
+        if self.kind == self.Kind.PW_CHANGE:
             return self.pw.text() or None
         return None
 
     def new_password(self):
         pw = self.new_pw.text()
         # Empty passphrases are fine and returned empty.
-        if pw == "" and self.kind != PW_PASSPHRASE:
+        if pw == "" and self.kind != self.Kind.PW_PASSPHRASE:
             pw = None
         return pw
 
@@ -252,22 +250,19 @@ class PasswordLayoutForHW(object):
 
         self.vbox = vbox
 
-    def title(self):
-        return _("Toggle Encryption")
-
     def layout(self):
         return self.vbox
 
 
 class ChangePasswordDialogBase(WindowModalDialog):
-    def __init__(self, parent, wallet):
+    def __init__(self, parent, wallet, window_title: str):
         WindowModalDialog.__init__(self, parent)
         is_encrypted = wallet.has_storage_encryption()
         OK_button = OkButton(self)
 
         self.create_password_layout(wallet, is_encrypted, OK_button)
 
-        self.setWindowTitle(self.playout.title())
+        self.setWindowTitle(window_title)
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.addLayout(self.playout.layout())
         vbox.addStretch(1)
@@ -280,7 +275,7 @@ class ChangePasswordDialogBase(WindowModalDialog):
 
 class ChangePasswordDialogForSW(ChangePasswordDialogBase):
     def __init__(self, parent, wallet):
-        ChangePasswordDialogBase.__init__(self, parent, wallet)
+        ChangePasswordDialogBase.__init__(self, parent, wallet, _("Change Password"))
         if not wallet.has_password():
             self.playout.encrypt_cb.setChecked(True)
 
@@ -299,7 +294,7 @@ class ChangePasswordDialogForSW(ChangePasswordDialogBase):
             msg += " " + _("Use this dialog to change your password.")
         self.playout = PasswordLayout(
             msg=msg,
-            kind=PW_CHANGE,
+            kind=PasswordLayout.Kind.PW_CHANGE,
             OK_button=OK_button,
             wallet=wallet,
             force_disable_encrypt_cb=not wallet.can_have_keystore_encryption(),
@@ -318,7 +313,7 @@ class ChangePasswordDialogForSW(ChangePasswordDialogBase):
 
 class ChangePasswordDialogForHW(ChangePasswordDialogBase):
     def __init__(self, parent, wallet):
-        ChangePasswordDialogBase.__init__(self, parent, wallet)
+        ChangePasswordDialogBase.__init__(self, parent, wallet, _("Toggle Encryption"))
 
     def create_password_layout(self, wallet, is_encrypted, OK_button):
         if not is_encrypted:
@@ -375,7 +370,7 @@ class PassphraseDialog(WindowModalDialog):
         OK_button = OkButton(self)
         self.playout = PasswordLayout(
             msg,
-            PW_PASSPHRASE,
+            PasswordLayout.Kind.PW_PASSPHRASE,
             OK_button,
             wallet,
             permit_empty=permit_empty,

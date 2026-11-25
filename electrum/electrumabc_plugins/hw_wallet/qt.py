@@ -37,7 +37,7 @@ from electrumabc.i18n import _
 from electrumabc.plugins import hook
 from electrumabc.printerror import PrintError
 from electrumabc.util import UserCancelled
-from electrumabc_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
+from electrumabc_gui.qt.password_dialog import PasswordLayout
 from electrumabc_gui.qt.statusbar import StatusBarButton
 from electrumabc_gui.qt.util import (
     Buttons,
@@ -157,7 +157,9 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         d = WindowModalDialog(parent, _("Enter Passphrase"))
         if confirm:
             OK_button = OkButton(d)
-            playout = PasswordLayout(msg=msg, kind=PW_PASSPHRASE, OK_button=OK_button)
+            playout = PasswordLayout(
+                msg=msg, kind=PasswordLayout.Kind.PW_PASSPHRASE, OK_button=OK_button
+            )
             vbox = QtWidgets.QVBoxLayout()
             vbox.addLayout(playout.layout())
             vbox.addLayout(Buttons(CancelButton(d), OK_button))

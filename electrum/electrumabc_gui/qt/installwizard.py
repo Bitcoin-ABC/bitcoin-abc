@@ -32,7 +32,7 @@ from electrumabc.wallet import AbstractWallet, StandardWallet
 
 from .bip38_importer import Bip38Importer
 from .network_dialog import NetworkChoiceLayout
-from .password_dialog import PW_NEW, PasswordLayout, PasswordLayoutForHW
+from .password_dialog import PasswordLayout, PasswordLayoutForHW
 from .seed_dialog import KeysLayout, SeedLayout
 from .util import (
     Buttons,
@@ -591,7 +591,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         """Request the user enter a new password and confirm it.  Return
         the password or None for no password.  Note that this dialog screen
         cannot go back, and instead the user can only cancel."""
-        return self.pw_layout(MSG_ENTER_PASSWORD, PW_NEW, force_disable_encrypt_cb)
+        return self.pw_layout(
+            MSG_ENTER_PASSWORD, PasswordLayout.Kind.PW_NEW, force_disable_encrypt_cb
+        )
 
     @wizard_dialog
     def request_storage_encryption(self, run_next: Callable[[bool], None]) -> bool:
