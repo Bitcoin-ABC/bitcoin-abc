@@ -105,6 +105,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
     def __init__(self):
         """Sets test framework defaults. Do not override this method. Instead, override the set_test_params() method"""
+        # Initialize the state of any mixin following this class in the MRO
+        super().__init__()
         self.chain: str = "regtest"
         self.setup_clean_chain: bool = False
         self.noban_tx_relay: bool = False

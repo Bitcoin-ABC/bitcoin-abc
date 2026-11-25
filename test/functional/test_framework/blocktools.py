@@ -264,13 +264,13 @@ class BlockTestMixin:
     """Shortcut for type used for block numbers. Can be an int or a string when branch
     information is to be stored (e.g. "64a", "b56p2"...)"""
 
-    blocks: dict[BlockNumber, CBlock] = {}
+    blocks: dict[BlockNumber, CBlock]
 
     tip: Optional[CBlock] = None
 
     genesis_hash = int(GENESIS_BLOCK_HASH, 16)
 
-    block_heights: dict[int, int] = {genesis_hash: 0}
+    block_heights: dict[int, int]
     """A sha256 to block height map"""
 
     coinbase_key: Optional[ECKey] = None
@@ -279,6 +279,11 @@ class BlockTestMixin:
     """
 
     coinbase_pubkey: Optional[bytes] = None
+
+    def __init__(self):
+        super().__init__()
+        self.blocks = {}
+        self.block_heights = {self.genesis_hash: 0}
 
     # move the tip back to a previous block
     def move_tip(self, number: BlockNumber):
