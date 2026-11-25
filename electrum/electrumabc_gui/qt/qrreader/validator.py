@@ -73,7 +73,9 @@ class QrReaderValidatorCounting(AbstractQrReaderValidator):
     of detection counts in `result_counts`.
     """
 
-    result_counts: dict[QrCodeResult, int] = {}
+    def __init__(self):
+        super().__init__()
+        self.result_counts: dict[QrCodeResult, int] = {}
 
     def validate_results(self, results: list[QrCodeResult]) -> QrReaderValidatorResult:
         res = QrReaderValidatorResult()
