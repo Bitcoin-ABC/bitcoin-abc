@@ -166,6 +166,8 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "fenixpool.com",
         "HashRoute",
         "SoloPool.ru",
+        "MINERS Pools",
+        "HASH IT",
         // Jackpool is not identifiable by a substring in the coinbase data.
     ];
 
@@ -668,6 +670,20 @@ mod tests {
             \x00\xf0\x00\x00\x16\xff\xac\x0f\x00\x0b\x53\x6f\x6c\x6f\x50\x6f\
             \x6f\x6c\x2e\x72\x75";
         assert_eq!(render_miner(solopool_coinbase_hex).unwrap(), "SoloPool.ru");
+
+        // MINERS Pools 977102
+        let miners_pools_coinbase_hex = b"\x03\xce\xe8\x0e\x04\x58\xcf\x06\
+            \x6b\x00\xf0\x00\x6f\x8b\x02\x00\x01\x00\x00\x00\x00\x00\x0e\
+            /MINERS Pools/";
+        assert_eq!(
+            render_miner(miners_pools_coinbase_hex).unwrap(),
+            "MINERS Pools"
+        );
+
+        // HASH IT 977108
+        let hash_it_coinbase_hex = b"\x03\xd4\xe8\x0e\x0c\x78\x31\x01\x05\
+            \xa9\x00\x00\x00\x00\x00\x00\x00\x09/HASH IT/";
+        assert_eq!(render_miner(hash_it_coinbase_hex).unwrap(), "HASH IT");
 
         // Unknown miner
         // genesis block 0

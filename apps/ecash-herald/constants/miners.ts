@@ -333,6 +333,22 @@ const miners: Miners = {
                 coinbaseHexFragment: '536f6c6f506f6f6c2e7275', // ascii SoloPool.ru
             },
         ],
+        [
+            // Stable miner payout (...2amm). Staker output rotates.
+            '76a9147eca7de3e149bb959cffa9ed3ff0b75cd6f1a9d388ac',
+            {
+                miner: 'MINERS Pools',
+                coinbaseHexFragment: '2f4d494e45525320506f6f6c732f', // ascii /MINERS Pools/
+            },
+        ],
+        [
+            // Miner payout on 977108 (...0tte).
+            '76a9141e9c20c866898cfa204b036aea71dff3f28f59ab88ac',
+            {
+                miner: 'HASH IT',
+                coinbaseHexFragment: '2f484153482049542f', // ascii /HASH IT/
+            },
+        ],
     ],
 };
 
