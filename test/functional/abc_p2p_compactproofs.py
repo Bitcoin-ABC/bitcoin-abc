@@ -330,6 +330,18 @@ class CompactProofsTest(BitcoinTestFramework):
             proofids.remove(avapeers[i].proof.proofid)
 
         assert_equal(len(proofids), 5)
+        # Wait for the node to finalize the disconnected peers, so their proofs
+        # are no longer shareable
+        self.wait_until(
+            lambda: (
+                set(proofids)
+                == {
+                    int(p["proofid"], 16)
+                    for p in node.getavalanchepeerinfo()
+                    if p["nodecount"] > 0
+                }
+            )
+        )
         send_getavaproof_check_shortid_len(receiving_peer, len(proofids))
 
         avaproofs = self.get_avaproofs(receiving_peer)
